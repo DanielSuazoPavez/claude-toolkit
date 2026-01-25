@@ -24,7 +24,6 @@ Getting claude-toolkit to a clean, polished state:
 
 - [ ] research+hooks: Dig deeper into hooks (general, Python-related)
 - [ ] toolkit+hooks: Make memory loading more reliable/automatic (beyond session-start essentials)
-- [ ] toolkit+hooks: Add usage tracking for skills/agents (post-call hook with counter)
 - [ ] meta: Define naming conventions (consistent patterns for skills, agents, hooks, memories)
 - [ ] meta+skills: Update `write-skill` with 500-line rule and supporting files structure (see diet103 research)
 
@@ -55,8 +54,8 @@ Getting claude-toolkit to a clean, polished state:
 
 > Keep max 5 entries. Older items move to CHANGELOG.md.
 
+- [x] toolkit+hooks: Add usage tracking for skills/agents (track-usage.sh)
 - [x] research+hooks: Review diet103/infrastructure-showcase → skill auto-activation patterns
 - [x] hooks: Improve all hooks to A-grade quality (jq handling, test cases, env var bypasses)
 - [x] meta+skills: Create hook-judge skill
 - [x] research+hooks: Review karanb192/claude-code-hooks → created write-hook skill
-- [x] toolkit: Implement claude-sync (0.1.0)
