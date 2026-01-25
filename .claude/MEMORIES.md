@@ -1,0 +1,65 @@
+# Memories Index
+
+Memory templates for project context. Customize for your project.
+
+## Essential Memories
+
+Always loaded at session start:
+
+| Memory | Purpose |
+|--------|---------|
+| `essential-conventions-code_style` | Coding conventions, formatting, style guide |
+| `essential-conventions-memory` | Memory naming conventions and categories |
+| `essential-preferences-conversational_patterns` | Communication style preferences |
+| `essential-reference-commands` | CLI and Make commands reference |
+| `essential-workflow-task_completion` | Task completion checklist |
+
+## Philosophy
+
+| Memory | Purpose |
+|--------|---------|
+| `philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
+
+## Memory Categories
+
+### `essential` (Permanent)
+- Core, stable project information
+- **Format**: `essential-{context}-{descriptive_name}`
+- Loaded automatically at session start
+
+### `relevant` (Long-term)
+- Important context that may evolve
+- **Format**: `relevant-{context}-{descriptive_name}`
+
+### `branch` (Temporary)
+- Work-in-progress context for a feature branch
+- **Format**: `branch-{YYYYMMDD}-{branch_name}-{context}`
+- Delete after branch is merged
+
+### `idea` (Temporary)
+- Future implementation ideas
+- **Format**: `idea-{YYYYMMDD}-{context}-{plan_idea}`
+
+## Creating Memories
+
+Use `/write-memory` to create properly formatted memories, or manually:
+
+1. Create file in `.claude/memories/`
+2. Follow naming convention for category
+3. Include Quick Reference section at top:
+
+```markdown
+# Memory Title
+
+## Quick Reference
+
+**ONLY READ WHEN:** [specific trigger]
+
+---
+
+[Full content below]
+```
+
+## Listing Memories
+
+Use `/list-memories` to see all available memories with their Quick Reference summaries.
