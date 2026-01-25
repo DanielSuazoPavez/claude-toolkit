@@ -1,4 +1,14 @@
 #!/bin/bash
+# UserPromptSubmit hook: inject essential memories at session start
+#
+# Settings.json:
+#   "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash .claude/hooks/session-start.sh"}]}]
+#
+# Requires: .claude/memories/essential-*.md files in the project root
+#
+# Test (manual):
+#   cd /path/to/project && bash .claude/hooks/session-start.sh
+#   # Expected: outputs essential memories, other memories list, git context
 
 # === ESSENTIAL CONTEXT (auto-injected) ===
 

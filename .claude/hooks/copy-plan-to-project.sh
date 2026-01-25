@@ -1,7 +1,17 @@
 #!/bin/bash
-# Copy plan files from user-level ~/.claude/plans/ to project docs/plans/
-# Triggers on PostToolUse for Write when in plan mode
+# PostToolUse hook: copy plan files from ~/.claude/plans/ to project
+#
+# Settings.json:
+#   "PostToolUse": [{"matcher": "Write", "hooks": [{"type": "command", "command": "bash .claude/hooks/copy-plan-to-project.sh"}]}]
+#
+# Configuration:
+#   CLAUDE_PLANS_DIR - target directory (default: docs/plans)
+#
+# Triggers on Write in plan mode for files in ~/.claude/plans/
 # Renames files based on plan title: "# Plan: Add Feature" -> 2026-01-24_1430_add-feature.md
+
+# Configuration
+PLANS_DIR="${CLAUDE_PLANS_DIR:-docs/plans}"
 
 input=$(cat)
 mode=$(echo "$input" | jq -r '.permission_mode // empty')
@@ -11,7 +21,7 @@ file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 # Only act on Write in plan mode, for files in ~/.claude/plans/
 if [[ "$mode" == "plan" && "$tool" == "Write" && "$file_path" == *"/.claude/plans/"* ]]; then
   # Create project plans directory if needed
-  mkdir -p docs/plans
+  mkdir -p "$PLANS_DIR"
 
   # Extract title from "# Plan: <title>" header
   title=$(grep -m1 '^# Plan:' "$file_path" | sed 's/^# Plan: *//')
@@ -27,9 +37,11 @@ if [[ "$mode" == "plan" && "$tool" == "Write" && "$file_path" == *"/.claude/plan
   fi
 
   # Copy plan to project with new name
-  cp "$file_path" "docs/plans/$new_filename"
-
-  echo "📋 Plan copied to project: docs/plans/$new_filename"
+  if cp "$file_path" "$PLANS_DIR/$new_filename" 2>/dev/null; then
+    echo "Plan copied to project: $PLANS_DIR/$new_filename"
+  else
+    echo "Warning: Failed to copy plan to $PLANS_DIR/$new_filename" >&2
+  fi
 fi
 
 exit 0

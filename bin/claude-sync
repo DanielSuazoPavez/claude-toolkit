@@ -135,6 +135,7 @@ is_ignored() {
 declare -a NEW_FILES=()
 declare -a UPDATED_FILES=()
 declare -a CONFLICT_FILES=()
+declare -a IGNORED_FILES=()
 
 # Find all files in toolkit .claude directory
 while IFS= read -r -d '' toolkit_file; do
@@ -143,6 +144,7 @@ while IFS= read -r -d '' toolkit_file; do
 
     # Skip if ignored
     if is_ignored "$rel_path"; then
+        IGNORED_FILES+=("$rel_path")
         continue
     fi
 
@@ -171,6 +173,18 @@ fi
 
 if [[ ${#NEW_FILES[@]} -eq 0 && ${#CONFLICT_FILES[@]} -eq 0 ]]; then
     echo "  (no changes)"
+fi
+
+# Display ignored files
+if [[ ${#IGNORED_FILES[@]} -gt 0 ]]; then
+    echo ""
+    echo -e "${BLUE}Ignored (via .claude-sync-ignore):${NC}"
+    for f in "${IGNORED_FILES[@]}"; do
+        echo -e "  ${RED}- $f${NC}"
+    done
+fi
+
+if [[ ${#NEW_FILES[@]} -eq 0 && ${#CONFLICT_FILES[@]} -eq 0 ]]; then
     exit 0
 fi
 echo ""
@@ -246,3 +260,10 @@ done
 echo "$TOOLKIT_VERSION" > "$PROJECT_VERSION_FILE"
 echo ""
 echo -e "${GREEN}Synced to version $TOOLKIT_VERSION${NC}"
+
+# Check dependencies
+if ! command -v jq &> /dev/null; then
+    echo ""
+    echo -e "${YELLOW}Warning: jq not found. Some hooks require jq for JSON parsing.${NC}"
+    echo "  Install: apt install jq (Debian/Ubuntu) or brew install jq (macOS)"
+fi
