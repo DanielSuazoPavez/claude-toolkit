@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: claude-sync [path] [--dry-run] [--force]
 
 TOOLKIT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET_DIR="${1:-.}"
+TARGET_DIR="."
 DRY_RUN=false
 FORCE=false
 
