@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0] - 2026-01-25 - Safety hooks & usage analytics
+
+### Added
+- `block-dangerous-commands.sh` hook: blocks rm -rf /, fork bombs, mkfs, dd to disks
+- `secrets-guard.sh` hook: blocks .env reads and env/printenv commands
+- `suggest-json-reader.sh` hook: suggests /json-reader for large JSON files
+- `scripts/analyze-usage.sh`: extracts skill/agent usage from transcripts (captures both user and agent invocations)
+- `scripts/validate-indexes.sh`: validates index files match actual resources
+
+### Changed
+- All new hooks have configurable bypass env vars, size thresholds, and allowlists
+
 ## [0.2.3] - 2026-01-25 - Hooks API documentation
 
 ### Changed

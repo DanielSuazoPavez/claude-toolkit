@@ -35,8 +35,6 @@ Getting claude-toolkit to a clean, polished state:
 - [ ] dev+skills: Create `testing-patterns` skill (pytest fixtures, mocking, data generators)
 - [ ] dev+skills: Create `github-actions` skill (CI/CD pipeline patterns, caching, matrix builds)
 - [ ] dev+skills: Create `docgen` skill (API docs, docstrings, README generation)
-- [ ] dev+hooks: Create secrets management hook (block commits with .env, warn about hardcoded secrets)
-- [ ] dev+hooks: Create block-dangerous-commands hook (prevent rm -rf, fork bombs - from hooks_review research)
 
 ## Low Priority
 
@@ -48,14 +46,13 @@ Getting claude-toolkit to a clean, polished state:
 - [ ] dev+skills: Create `git-workflow` skill (branching strategies, merge patterns, conventional commits)
 - [ ] research+skills: Research Polars-specific patterns (lazy frames, expressions, optimizations)
 - [ ] tests+toolkit: Add `test/test-sync.sh` - automated verification of install.sh and claude-sync flow
-- [ ] tests+toolkit: Add index verification (check skills/, agents/, etc. match their index files)
 
 ## Done
 
 > Keep max 5 entries. Older items move to CHANGELOG.md.
 
-- [x] meta+skills: Update HOOKS_API.md with input field names for each hook event
+- [x] dev+hooks: Safety hooks (block-dangerous-commands, secrets-guard, suggest-json-reader)
+- [x] toolkit: Transcript usage analyzer (scripts/analyze-usage.sh)
+- [x] tests+toolkit: Index verification script (scripts/validate-indexes.sh)
 - [x] toolkit+hooks: Add usage tracking for skills/agents (track-usage.sh)
-- [x] research+hooks: Review diet103/infrastructure-showcase → skill auto-activation patterns
-- [x] hooks: Improve all hooks to A-grade quality (jq handling, test cases, env var bypasses)
 - [x] meta+skills: Create hook-judge skill
