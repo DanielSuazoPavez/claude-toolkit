@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.2] - 2026-01-25 - Hook quality improvements
+
+### Fixed
+- All hooks now have jq error handling, documented test cases, and settings.json examples
+- `enforce-make-commands.sh`: pattern array for maintainability, catches `python -m pytest` and `ruff check/format`, `ALLOW_DIRECT_COMMANDS` bypass
+- `enforce-uv-run.sh`: regex now matches `python3.11`, `python3.12` etc., `ALLOW_DIRECT_PYTHON` bypass
+- `session-start.sh`: dynamic main branch detection, configurable `CLAUDE_MEMORIES_DIR`, directory existence check
+- `copy-plan-to-project.sh`: configurable `CLAUDE_PLANS_DIR`, source file check, timestamp in fallback filename
+- `claude-sync`: warns if jq not installed (required by hooks)
+
 ## [0.2.1] - 2026-01-25
 
 ### Fixed

@@ -53,8 +53,8 @@ Getting claude-toolkit to a clean, polished state:
 
 > Keep max 5 entries. Older items move to CHANGELOG.md.
 
+- [x] hooks: Improve all hooks to A-grade quality (jq handling, test cases, env var bypasses)
 - [x] meta+skills: Create hook-judge skill
 - [x] research+hooks: Review karanb192/claude-code-hooks → created write-hook skill
 - [x] toolkit: Implement claude-sync (0.1.0)
 - [x] toolkit: Add status flags to indexes
-- [x] skills: Copy docker-deployment skill from dotfiles
