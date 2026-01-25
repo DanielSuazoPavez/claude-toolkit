@@ -35,6 +35,7 @@ User-invocable skills activated with `/skill-name`.
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
 | `git-worktrees` | new | Reference for git worktrees - setup, usage, pitfalls |
 | `json-reader` | new | Read and analyze JSON files efficiently using jq |
+| `docker-deployment` | new | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
 
 ## Toolkit Development
 
