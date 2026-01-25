@@ -44,8 +44,11 @@ Add new entry at the top:
 - Description
 ```
 
-### 5. Update `pyproject.toml`
-Bump the `version` field.
+### 5. Update version file
+Bump the version in the appropriate file:
+- `VERSION` (plain text version file)
+- `pyproject.toml` (Python projects)
+- `package.json` (Node projects)
 
 ### 6. Update `BACKLOG.md`
 - Move completed items to "Recently Completed"
@@ -53,7 +56,7 @@ Bump the `version` field.
 
 ### 7. Commit documentation changes
 ```bash
-git add CHANGELOG.md pyproject.toml BACKLOG.md uv.lock
+git add CHANGELOG.md BACKLOG.md <version-file>
 git commit -m "docs: update changelog, version X.Y.Z, backlog"
 ```
 
@@ -90,5 +93,5 @@ Output what was updated.
 ## Notes
 
 - Uncommitted code changes are committed first, then docs/version updates
-- The `uv-lock` pre-commit hook will auto-update `uv.lock` on version change
+- If using pyproject.toml with uv, the uv-lock hook will auto-update uv.lock
 - If commit fails due to hooks, re-run the commit
