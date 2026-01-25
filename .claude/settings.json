@@ -10,6 +10,16 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/track-skill-usage.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -36,20 +46,11 @@
         ]
       },
       {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/track-usage.sh"
-          }
-        ]
-      },
-      {
         "matcher": "Task",
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/track-usage.sh"
+            "command": ".claude/hooks/track-agent-usage.sh"
           }
         ]
       }
