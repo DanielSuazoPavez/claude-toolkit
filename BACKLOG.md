@@ -22,7 +22,6 @@ Getting claude-toolkit to a clean, polished state:
 
 ## High Priority
 
-- [ ] research+hooks: Review https://github.com/karanb192/claude-code-hooks
 - [ ] research+hooks: Review https://github.com/diet103/claude-code-infrastructure-showcase
 - [ ] research+hooks: Dig deeper into hooks (general, Python-related)
 - [ ] toolkit+hooks: Make memory loading more reliable/automatic (beyond session-start essentials)
@@ -39,6 +38,7 @@ Getting claude-toolkit to a clean, polished state:
 - [ ] dev+skills: Create `github-actions` skill (CI/CD pipeline patterns, caching, matrix builds)
 - [ ] dev+skills: Create `docgen` skill (API docs, docstrings, README generation)
 - [ ] dev+hooks: Create secrets management hook (block commits with .env, warn about hardcoded secrets)
+- [ ] dev+hooks: Create block-dangerous-commands hook (prevent rm -rf, fork bombs - from hooks_review research)
 
 ## Low Priority
 
@@ -55,6 +55,7 @@ Getting claude-toolkit to a clean, polished state:
 
 > Keep max 5 entries. Older items move to CHANGELOG.md.
 
+- [x] research+hooks: Review karanb192/claude-code-hooks → created write-hook skill
 - [x] toolkit: Implement claude-sync (0.1.0)
 - [x] toolkit: Add status flags to indexes
 - [x] skills: Copy docker-deployment skill from dotfiles
