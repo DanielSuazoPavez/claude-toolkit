@@ -4,6 +4,17 @@ Automation hooks configured in `settings.local.json`.
 
 ## Included Hooks
 
+| Hook | Status | Trigger | Description |
+|------|--------|---------|-------------|
+| `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
+| `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
+| `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
+| `copy-plan-to-project.sh` | beta | PostToolUse (Write) | Copies plans to `.planning/` |
+
+**Note**: Beta hooks work but have matcher scope issues (too broad). See backlog.
+
+---
+
 ### session-start.sh
 
 **Trigger**: SessionStart

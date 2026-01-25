@@ -1,0 +1,248 @@
+#!/bin/bash
+set -euo pipefail
+
+# claude-sync: Sync skills from claude-toolkit to target projects
+# Usage: claude-sync [path] [--dry-run] [--force]
+
+TOOLKIT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+TARGET_DIR="${1:-.}"
+DRY_RUN=false
+FORCE=false
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --dry-run) DRY_RUN=true ;;
+        --force) FORCE=true ;;
+        -*) echo "Unknown option: $arg"; exit 1 ;;
+        *) TARGET_DIR="$arg" ;;
+    esac
+done
+
+# Resolve target to absolute path
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+# File paths
+TOOLKIT_VERSION_FILE="$TOOLKIT_DIR/VERSION"
+TOOLKIT_CHANGELOG="$TOOLKIT_DIR/CHANGELOG.md"
+PROJECT_VERSION_FILE="$TARGET_DIR/.claude-sync-version"
+PROJECT_IGNORE_FILE="$TARGET_DIR/.claude-sync-ignore"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Read versions
+if [[ ! -f "$TOOLKIT_VERSION_FILE" ]]; then
+    echo -e "${RED}Error: VERSION file not found in toolkit${NC}"
+    exit 1
+fi
+TOOLKIT_VERSION=$(cat "$TOOLKIT_VERSION_FILE" | tr -d '[:space:]')
+
+if [[ ! -f "$PROJECT_VERSION_FILE" ]]; then
+    echo -e "${YELLOW}No .claude-sync-version found. This project hasn't been synced before.${NC}"
+    PROJECT_VERSION="0.0.0"
+else
+    PROJECT_VERSION=$(cat "$PROJECT_VERSION_FILE" | tr -d '[:space:]')
+fi
+
+echo "Toolkit version: $TOOLKIT_VERSION"
+echo "Project version: $PROJECT_VERSION"
+echo ""
+
+# Compare versions using sort -V
+version_gt() {
+    [[ "$(printf '%s\n' "$1" "$2" | sort -V | tail -n1)" == "$1" ]] && [[ "$1" != "$2" ]]
+}
+
+version_eq() {
+    [[ "$1" == "$2" ]]
+}
+
+# Check version relationship
+if version_eq "$TOOLKIT_VERSION" "$PROJECT_VERSION"; then
+    echo -e "${GREEN}Already up to date.${NC}"
+    exit 0
+fi
+
+if version_gt "$PROJECT_VERSION" "$TOOLKIT_VERSION"; then
+    echo -e "${YELLOW}Warning: project version ($PROJECT_VERSION) is newer than toolkit ($TOOLKIT_VERSION)${NC}"
+    exit 0
+fi
+
+# Show changelog entries since last sync
+echo -e "${BLUE}Changes since $PROJECT_VERSION:${NC}"
+if [[ -f "$TOOLKIT_CHANGELOG" ]]; then
+    # Extract changelog entries between versions
+    awk -v start="$PROJECT_VERSION" -v end="$TOOLKIT_VERSION" '
+        /^## \[/ {
+            # Extract version from header like "## [1.2.0] - 2026-01-25"
+            match($0, /\[([0-9]+\.[0-9]+\.[0-9]+)\]/, arr)
+            if (arr[1] != "") {
+                current_version = arr[1]
+                # Print if version is > start and <= end
+                in_range = 0
+                if (current_version != start) {
+                    # Simple string comparison - works for semver
+                    cmd = "printf \"%s\\n%s\" \"" start "\" \"" current_version "\" | sort -V | tail -n1"
+                    cmd | getline newer
+                    close(cmd)
+                    if (newer == current_version) {
+                        in_range = 1
+                    }
+                }
+            }
+        }
+        in_range { print "  " $0 }
+    ' "$TOOLKIT_CHANGELOG"
+else
+    echo "  (no changelog found)"
+fi
+echo ""
+
+# Load ignore patterns
+declare -a IGNORE_PATTERNS=()
+if [[ -f "$PROJECT_IGNORE_FILE" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+        IGNORE_PATTERNS+=("$line")
+    done < "$PROJECT_IGNORE_FILE"
+fi
+
+# Check if path should be ignored
+is_ignored() {
+    local path="$1"
+    for pattern in "${IGNORE_PATTERNS[@]:-}"; do
+        # Directory pattern (ends with /)
+        if [[ "$pattern" == */ ]]; then
+            if [[ "$path" == "$pattern"* ]]; then
+                return 0
+            fi
+        else
+            if [[ "$path" == "$pattern" ]]; then
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+# Collect files to sync
+declare -a NEW_FILES=()
+declare -a UPDATED_FILES=()
+declare -a CONFLICT_FILES=()
+
+# Find all files in toolkit .claude directory
+while IFS= read -r -d '' toolkit_file; do
+    rel_path="${toolkit_file#$TOOLKIT_DIR/.claude/}"
+    target_file="$TARGET_DIR/.claude/$rel_path"
+
+    # Skip if ignored
+    if is_ignored "$rel_path"; then
+        continue
+    fi
+
+    if [[ ! -f "$target_file" ]]; then
+        NEW_FILES+=("$rel_path")
+    elif diff -q "$toolkit_file" "$target_file" > /dev/null 2>&1; then
+        # Identical - skip silently
+        :
+    else
+        CONFLICT_FILES+=("$rel_path")
+    fi
+done < <(find "$TOOLKIT_DIR/.claude" -type f -print0 2>/dev/null)
+
+# Display what would change
+echo -e "${BLUE}Files to sync:${NC}"
+if [[ ${#NEW_FILES[@]} -gt 0 ]]; then
+    for f in "${NEW_FILES[@]}"; do
+        echo -e "  ${GREEN}+ $f${NC} (new)"
+    done
+fi
+if [[ ${#CONFLICT_FILES[@]} -gt 0 ]]; then
+    for f in "${CONFLICT_FILES[@]}"; do
+        echo -e "  ${YELLOW}~ $f${NC} (updated)"
+    done
+fi
+
+if [[ ${#NEW_FILES[@]} -eq 0 && ${#CONFLICT_FILES[@]} -eq 0 ]]; then
+    echo "  (no changes)"
+    exit 0
+fi
+echo ""
+
+# Dry run exits here
+if $DRY_RUN; then
+    echo "Run without --dry-run to apply."
+    exit 0
+fi
+
+# Handle conflicts
+declare -a FILES_TO_COPY=()
+FILES_TO_COPY+=("${NEW_FILES[@]:-}")
+
+for f in "${CONFLICT_FILES[@]:-}"; do
+    if $FORCE; then
+        FILES_TO_COPY+=("$f")
+        continue
+    fi
+
+    echo -e "${YELLOW}Conflict: $f${NC}"
+    echo "  Local file differs from toolkit version."
+    echo -n "  [o]verwrite / [s]kip once / [i]gnore always? "
+    read -r choice
+
+    case $choice in
+        o|O)
+            FILES_TO_COPY+=("$f")
+            ;;
+        s|S)
+            echo "  Skipping."
+            ;;
+        i|I)
+            echo "$f" >> "$PROJECT_IGNORE_FILE"
+            echo "  Added to .claude-sync-ignore"
+            ;;
+        *)
+            echo "  Invalid choice, skipping."
+            ;;
+    esac
+done
+
+# Confirm
+if [[ ${#FILES_TO_COPY[@]} -eq 0 ]]; then
+    echo "No files to copy."
+    exit 0
+fi
+
+if ! $FORCE; then
+    echo ""
+    echo -n "Apply ${#FILES_TO_COPY[@]} changes? [y/N] "
+    read -r confirm
+    if [[ ! "$confirm" =~ ^[yY]$ ]]; then
+        echo "Aborted."
+        exit 0
+    fi
+fi
+
+# Apply changes
+echo ""
+for f in "${FILES_TO_COPY[@]}"; do
+    source_file="$TOOLKIT_DIR/.claude/$f"
+    target_file="$TARGET_DIR/.claude/$f"
+
+    # Create parent directory if needed
+    mkdir -p "$(dirname "$target_file")"
+
+    cp "$source_file" "$target_file"
+    echo -e "  ${GREEN}Copied: $f${NC}"
+done
+
+# Update version file
+echo "$TOOLKIT_VERSION" > "$PROJECT_VERSION_FILE"
+echo ""
+echo -e "${GREEN}Synced to version $TOOLKIT_VERSION${NC}"

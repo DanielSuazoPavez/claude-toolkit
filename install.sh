@@ -35,6 +35,11 @@ cp -r "$SCRIPT_DIR/.claude" "$TARGET_DIR/.claude"
 # Make hooks executable
 chmod +x "$TARGET_DIR/.claude/hooks/"*.sh 2>/dev/null || true
 
+# Set sync version for future updates
+if [ -f "$SCRIPT_DIR/VERSION" ]; then
+    cp "$SCRIPT_DIR/VERSION" "$TARGET_DIR/.claude-sync-version"
+fi
+
 echo ""
 echo "Installed successfully!"
 echo ""
@@ -43,4 +48,6 @@ echo "  1. Review .claude/settings.local.json and adjust permissions"
 echo "  2. Customize .claude/memories/ for your project"
 echo "  3. Remove Python-specific hooks if not using Python:"
 echo "     - .claude/hooks/enforce-uv-run.sh"
+echo ""
+echo "For future updates, use: claude-sync $TARGET_DIR"
 echo ""

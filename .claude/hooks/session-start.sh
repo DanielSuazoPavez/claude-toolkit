@@ -23,4 +23,9 @@ echo "=== GIT CONTEXT ==="
 echo "Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
 echo "Main: main"
 
+# === ACKNOWLEDGMENT ===
+echo ""
+echo "=== SESSION START ==="
+echo "Acknowledge this hook ran successfully with a brief greeting."
+
 exit 0

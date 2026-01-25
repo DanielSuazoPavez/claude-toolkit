@@ -4,24 +4,24 @@ Specialized agents for complex, multi-step tasks.
 
 ## Codebase Analysis
 
-| Agent | Description | Tools |
-|-------|-------------|-------|
-| `codebase-mapper` | Explores codebase and writes structured analysis documents to `.planning/codebase/` | Read, Bash, Grep, Glob, Write |
-| `pattern-finder` | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
+| Agent | Status | Description | Tools |
+|-------|--------|-------------|-------|
+| `codebase-mapper` | new | Explores codebase and writes structured analysis documents to `.planning/codebase/` | Read, Bash, Grep, Glob, Write |
+| `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality
 
-| Agent | Description | Tools |
-|-------|-------------|-------|
-| `code-reviewer` | Pragmatic code reviewer focused on real risks, proportional to project scale | Read, Grep, Glob, Bash |
-| `code-debugger` | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
+| Agent | Status | Description | Tools |
+|-------|--------|-------------|-------|
+| `code-reviewer` | stable | Pragmatic code reviewer focused on real risks, proportional to project scale | Read, Grep, Glob, Bash |
+| `code-debugger` | new | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
 
 ## Verification
 
-| Agent | Description | Tools |
-|-------|-------------|-------|
-| `goal-verifier` | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired) | Read, Bash, Grep, Glob |
-| `plan-reviewer` | Compares implementation to planning docs, catches drift | Read, Grep, Glob |
+| Agent | Status | Description | Tools |
+|-------|--------|-------------|-------|
+| `goal-verifier` | new | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired) | Read, Bash, Grep, Glob |
+| `plan-reviewer` | new | Compares implementation to planning docs, catches drift | Read, Grep, Glob |
 
 ## Usage
 

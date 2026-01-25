@@ -6,19 +6,19 @@ Memory templates for project context. Customize for your project.
 
 Always loaded at session start:
 
-| Memory | Purpose |
-|--------|---------|
-| `essential-conventions-code_style` | Coding conventions, formatting, style guide |
-| `essential-conventions-memory` | Memory naming conventions and categories |
-| `essential-preferences-conversational_patterns` | Communication style preferences |
-| `essential-reference-commands` | CLI and Make commands reference |
-| `essential-workflow-task_completion` | Task completion checklist |
+| Memory | Status | Purpose |
+|--------|--------|---------|
+| `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
+| `essential-conventions-memory` | stable | Memory naming conventions and categories |
+| `essential-preferences-conversational_patterns` | stable | Communication style preferences |
+| `essential-reference-commands` | stable | CLI and Make commands reference |
+| `essential-workflow-task_completion` | stable | Task completion checklist |
 
 ## Philosophy
 
-| Memory | Purpose |
-|--------|---------|
-| `philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
+| Memory | Status | Purpose |
+|--------|--------|---------|
+| `philosophy-reducing_entropy` | new | Philosophy on reducing codebase entropy |
 
 ## Memory Categories
 
