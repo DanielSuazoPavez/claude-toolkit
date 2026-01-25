@@ -7,6 +7,8 @@ Automation hooks configured in `settings.local.json`.
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
+| `track-skill-usage.sh` | stable | UserPromptSubmit | Tracks skill invocations to usage log |
+| `track-agent-usage.sh` | stable | PostToolUse (Task) | Tracks agent invocations to usage log |
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
 | `copy-plan-to-project.sh` | beta | PostToolUse (Write) | Copies plans to `.planning/` |

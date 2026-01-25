@@ -51,6 +51,6 @@ echo "Main: $MAIN_BRANCH"
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
 echo ""
 echo "=== SESSION START ==="
-echo "Loaded $ESSENTIAL_COUNT essential memories. Acknowledge with a brief greeting."
+echo "$ESSENTIAL_COUNT essential memories loaded. Acknowledge briefly, mentioning the count."
 
 exit 0

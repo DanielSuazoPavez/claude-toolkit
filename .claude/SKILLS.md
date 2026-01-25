@@ -43,8 +43,10 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `write-skill` | stable | Create new skills using test-driven documentation |
 | `write-memory` | stable | Create new memory files following conventions |
+| `write-hook` | stable | Create new hooks for Claude Code |
 | `skill-judge` | stable | Evaluate skill design quality against specifications |
 | `agent-judge` | stable | Evaluate agent prompt quality and design |
+| `hook-judge` | stable | Evaluate hook quality before deployment |
 
 ## Meta
 
