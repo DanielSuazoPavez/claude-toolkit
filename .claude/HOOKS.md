@@ -1,6 +1,6 @@
 # Hooks Index
 
-Automation hooks configured in `settings.local.json`.
+Automation hooks configured in `settings.json`.
 
 ## Included Hooks
 
@@ -9,6 +9,9 @@ Automation hooks configured in `settings.local.json`.
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
 | `track-skill-usage.sh` | stable | UserPromptSubmit | Tracks skill invocations to usage log |
 | `track-agent-usage.sh` | stable | PostToolUse (Task) | Tracks agent invocations to usage log |
+| `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `secrets-guard.sh` | beta | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
+| `suggest-json-reader.sh` | beta | PreToolUse (Read) | Suggests /json-reader skill for JSON files |
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
 | `copy-plan-to-project.sh` | beta | PostToolUse (Write) | Copies plans to `.planning/` |
@@ -26,6 +29,35 @@ Loads essential memories and git context at the start of each session.
 - Outputs all `essential-*.md` memories
 - Lists other available memories
 - Shows current git branch
+
+### block-dangerous-commands.sh
+
+**Trigger**: PreToolUse (Bash)
+
+Blocks destructive bash commands that could damage the system.
+
+- Blocks: `rm -rf /`, `rm -rf ~`, fork bombs, `mkfs`, `dd` to disks, `chmod -R 777 /`
+- Bypass: Set `ALLOW_DANGEROUS_COMMANDS=1`
+
+### secrets-guard.sh
+
+**Trigger**: PreToolUse (Read|Bash)
+
+Prevents accidental exposure of secrets from .env files.
+
+- Blocks Read: `.env`, `.env.*` (except `.env.example`, `.env.template`, `.env.sample`)
+- Blocks Bash: `cat .env`, `source .env`, `export $(cat .env)`, `env`
+- Bypass: Set `ALLOW_ENV_READ=1`
+
+### suggest-json-reader.sh
+
+**Trigger**: PreToolUse (Read)
+
+Suggests using `/json-reader` skill for JSON files.
+
+- Blocks: Any `.json` file read
+- Reason: JSON files can be large; `/json-reader` uses jq for efficient querying
+- Bypass: Set `ALLOW_JSON_READ=1`
 
 ### enforce-uv-run.sh
 
@@ -58,35 +90,29 @@ Copies plan files to `.planning/` directory.
 
 ## Configuration
 
-Hooks are configured in `settings.local.json`:
+Hooks are configured in `settings.json`:
 
 ```json
 {
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/session-start.sh"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/enforce-uv-run.sh"},
-          {"type": "command", "command": ".claude/hooks/enforce-make-commands.sh"}
+          {"type": "command", "command": "bash .claude/hooks/block-dangerous-commands.sh"},
+          {"type": "command", "command": ".claude/hooks/enforce-uv-run.sh"}
         ]
-      }
-    ],
-    "PostToolUse": [
+      },
       {
-        "matcher": "Write",
+        "matcher": "Read|Bash",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/copy-plan-to-project.sh"}
+          {"type": "command", "command": "bash .claude/hooks/secrets-guard.sh"}
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {"type": "command", "command": "bash .claude/hooks/suggest-json-reader.sh"}
         ]
       }
     ]
@@ -98,7 +124,7 @@ Hooks are configured in `settings.local.json`:
 
 1. Create `.claude/hooks/your-hook.sh`
 2. Make executable: `chmod +x .claude/hooks/your-hook.sh`
-3. Add to `settings.local.json` under appropriate trigger
+3. Add to `settings.json` under appropriate trigger
 4. Hook receives tool input via environment variables
 
 ### Available Triggers

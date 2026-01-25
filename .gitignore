@@ -14,3 +14,4 @@
 # Claude session artifacts
 .claude/usage.log
 .claude/plans/
+.claude/settings.local.json

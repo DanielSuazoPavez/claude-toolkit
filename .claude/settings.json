@@ -26,11 +26,33 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash .claude/hooks/block-dangerous-commands.sh"
+          },
+          {
+            "type": "command",
             "command": ".claude/hooks/enforce-uv-run.sh"
           },
           {
             "type": "command",
             "command": ".claude/hooks/enforce-make-commands.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/secrets-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/suggest-json-reader.sh"
           }
         ]
       }
@@ -64,6 +86,13 @@
     "ALLOW_DIRECT_PYTHON": "Set to 1 to bypass enforce-uv-run check",
     "ALLOW_DIRECT_COMMANDS": "Set to 1 to bypass enforce-make-commands check",
     "CLAUDE_SKIP_PLAN_COPY": "Set to 1 to disable plan copying",
-    "CLAUDE_TRACK_USAGE": "Enable usage tracking (default: 1, set to 0 to disable)"
+    "CLAUDE_TRACK_USAGE": "Enable usage tracking (default: 1, set to 0 to disable)",
+    "ALLOW_DANGEROUS_COMMANDS": "Set to 1 to bypass block-dangerous-commands check",
+    "ALLOW_ENV_READ": "Set to 1 to allow reading .env files",
+    "SAFE_ENV_EXTENSIONS": "Comma-separated safe .env extensions (default: example,template,sample)",
+    "ALLOW_JSON_READ": "Set to 1 to allow raw JSON file reads (bypass /json-reader suggestion)",
+    "JSON_READ_WARN": "Set to 1 to warn instead of block for JSON files",
+    "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
+    "ALLOW_JSON_PATTERNS": "Comma-separated JSON filenames to allow (default: package.json,tsconfig.json,...)"
   }
 }
