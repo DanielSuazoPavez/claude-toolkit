@@ -1,0 +1,68 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/enforce-uv-run.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/enforce-make-commands.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/copy-plan-to-project.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/track-usage.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/track-usage.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "_env_config": {
+    "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
+    "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
+    "CLAUDE_PLANS_DIR": "Directory for plan copies (default: docs/plans)",
+    "CLAUDE_USAGE_LOG": "Usage log file path (default: .claude/usage.log)",
+    "ALLOW_DIRECT_PYTHON": "Set to 1 to bypass enforce-uv-run check",
+    "ALLOW_DIRECT_COMMANDS": "Set to 1 to bypass enforce-make-commands check",
+    "CLAUDE_SKIP_PLAN_COPY": "Set to 1 to disable plan copying",
+    "CLAUDE_TRACK_USAGE": "Enable usage tracking (default: 1, set to 0 to disable)"
+  }
+}
