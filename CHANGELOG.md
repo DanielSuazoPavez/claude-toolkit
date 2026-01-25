@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0] - 2026-01-25 - Status tracking & Docker skill
+
+### Added
+- Status flags (stable/beta/new) to all index files
+- `docker-deployment` skill for Dockerfile and compose patterns
+- Reorganized BACKLOG.md with scope definitions and priorities
+
+### Fixed
+- `enforce-uv-run.sh` regex syntax error
+- `session-start.sh` now requests acknowledgment
+- `claude-sync` flag parsing when passed as first argument
+
 ## [0.1.0] - 2026-01-25
 
 ### Added
