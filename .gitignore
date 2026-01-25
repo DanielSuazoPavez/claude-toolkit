@@ -10,3 +10,7 @@
 # Temporary files
 *.tmp
 *.bak
+
+# Claude session artifacts
+.claude/usage.log
+.claude/plans/

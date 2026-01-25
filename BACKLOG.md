@@ -54,8 +54,8 @@ Getting claude-toolkit to a clean, polished state:
 
 > Keep max 5 entries. Older items move to CHANGELOG.md.
 
+- [x] meta+skills: Update HOOKS_API.md with input field names for each hook event
 - [x] toolkit+hooks: Add usage tracking for skills/agents (track-usage.sh)
 - [x] research+hooks: Review diet103/infrastructure-showcase → skill auto-activation patterns
 - [x] hooks: Improve all hooks to A-grade quality (jq handling, test cases, env var bypasses)
 - [x] meta+skills: Create hook-judge skill
-- [x] research+hooks: Review karanb192/claude-code-hooks → created write-hook skill

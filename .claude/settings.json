@@ -59,7 +59,7 @@
   "_env_config": {
     "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
     "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
-    "CLAUDE_PLANS_DIR": "Directory for plan copies (default: docs/plans)",
+    "CLAUDE_PLANS_DIR": "Directory for plan copies (default: .claude/plans)",
     "CLAUDE_USAGE_LOG": "Usage log file path (default: .claude/usage.log)",
     "ALLOW_DIRECT_PYTHON": "Set to 1 to bypass enforce-uv-run check",
     "ALLOW_DIRECT_COMMANDS": "Set to 1 to bypass enforce-make-commands check",

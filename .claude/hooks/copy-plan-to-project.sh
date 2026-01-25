@@ -5,7 +5,7 @@
 #   "PostToolUse": [{"matcher": "Write", "hooks": [{"type": "command", "command": "bash .claude/hooks/copy-plan-to-project.sh"}]}]
 #
 # Configuration:
-#   CLAUDE_PLANS_DIR - target directory (default: docs/plans)
+#   CLAUDE_PLANS_DIR - target directory (default: .claude/plans)
 #   CLAUDE_SKIP_PLAN_COPY=1 - disable copying (for testing)
 #
 # Triggers on Write in plan mode for files in ~/.claude/plans/
@@ -14,13 +14,13 @@
 # Test (requires a plan file with "# Plan: Test Title" header):
 #   echo '# Plan: Test Title' > /tmp/test-plan.md
 #   echo '{"permission_mode":"plan","tool_name":"Write","tool_input":{"file_path":"/tmp/.claude/plans/test.md"}}' | ./copy-plan-to-project.sh
-#   # Expected: copies to docs/plans/YYYY-MM-DD_HHMM_test-title.md
+#   # Expected: copies to .claude/plans/YYYY-MM-DD_HHMM_test-title.md
 
 # Skip if disabled
 [ -n "$CLAUDE_SKIP_PLAN_COPY" ] && exit 0
 
 # Configuration
-PLANS_DIR="${CLAUDE_PLANS_DIR:-docs/plans}"
+PLANS_DIR="${CLAUDE_PLANS_DIR:-.claude/plans}"
 
 input=$(cat)
 

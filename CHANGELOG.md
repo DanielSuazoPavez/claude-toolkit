@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3] - 2026-01-25 - Hooks API documentation
+
+### Changed
+- HOOKS_API.md now documents all 13 hook events with input fields, matchers, and output formats
+- Plan files now stored in `.claude/plans/` instead of `docs/plans/`
+- Added `.claude/usage.log` and `.claude/plans/` to .gitignore (session artifacts)
+
 ## [0.2.2] - 2026-01-25 - Hook quality improvements
 
 ### Fixed
