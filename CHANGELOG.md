@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.1] - 2026-01-25
+
+### Fixed
+- `wrap-up` skill now supports VERSION, pyproject.toml, or package.json
+
 ## [0.2.0] - 2026-01-25 - Status tracking & Docker skill
 
 ### Added
