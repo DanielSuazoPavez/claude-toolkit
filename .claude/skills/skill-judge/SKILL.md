@@ -45,6 +45,18 @@ Is the description clear about WHAT, WHEN, and KEYWORDS for triggering?
 - References: On-demand
 - Target: Under 500 lines
 
+#### Supporting Files Checklist
+
+When skill has companion files, also check:
+
+| Issue | Deduction |
+|-------|-----------|
+| Supporting file >500 lines | -3 per file |
+| No TOC when >100 lines | -2 per file |
+| Nested references (refs within refs) | -3 |
+| Bare reference (no context) | -1 each |
+| Orphaned file (never referenced) | -2 per file |
+
 ### D6: Freedom Calibration (15 pts)
 - Creative tasks → High freedom (principles)
 - Fragile operations → Low freedom (exact scripts)
