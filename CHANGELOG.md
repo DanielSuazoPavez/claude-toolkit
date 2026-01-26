@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.0] - 2026-01-25 - Progressive disclosure pattern
+
+### Added
+- `write-skill`: Progressive disclosure pattern section (500-line rule, resources/ structure)
+- `skill-judge`: Supporting files checklist under D5 (evaluates companion file quality)
+
 ## [0.6.0] - 2026-01-25 - Enforce feature branch hook
 
 ### Added
