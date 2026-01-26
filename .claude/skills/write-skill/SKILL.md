@@ -66,6 +66,43 @@ Techniques:
 - Move heavy examples to separate files
 - Compress: show pattern once, not every variation
 
+## Progressive Disclosure Pattern
+
+When a skill exceeds ~400 lines, split it:
+
+```
+skill-name/
+  SKILL.md              # <500 lines - overview + navigation
+  resources/
+    TOPIC.md            # <500 lines per file
+```
+
+### Main File (SKILL.md)
+
+Contains:
+- Full process overview
+- Inline references: `See resources/TOPIC.md for details`
+- Decision trees that reference, not replicate, detailed content
+
+### Supporting Files (resources/*.md)
+
+| Requirement | Why |
+|-------------|-----|
+| <500 lines each | Prevent context bloat |
+| Table of contents if >100 lines | Enable navigation |
+| One level deep | No nested references |
+
+### Reference Style
+
+**Good:** `See resources/API.md for field definitions`
+**Bad:** Copying content into SKILL.md, or bare `See resources/API.md`
+
+### Example
+
+`write-hook` demonstrates this pattern:
+- `SKILL.md` (100 lines): Process + triggers
+- `HOOKS_API.md` (400 lines): Complete API reference
+
 ## Testing Your Skill
 
 Run the original failing scenario with the skill active:

@@ -24,11 +24,9 @@ Getting claude-toolkit to a clean, polished state:
 
 - [ ] research+hooks: Dig deeper into hooks (general, Python-related)
 - [ ] meta: Define naming conventions (consistent patterns for skills, agents, hooks, memories)
-- [ ] meta+skills: Update `write-skill` with 500-line rule and supporting files structure (see diet103 research)
 
 ## Medium Priority
 
-- [ ] meta+skills: Update `skill-judge` to evaluate reference/supporting files structure (when skill has companion .md files)
 - [ ] dev+skills: Create `testing-patterns` skill (pytest fixtures, mocking, data generators)
 - [ ] dev+skills: Create `github-actions` skill (CI/CD pipeline patterns, caching, matrix builds)
 - [ ] dev+skills: Create `docgen` skill (API docs, docstrings, README generation)
