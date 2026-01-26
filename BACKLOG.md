@@ -22,7 +22,7 @@ Getting claude-toolkit to a clean, polished state:
 
 ## High Priority
 
-- [ ] meta: Define naming conventions (consistent patterns for skills, agents, hooks, memories)
+(None currently)
 
 ## Medium Priority
 

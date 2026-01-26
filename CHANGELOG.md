@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.1] - 2026-01-25 - Skill naming conventions
+
+### Changed
+- Renamed 13 skills to follow `verb-noun` convention:
+  - `*-judge` → `evaluate-*` (agent, skill, hook, memory)
+  - `naming-analyzer` → `analyze-naming`
+  - `json-reader` → `read-json`
+  - `database-schema` → `design-db`
+  - `docker-deployment` → `design-docker`
+  - `git-worktrees` → `setup-worktree`
+  - `mermaid-diagrams` → `design-diagram`
+  - `qa-planner` → `design-qa`
+  - `quick-review` → `review-changes`
+  - `next-steps` → `write-handoff`
+- Added naming convention references to `write-skill`, `write-agent`, `write-hook` skills
+
+### Added
+- `docs/naming-conventions.md` - naming guidelines for skills, agents, hooks, memories
+
 ## [0.7.0] - 2026-01-25 - Progressive disclosure pattern
 
 ### Added
