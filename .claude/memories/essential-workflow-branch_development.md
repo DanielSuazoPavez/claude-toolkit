@@ -51,7 +51,8 @@ git checkout -b fix/issue-description
 
 1. Ensure all tests pass
 2. Create PR for review (or merge if solo project with user approval)
-3. Delete branch after merge
+3. Merge with `--no-ff` to preserve branch history
+4. Delete branch after merge
 
 ---
 
@@ -91,6 +92,9 @@ git push -u origin feature/name
 
 # Switch back to main
 git checkout main
+
+# Merge branch (always --no-ff to preserve history)
+git checkout main && git merge --no-ff feature/name
 
 # Delete merged branch locally
 git branch -d feature/name

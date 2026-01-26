@@ -15,6 +15,7 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 1. **Read before modifying**: Understand existing skills/agents before changes
 2. **Test skills**: After modifying a skill, test it with a real invocation
 3. **Follow conventions**: Use existing patterns from similar skills/agents
+4. **Merge with --no-ff**: Always use `git merge --no-ff` to preserve branch history
 
 ## Structure
 
