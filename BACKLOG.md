@@ -22,7 +22,6 @@ Getting claude-toolkit to a clean, polished state:
 
 ## High Priority
 
-- [ ] research+hooks: Dig deeper into hooks (general, Python-related)
 - [ ] meta: Define naming conventions (consistent patterns for skills, agents, hooks, memories)
 
 ## Medium Priority
