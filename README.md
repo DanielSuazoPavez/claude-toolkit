@@ -45,27 +45,27 @@ User-invocable skills activated with `/skill-name`:
 |-------|-------------|
 | `analyze-idea` | Research and exploration - investigates topics, gathers evidence, generates reports |
 | `brainstorm-idea` | Turn fuzzy ideas into clear designs through structured dialogue |
-| `database-schema` | Design robust database schemas with normalization and indexing guidance |
-| `docker-deployment` | Generate Dockerfile and docker-compose for projects |
+| `design-db` | Design robust database schemas with normalization and indexing guidance |
+| `design-docker` | Generate Dockerfile and docker-compose for projects |
 | `draft-pr` | Generate pull request descriptions for the current branch |
-| `git-worktrees` | Reference for git worktrees - setup, usage, and common pitfalls |
-| `json-reader` | Read and analyze JSON files efficiently using jq |
+| `setup-worktree` | Reference for git worktrees - setup, usage, and common pitfalls |
+| `read-json` | Read and analyze JSON files efficiently using jq |
 | `list-memories` | List available memories with Quick Reference summaries |
-| `mermaid-diagrams` | Create diagrams for architecture, flows, and models |
-| `naming-analyzer` | Analyze and suggest better variable/function names |
-| `next-steps` | Capture context before `/clear` for session continuity |
-| `qa-planner` | Plan comprehensive QA testing strategy |
-| `quick-review` | Fast code review focused on blockers |
+| `design-diagram` | Create diagrams for architecture, flows, and models |
+| `analyze-naming` | Analyze and suggest better variable/function names |
+| `write-handoff` | Capture context before `/clear` for session continuity |
+| `design-qa` | Plan comprehensive QA testing strategy |
+| `review-changes` | Fast code review focused on blockers |
 | `review-plan` | Review implementation plans against quality criteria |
 | `snap-back` | Reset tone when Claude drifts into sycophancy |
 | `wrap-up` | Session wrap-up and handoff documentation |
 | `write-hook` | Create new hooks for Claude Code |
 | `write-memory` | Create new memory files following conventions |
 | `write-skill` | Create new skills using test-driven documentation |
-| `agent-judge` | Evaluate agent prompt quality and design |
-| `skill-judge` | Evaluate skill design quality against specifications |
-| `hook-judge` | Evaluate hook quality before deployment |
-| `memory-judge` | Evaluate memory file quality against conventions |
+| `evaluate-agent` | Evaluate agent prompt quality and design |
+| `evaluate-skill` | Evaluate skill design quality against specifications |
+| `evaluate-hook` | Evaluate hook quality before deployment |
+| `evaluate-memory` | Evaluate memory file quality against conventions |
 
 ### Agents (6)
 
@@ -92,7 +92,7 @@ Automation hooks configured in `settings.json`:
 | `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
 | `secrets-guard.sh` | PreToolUse (Read\|Bash) | Warns before reading .env files |
-| `suggest-json-reader.sh` | PreToolUse (Read) | Suggests /json-reader for large JSON files |
+| `suggest-json-reader.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
 | `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.planning/` |
 | `track-agent-usage.sh` | PostToolUse (Task) | Logs agent spawns |
 
@@ -130,13 +130,13 @@ Customize permissions and hooks for your workflow.
 
 1. Create `.claude/skills/your-skill/SKILL.md`
 2. Follow the skill template structure
-3. Use `/skill-judge` to evaluate quality
+3. Use `/evaluate-skill` to evaluate quality
 
 ### Adding Agents
 
 1. Create `.claude/agents/your-agent.md`
 2. Include frontmatter: name, description, tools, color (optional)
-3. Use `/agent-judge` to evaluate quality
+3. Use `/evaluate-agent` to evaluate quality
 
 ### Adding Memories
 

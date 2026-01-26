@@ -1,5 +1,5 @@
 ---
-name: mermaid-diagrams
+name: design-diagram
 description: Use when requests mention "diagram", "visualize", "flow", "architecture", "model", or "map out".
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: memory-judge
+name: evaluate-memory
 description: Evaluate memory file quality against conventions. Use when reviewing, auditing, or improving memory files.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: naming-analyzer
+name: analyze-naming
 description: Analyze and suggest better variable, function, and class names based on context and conventions. Use when reviewing code for clarity, checking naming consistency, or improving readability.
 ---
 

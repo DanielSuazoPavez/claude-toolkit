@@ -1,5 +1,5 @@
 #!/bin/bash
-# PreToolUse hook: suggest /json-reader skill for JSON files
+# PreToolUse hook: suggest /read-json skill for JSON files
 #
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Read", "hooks": [{"type": "command", "command": "bash .claude/hooks/suggest-json-reader.sh"}]}]
@@ -15,7 +15,7 @@
 #   - Excludes common config files by default
 #
 # Reason:
-#   JSON files can be large; /json-reader uses jq for efficient querying
+#   JSON files can be large; /read-json uses jq for efficient querying
 #
 # Test cases:
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' | ./suggest-json-reader.sh
@@ -78,7 +78,7 @@ if [ -f "$FILE_PATH" ]; then
 fi
 
 # Build message
-MESSAGE="Use \`/json-reader\` skill for JSON files. It uses jq for efficient querying instead of loading entire files. Set ALLOW_JSON_READ=1 to bypass."
+MESSAGE="Use \`/read-json\` skill for JSON files. It uses jq for efficient querying instead of loading entire files. Set ALLOW_JSON_READ=1 to bypass."
 
 # Warn mode: output suggestion but don't block
 if [ -n "$JSON_READ_WARN" ]; then

@@ -45,4 +45,4 @@ Use the code-debugger agent to investigate this issue
    ---
    ```
 3. Define the agent's role, principles, and output format
-4. Use `/agent-judge` to evaluate quality
+4. Use `/evaluate-agent` to evaluate quality

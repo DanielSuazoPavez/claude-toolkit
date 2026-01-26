@@ -112,14 +112,16 @@ Run the original failing scenario with the skill active:
 
 ### Quality Gate
 
-Before outputting the skill, evaluate it with `skill-judge`:
+Before outputting the skill, evaluate it with `/evaluate-skill`:
 - **Target: B (90+) or better**
 - If score is below B, iterate on the weakest dimensions
 - Common fixes: add anti-patterns table, add decision tree, remove tutorial content
 
 ## Naming Convention
 
-Two words, hyphenated: `write-skill`, `quick-review`, `brainstorm-idea`
+Use `verb-noun` format: `write-skill`, `review-changes`, `brainstorm-idea`
+
+See `docs/naming-conventions.md` for the full naming guide.
 
 ## Complete Example
 

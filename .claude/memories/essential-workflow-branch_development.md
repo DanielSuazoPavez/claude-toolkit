@@ -104,7 +104,7 @@ git branch -d feature/name
 
 ## 7. Integration with Worktrees
 
-For parallel work or long-running features, consider git worktrees (see `/git-worktrees` skill):
+For parallel work or long-running features, consider git worktrees (see `/setup-worktree` skill):
 
 ```bash
 git worktree add .worktrees/feature-name -b feature/name

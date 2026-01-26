@@ -1,5 +1,5 @@
 ---
-name: docker-deployment
+name: design-docker
 description: Use when generating, reviewing, or refining Dockerfiles and docker-compose.yml configs. Triggers on: dockerize, container, image size, deployment config, compose.
 ---
 

@@ -36,6 +36,8 @@ What does this agent do that default Claude doesn't?
 
 Location: `.claude/agents/<agent-name>.md`
 
+Use `noun` or `noun-qualifier` format for agent names. See `docs/naming-conventions.md`.
+
 **Required frontmatter:**
 ```yaml
 ---
@@ -53,7 +55,7 @@ tools: Read, Grep, Glob  # minimal set
 
 ### 3. Apply Quality Gate
 
-Run `agent-judge` on the result:
+Run `/evaluate-agent` on the result:
 - **Target: B (75+)**
 - Key dimensions: D1 (Focus), D2 (Output), D3 (Persona)
 
@@ -112,7 +114,7 @@ The persona should create a **behavioral constraint** that default Claude doesn'
 
 ## First-Attempt Checklist
 
-Before running `agent-judge`, verify:
+Before running `/evaluate-agent`, verify:
 
 - [ ] Persona is specific? (not "helpful assistant")
 - [ ] "What I Don't Do" section exists?

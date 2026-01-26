@@ -1,5 +1,5 @@
 ---
-name: git-worktrees
+name: setup-worktree
 description: Reference for git worktrees - setup, usage, and common pitfalls. Use when working on multiple branches simultaneously or setting up parallel agent workflows.
 ---
 

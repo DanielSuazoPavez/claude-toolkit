@@ -1,5 +1,5 @@
 ---
-name: qa-test-planner
+name: design-qa
 description: Generate test plans, manual test cases, regression suites, and bug reports. Use when planning testing strategy, writing test cases, building regression suites, or documenting bugs.
 disable-model-invocation: true
 ---
