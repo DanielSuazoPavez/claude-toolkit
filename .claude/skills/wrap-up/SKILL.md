@@ -51,7 +51,8 @@ Bump the version in the appropriate file:
 - `package.json` (Node projects)
 
 ### 6. Update `BACKLOG.md`
-- Move completed items to "Recently Completed"
+- Remove completed items (they're now in CHANGELOG)
+- Exception: If item is part of a larger task, keep checked until parent task is fully done
 - Add any new backlog items discovered
 
 ### 7. Commit documentation changes
@@ -88,7 +89,7 @@ Output what was updated.
 | **Skip Code Commit** | Docs committed with code changes | Always commit code first, then docs |
 | **Wrong Bump** | Patch for new feature | Major=breaking, Minor=feature, Patch=fix |
 | **Empty Changelog** | "Updated stuff" | Describe what changed and why |
-| **Stale Backlog** | Completed items still in TODO | Move to "Recently Completed" |
+| **Stale Backlog** | Completed items still in TODO | Remove them (CHANGELOG is the record) |
 
 ## Notes
 

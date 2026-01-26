@@ -23,7 +23,6 @@ Getting claude-toolkit to a clean, polished state:
 ## High Priority
 
 - [ ] research+hooks: Dig deeper into hooks (general, Python-related)
-- [ ] toolkit+hooks: Make memory loading more reliable/automatic (beyond session-start essentials)
 - [ ] meta: Define naming conventions (consistent patterns for skills, agents, hooks, memories)
 - [ ] meta+skills: Update `write-skill` with 500-line rule and supporting files structure (see diet103 research)
 
@@ -36,6 +35,7 @@ Getting claude-toolkit to a clean, polished state:
 
 ## Low Priority
 
+- [ ] toolkit+hooks: Make memory loading more reliable/automatic (beyond session-start essentials)
 - [ ] toolkit+hooks: Skill auto-activation via UserPromptSubmit hook (bash-only; see diet103 research for concept)
 - [ ] dev+agents: Create `aws-architect` agent (infra design, cost/tradeoff analysis, online cost lookup steps)
 - [ ] dev+agents: Create `aws-security-auditor` agent (security review, least-privilege validation)
@@ -45,12 +45,3 @@ Getting claude-toolkit to a clean, polished state:
 - [ ] research+skills: Research Polars-specific patterns (lazy frames, expressions, optimizations)
 - [ ] tests+toolkit: Add `test/test-sync.sh` - automated verification of install.sh and claude-sync flow
 
-## Done
-
-> Keep max 5 entries. Older items move to CHANGELOG.md.
-
-- [x] meta+skills: Create `write-agent` skill (completes write/judge pairs)
-- [x] meta+skills: Create `memory-judge` skill
-- [x] dev+hooks: Safety hooks (block-dangerous-commands, secrets-guard, suggest-json-reader)
-- [x] toolkit: Transcript usage analyzer (scripts/analyze-usage.sh)
-- [x] tests+toolkit: Index verification script (scripts/validate-indexes.sh)

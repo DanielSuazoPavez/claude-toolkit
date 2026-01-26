@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0] - 2026-01-25 - Enforce feature branch hook
+
+### Added
+- `enforce-feature-branch.sh` hook: blocks plan mode on main/master/protected branches
+- Handles detached HEAD state with actionable message
+- Configurable via `PROTECTED_BRANCHES` env var (regex pattern)
+
 ## [0.5.0] - 2026-01-25 - Write-agent skill
 
 ### Added
