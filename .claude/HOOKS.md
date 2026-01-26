@@ -9,6 +9,7 @@ Automation hooks configured in `settings.json`.
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
 | `track-skill-usage.sh` | stable | UserPromptSubmit | Tracks skill invocations to usage log |
 | `track-agent-usage.sh` | stable | PostToolUse (Task) | Tracks agent invocations to usage log |
+| `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
 | `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | beta | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
 | `suggest-json-reader.sh` | beta | PreToolUse (Read) | Suggests /json-reader skill for JSON files |
@@ -29,6 +30,18 @@ Loads essential memories and git context at the start of each session.
 - Outputs all `essential-*.md` memories
 - Lists other available memories
 - Shows current git branch
+
+### enforce-feature-branch.sh
+
+**Trigger**: PreToolUse (EnterPlanMode)
+
+Blocks entering plan mode while on main/master branch.
+
+- Blocks: `EnterPlanMode` when on `main` or `master`
+- Message: Suggests creating feature branch with prefix options
+- Bypass: Set `ALLOW_PLAN_ON_MAIN=1`
+
+Why: Non-trivial work (worthy of plan mode) should happen on feature branches.
 
 ### block-dangerous-commands.sh
 
@@ -96,6 +109,12 @@ Hooks are configured in `settings.json`:
 {
   "hooks": {
     "PreToolUse": [
+      {
+        "matcher": "EnterPlanMode",
+        "hooks": [
+          {"type": "command", "command": ".claude/hooks/enforce-feature-branch.sh"}
+        ]
+      },
       {
         "matcher": "Bash",
         "hooks": [
