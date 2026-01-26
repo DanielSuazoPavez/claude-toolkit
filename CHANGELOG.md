@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0] - 2026-01-25 - Write-agent skill
+
+### Added
+- `write-agent` skill: create agents with proper structure (persona, focus, boundaries, output format)
+- Analysis report on resource-writer agent feasibility (`docs/analysis/`)
+
+### Changed
+- Completes write/judge skill pairs: skill, hook, memory, agent all have both now
+
 ## [0.4.0] - 2026-01-25 - Memory judge & branch workflow
 
 ### Added

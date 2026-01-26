@@ -29,7 +29,6 @@ Getting claude-toolkit to a clean, polished state:
 
 ## Medium Priority
 
-- [ ] meta+skills: Create `write-agent` skill (like write-skill but for agents)
 - [ ] meta+skills: Update `skill-judge` to evaluate reference/supporting files structure (when skill has companion .md files)
 - [ ] dev+skills: Create `testing-patterns` skill (pytest fixtures, mocking, data generators)
 - [ ] dev+skills: Create `github-actions` skill (CI/CD pipeline patterns, caching, matrix builds)
@@ -50,8 +49,8 @@ Getting claude-toolkit to a clean, polished state:
 
 > Keep max 5 entries. Older items move to CHANGELOG.md.
 
+- [x] meta+skills: Create `write-agent` skill (completes write/judge pairs)
 - [x] meta+skills: Create `memory-judge` skill
 - [x] dev+hooks: Safety hooks (block-dangerous-commands, secrets-guard, suggest-json-reader)
 - [x] toolkit: Transcript usage analyzer (scripts/analyze-usage.sh)
 - [x] tests+toolkit: Index verification script (scripts/validate-indexes.sh)
-- [x] toolkit+hooks: Add usage tracking for skills/agents (track-usage.sh)
