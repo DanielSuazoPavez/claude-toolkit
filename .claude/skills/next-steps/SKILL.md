@@ -66,7 +66,7 @@ Create `docs/sessions/YYYY-MM-DD_HHmm_continue.md` with this structure:
 - `path/to/other.py` - [why it's relevant]
 
 ## Memories to Load
-- `essential-preferences-conversational_patterns` - communication style
+- `essential-preferences-communication_style` - communication style
 - [Other relevant memories based on the work]
 
 ## Reports/Docs

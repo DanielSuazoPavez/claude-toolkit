@@ -47,6 +47,7 @@ User-invocable skills activated with `/skill-name`.
 | `skill-judge` | stable | Evaluate skill design quality against specifications |
 | `agent-judge` | stable | Evaluate agent prompt quality and design |
 | `hook-judge` | stable | Evaluate hook quality before deployment |
+| `memory-judge` | stable | Evaluate memory file quality against conventions |
 
 ## Meta
 

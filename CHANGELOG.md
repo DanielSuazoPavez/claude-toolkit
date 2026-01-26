@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0] - 2026-01-25 - Memory judge & branch workflow
+
+### Added
+- `memory-judge` skill: evaluate memory files against conventions (category, naming, Quick Reference, load timing)
+- `essential-workflow-branch_development` memory: branch-first development workflow conventions
+- README Concepts section: explains difference between skills, memories, agents, hooks
+
+### Changed
+- Renamed `essential-preferences-conversational_patterns` → `essential-preferences-communication_style`
+- Clarified memory loading: removed unreliable "on-demand" claims, only session-start or user-requested
+- README now documents all 23 skills and 9 hooks (was missing several)
+- CLAUDE.md now references `scripts/validate-indexes.sh` in "When You're Done"
+
 ## [0.3.0] - 2026-01-25 - Safety hooks & usage analytics
 
 ### Added

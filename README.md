@@ -15,9 +15,29 @@ cd /path/to/your/project
 
 This copies the `.claude/` directory into your project. Customize as needed.
 
+## Concepts
+
+| Component | What It Is | How It's Used | Lifecycle |
+|-----------|------------|---------------|-----------|
+| **Skill** | Triggered workflow/procedure | User invokes with `/skill-name` | Stable once written |
+| **Agent** | Specialized subprocess for complex tasks | Claude spawns via Task tool | Per-task |
+| **Memory** | Persistent context that survives sessions | Auto-loaded at session start or user requests | Evolves with project |
+| **Hook** | Automation script triggered by events | Runs automatically on tool use or session events | Stable once written |
+
+### Skills vs Memories
+
+Both externalize knowledge, but serve different purposes:
+
+- **Skills** = Step-by-step procedures. "When X happens, do Y then Z."
+- **Memories** = Context and conventions. "Here's how we do things here."
+
+A skill tells Claude *what to do*. A memory tells Claude *what to know*.
+
+**Example:** `/write-memory` is a skill (procedure for creating memories). `essential-conventions-memory.md` is a memory (naming conventions to follow).
+
 ## What's Included
 
-### Skills (20)
+### Skills (23)
 
 User-invocable skills activated with `/skill-name`:
 
@@ -26,6 +46,7 @@ User-invocable skills activated with `/skill-name`:
 | `analyze-idea` | Research and exploration - investigates topics, gathers evidence, generates reports |
 | `brainstorm-idea` | Turn fuzzy ideas into clear designs through structured dialogue |
 | `database-schema` | Design robust database schemas with normalization and indexing guidance |
+| `docker-deployment` | Generate Dockerfile and docker-compose for projects |
 | `draft-pr` | Generate pull request descriptions for the current branch |
 | `git-worktrees` | Reference for git worktrees - setup, usage, and common pitfalls |
 | `json-reader` | Read and analyze JSON files efficiently using jq |
@@ -38,10 +59,13 @@ User-invocable skills activated with `/skill-name`:
 | `review-plan` | Review implementation plans against quality criteria |
 | `snap-back` | Reset tone when Claude drifts into sycophancy |
 | `wrap-up` | Session wrap-up and handoff documentation |
+| `write-hook` | Create new hooks for Claude Code |
 | `write-memory` | Create new memory files following conventions |
 | `write-skill` | Create new skills using test-driven documentation |
 | `agent-judge` | Evaluate agent prompt quality and design |
 | `skill-judge` | Evaluate skill design quality against specifications |
+| `hook-judge` | Evaluate hook quality before deployment |
+| `memory-judge` | Evaluate memory file quality against conventions |
 
 ### Agents (6)
 
@@ -56,20 +80,25 @@ Specialized agents for complex tasks:
 | `plan-reviewer` | Compares implementation to planning docs at milestones |
 | `pattern-finder` | Documents how things are implemented - finds examples of patterns |
 
-### Hooks (4)
+### Hooks (9)
 
-Automation hooks in `settings.local.json`:
+Automation hooks configured in `settings.json`:
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | `session-start.sh` | SessionStart | Loads essential memories and git context |
+| `track-skill-usage.sh` | UserPromptSubmit | Logs skill invocations |
+| `block-dangerous-commands.sh` | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, etc.) |
 | `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
+| `secrets-guard.sh` | PreToolUse (Read\|Bash) | Warns before reading .env files |
+| `suggest-json-reader.sh` | PreToolUse (Read) | Suggests /json-reader for large JSON files |
 | `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.planning/` |
+| `track-agent-usage.sh` | PostToolUse (Task) | Logs agent spawns |
 
 **Note:** `enforce-uv-run.sh` is Python-specific. Remove or modify for non-Python projects.
 
-### Memory Templates (6)
+### Memory Templates (7)
 
 Starting point for project memories in `.claude/memories/`:
 
@@ -77,8 +106,9 @@ Starting point for project memories in `.claude/memories/`:
 |--------|---------|
 | `essential-conventions-code_style` | Coding conventions and style guide |
 | `essential-conventions-memory` | Memory naming conventions |
-| `essential-preferences-conversational_patterns` | Communication style preferences |
+| `essential-preferences-communication_style` | Communication style preferences |
 | `essential-reference-commands` | CLI and Make commands reference |
+| `essential-workflow-branch_development` | Branch-based development workflow |
 | `essential-workflow-task_completion` | Task completion checklist |
 | `philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
 

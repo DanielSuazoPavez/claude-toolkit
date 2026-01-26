@@ -10,8 +10,9 @@ Always loaded at session start:
 |--------|--------|---------|
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
 | `essential-conventions-memory` | stable | Memory naming conventions and categories |
-| `essential-preferences-conversational_patterns` | stable | Communication style preferences |
+| `essential-preferences-communication_style` | stable | Communication style preferences |
 | `essential-reference-commands` | stable | CLI and Make commands reference |
+| `essential-workflow-branch_development` | stable | Branch-based development workflow |
 | `essential-workflow-task_completion` | stable | Task completion checklist |
 
 ## Philosophy

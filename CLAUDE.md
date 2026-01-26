@@ -28,7 +28,7 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 
 ## When You're Done
 
-- Run any linting if configured
+- Run `scripts/validate-indexes.sh` to check all resources are indexed
 - Verify skill/agent changes work with real tests
 
 ## See Also
