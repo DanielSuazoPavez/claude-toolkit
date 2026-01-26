@@ -1,5 +1,5 @@
 ---
-name: json-reader
+name: read-json
 description: Use when reading, inspecting, or analyzing any JSON file. Uses jq for efficient querying instead of loading entire files into context. Activate this skill whenever a user asks to read, view, explore, or extract data from a .json file.
 ---
 

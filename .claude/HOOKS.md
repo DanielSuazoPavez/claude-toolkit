@@ -12,7 +12,7 @@ Automation hooks configured in `settings.json`.
 | `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
 | `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | beta | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
-| `suggest-json-reader.sh` | beta | PreToolUse (Read) | Suggests /json-reader skill for JSON files |
+| `suggest-json-reader.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
 | `copy-plan-to-project.sh` | beta | PostToolUse (Write) | Copies plans to `.planning/` |
@@ -66,10 +66,10 @@ Prevents accidental exposure of secrets from .env files.
 
 **Trigger**: PreToolUse (Read)
 
-Suggests using `/json-reader` skill for JSON files.
+Suggests using `/read-json` skill for JSON files.
 
 - Blocks: Any `.json` file read
-- Reason: JSON files can be large; `/json-reader` uses jq for efficient querying
+- Reason: JSON files can be large; `/read-json` uses jq for efficient querying
 - Bypass: Set `ALLOW_JSON_READ=1`
 
 ### enforce-uv-run.sh

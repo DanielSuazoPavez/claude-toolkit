@@ -1,5 +1,5 @@
 ---
-name: hook-judge
+name: evaluate-hook
 description: Evaluate Claude Code hook quality. Use when reviewing, auditing, or improving hooks before deployment.
 ---
 

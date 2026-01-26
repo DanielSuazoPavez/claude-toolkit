@@ -5,6 +5,8 @@ description: Create new hooks for Claude Code. Use when adding safety, automatio
 
 Use when adding a new hook to `.claude/hooks/`.
 
+Use `verb-noun.sh` format for hook names. See `docs/naming-conventions.md`.
+
 ## When to Use
 
 - Adding safety hooks (block dangerous commands, protect secrets)

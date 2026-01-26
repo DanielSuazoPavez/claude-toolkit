@@ -1,5 +1,5 @@
 ---
-name: quick-review
+name: review-changes
 description: Quick code quality check focusing on critical and major issues
 argument-hint: File paths or leave empty for recent changes
 disable-model-invocation: true

@@ -9,7 +9,7 @@ User-invocable skills activated with `/skill-name`.
 | `brainstorm-idea` | stable | Turn fuzzy ideas into clear designs through structured dialogue |
 | `analyze-idea` | stable | Research tasks - investigate topics, gather evidence, generate reports |
 | `review-plan` | new | Review implementation plans against quality criteria |
-| `next-steps` | stable | Capture context before `/clear` for session continuity |
+| `write-handoff` | stable | Capture context before `/clear` for session continuity |
 | `wrap-up` | stable | Session wrap-up and handoff documentation |
 | `list-memories` | stable | List available memories with Quick Reference summaries |
 
@@ -17,25 +17,25 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `quick-review` | new | Fast code review focused on blockers |
-| `naming-analyzer` | new | Analyze and suggest better variable/function names |
-| `qa-planner` | new | Plan comprehensive QA testing strategy |
+| `review-changes` | new | Fast code review focused on blockers |
+| `analyze-naming` | new | Analyze and suggest better variable/function names |
+| `design-qa` | new | Plan comprehensive QA testing strategy |
 
 ## Design & Architecture
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `database-schema` | new | Design database schemas with normalization and indexing guidance |
-| `mermaid-diagrams` | new | Create diagrams for architecture, flows, and models |
+| `design-db` | new | Design database schemas with normalization and indexing guidance |
+| `design-diagram` | new | Create diagrams for architecture, flows, and models |
 
 ## Development Tools
 
 | Skill | Status | Description |
 |-------|--------|-------------|
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
-| `git-worktrees` | new | Reference for git worktrees - setup, usage, pitfalls |
-| `json-reader` | new | Read and analyze JSON files efficiently using jq |
-| `docker-deployment` | new | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
+| `setup-worktree` | new | Reference for git worktrees - setup, usage, pitfalls |
+| `read-json` | new | Read and analyze JSON files efficiently using jq |
+| `design-docker` | new | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
 
 ## Toolkit Development
 
@@ -45,10 +45,10 @@ User-invocable skills activated with `/skill-name`.
 | `write-agent` | stable | Create new agents for specialized tasks |
 | `write-memory` | stable | Create new memory files following conventions |
 | `write-hook` | stable | Create new hooks for Claude Code |
-| `skill-judge` | stable | Evaluate skill design quality against specifications |
-| `agent-judge` | stable | Evaluate agent prompt quality and design |
-| `hook-judge` | stable | Evaluate hook quality before deployment |
-| `memory-judge` | stable | Evaluate memory file quality against conventions |
+| `evaluate-skill` | stable | Evaluate skill design quality against specifications |
+| `evaluate-agent` | stable | Evaluate agent prompt quality and design |
+| `evaluate-hook` | stable | Evaluate hook quality before deployment |
+| `evaluate-memory` | stable | Evaluate memory file quality against conventions |
 
 ## Meta
 

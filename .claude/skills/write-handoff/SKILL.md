@@ -1,5 +1,5 @@
 ---
-name: next-steps
+name: write-handoff
 description: Use before /clear when you have uncommitted changes, partial work, or context needed for next session.
 ---
 

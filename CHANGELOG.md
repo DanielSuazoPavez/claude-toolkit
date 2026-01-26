@@ -25,7 +25,7 @@
 ## [0.4.0] - 2026-01-25 - Memory judge & branch workflow
 
 ### Added
-- `memory-judge` skill: evaluate memory files against conventions (category, naming, Quick Reference, load timing)
+- `evaluate-memory` skill: evaluate memory files against conventions (category, naming, Quick Reference, load timing)
 - `essential-workflow-branch_development` memory: branch-first development workflow conventions
 - README Concepts section: explains difference between skills, memories, agents, hooks
 
