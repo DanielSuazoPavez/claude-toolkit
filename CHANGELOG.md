@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.0] - 2026-01-26 - Backlog tooling in sync payload
+
+### Added
+- `.claude/templates/BACKLOG.md`: starter template for new projects
+- `.claude/scripts/backlog-query.sh`: query tool now synced to projects (moved from `scripts/`)
+
+### Changed
+- `claude-sync` now ignores `plans/` directory by default (session-specific, shouldn't sync)
+
 ## [0.9.0] - 2026-01-26 - Send subcommand for claude-sync
 
 ### Added
