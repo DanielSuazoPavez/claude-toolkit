@@ -33,11 +33,6 @@ Getting claude-toolkit to a clean, polished state:
 
 ## P2 - Medium
 
-- **[SKILLS]** Create `testing-patterns` skill
-    - **status**: `idea`
-    - **scope**: `skills`
-    - pytest fixtures, mocking, data generators
-
 - **[SKILLS]** Create `github-actions` skill
     - **status**: `idea`
     - **scope**: `skills`
@@ -52,15 +47,11 @@ Getting claude-toolkit to a clean, polished state:
 
 ## P3 - Low / Nice-to-Have
 
-- **[HOOKS]** Improve memory loading reliability
+- **[HOOKS]** Context-aware suggestions via UserPromptSubmit
     - **status**: `idea`
     - **scope**: `toolkit, hooks`
-    - Beyond session-start essentials
-
-- **[HOOKS]** Skill auto-activation via UserPromptSubmit
-    - **status**: `idea`
-    - **scope**: `toolkit, hooks`
-    - bash-only implementation
+    - Analyze user prompt, suggest relevant memories and skills
+    - bash-only implementation (keyword matching)
 
 - **[AGENTS]** Create `aws-architect` agent
     - **status**: `idea`
