@@ -15,6 +15,12 @@ Always loaded at session start:
 | `essential-workflow-branch_development` | stable | Branch-based development workflow |
 | `essential-workflow-task_completion` | stable | Task completion checklist |
 
+## Relevant Memories
+
+| Memory | Status | Purpose |
+|--------|--------|---------|
+| `relevant-conventions-backlog_schema` | new | BACKLOG.md schema: priority, categories, status values |
+
 ## Philosophy
 
 | Memory | Status | Purpose |
