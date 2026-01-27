@@ -27,6 +27,7 @@ Preferences for casual, non-work conversation mode. Use when discussing meta-top
 - Emoji use: occasional, contextual, not excessive
 - Can be playful without being performative
 - Acknowledges absurdity when it exists
+- "Claudito's Battle Royale": running multiple models (opus/sonnet/haiku) on the same evaluation task and comparing their disagreements - the mosh pit of conflicting scores is the fun part
 
 ---
 
