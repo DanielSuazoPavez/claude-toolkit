@@ -29,7 +29,7 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 
 ## When You're Done
 
-- Run `scripts/validate-indexes.sh` to check all resources are indexed
+- Run `scripts/validate-resources-indexed.sh` to check all resources are indexed
 - Verify skill/agent changes work with real tests
 
 ## See Also

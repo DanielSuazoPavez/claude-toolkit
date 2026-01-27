@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.11.0] - 2026-01-26 - Enforce feature branch workflow
+
+### Added
+- `enforce-feature-branch.sh` now blocks `git commit` on protected branches (main/master)
+- `ALLOW_COMMIT_ON_MAIN` env var bypass for git commit blocking
+- Hook registered in settings.json for `EnterPlanMode|Bash` matcher
+
+### Changed
+- Renamed `scripts/validate-indexes.sh` → `scripts/validate-resources-indexed.sh` (clearer name)
+
 ## [0.10.0] - 2026-01-26 - Backlog tooling in sync payload
 
 ### Added
@@ -81,7 +91,7 @@
 - Renamed `essential-preferences-conversational_patterns` → `essential-preferences-communication_style`
 - Clarified memory loading: removed unreliable "on-demand" claims, only session-start or user-requested
 - README now documents all 23 skills and 9 hooks (was missing several)
-- CLAUDE.md now references `scripts/validate-indexes.sh` in "When You're Done"
+- CLAUDE.md now references `scripts/validate-resources-indexed.sh` in "When You're Done"
 
 ## [0.3.0] - 2026-01-25 - Safety hooks & usage analytics
 
@@ -90,7 +100,7 @@
 - `secrets-guard.sh` hook: blocks .env reads and env/printenv commands
 - `suggest-json-reader.sh` hook: suggests /json-reader for large JSON files
 - `scripts/analyze-usage.sh`: extracts skill/agent usage from transcripts (captures both user and agent invocations)
-- `scripts/validate-indexes.sh`: validates index files match actual resources
+- `scripts/validate-resources-indexed.sh`: validates index files match actual resources
 
 ### Changed
 - All new hooks have configurable bypass env vars, size thresholds, and allowlists
