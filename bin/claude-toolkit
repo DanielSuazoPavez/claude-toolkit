@@ -1,0 +1,593 @@
+#!/bin/bash
+set -euo pipefail
+
+# claude-toolkit: CLI for managing Claude Toolkit
+# Usage: claude-toolkit <command> [options]
+#
+# Commands:
+#   sync [path]  - Sync toolkit to a project
+#   send <path>  - Send a resource to suggestions-box
+#
+# Run 'claude-toolkit <command> --help' for command-specific help.
+
+TOOLKIT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+error() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
+
+# === cmd_help: Show main help ===
+cmd_help() {
+    cat << 'EOF'
+claude-toolkit - CLI for managing Claude Toolkit
+
+USAGE:
+    claude-toolkit <command> [options]
+
+COMMANDS:
+    sync [path]     Sync toolkit updates to a project (default: current dir)
+    send <path>     Send a resource from another project to suggestions-box
+
+OPTIONS:
+    -h, --help      Show this help message
+
+EXAMPLES:
+    claude-toolkit sync                          # Sync to current directory
+    claude-toolkit sync /path/to/project         # Sync to specific project
+    claude-toolkit sync --dry-run                # Preview changes
+    claude-toolkit sync --only skills,hooks      # Sync only specific categories
+
+    claude-toolkit send .claude/skills/my-skill/SKILL.md --type skill --project myapp
+
+Run 'claude-toolkit <command> --help' for command-specific help.
+EOF
+}
+
+# === cmd_send: Copy resources from other projects to suggestions-box ===
+cmd_send() {
+    local source_path=""
+    local type=""
+    local project=""
+
+    # Check for help flag first
+    for arg in "$@"; do
+        case "$arg" in
+            -h|--help)
+                cat << 'EOF'
+claude-toolkit send - Send a resource to suggestions-box for review
+
+USAGE:
+    claude-toolkit send <path> --type <type> --project <name>
+
+ARGUMENTS:
+    <path>              Path to the resource file
+
+OPTIONS:
+    --type <type>       Resource type: skill, agent, hook, memory
+    --project <name>    Project name for organizing in suggestions-box
+    -h, --help          Show this help message
+
+EXAMPLES:
+    claude-toolkit send .claude/skills/draft-pr/SKILL.md --type skill --project myapp
+    claude-toolkit send .claude/agents/custom-agent.md --type agent --project myapp
+EOF
+                return 0
+                ;;
+        esac
+    done
+
+    # Parse flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --type) type="$2"; shift 2 ;;
+            --project) project="$2"; shift 2 ;;
+            -*) error "Unknown option: $1" ;;
+            *) source_path="$1"; shift ;;
+        esac
+    done
+
+    # Validate required args
+    [[ -z "$source_path" ]] && error "Source path required"
+    [[ -z "$type" ]] && error "--type required (skill|agent|hook|memory)"
+    [[ -z "$project" ]] && error "--project required"
+    [[ ! "$type" =~ ^(skill|agent|hook|memory)$ ]] && error "Invalid type: $type"
+    [[ ! -f "$source_path" ]] && error "File not found: $source_path"
+
+    # Derive name from path
+    # .claude/skills/draft-pr/SKILL.md -> draft-pr
+    local name
+    name=$(basename "$(dirname "$source_path")")
+    [[ "$name" == "." || "$name" == ".claude" ]] && name=$(basename "$source_path" .md)
+
+    # Build destination
+    local dest_dir="$TOOLKIT_DIR/suggestions-box/$project"
+    local dest_file="$dest_dir/${name}-${type^^}.md"
+
+    # Create dir and copy
+    mkdir -p "$dest_dir"
+    cp "$source_path" "$dest_file"
+
+    echo "Sent: $source_path -> $dest_file"
+}
+
+# === categorize_file: Map file path to category ===
+categorize_file() {
+    local path="$1"
+    case "$path" in
+        skills/*) echo "skills" ;;
+        agents/*) echo "agents" ;;
+        hooks/*) echo "hooks" ;;
+        memories/*) echo "memories" ;;
+        templates/*) echo "templates" ;;
+        scripts/*) echo "scripts" ;;
+        *) echo "other" ;;
+    esac
+}
+
+# === cmd_sync: Main sync logic ===
+cmd_sync() {
+
+local TARGET_DIR="."
+local DRY_RUN=false
+local FORCE=false
+local ONLY_CATEGORIES=""
+
+# Check for help flag first
+for arg in "$@"; do
+    case "$arg" in
+        -h|--help)
+            cat << 'EOF'
+claude-toolkit sync - Sync toolkit updates to a project
+
+USAGE:
+    claude-toolkit sync [path] [options]
+
+ARGUMENTS:
+    [path]              Target project path (default: current directory)
+
+OPTIONS:
+    --dry-run           Preview changes without applying
+    --force             Overwrite all conflicts without prompting
+    --only <types>      Sync only specific categories (comma-separated)
+                        Types: skills, agents, hooks, memories, templates, scripts
+    -h, --help          Show this help message
+
+CATEGORIES:
+    skills      User-invocable workflows (/skill-name)
+    agents      Specialized task subprocesses
+    hooks       Event-driven automation scripts
+    memories    Persistent context templates
+    templates   Project scaffolding files
+    scripts     Internal utility scripts
+
+EXAMPLES:
+    claude-toolkit sync                          # Sync to current directory
+    claude-toolkit sync /path/to/project         # Sync to specific project
+    claude-toolkit sync --dry-run                # Preview changes
+    claude-toolkit sync --only skills            # Sync only skills
+    claude-toolkit sync --only skills,hooks      # Sync skills and hooks
+    claude-toolkit sync --force                  # Overwrite all conflicts
+EOF
+            return 0
+            ;;
+    esac
+done
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run) DRY_RUN=true; shift ;;
+        --force) FORCE=true; shift ;;
+        --only) ONLY_CATEGORIES="$2"; shift 2 ;;
+        -*) echo "Unknown option: $1"; exit 1 ;;
+        *) TARGET_DIR="$1"; shift ;;
+    esac
+done
+
+# Resolve target to absolute path
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+# File paths
+local TOOLKIT_VERSION_FILE="$TOOLKIT_DIR/VERSION"
+local TOOLKIT_CHANGELOG="$TOOLKIT_DIR/CHANGELOG.md"
+local PROJECT_VERSION_FILE="$TARGET_DIR/.claude-sync-version"
+local PROJECT_IGNORE_FILE="$TARGET_DIR/.claude-sync-ignore"
+
+# Read versions
+if [[ ! -f "$TOOLKIT_VERSION_FILE" ]]; then
+    echo -e "${RED}Error: VERSION file not found in toolkit${NC}"
+    exit 1
+fi
+local TOOLKIT_VERSION
+TOOLKIT_VERSION=$(cat "$TOOLKIT_VERSION_FILE" | tr -d '[:space:]')
+
+local PROJECT_VERSION
+if [[ ! -f "$PROJECT_VERSION_FILE" ]]; then
+    echo -e "${YELLOW}No .claude-sync-version found. This project hasn't been synced before.${NC}"
+    PROJECT_VERSION="0.0.0"
+else
+    PROJECT_VERSION=$(cat "$PROJECT_VERSION_FILE" | tr -d '[:space:]')
+fi
+
+echo "Toolkit version: $TOOLKIT_VERSION"
+echo "Project version: $PROJECT_VERSION"
+echo ""
+
+# Compare versions using sort -V
+version_gt() {
+    [[ "$(printf '%s\n' "$1" "$2" | sort -V | tail -n1)" == "$1" ]] && [[ "$1" != "$2" ]]
+}
+
+version_eq() {
+    [[ "$1" == "$2" ]]
+}
+
+# Check version relationship
+if version_eq "$TOOLKIT_VERSION" "$PROJECT_VERSION"; then
+    echo -e "${GREEN}Already up to date.${NC}"
+    exit 0
+fi
+
+if version_gt "$PROJECT_VERSION" "$TOOLKIT_VERSION"; then
+    echo -e "${YELLOW}Warning: project version ($PROJECT_VERSION) is newer than toolkit ($TOOLKIT_VERSION)${NC}"
+    exit 0
+fi
+
+# Show changelog entries since last sync
+echo -e "${BLUE}Changes since $PROJECT_VERSION:${NC}"
+if [[ -f "$TOOLKIT_CHANGELOG" ]]; then
+    # Extract changelog entries between versions
+    awk -v start="$PROJECT_VERSION" -v end="$TOOLKIT_VERSION" '
+        /^## \[/ {
+            # Extract version from header like "## [1.2.0] - 2026-01-25"
+            match($0, /\[([0-9]+\.[0-9]+\.[0-9]+)\]/, arr)
+            if (arr[1] != "") {
+                current_version = arr[1]
+                # Print if version is > start and <= end
+                in_range = 0
+                if (current_version != start) {
+                    # Simple string comparison - works for semver
+                    cmd = "printf \"%s\\n%s\" \"" start "\" \"" current_version "\" | sort -V | tail -n1"
+                    cmd | getline newer
+                    close(cmd)
+                    if (newer == current_version) {
+                        in_range = 1
+                    }
+                }
+            }
+        }
+        in_range { print "  " $0 }
+    ' "$TOOLKIT_CHANGELOG"
+else
+    echo "  (no changelog found)"
+fi
+echo ""
+
+# Load ignore patterns
+declare -a IGNORE_PATTERNS=()
+
+# Built-in ignores (always skip these)
+IGNORE_PATTERNS+=("plans/")
+IGNORE_PATTERNS+=("usage.log")
+IGNORE_PATTERNS+=("settings.local.json")
+IGNORE_PATTERNS+=("settings.json")
+
+# Project-specific ignores
+if [[ -f "$PROJECT_IGNORE_FILE" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+        IGNORE_PATTERNS+=("$line")
+    done < "$PROJECT_IGNORE_FILE"
+fi
+
+# Check if path should be ignored
+is_ignored() {
+    local path="$1"
+    for pattern in "${IGNORE_PATTERNS[@]:-}"; do
+        # Directory pattern (ends with /)
+        if [[ "$pattern" == */ ]]; then
+            if [[ "$path" == "$pattern"* ]]; then
+                return 0
+            fi
+        else
+            if [[ "$path" == "$pattern" ]]; then
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+# Check if category is selected (when --only is used)
+is_category_selected() {
+    local category="$1"
+    if [[ -z "$ONLY_CATEGORIES" ]]; then
+        return 0  # No filter, all selected
+    fi
+    # Check if category is in comma-separated list
+    if [[ ",$ONLY_CATEGORIES," == *",$category,"* ]]; then
+        return 0
+    fi
+    return 1
+}
+
+# Collect files to sync, organized by category
+declare -A CATEGORY_NEW_FILES
+declare -A CATEGORY_UPDATED_FILES
+declare -a IGNORED_FILES=()
+
+# Initialize category arrays
+for cat in skills agents hooks memories templates scripts other; do
+    CATEGORY_NEW_FILES[$cat]=""
+    CATEGORY_UPDATED_FILES[$cat]=""
+done
+
+# Find all files in toolkit .claude directory
+while IFS= read -r -d '' toolkit_file; do
+    local rel_path="${toolkit_file#$TOOLKIT_DIR/.claude/}"
+    local target_file="$TARGET_DIR/.claude/$rel_path"
+    local category
+    category=$(categorize_file "$rel_path")
+
+    # Skip if ignored
+    if is_ignored "$rel_path"; then
+        IGNORED_FILES+=("$rel_path")
+        continue
+    fi
+
+    # Skip if category not selected
+    if ! is_category_selected "$category"; then
+        continue
+    fi
+
+    if [[ ! -f "$target_file" ]]; then
+        CATEGORY_NEW_FILES[$category]+="$rel_path"$'\n'
+    elif ! diff -q "$toolkit_file" "$target_file" > /dev/null 2>&1; then
+        CATEGORY_UPDATED_FILES[$category]+="$rel_path"$'\n'
+    fi
+done < <(find "$TOOLKIT_DIR/.claude" -type f -print0 2>/dev/null)
+
+# Count total files
+local total_new=0
+local total_updated=0
+for cat in skills agents hooks memories templates scripts other; do
+    [[ -n "${CATEGORY_NEW_FILES[$cat]}" ]] && total_new=$((total_new + $(echo -n "${CATEGORY_NEW_FILES[$cat]}" | grep -c '^' || true)))
+    [[ -n "${CATEGORY_UPDATED_FILES[$cat]}" ]] && total_updated=$((total_updated + $(echo -n "${CATEGORY_UPDATED_FILES[$cat]}" | grep -c '^' || true)))
+done
+
+# Display files grouped by category
+echo -e "${BLUE}Files to sync:${NC}"
+local has_files=false
+
+for cat in skills agents hooks memories templates scripts other; do
+    local new_files="${CATEGORY_NEW_FILES[$cat]}"
+    local updated_files="${CATEGORY_UPDATED_FILES[$cat]}"
+
+    if [[ -n "$new_files" || -n "$updated_files" ]]; then
+        has_files=true
+        echo -e "\n  ${CYAN}${BOLD}[$cat]${NC}"
+
+        if [[ -n "$new_files" ]]; then
+            while IFS= read -r f; do
+                [[ -n "$f" ]] && echo -e "    ${GREEN}+ $f${NC} (new)"
+            done <<< "$new_files"
+        fi
+
+        if [[ -n "$updated_files" ]]; then
+            while IFS= read -r f; do
+                [[ -n "$f" ]] && echo -e "    ${YELLOW}~ $f${NC} (updated)"
+            done <<< "$updated_files"
+        fi
+    fi
+done
+
+if ! $has_files; then
+    echo "  (no changes)"
+fi
+
+# Display ignored files
+if [[ ${#IGNORED_FILES[@]} -gt 0 ]]; then
+    echo ""
+    echo -e "${BLUE}Ignored (via .claude-sync-ignore):${NC}"
+    for f in "${IGNORED_FILES[@]}"; do
+        echo -e "  ${RED}- $f${NC}"
+    done
+fi
+
+if [[ $total_new -eq 0 && $total_updated -eq 0 ]]; then
+    exit 0
+fi
+echo ""
+
+# Dry run exits here
+if $DRY_RUN; then
+    echo "Run without --dry-run to apply."
+    exit 0
+fi
+
+# Interactive category selection (if not forced and multiple categories)
+declare -a SELECTED_CATEGORIES=()
+local category_count=0
+for cat in skills agents hooks memories templates scripts other; do
+    if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
+        ((category_count++)) || true
+    fi
+done
+
+if ! $FORCE && [[ $category_count -gt 1 ]]; then
+    echo -n "Sync: [a]ll / [s]elect categories / [n]one? "
+    read -r choice
+
+    case $choice in
+        a|A)
+            for cat in skills agents hooks memories templates scripts other; do
+                if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
+                    SELECTED_CATEGORIES+=("$cat")
+                fi
+            done
+            ;;
+        s|S)
+            echo "Select categories to sync (y/n for each):"
+            for cat in skills agents hooks memories templates scripts other; do
+                if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
+                    echo -n "  $cat? [y/N] "
+                    read -r cat_choice
+                    if [[ "$cat_choice" =~ ^[yY]$ ]]; then
+                        SELECTED_CATEGORIES+=("$cat")
+                    fi
+                fi
+            done
+            ;;
+        n|N)
+            echo "Aborted."
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice, aborting."
+            exit 0
+            ;;
+    esac
+else
+    # Force mode or single category - select all available
+    for cat in skills agents hooks memories templates scripts other; do
+        if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
+            SELECTED_CATEGORIES+=("$cat")
+        fi
+    done
+fi
+
+if [[ ${#SELECTED_CATEGORIES[@]} -eq 0 ]]; then
+    echo "No categories selected."
+    exit 0
+fi
+
+# Collect files from selected categories
+declare -a NEW_FILES=()
+declare -a CONFLICT_FILES=()
+
+for cat in "${SELECTED_CATEGORIES[@]}"; do
+    if [[ -n "${CATEGORY_NEW_FILES[$cat]}" ]]; then
+        while IFS= read -r f; do
+            [[ -n "$f" ]] && NEW_FILES+=("$f")
+        done <<< "${CATEGORY_NEW_FILES[$cat]}"
+    fi
+    if [[ -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
+        while IFS= read -r f; do
+            [[ -n "$f" ]] && CONFLICT_FILES+=("$f")
+        done <<< "${CATEGORY_UPDATED_FILES[$cat]}"
+    fi
+done
+
+# Handle conflicts
+declare -a FILES_TO_COPY=()
+FILES_TO_COPY+=("${NEW_FILES[@]:-}")
+
+# Track if templates were synced
+local templates_synced=false
+
+for f in "${CONFLICT_FILES[@]:-}"; do
+    if $FORCE; then
+        FILES_TO_COPY+=("$f")
+        [[ "$f" == templates/* ]] && templates_synced=true
+        continue
+    fi
+
+    echo -e "${YELLOW}Conflict: $f${NC}"
+    echo "  Local file differs from toolkit version."
+    echo -n "  [o]verwrite / [s]kip once / [i]gnore always? "
+    read -r choice
+
+    case $choice in
+        o|O)
+            FILES_TO_COPY+=("$f")
+            [[ "$f" == templates/* ]] && templates_synced=true
+            ;;
+        s|S)
+            echo "  Skipping."
+            ;;
+        i|I)
+            echo "$f" >> "$PROJECT_IGNORE_FILE"
+            echo "  Added to .claude-sync-ignore"
+            ;;
+        *)
+            echo "  Invalid choice, skipping."
+            ;;
+    esac
+done
+
+# Check if any new files are templates
+for f in "${NEW_FILES[@]:-}"; do
+    [[ "$f" == templates/* ]] && templates_synced=true
+done
+
+# Confirm
+if [[ ${#FILES_TO_COPY[@]} -eq 0 ]]; then
+    echo "No files to copy."
+    exit 0
+fi
+
+if ! $FORCE; then
+    echo ""
+    echo -n "Apply ${#FILES_TO_COPY[@]} changes? [y/N] "
+    read -r confirm
+    if [[ ! "$confirm" =~ ^[yY]$ ]]; then
+        echo "Aborted."
+        exit 0
+    fi
+fi
+
+# Apply changes
+echo ""
+for f in "${FILES_TO_COPY[@]}"; do
+    local source_file="$TOOLKIT_DIR/.claude/$f"
+    local target_file="$TARGET_DIR/.claude/$f"
+
+    # Create parent directory if needed
+    mkdir -p "$(dirname "$target_file")"
+
+    cp "$source_file" "$target_file"
+    echo -e "  ${GREEN}Copied: $f${NC}"
+done
+
+# Update version file
+echo "$TOOLKIT_VERSION" > "$PROJECT_VERSION_FILE"
+echo ""
+echo -e "${GREEN}Synced to version $TOOLKIT_VERSION${NC}"
+
+# Post-sync reminders
+if $templates_synced; then
+    echo ""
+    echo -e "${BLUE}Templates synced. Consider merging into your project:${NC}"
+    echo "  - Makefile.claude-toolkit → merge targets into Makefile"
+    echo "  - gitignore.claude-toolkit → merge lines into .gitignore"
+    echo "  - settings.template.json → reference for .claude/settings.json"
+    echo "  - claude-sync-ignore.template → copy to .claude-sync-ignore"
+fi
+
+# Check dependencies
+if ! command -v jq &> /dev/null; then
+    echo ""
+    echo -e "${YELLOW}Warning: jq not found. Some hooks require jq for JSON parsing.${NC}"
+    echo "  Install: apt install jq (Debian/Ubuntu) or brew install jq (macOS)"
+fi
+
+}
+
+# === Main: Route to subcommand ===
+case "${1:-}" in
+    -h|--help|"") cmd_help ;;
+    sync) shift; cmd_sync "$@" ;;
+    send) shift; cmd_send "$@" ;;
+    *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
+esac

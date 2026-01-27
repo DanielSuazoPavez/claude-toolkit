@@ -15,6 +15,41 @@ cd /path/to/your/project
 
 This copies the `.claude/` directory into your project. Customize as needed.
 
+## CLI Usage
+
+The `claude-toolkit` CLI manages toolkit distribution and updates.
+
+```bash
+# Show help
+claude-toolkit --help
+
+# Sync toolkit updates to a project
+claude-toolkit sync                          # Current directory
+claude-toolkit sync /path/to/project         # Specific project
+claude-toolkit sync --dry-run                # Preview changes
+claude-toolkit sync --only skills,hooks      # Sync specific categories
+
+# Send a resource from another project to suggestions-box
+claude-toolkit send .claude/skills/my-skill/SKILL.md --type skill --project myapp
+```
+
+### Sync Categories
+
+When syncing, files are grouped by category for selective updates:
+- **skills** - User-invocable workflows
+- **agents** - Specialized task subprocesses
+- **hooks** - Event-driven automation scripts
+- **memories** - Persistent context templates
+- **templates** - Project scaffolding files
+- **scripts** - Internal utility scripts
+
+### Version Tracking
+
+Sync uses semantic versioning to track updates:
+- `VERSION` file in toolkit root
+- `.claude-sync-version` in target projects
+- `.claude-sync-ignore` for project-specific exclusions
+
 ## Concepts
 
 | Component | What It Is | How It's Used | Lifecycle |

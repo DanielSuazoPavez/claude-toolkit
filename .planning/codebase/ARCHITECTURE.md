@@ -3,7 +3,7 @@
 ## Entry Points
 
 - `install.sh` - Copies `.claude/` directory to target project for initial setup
-- `bin/claude-sync` - Syncs toolkit updates to projects, handles version tracking and conflicts
+- `bin/claude-toolkit` - CLI for toolkit management (sync, send subcommands)
 - `.claude/settings.json` - Hook configuration that Claude Code reads at runtime
 
 ## Layer Structure
@@ -11,7 +11,7 @@
 ```
 claude-toolkit/
 ├── bin/                    # CLI tools for toolkit management
-│   └── claude-sync         # Sync command (pull updates, send resources)
+│   └── claude-toolkit      # Main CLI (sync, send subcommands)
 ├── scripts/                # Maintenance scripts
 │   ├── analyze-usage.sh    # Usage analytics
 │   └── validate-resources-indexed.sh  # Index validation
@@ -39,9 +39,13 @@ claude-toolkit/
 
 ### Sync Flow
 ```
-[User runs claude-sync] → reads VERSION → compares with .claude-sync-version
-                       → shows CHANGELOG diff → prompts for conflicts
-                       → copies files → updates .claude-sync-version
+[User runs claude-toolkit sync] → reads VERSION → compares with .claude-sync-version
+                                → shows CHANGELOG diff
+                                → groups files by category
+                                → prompts: [a]ll / [s]elect / [n]one
+                                → handles conflicts per file
+                                → copies files → updates .claude-sync-version
+                                → shows template merge reminders
 ```
 
 ### Session Flow
@@ -141,10 +145,11 @@ settings.json
 install.sh ─┬─ copies → .claude/ (entire directory)
             └─ copies → VERSION → .claude-sync-version
 
-bin/claude-sync ─┬─ reads → VERSION, .claude-sync-version
-                 ├─ reads → .claude-sync-ignore
-                 ├─ reads → CHANGELOG.md
-                 └─ copies → .claude/* (selective)
+bin/claude-toolkit sync ─┬─ reads → VERSION, .claude-sync-version
+                         ├─ reads → .claude-sync-ignore
+                         ├─ reads → CHANGELOG.md
+                         ├─ groups → files by category
+                         └─ copies → .claude/* (selective by category)
 
 scripts/validate-resources-indexed.sh
     ├── reads → skills/, SKILLS.md

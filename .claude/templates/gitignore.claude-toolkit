@@ -1,0 +1,9 @@
+# Claude Toolkit - Suggested .gitignore entries
+# Add these lines to your project's .gitignore
+
+# Claude Code session artifacts
+.claude/usage.log
+.claude/plans/
+
+# Local settings (not committed)
+.claude/settings.local.json

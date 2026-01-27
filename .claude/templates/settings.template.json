@@ -1,0 +1,56 @@
+{
+  "$schema": "https://api.claude.ai/schemas/settings.json",
+  "_comment": "Claude Toolkit - Reference settings.json template",
+  "_instructions": "Copy this to .claude/settings.json and customize for your project",
+
+  "permissions": {
+    "allow": [
+      "Bash(make *)",
+      "Bash(uv run *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(ls *)",
+      "Bash(git *)"
+    ],
+    "deny": []
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": ".claude/hooks/session-start.sh"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": ".claude/hooks/track-skill-usage.sh"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "matcher": "Bash",
+        "command": ".claude/hooks/block-dangerous-commands.sh"
+      },
+      {
+        "type": "command",
+        "matcher": "EnterPlanMode|Bash",
+        "command": ".claude/hooks/enforce-feature-branch.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "matcher": "Write",
+        "command": ".claude/hooks/copy-plan-to-project.sh"
+      },
+      {
+        "type": "command",
+        "matcher": "Task",
+        "command": ".claude/hooks/track-agent-usage.sh"
+      }
+    ]
+  }
+}

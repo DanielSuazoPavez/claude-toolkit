@@ -18,11 +18,14 @@ CLI tools for toolkit management.
 
 | File | Purpose |
 |------|---------|
-| `claude-sync` | Sync toolkit to projects, send resources back |
+| `claude-toolkit` | Main CLI for toolkit management |
 
 **Commands:**
-- `claude-sync [path]` - Sync updates to a project
-- `claude-sync send <path> --type <type> --project <name>` - Send resource to suggestions-box
+- `claude-toolkit sync [path]` - Sync updates to a project
+- `claude-toolkit sync --only <categories>` - Sync specific categories (comma-separated)
+- `claude-toolkit send <path> --type <type> --project <name>` - Send resource to suggestions-box
+- `claude-toolkit --help` - Show main help
+- `claude-toolkit <command> --help` - Show command-specific help
 
 ## scripts/
 
@@ -156,6 +159,11 @@ Template files for project scaffolding.
 | File | Purpose |
 |------|---------|
 | `BACKLOG.md` | Project backlog template |
+| `Makefile.claude-toolkit` | Suggested make targets |
+| `gitignore.claude-toolkit` | Suggested .gitignore entries |
+| `settings.template.json` | Reference settings.json |
+| `claude-sync-ignore.template` | Default ignore patterns |
+| `mcp.template.json` | MCP servers template (context7, sequential-thinking) |
 
 ### scripts/
 

@@ -1,0 +1,15 @@
+# Claude Toolkit - Default .claude-sync-ignore patterns
+# Copy this to your project root as .claude-sync-ignore
+
+# Skip Python-specific hooks if not using Python
+# hooks/enforce-uv-run.sh
+
+# Skip memories you've customized locally
+# memories/essential-conventions-code_style.md
+# memories/essential-preferences-communication_style.md
+
+# Skip specific skills you don't need
+# skills/design-docker/
+
+# Skip templates after initial setup
+# templates/
