@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.15.0] - 2026-01-27 - CLI redesign
+
+### Changed
+- Renamed `bin/claude-sync` → `bin/claude-toolkit` with subcommand structure
+- `sync` is now a subcommand: `claude-toolkit sync [path]`
+- Files displayed grouped by category (skills, agents, hooks, memories, templates, scripts)
+- Interactive category selection: `[a]ll / [s]elect / [n]one`
+- Added `settings.json` to built-in ignores (never overwrite project settings)
+
+### Added
+- Main help: `claude-toolkit --help`
+- Subcommand help: `claude-toolkit sync --help`, `claude-toolkit send --help`
+- `--only <categories>` flag for selective sync (comma-separated)
+- Post-sync reminders when templates are synced
+- Template files for project setup:
+  - `templates/Makefile.claude-toolkit` - Suggested make targets
+  - `templates/gitignore.claude-toolkit` - Suggested .gitignore entries
+  - `templates/settings.template.json` - Reference settings.json
+  - `templates/claude-sync-ignore.template` - Default ignore patterns
+  - `templates/mcp.template.json` - MCP servers (context7, sequential-thinking)
+
 ## [0.14.0] - 2026-01-27 - Worktree lifecycle skills
 
 ### Added
