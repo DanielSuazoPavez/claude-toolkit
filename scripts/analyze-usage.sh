@@ -30,12 +30,13 @@ usage() {
     echo "Usage: $0 [OPTIONS] [FILE]"
     echo ""
     echo "Options:"
-    echo "  --all           Analyze all projects"
-    echo "  --summary       Show summary counts only"
-    echo "  --skills        Show only skill usage"
-    echo "  --agents        Show only agent usage"
-    echo "  --json          Output as JSON"
-    echo "  -h, --help      Show this help"
+    echo "  --all             Analyze all projects"
+    echo "  --since DATE      Only show entries after DATE (YYYY-MM-DD)"
+    echo "  --summary         Show summary counts only"
+    echo "  --skills          Show only skill usage"
+    echo "  --agents          Show only agent usage"
+    echo "  --json            Output as JSON"
+    echo "  -h, --help        Show this help"
     echo ""
     echo "If no file specified, analyzes current project's transcripts."
 }
@@ -47,12 +48,17 @@ SHOW_AGENTS=true
 OUTPUT_JSON=false
 TARGET_FILE=""
 ANALYZE_ALL=false
+SINCE_DATE=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --all)
             ANALYZE_ALL=true
             shift
+            ;;
+        --since)
+            SINCE_DATE="$2"
+            shift 2
             ;;
         --summary)
             SHOW_SUMMARY=true
@@ -85,16 +91,23 @@ done
 
 # Find transcript files to analyze
 find_transcripts() {
+    local find_opts=""
+
+    # If --since is specified, only look at files modified after that date
+    if [[ -n "$SINCE_DATE" ]]; then
+        find_opts="-newermt $SINCE_DATE"
+    fi
+
     if [[ -n "$TARGET_FILE" ]]; then
         echo "$TARGET_FILE"
     elif [[ "$ANALYZE_ALL" == true ]]; then
-        find "$CLAUDE_PROJECTS_DIR" -name "*.jsonl" -type f 2>/dev/null
+        find "$CLAUDE_PROJECTS_DIR" -name "*.jsonl" -type f $find_opts 2>/dev/null
     else
         # Current project - find by CWD (path encoded with leading dash)
         local cwd_encoded=$(pwd | sed 's|/|-|g')
         local project_dir="$CLAUDE_PROJECTS_DIR/$cwd_encoded"
         if [[ -d "$project_dir" ]]; then
-            find "$project_dir" -name "*.jsonl" -type f 2>/dev/null
+            find "$project_dir" -name "*.jsonl" -type f $find_opts 2>/dev/null
         else
             echo "No transcripts found for current project: $project_dir" >&2
             exit 1
@@ -162,18 +175,37 @@ analyze_file() {
     fi
 }
 
+# Extract project name from file path
+# e.g., /home/user/.claude/projects/-home-user-projects-personal-myproject/abc.jsonl -> myproject
+get_project_name() {
+    local file="$1"
+    local dir=$(dirname "$file")
+    local encoded=$(basename "$dir")
+    # Remove common prefixes and worktree suffixes
+    echo "$encoded" | sed -E 's/^-home-[^-]+-projects-(personal|raiz)-//' | sed 's/--worktrees-.*//'
+}
+
 # Collect all results
 results=""
 while IFS= read -r file; do
     [[ -z "$file" ]] && continue
+    project=$(get_project_name "$file")
     file_results=$(analyze_file "$file")
     if [[ -n "$file_results" ]]; then
+        # Prepend project name to each line
+        file_results=$(echo "$file_results" | sed "s/^/[$project] /")
         results+="$file_results"$'\n'
     fi
 done < <(find_transcripts)
 
 # Remove trailing newline
 results="${results%$'\n'}"
+
+# Filter by date if --since specified
+# Timestamp is now in $2 due to [project] prefix
+if [[ -n "$SINCE_DATE" ]]; then
+    results=$(echo "$results" | awk -v since="$SINCE_DATE" '$2 >= since')
+fi
 
 if [[ -z "$results" ]]; then
     echo "No usage data found." >&2
