@@ -3,8 +3,65 @@ set -euo pipefail
 
 # claude-sync: Sync skills from claude-toolkit to target projects
 # Usage: claude-sync [path] [--dry-run] [--force]
+#        claude-sync send <path> --type <skill|agent|hook|memory> --project <name>
 
 TOOLKIT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+error() {
+    echo -e "${RED}Error: $1${NC}" >&2
+    exit 1
+}
+
+# === cmd_send: Copy resources from other projects to suggestions-box ===
+cmd_send() {
+    local source_path=""
+    local type=""
+    local project=""
+
+    # Parse flags
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --type) type="$2"; shift 2 ;;
+            --project) project="$2"; shift 2 ;;
+            -*) error "Unknown option: $1" ;;
+            *) source_path="$1"; shift ;;
+        esac
+    done
+
+    # Validate required args
+    [[ -z "$source_path" ]] && error "Source path required"
+    [[ -z "$type" ]] && error "--type required (skill|agent|hook|memory)"
+    [[ -z "$project" ]] && error "--project required"
+    [[ ! "$type" =~ ^(skill|agent|hook|memory)$ ]] && error "Invalid type: $type"
+    [[ ! -f "$source_path" ]] && error "File not found: $source_path"
+
+    # Derive name from path
+    # .claude/skills/draft-pr/SKILL.md -> draft-pr
+    local name
+    name=$(basename "$(dirname "$source_path")")
+    [[ "$name" == "." || "$name" == ".claude" ]] && name=$(basename "$source_path" .md)
+
+    # Build destination
+    local dest_dir="$TOOLKIT_DIR/suggestions-box/$project"
+    local dest_file="$dest_dir/${name}-${type^^}.md"
+
+    # Create dir and copy
+    mkdir -p "$dest_dir"
+    cp "$source_path" "$dest_file"
+
+    echo "Sent: $source_path -> $dest_file"
+}
+
+# === cmd_sync: Main sync logic ===
+cmd_sync() {
+
 TARGET_DIR="."
 DRY_RUN=false
 FORCE=false
@@ -27,13 +84,6 @@ TOOLKIT_VERSION_FILE="$TOOLKIT_DIR/VERSION"
 TOOLKIT_CHANGELOG="$TOOLKIT_DIR/CHANGELOG.md"
 PROJECT_VERSION_FILE="$TARGET_DIR/.claude-sync-version"
 PROJECT_IGNORE_FILE="$TARGET_DIR/.claude-sync-ignore"
-
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
 
 # Read versions
 if [[ ! -f "$TOOLKIT_VERSION_FILE" ]]; then
@@ -267,3 +317,11 @@ if ! command -v jq &> /dev/null; then
     echo -e "${YELLOW}Warning: jq not found. Some hooks require jq for JSON parsing.${NC}"
     echo "  Install: apt install jq (Debian/Ubuntu) or brew install jq (macOS)"
 fi
+
+}
+
+# === Main: Route to subcommand ===
+case "${1:-}" in
+    send) shift; cmd_send "$@" ;;
+    *)    cmd_sync "$@" ;;
+esac
