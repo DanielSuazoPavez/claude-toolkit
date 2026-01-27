@@ -158,6 +158,8 @@ declare -a IGNORE_PATTERNS=()
 
 # Built-in ignores (always skip these)
 IGNORE_PATTERNS+=("plans/")
+IGNORE_PATTERNS+=("usage.log")
+IGNORE_PATTERNS+=("settings.local.json")
 
 # Project-specific ignores
 if [[ -f "$PROJECT_IGNORE_FILE" ]]; then
