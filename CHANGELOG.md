@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0] - 2026-01-26 - Send subcommand for claude-sync
+
+### Added
+- `claude-sync send` subcommand: copy resources from other projects to `suggestions-box/` for review
+  - Usage: `claude-sync send <path> --type <skill|agent|hook|memory> --project <name>`
+  - Derives resource name from path structure (e.g., `draft-pr` from `.claude/skills/draft-pr/SKILL.md`)
+
 ## [0.8.0] - 2026-01-26 - Backlog schema and agent improvements
 
 ### Added
