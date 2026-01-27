@@ -27,7 +27,18 @@ Getting claude-toolkit to a clean, polished state:
 
 ## P1 - High
 
-(None currently)
+- **[SKILLS]** Create `logging-observability` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - Structured logging, metrics, tracing setup
+
+- **[TOOLKIT]** Session lessons system
+    - **status**: `idea`
+    - **scope**: `toolkit, skills, memories`
+    - Memory + skill for capturing debugging/investigation insights
+    - Meta-tags: `[T]` transferable vs `[P:project]` project-specific
+    - Centralized collection from projects (similar to suggestions-box)
+    - Reference: bm-sop `experimental-sessions_lessons.md` + `search-session-lessons/`
 
 ---
 
@@ -68,11 +79,6 @@ Getting claude-toolkit to a clean, polished state:
     - **scope**: `skills`
     - Service-specific best practices (Lambda, RDS, OpenSearch)
 
-- **[SKILLS]** Create `logging-observability` skill
-    - **status**: `idea`
-    - **scope**: `skills`
-    - Structured logging, metrics, tracing setup
-
 - **[SKILLS]** Research Polars-specific patterns
     - **status**: `idea`
     - **scope**: `skills`
@@ -82,14 +88,6 @@ Getting claude-toolkit to a clean, polished state:
     - **status**: `idea`
     - **scope**: `tests, toolkit`
     - Automated verification of install.sh and claude-sync flow
-
-- **[TOOLKIT]** Session lessons system
-    - **status**: `idea`
-    - **scope**: `toolkit, skills, memories`
-    - Memory + skill for capturing debugging/investigation insights
-    - Meta-tags: `[T]` transferable vs `[P:project]` project-specific
-    - Centralized collection from projects (similar to suggestions-box)
-    - Reference: bm-sop `experimental-sessions_lessons.md` + `search-session-lessons/`
 
 ---
 
