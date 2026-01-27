@@ -27,6 +27,12 @@ Always loaded at session start:
 |--------|--------|---------|
 | `philosophy-reducing_entropy` | new | Philosophy on reducing codebase entropy |
 
+## Experimental
+
+| Memory | Status | Purpose |
+|--------|--------|---------|
+| `experimental-preferences-casual_communication_style` | stable | Casual conversation mode for meta-discussions |
+
 ## Memory Categories
 
 ### `essential` (Permanent)

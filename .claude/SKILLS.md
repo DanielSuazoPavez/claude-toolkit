@@ -20,6 +20,7 @@ User-invocable skills activated with `/skill-name`.
 | `review-changes` | new | Fast code review focused on blockers |
 | `analyze-naming` | new | Analyze and suggest better variable/function names |
 | `design-qa` | new | Plan comprehensive QA testing strategy |
+| `design-tests` | new | Pytest patterns for fixtures, mocking, organization, test prioritization |
 
 ## Design & Architecture
 

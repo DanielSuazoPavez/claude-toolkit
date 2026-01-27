@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0] - 2026-01-26 - Testing patterns skill
+
+### Added
+- `design-tests` skill: pytest patterns for fixtures, mocking, organization, test prioritization
+- `experimental-preferences-casual_communication_style` memory for meta-discussions
+- Subagent recommendation in all `evaluate-*` skills to avoid self-evaluation bias
+
 ## [0.12.0] - 2026-01-26 - Memory guidance in session start
 
 ### Added

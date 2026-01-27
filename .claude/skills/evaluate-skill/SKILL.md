@@ -127,6 +127,8 @@ Decision trees, working examples, error handling, edge cases?
 
 ## Evaluation Protocol
 
+**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
 1. Read completely, mark sections as [E]xpert, [A]ctivation, [R]edundant
 2. Analyze structure: frontmatter, line count, pattern
 3. Score each dimension with evidence
