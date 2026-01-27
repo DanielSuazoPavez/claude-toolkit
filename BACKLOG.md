@@ -1,4 +1,4 @@
-# Backlog
+# Project Backlog
 
 ## Goal
 
@@ -11,34 +11,94 @@ Getting claude-toolkit to a clean, polished state:
 
 | Scope | Description |
 |-------|-------------|
-| research | Learning, reviewing external resources, investigating approaches |
 | toolkit | Core toolkit infrastructure (sync, indexes, versioning) |
-| meta | Self-improvement tools (writers, judges, conventions) |
-| dev | Development workflow tools (testing, CI, docs) |
 | skills | User-invocable skills |
 | agents | Specialized task agents |
 | hooks | Automation hooks |
 | tests | Automated testing and validation |
 
-## High Priority
+---
+
+## P0 - Critical
 
 (None currently)
 
-## Medium Priority
+---
 
-- [ ] dev+skills: Create `testing-patterns` skill (pytest fixtures, mocking, data generators)
-- [ ] dev+skills: Create `github-actions` skill (CI/CD pipeline patterns, caching, matrix builds)
-- [ ] dev+skills: Create `docgen` skill (API docs, docstrings, README generation)
+## P1 - High
 
-## Low Priority
+(None currently)
 
-- [ ] toolkit+hooks: Make memory loading more reliable/automatic (beyond session-start essentials)
-- [ ] toolkit+hooks: Skill auto-activation via UserPromptSubmit hook (bash-only; see diet103 research for concept)
-- [ ] dev+agents: Create `aws-architect` agent (infra design, cost/tradeoff analysis, online cost lookup steps)
-- [ ] dev+agents: Create `aws-security-auditor` agent (security review, least-privilege validation)
-- [ ] dev+skills: Create `aws-deploy` skill (service-specific best practices for Lambda, RDS, OpenSearch, etc.)
-- [ ] dev+skills: Create `logging-observability` skill (structured logging, metrics, tracing setup)
-- [ ] dev+skills: Create `git-workflow` skill (branching strategies, merge patterns, conventional commits)
-- [ ] research+skills: Research Polars-specific patterns (lazy frames, expressions, optimizations)
-- [ ] tests+toolkit: Add `test/test-sync.sh` - automated verification of install.sh and claude-sync flow
+---
 
+## P2 - Medium
+
+- **[SKILLS]** Create `testing-patterns` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - pytest fixtures, mocking, data generators
+
+- **[SKILLS]** Create `github-actions` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - CI/CD pipeline patterns, caching, matrix builds
+
+- **[SKILLS]** Create `docgen` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - API docs, docstrings, README generation
+
+---
+
+## P3 - Low / Nice-to-Have
+
+- **[HOOKS]** Improve memory loading reliability
+    - **status**: `idea`
+    - **scope**: `toolkit, hooks`
+    - Beyond session-start essentials
+
+- **[HOOKS]** Skill auto-activation via UserPromptSubmit
+    - **status**: `idea`
+    - **scope**: `toolkit, hooks`
+    - bash-only implementation
+
+- **[AGENTS]** Create `aws-architect` agent
+    - **status**: `idea`
+    - **scope**: `agents`
+    - Infra design, cost/tradeoff analysis, online cost lookup
+
+- **[AGENTS]** Create `aws-security-auditor` agent
+    - **status**: `idea`
+    - **scope**: `agents`
+    - Security review, least-privilege validation
+
+- **[SKILLS]** Create `aws-deploy` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - Service-specific best practices (Lambda, RDS, OpenSearch)
+
+- **[SKILLS]** Create `logging-observability` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - Structured logging, metrics, tracing setup
+
+- **[SKILLS]** Create `git-workflow` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - Branching strategies, merge patterns, conventional commits
+
+- **[SKILLS]** Research Polars-specific patterns
+    - **status**: `idea`
+    - **scope**: `skills`
+    - Lazy frames, expressions, optimizations
+
+- **[TESTING]** Add sync validation tests
+    - **status**: `idea`
+    - **scope**: `tests, toolkit`
+    - Automated verification of install.sh and claude-sync flow
+
+---
+
+## Graveyard
+
+(None yet)

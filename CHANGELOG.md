@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0] - 2026-01-26 - Backlog schema and agent improvements
+
+### Added
+- `relevant-conventions-backlog_schema` memory: standardized BACKLOG.md format with priority sections, entry format, categories, status values
+- `scripts/backlog-query.sh`: bash-only CLI to query backlog by status/priority/scope/branch
+
+### Changed
+- Renamed `plan-reviewer` agent to `implementation-checker` (better reflects purpose)
+  - Added Write tool for report persistence to `.claude/reviews/`
+  - Added Beliefs, Anti-Patterns, Status Values sections
+- Updated `evaluate-agent` skill D4 scoring rule for tool selection
+- Converted BACKLOG.md to new schema format
+
 ## [0.7.1] - 2026-01-25 - Skill naming conventions
 
 ### Changed
