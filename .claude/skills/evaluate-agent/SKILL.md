@@ -66,17 +66,19 @@ Red flags: Generic "you are a helpful assistant", tone shifts mid-doc
 Green flags: "You are a X who Y", explicit anti-behaviors
 
 ### D4: Tool Selection (15 pts)
-Does the agent request appropriate tools?
+Is the tool set an exact fit for the stated purpose?
 
 | Score | Criteria |
 |-------|----------|
-| 14-15 | Minimal, justified tool set matching the task |
-| 11-13 | Reasonable tools, maybe one extra or missing |
-| 7-10 | Tools listed but not well-matched to purpose |
+| 14-15 | Each tool is justified by the agent's purpose; no extras, no gaps |
+| 11-13 | Reasonable tools, one questionable inclusion or omission |
+| 7-10 | Tools listed but mismatch with stated purpose |
 | 3-6 | Over-provisioned or under-provisioned |
 | 0-2 | No tools specified or completely wrong set |
 
-Red flags: Edit tools on read-only reviewer, no Bash on runner
+**Scoring rule**: If the agent's purpose explicitly requires a tool (e.g., "writes a report" → Write), award full credit. Don't penalize for tools the agent explicitly says it won't use anyway.
+
+Red flags: Edit tools on read-only reviewer, no Bash on a test runner
 Green flags: Tools match stated purpose, no unnecessary capabilities
 
 ## Grading Scale
