@@ -2,7 +2,7 @@
 # Validates that all resources are properly indexed in their respective index files
 #
 # Usage:
-#   bash .claude/hooks/validate-indexes.sh
+#   bash scripts/validate-resources-indexed.sh
 #
 # Exit codes:
 #   0 - All resources properly indexed
@@ -99,7 +99,7 @@ HOOKS_DIR="$CLAUDE_DIR/hooks"
 
 if [ -f "$HOOKS_INDEX" ] && [ -d "$HOOKS_DIR" ]; then
     # Get hooks from disk (only .sh files, exclude this validation script)
-    DISK_HOOKS=$(find "$HOOKS_DIR" -maxdepth 1 -name "*.sh" ! -name "validate-indexes.sh" -exec basename {} \; | sort)
+    DISK_HOOKS=$(find "$HOOKS_DIR" -maxdepth 1 -name "*.sh" ! -name "validate-resources-indexed.sh" -exec basename {} \; | sort)
 
     # Get hooks from index (extract from markdown table)
     INDEX_HOOKS=$(grep -oP '\| `\K[^`]+\.sh(?=` \|)' "$HOOKS_INDEX" | sort)
