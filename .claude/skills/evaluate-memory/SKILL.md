@@ -162,6 +162,8 @@ Is the memory > 300 lines?
 
 ## Evaluation Protocol
 
+**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
 1. Check filename against category patterns
 2. Verify Quick Reference is section 1 with correct pattern
 3. Assess content scope and overlap

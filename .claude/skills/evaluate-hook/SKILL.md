@@ -99,6 +99,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 
 ## Evaluation Protocol
 
+**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
 1. Identify hook event and matcher
 2. Verify output format matches spec
 3. Check for early exit on non-matching tools

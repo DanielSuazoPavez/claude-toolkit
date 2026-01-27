@@ -124,6 +124,8 @@ Green flags: Tools match stated purpose, no unnecessary capabilities
 
 ## Evaluation Protocol
 
+**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
 1. Read completely, noting scope boundaries and output format
 2. Check frontmatter: name, description, tools
 3. Score each dimension with evidence
