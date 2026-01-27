@@ -20,7 +20,7 @@ User-invocable skills activated with `/skill-name`.
 | `review-changes` | new | Fast code review focused on blockers |
 | `analyze-naming` | new | Analyze and suggest better variable/function names |
 | `design-qa` | new | Plan comprehensive QA testing strategy |
-| `design-tests` | new | Pytest patterns for fixtures, mocking, organization, test prioritization |
+| `design-tests` | alpha | Pytest patterns for fixtures, mocking, organization, test prioritization |
 
 ## Design & Architecture
 
@@ -34,7 +34,7 @@ User-invocable skills activated with `/skill-name`.
 | Skill | Status | Description |
 |-------|--------|-------------|
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
-| `setup-worktree` | new | Reference for git worktrees - setup, usage, pitfalls |
+| `setup-worktree` | alpha | Reference for git worktrees - setup, usage, pitfalls |
 | `teardown-worktree` | new | Safe worktree closure after agent completion |
 | `read-json` | new | Read and analyze JSON files efficiently using jq |
 | `design-docker` | new | Dockerfile and docker-compose patterns, health checks, multi-stage builds |

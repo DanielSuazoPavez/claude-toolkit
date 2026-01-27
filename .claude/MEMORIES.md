@@ -18,7 +18,7 @@ Always loaded at session start:
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `relevant-conventions-backlog_schema` | new | BACKLOG.md schema: priority, categories, status values |
+| `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
 | `relevant-reference-commands` | stable | CLI and Make commands reference |
 | `relevant-reference-hooks_config` | new | Hooks configuration and environment variables |
 

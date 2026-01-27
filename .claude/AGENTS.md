@@ -6,7 +6,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-mapper` | new | Explores codebase and writes structured analysis documents to `.planning/codebase/` | Read, Bash, Grep, Glob, Write |
+| `codebase-mapper` | alpha | Explores codebase and writes structured analysis documents to `.planning/codebase/` | Read, Bash, Grep, Glob, Write |
 | `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality
@@ -21,7 +21,7 @@ Specialized agents for complex, multi-step tasks.
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
 | `goal-verifier` | new | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired) | Read, Bash, Grep, Glob |
-| `implementation-checker` | new | Compares implementation to planning docs, writes report to `.claude/reviews/` | Read, Grep, Glob, Write |
+| `implementation-checker` | stable | Compares implementation to planning docs, writes report to `.claude/reviews/` | Read, Grep, Glob, Write |
 
 ## Usage
 

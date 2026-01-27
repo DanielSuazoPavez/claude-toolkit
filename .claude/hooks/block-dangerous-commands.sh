@@ -55,8 +55,9 @@ if [[ "$COMMAND" =~ rm[[:space:]].*-[[:alnum:]]*r[[:alnum:]]*f.*[[:space:]]/(\ |
 fi
 
 # Check for rm -rf ~ or rm -rf $HOME (home deletion)
-if [[ "$COMMAND" =~ rm[[:space:]].*-[[:alnum:]]*r[[:alnum:]]*f.*[[:space:]](~|\$HOME|\${HOME})(\ |/|$) ]] || \
-   [[ "$COMMAND" =~ rm[[:space:]].*-[[:alnum:]]*f[[:alnum:]]*r.*[[:space:]](~|\$HOME|\${HOME})(\ |/|$) ]]; then
+# Note: $HOME patterns use single quotes to prevent bash expansion in the regex
+if [[ "$COMMAND" =~ rm[[:space:]].*-[[:alnum:]]*r[[:alnum:]]*f.*[[:space:]](~|'$HOME'|'${HOME}')(\ |/|$) ]] || \
+   [[ "$COMMAND" =~ rm[[:space:]].*-[[:alnum:]]*f[[:alnum:]]*r.*[[:space:]](~|'$HOME'|'${HOME}')(\ |/|$) ]]; then
     block "BLOCKED: rm -rf on home directory. This would destroy all user data."
 fi
 

@@ -115,21 +115,20 @@ Specialized agents for complex tasks:
 | `plan-reviewer` | Compares implementation to planning docs at milestones |
 | `pattern-finder` | Documents how things are implemented - finds examples of patterns |
 
-### Hooks (9)
+### Hooks (8)
 
 Automation hooks configured in `settings.json`:
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | `session-start.sh` | SessionStart | Loads essential memories and git context |
-| `track-skill-usage.sh` | UserPromptSubmit | Logs skill invocations |
+| `enforce-feature-branch.sh` | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
 | `block-dangerous-commands.sh` | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, etc.) |
 | `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
 | `secrets-guard.sh` | PreToolUse (Read\|Bash) | Warns before reading .env files |
 | `suggest-json-reader.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
 | `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.planning/` |
-| `track-agent-usage.sh` | PostToolUse (Task) | Logs agent spawns |
 
 **Note:** `enforce-uv-run.sh` is Python-specific. Remove or modify for non-Python projects.
 
