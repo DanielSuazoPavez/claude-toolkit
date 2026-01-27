@@ -11,7 +11,6 @@ Always loaded at session start:
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
 | `essential-conventions-memory` | stable | Memory naming conventions and categories |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
-| `essential-reference-commands` | stable | CLI and Make commands reference |
 | `essential-workflow-branch_development` | stable | Branch-based development workflow |
 | `essential-workflow-task_completion` | stable | Task completion checklist |
 
@@ -20,6 +19,8 @@ Always loaded at session start:
 | Memory | Status | Purpose |
 |--------|--------|---------|
 | `relevant-conventions-backlog_schema` | new | BACKLOG.md schema: priority, categories, status values |
+| `relevant-reference-commands` | stable | CLI and Make commands reference |
+| `relevant-reference-hooks_config` | new | Hooks configuration and environment variables |
 
 ## Philosophy
 
