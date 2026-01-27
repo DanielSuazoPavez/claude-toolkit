@@ -131,6 +131,8 @@ test_block_dangerous_commands() {
         "blocks dd to disk"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"chmod -R 777 /"}}' \
         "blocks chmod -R 777 /"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat file > /dev/sda"}}' \
+        "blocks redirect to disk device"
 
     # Should allow
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"rm -rf ./temp"}}' \
