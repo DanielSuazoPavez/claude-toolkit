@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.0] - 2026-01-26 - Memory guidance in session start
+
+### Added
+- Session-start hook now prompts agent to check `/list-memories` and read relevant memories for non-essential topics
+- Inspired by Serena MCP's memory system approach
+
 ## [0.11.0] - 2026-01-26 - Enforce feature branch workflow
 
 ### Added
