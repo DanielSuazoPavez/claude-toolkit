@@ -3,14 +3,14 @@
 # Simple CLI to query BACKLOG.md (bash-only, no dependencies)
 #
 # Usage:
-#     ./scripts/backlog-query.sh                      # List all tasks
-#     ./scripts/backlog-query.sh status planned       # Filter by status
-#     ./scripts/backlog-query.sh unblocked            # Planned + no dependencies
-#     ./scripts/backlog-query.sh blocked              # Has dependencies
-#     ./scripts/backlog-query.sh priority P1          # Filter by priority
-#     ./scripts/backlog-query.sh scope DS             # Filter by scope
-#     ./scripts/backlog-query.sh branch               # Tasks with branches
-#     ./scripts/backlog-query.sh -v ...               # Verbose output
+#     .claude/scripts/backlog-query.sh                # List all tasks
+#     .claude/scripts/backlog-query.sh status planned # Filter by status
+#     .claude/scripts/backlog-query.sh unblocked      # Planned + no dependencies
+#     .claude/scripts/backlog-query.sh blocked        # Has dependencies
+#     .claude/scripts/backlog-query.sh priority P1    # Filter by priority
+#     .claude/scripts/backlog-query.sh scope DS       # Filter by scope
+#     .claude/scripts/backlog-query.sh branch         # Tasks with branches
+#     .claude/scripts/backlog-query.sh -v ...         # Verbose output
 
 set -euo pipefail
 
@@ -19,9 +19,9 @@ find_backlog() {
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-    # Try relative to script (scripts/)
-    if [[ -f "$script_dir/../BACKLOG.md" ]]; then
-        echo "$script_dir/../BACKLOG.md"
+    # Try relative to script (.claude/scripts/ -> project root)
+    if [[ -f "$script_dir/../../BACKLOG.md" ]]; then
+        echo "$script_dir/../../BACKLOG.md"
     # Try current directory
     elif [[ -f "BACKLOG.md" ]]; then
         echo "BACKLOG.md"
