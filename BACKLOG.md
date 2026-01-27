@@ -82,11 +82,6 @@ Getting claude-toolkit to a clean, polished state:
     - **scope**: `skills`
     - Structured logging, metrics, tracing setup
 
-- **[SKILLS]** Create `git-workflow` skill
-    - **status**: `idea`
-    - **scope**: `skills`
-    - Branching strategies, merge patterns, conventional commits
-
 - **[SKILLS]** Research Polars-specific patterns
     - **status**: `idea`
     - **scope**: `skills`

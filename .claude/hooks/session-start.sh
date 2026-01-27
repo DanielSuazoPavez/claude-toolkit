@@ -47,6 +47,10 @@ MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^re
 [ -z "$MAIN_BRANCH" ] && MAIN_BRANCH="main"
 echo "Main: $MAIN_BRANCH"
 
+# === MEMORY GUIDANCE ===
+echo ""
+echo "If the user's request relates to a non-essential memory topic, use /list-memories to check Quick Reference summaries, then read relevant memories before proceeding."
+
 # === ACKNOWLEDGMENT ===
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
 echo ""
