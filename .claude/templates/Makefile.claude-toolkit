@@ -1,0 +1,20 @@
+# Claude Toolkit - Suggested Makefile targets
+# Merge these targets into your project's Makefile
+
+# Lint and format (Python example - adjust for your stack)
+.PHONY: lint format test
+
+lint:
+	pre-commit run --all-files
+
+format:
+	pre-commit run --all-files
+
+test:
+	uv run pytest
+
+# Claude toolkit sync
+.PHONY: claude-sync
+
+claude-sync:
+	~/claude-toolkit/bin/claude-toolkit sync .
