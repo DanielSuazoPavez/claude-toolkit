@@ -155,6 +155,11 @@ echo ""
 
 # Load ignore patterns
 declare -a IGNORE_PATTERNS=()
+
+# Built-in ignores (always skip these)
+IGNORE_PATTERNS+=("plans/")
+
+# Project-specific ignores
 if [[ -f "$PROJECT_IGNORE_FILE" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
         # Skip empty lines and comments
