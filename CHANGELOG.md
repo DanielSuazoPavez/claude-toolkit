@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.14.0] - 2026-01-27 - Worktree lifecycle skills
+
+### Added
+- `teardown-worktree` skill: safe worktree closure after agent completion
+  - Validates path, checks uncommitted changes, runs implementation-checker
+  - GREEN/YELLOW/RED paths with explicit decision criteria
+  - Anti-patterns table for common mistakes
+- Multi-instance note in `setup-worktree` for agent coordination
+- `relevant-reference-hooks_config` memory documenting hook env vars
+- Branch-timestamped report filenames in implementation-checker agent
+
+### Changed
+- Renamed `essential-reference-commands` to `relevant-reference-commands` (not session-critical)
+- `claude-sync` now excludes `usage.log` and `settings.local.json` from sync payload
+
 ## [0.13.0] - 2026-01-26 - Testing patterns skill
 
 ### Added
