@@ -87,7 +87,7 @@ Getting claude-toolkit to a clean, polished state:
 - **[TESTING]** Add sync validation tests
     - **status**: `idea`
     - **scope**: `tests, toolkit`
-    - Automated verification of install.sh and claude-sync flow
+    - Automated verification of install.sh and claude-toolkit sync flow
 
 ---
 

@@ -37,7 +37,7 @@ chmod +x "$TARGET_DIR/.claude/hooks/"*.sh 2>/dev/null || true
 
 # Set sync version for future updates
 if [ -f "$SCRIPT_DIR/VERSION" ]; then
-    cp "$SCRIPT_DIR/VERSION" "$TARGET_DIR/.claude-sync-version"
+    cp "$SCRIPT_DIR/VERSION" "$TARGET_DIR/.claude-toolkit-version"
 fi
 
 echo ""

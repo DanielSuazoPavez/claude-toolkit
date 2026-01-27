@@ -200,8 +200,8 @@ TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 # File paths
 local TOOLKIT_VERSION_FILE="$TOOLKIT_DIR/VERSION"
 local TOOLKIT_CHANGELOG="$TOOLKIT_DIR/CHANGELOG.md"
-local PROJECT_VERSION_FILE="$TARGET_DIR/.claude-sync-version"
-local PROJECT_IGNORE_FILE="$TARGET_DIR/.claude-sync-ignore"
+local PROJECT_VERSION_FILE="$TARGET_DIR/.claude-toolkit-version"
+local PROJECT_IGNORE_FILE="$TARGET_DIR/.claude-toolkit-ignore"
 
 # Read versions
 if [[ ! -f "$TOOLKIT_VERSION_FILE" ]]; then
@@ -213,7 +213,7 @@ TOOLKIT_VERSION=$(cat "$TOOLKIT_VERSION_FILE" | tr -d '[:space:]')
 
 local PROJECT_VERSION
 if [[ ! -f "$PROJECT_VERSION_FILE" ]]; then
-    echo -e "${YELLOW}No .claude-sync-version found. This project hasn't been synced before.${NC}"
+    echo -e "${YELLOW}No .claude-toolkit-version found. This project hasn't been synced before.${NC}"
     PROJECT_VERSION="0.0.0"
 else
     PROJECT_VERSION=$(cat "$PROJECT_VERSION_FILE" | tr -d '[:space:]')
@@ -399,7 +399,7 @@ fi
 # Display ignored files
 if [[ ${#IGNORED_FILES[@]} -gt 0 ]]; then
     echo ""
-    echo -e "${BLUE}Ignored (via .claude-sync-ignore):${NC}"
+    echo -e "${BLUE}Ignored (via .claude-toolkit-ignore):${NC}"
     for f in "${IGNORED_FILES[@]}"; do
         echo -e "  ${RED}- $f${NC}"
     done
@@ -518,7 +518,7 @@ for f in "${CONFLICT_FILES[@]:-}"; do
             ;;
         i|I)
             echo "$f" >> "$PROJECT_IGNORE_FILE"
-            echo "  Added to .claude-sync-ignore"
+            echo "  Added to .claude-toolkit-ignore"
             ;;
         *)
             echo "  Invalid choice, skipping."
@@ -572,7 +572,7 @@ if $templates_synced; then
     echo "  - Makefile.claude-toolkit → merge targets into Makefile"
     echo "  - gitignore.claude-toolkit → merge lines into .gitignore"
     echo "  - settings.template.json → reference for .claude/settings.json"
-    echo "  - claude-sync-ignore.template → copy to .claude-sync-ignore"
+    echo "  - claude-toolkit-ignore.template → copy to .claude-toolkit-ignore"
 fi
 
 # Check dependencies

@@ -47,8 +47,8 @@ When syncing, files are grouped by category for selective updates:
 
 Sync uses semantic versioning to track updates:
 - `VERSION` file in toolkit root
-- `.claude-sync-version` in target projects
-- `.claude-sync-ignore` for project-specific exclusions
+- `.claude-toolkit-version` in target projects
+- `.claude-toolkit-ignore` for project-specific exclusions
 
 ## Concepts
 
