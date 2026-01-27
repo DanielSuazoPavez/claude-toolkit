@@ -185,6 +185,8 @@ git worktree remove .worktrees/agent-1-auth
 git worktree remove .worktrees/agent-2-api
 ```
 
+**Note:** After setting up a worktree, implementation is typically handled by another Claude instance working in that worktree. This instance won't see uncommitted changes - check `git log` (not just `git status`) to see commits made by other instances.
+
 ## Quick Reference
 
 | Task | Command |
