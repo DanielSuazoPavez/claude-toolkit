@@ -59,24 +59,24 @@
       },
       "evaluate-batch": {
         "date": "2026-01-28",
-        "grade": "B",
-        "score": 93,
+        "grade": "A",
+        "score": 110,
         "max": 120,
-        "percentage": 77.5,
+        "percentage": 91.7,
         "dimensions": {
-          "D1": 13,
-          "D2": 10,
-          "D3": 12,
-          "D4": 12,
-          "D5": 14,
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 14,
+          "D5": 15,
           "D6": 14,
-          "D7": 8,
-          "D8": 10
+          "D7": 9,
+          "D8": 14
         },
         "top_improvements": [
-          "Add error handling section (done)",
-          "Add decision tree for batch-size selection (done)",
-          "Add mindset section for when to batch vs individual"
+          "Add 'Why Batch?' mindset section for when batch adds value",
+          "Add 'Over-parallelizing' anti-pattern warning",
+          "Include sample evaluations.json complete output example"
         ]
       }
     }

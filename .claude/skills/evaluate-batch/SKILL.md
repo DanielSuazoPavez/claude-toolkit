@@ -99,6 +99,23 @@ Added N evaluations to .claude/evaluations.json
 | Large resource set (10+) | `batch-size=3` to avoid timeouts |
 | Quick spot-check | `batch-size=2` on specific type |
 
+## Calibration Notes
+
+| Default | Why |
+|---------|-----|
+| `batch-size=5` | Balances parallelism vs. agent timeout risk (~2min each) |
+| New resources first | Re-evaluating stable resources rarely changes scores |
+
+| Resource Count | Recommended Strategy |
+|----------------|---------------------|
+| 1-5 | Single batch, default settings |
+| 6-15 | Two batches, `batch-size=5` |
+| 15+ | Three+ batches with `batch-size=3` to avoid context pressure |
+
+**Ordering:** Evaluate in dependency order when possible (skills before agents that reference them) - evaluations are independent but shared context helps.
+
+**Score normalization:** All evaluations output scores as percentage (0-100) regardless of the underlying dimension structure.
+
 ## Error Handling
 
 | Error | Recovery |
