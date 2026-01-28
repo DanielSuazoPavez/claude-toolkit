@@ -1,5 +1,19 @@
 # Philosophy: Reducing Entropy
 
+## 1. Quick Reference
+
+**ONLY READ WHEN:**
+- Starting a refactoring task
+- Reviewing code that "improves organization"
+- Questioning whether to add abstraction layers
+- User asks about code minimalism or entropy
+
+Core principle: Measure changes by final code amount, not effort. Bias toward deletion.
+
+**See also:** `essential-conventions-code_style` for related anti-over-engineering guidance
+
+---
+
 ## Core Question
 
 > "What does the codebase look like *after*?"
@@ -16,11 +30,13 @@ Measure changes by the final code amount, not implementation effort. A refactor 
 
 ## Red Flags
 
-- **Status quo bias**: "Keep what exists" without questioning if it should exist
-- **Over-engineering**: Building for flexibility you don't need
-- **Unnecessary abstraction**: Layers that don't pay for themselves
-- **Type safety theater**: Complex types that don't prevent real bugs
-- **Readability bloat**: Comments and structure that add lines without clarity
+| Pattern | Problem |
+|---------|---------|
+| **Status quo bias** | "Keep what exists" without questioning if it should exist |
+| **Over-engineering** | Building for flexibility you don't need |
+| **Unnecessary abstraction** | Layers that don't pay for themselves |
+| **Type safety theater** | Complex types that don't prevent real bugs |
+| **Readability bloat** | Comments and structure that add lines without clarity |
 
 ## Bias Toward Deletion
 

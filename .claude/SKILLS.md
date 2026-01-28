@@ -8,7 +8,7 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `brainstorm-idea` | stable | Turn fuzzy ideas into clear designs through structured dialogue |
 | `analyze-idea` | stable | Research tasks - investigate topics, gather evidence, generate reports |
-| `review-plan` | new | Review implementation plans against quality criteria |
+| `review-plan` | beta | Review implementation plans against quality criteria |
 | `write-handoff` | stable | Capture context before `/clear` for session continuity |
 | `wrap-up` | stable | Session wrap-up and handoff documentation |
 | `list-memories` | stable | List available memories with Quick Reference summaries |
@@ -17,7 +17,7 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `review-changes` | new | Fast code review focused on blockers |
+| `review-changes` | beta | Fast code review focused on blockers |
 | `analyze-naming` | beta | Analyze and suggest better variable/function names |
 | `design-qa` | alpha | Plan comprehensive QA testing strategy |
 | `design-tests` | alpha | Pytest patterns for fixtures, mocking, organization, test prioritization |

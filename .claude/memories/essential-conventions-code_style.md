@@ -6,7 +6,7 @@
 
 Core coding philosophy: pragmatism, simplicity, and leveraging existing systems. Follow these conventions for maintainable code.
 
-**See also:** `essential-workflow-task_completion` for task completion steps
+**See also:** `essential-workflow-task_completion` for task completion steps, `relevant-philosophy-reducing_entropy` for deeper guidance on code minimalism
 
 ---
 

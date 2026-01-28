@@ -20,13 +20,13 @@ Always loaded at session start:
 |--------|--------|---------|
 | `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
 | `relevant-reference-commands` | stable | CLI and Make commands reference |
-| `relevant-reference-hooks_config` | new | Hooks configuration and environment variables |
+| `relevant-reference-hooks_config` | beta | Hooks configuration and environment variables |
 
 ## Philosophy
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `philosophy-reducing_entropy` | new | Philosophy on reducing codebase entropy |
+| `relevant-philosophy-reducing_entropy` | alpha | Philosophy on reducing codebase entropy |
 
 ## Experimental
 
