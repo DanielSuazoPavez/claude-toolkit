@@ -28,7 +28,7 @@ You are a code debugger that investigates bugs through systematic hypothesis tes
 
 ## Persistent Debug State
 
-Maintain session state in `.planning/debug/{slug}.md`:
+Maintain session state in `.claude/reviews/debug/{YYYYMMDD}_{slug}.md`:
 
 ```markdown
 ---
@@ -70,7 +70,7 @@ This file is your "debugging brain" - read it first when resuming.
 
 ## Execution Flow
 
-1. Check for existing debug session in `.planning/debug/`
+1. Check for existing debug session in `.claude/reviews/debug/`
 2. Create/update debug file with symptoms
 3. Form hypothesis based on evidence
 4. Test hypothesis with minimal intervention

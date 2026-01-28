@@ -13,7 +13,7 @@ Automation hooks configured in `settings.json`.
 | `suggest-json-reader.sh` | alpha | PreToolUse (Read) | Suggests /read-json skill for JSON files |
 | `enforce-uv-run.sh` | alpha | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | alpha | PreToolUse (Bash) | Encourages Make targets |
-| `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.planning/` |
+| `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
 **Note**: Alpha hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
 
@@ -94,7 +94,7 @@ Encourages using Make targets over raw commands.
 
 **Trigger**: PostToolUse (Write)
 
-Copies plan files to `.planning/` directory.
+Copies plan files to `.claude/plans/` directory.
 
 - Watches for plan file writes
 - Maintains planning documentation in project

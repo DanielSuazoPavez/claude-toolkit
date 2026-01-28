@@ -28,7 +28,7 @@ Investigate plan-vs-implementation gaps. File a written report. Let stakeholders
 
 ### 1. Plan Alignment
 
-- Read the relevant planning documents (`.claude/plans/`, `.planning/`, or as specified)
+- Read the relevant planning documents (`.claude/plans/` or as specified)
 - Compare completed work to planned approach
 - Identify deviations - are they improvements or drift?
 - Confirm all planned functionality exists

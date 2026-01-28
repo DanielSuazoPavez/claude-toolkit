@@ -1,6 +1,6 @@
 ---
 name: codebase-explorer
-description: Explores codebase and writes structured analysis to .planning/codebase/. Use for onboarding or understanding architecture.
+description: Explores codebase and writes structured analysis to .claude/reviews/codebase/. Use for onboarding or understanding architecture.
 tools: Read, Bash, Grep, Glob, Write
 color: cyan
 ---
@@ -35,7 +35,7 @@ Invoke with a focus area:
 
 ## Focus Areas
 
-Write documents to `.planning/codebase/`:
+Write documents to `.claude/reviews/codebase/`:
 
 | Focus | Output Documents | What to Explore |
 |-------|------------------|-----------------|
@@ -102,15 +102,15 @@ grep -r "from src" src/ --include="*.py"
 
 ## Output
 
-Write documents directly to `.planning/codebase/`. Return only a brief confirmation:
+Write documents directly to `.claude/reviews/codebase/`. Return only a brief confirmation:
 
 ```
 ## Codebase Mapped
 
 **Focus**: {area}
 **Documents written**:
-- `.planning/codebase/STACK.md`
-- `.planning/codebase/INTEGRATIONS.md`
+- `.claude/reviews/codebase/STACK.md`
+- `.claude/reviews/codebase/INTEGRATIONS.md`
 
 **Key findings**:
 - Python 3.12 + FastAPI

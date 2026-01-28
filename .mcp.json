@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["-c", "PATH=/home/hata/.nvm/versions/node/v22.22.0/bin:$PATH npx -y @modelcontextprotocol/server-sequential-thinking"]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["-c", "PATH=/home/hata/.nvm/versions/node/v22.22.0/bin:$PATH npx -y @upstash/context7-mcp@latest"]
+    }
+  }
+}

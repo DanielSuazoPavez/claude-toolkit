@@ -6,7 +6,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-explorer` | alpha | Explores codebase and writes structured analysis to `.planning/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
+| `codebase-explorer` | alpha | Explores codebase and writes structured analysis to `.claude/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
 | `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality

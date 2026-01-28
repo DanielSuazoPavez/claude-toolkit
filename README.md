@@ -108,11 +108,11 @@ Specialized agents for complex tasks:
 
 | Agent | Description |
 |-------|-------------|
-| `codebase-mapper` | Explores codebase and writes structured analysis documents |
+| `codebase-explorer` | Explores codebase and writes structured analysis documents |
 | `code-reviewer` | Pragmatic code reviewer focused on real risks |
 | `code-debugger` | Investigates bugs using scientific method with persistent state |
 | `goal-verifier` | Verifies work is actually complete, not just tasks checked off |
-| `plan-reviewer` | Compares implementation to planning docs at milestones |
+| `implementation-checker` | Compares implementation to planning docs at milestones |
 | `pattern-finder` | Documents how things are implemented - finds examples of patterns |
 
 ### Hooks (8)
@@ -128,7 +128,7 @@ Automation hooks configured in `settings.json`:
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
 | `secrets-guard.sh` | PreToolUse (Read\|Bash) | Warns before reading .env files |
 | `suggest-json-reader.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
-| `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.planning/` |
+| `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.claude/plans/` |
 
 **Note:** `enforce-uv-run.sh` is Python-specific. Remove or modify for non-Python projects.
 
@@ -141,9 +141,9 @@ Starting point for project memories in `.claude/memories/`:
 | `essential-conventions-code_style` | Coding conventions and style guide |
 | `essential-conventions-memory` | Memory naming conventions |
 | `essential-preferences-communication_style` | Communication style preferences |
-| `essential-reference-commands` | CLI and Make commands reference |
 | `essential-workflow-branch_development` | Branch-based development workflow |
 | `essential-workflow-task_completion` | Task completion checklist |
+| `relevant-reference-commands` | CLI and Make commands reference |
 | `philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
 
 ## Configuration
