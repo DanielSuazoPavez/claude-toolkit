@@ -110,6 +110,139 @@
           "Add edge case tests - quoted paths, absolute paths, multiline commands",
           "Document known limitations and bypass vectors"
         ]
+      },
+      "enforce-make-commands": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 92,
+        "max": 100,
+        "percentage": 92,
+        "dimensions": {
+          "D1": 23,
+          "D2": 19,
+          "D3": 18,
+          "D4": 18,
+          "D5": 14
+        },
+        "top_improvements": [
+          "Add logging of blocked commands to stderr for debugging",
+          "Strengthen regex patterns to catch edge cases like 'env pytest' or './pytest'",
+          "Consider adding a verbose mode that explains why a specific pattern matched"
+        ]
+      },
+      "enforce-uv-run": {
+        "date": "2026-01-28",
+        "grade": "B",
+        "score": 80,
+        "max": 100,
+        "percentage": 80,
+        "dimensions": {
+          "D1": 18,
+          "D2": 17,
+          "D3": 18,
+          "D4": 17,
+          "D5": 10
+        },
+        "top_improvements": [
+          "Fix documentation mismatch: HOOKS.md claims hook blocks pip/pytest/ruff/mypy but implementation only blocks python",
+          "Handle edge case: python command without trailing space isn't blocked by current regex",
+          "Add test cases for documented-but-missing patterns (pip, pytest) and edge cases"
+        ]
+      },
+      "copy-plan-to-project": {
+        "date": "2026-01-28",
+        "grade": "B",
+        "score": 84,
+        "max": 100,
+        "percentage": 84,
+        "dimensions": {
+          "D1": 22,
+          "D2": 16,
+          "D3": 17,
+          "D4": 17,
+          "D5": 12
+        },
+        "top_improvements": [
+          "Add more test cases: fallback filename when title is missing, error conditions",
+          "Validate/sanitize file_path input to prevent path traversal attacks from malformed JSON",
+          "Document the slug generation algorithm and add examples of expected output file names"
+        ]
+      },
+      "suggest-json-reader": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 94,
+        "max": 100,
+        "percentage": 94,
+        "dimensions": {
+          "D1": 24,
+          "D2": 19,
+          "D3": 19,
+          "D4": 18,
+          "D5": 14
+        },
+        "top_improvements": [
+          "Add test case for warn mode (JSON_READ_WARN=1) in documentation",
+          "Normalize JSON output formatting (remove space inconsistency between allow/block outputs)",
+          "Add comment explaining the glob-to-regex sed conversion logic"
+        ]
+      },
+      "enforce-feature-branch": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 92,
+        "max": 100,
+        "percentage": 92,
+        "dimensions": {
+          "D1": 23,
+          "D2": 19,
+          "D3": 18,
+          "D4": 18,
+          "D5": 14
+        },
+        "top_improvements": [
+          "Enhance git commit regex to catch edge cases like 'git -C /path commit'",
+          "Add DEBUG=1 logging option to help troubleshoot blocking decisions",
+          "Consider adding git push blocking to protected branches"
+        ]
+      },
+      "session-start": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 93,
+        "max": 100,
+        "percentage": 93,
+        "dimensions": {
+          "D1": 24,
+          "D2": 19,
+          "D3": 18,
+          "D4": 18,
+          "D5": 14
+        },
+        "top_improvements": [
+          "Add path sanity check for CLAUDE_MEMORIES_DIR (prevent path traversal)",
+          "Consider adding a verbose/debug mode for troubleshooting",
+          "Add timing/performance note for large memory files"
+        ]
+      },
+      "block-dangerous-commands": {
+        "date": "2026-01-28",
+        "grade": "B",
+        "score": 87,
+        "max": 100,
+        "percentage": 87,
+        "dimensions": {
+          "D1": 22,
+          "D2": 18,
+          "D3": 17,
+          "D4": 16,
+          "D5": 14
+        },
+        "top_improvements": [
+          "Add logging of blocked commands for security auditing",
+          "Extract dangerous patterns into a configurable array or config file",
+          "Add more test cases covering mkfs, dd, and chmod patterns"
+        ]
       }
     }
   },
