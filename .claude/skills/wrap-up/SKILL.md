@@ -5,13 +5,17 @@ description: Use when finishing work on a feature branch. Updates changelog, bum
 
 Use when finishing a feature branch.
 
+## Why Code-Before-Docs Order Matters
+
+Commit code changes separately from version/changelog updates because:
+- **Git bisect cleanliness**: Each code commit is independently testable; mixing docs breaks bisect
+- **PR reviewability**: Reviewers see code changes isolated from boilerplate version bumps
+- **Atomic releases**: Version bump commit becomes the clear release boundary
+
 ## Instructions
 
 ### 1. Check for uncommitted code changes
-- Run `git status` to check for uncommitted changes
-- If there are uncommitted code changes (src/, tests/, etc.):
-  - Review the changes with `git diff`
-  - Commit them first with an appropriate message (feat:, fix:, refactor:, test:, etc.)
+- If uncommitted code changes exist (src/, tests/, etc.), commit them first
 - Skip if only docs files are modified
 
 ### 2. Analyze the branch
@@ -31,23 +35,27 @@ What changed?
 
 **Breaking change test:** Does existing user code need to change? If yes → Major.
 
+**When NOT to bump version:**
+- Pure CI/CD changes (GitHub Actions, Dockerfiles for dev)
+- Internal refactors with no user-facing change AND no release planned
+- Documentation-only changes (unless docs are versioned artifacts)
+- Work-in-progress on feature branches that will be squashed
+
+**Pre-release versions (0.x.y):**
+- Before 1.0.0, breaking changes can be Minor instead of Major
+- Document stability expectations in README
+- Consider 1.0.0 when: stable API, production users, semantic versioning commitment
+
+**Merge vs Squash considerations:**
+- If branch will be **squashed**: Single changelog entry for all work
+- If branch will be **merged with commits**: Changelog can reference individual commits
+- When unsure, write changelog as if squashed (cleaner history)
+
 ### 4. Update `CHANGELOG.md`
-Add new entry at the top:
-```markdown
-## [X.Y.Z] - YYYY-MM-DD - Short Title
-
-### Added
-- Feature description
-
-### Changed / Fixed
-- Description
-```
+Add new entry at the top following existing project style.
 
 ### 5. Update version file
-Bump the version in the appropriate file:
-- `VERSION` (plain text version file)
-- `pyproject.toml` (Python projects)
-- `package.json` (Node projects)
+Bump the version in the appropriate file (VERSION, pyproject.toml, package.json, etc.).
 
 ### 6. Update `BACKLOG.md`
 - Remove completed items (they're now in CHANGELOG)
@@ -55,13 +63,29 @@ Bump the version in the appropriate file:
 - Add any new backlog items discovered
 
 ### 7. Commit documentation changes
-```bash
-git add CHANGELOG.md BACKLOG.md <version-file>
-git commit -m "docs: update changelog, version X.Y.Z, backlog"
-```
+Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 
 ### 8. Report summary
 Output what was updated.
+
+## Edge Cases
+
+**CHANGELOG.md doesn't exist:**
+1. Ask user: "No CHANGELOG.md found. Create one, or skip changelog?"
+2. If creating, use Keep a Changelog format with initial entry
+
+**First version (no previous releases):**
+- Start at 0.1.0 (pre-release) or 1.0.0 (stable) based on project maturity
+- First changelog entry should summarize initial capabilities
+
+**Merge conflicts during wrap-up:**
+- If conflict in CHANGELOG.md: Keep both entries, adjust ordering by date
+- If conflict in version file: Use higher version, re-check changelog matches
+- After resolving, verify version consistency across all files
+
+**Version file not found:**
+- Check common locations: VERSION, pyproject.toml, package.json, Cargo.toml
+- If none exist, ask user where version should be tracked
 
 ## Changelog Examples
 
@@ -89,9 +113,9 @@ Output what was updated.
 | **Wrong Bump** | Patch for new feature | Major=breaking, Minor=feature, Patch=fix |
 | **Empty Changelog** | "Updated stuff" | Describe what changed and why |
 | **Stale Backlog** | Completed items still in TODO | Remove them (CHANGELOG is the record) |
+| **Bump Everything** | Version bump for CI-only changes | Skip bump for non-user-facing changes |
 
 ## Notes
 
-- Uncommitted code changes are committed first, then docs/version updates
 - If using pyproject.toml with uv, the uv-lock hook will auto-update uv.lock
 - If commit fails due to hooks, re-run the commit

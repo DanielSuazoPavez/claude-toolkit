@@ -73,10 +73,11 @@ Use the staleness check:
 .claude/scripts/evaluation-query.sh stale        # hash mismatch
 ```
 
-### 3. Launch Parallel Agents
+### 3. Process Batches (Write After Each)
 
-For each resource (up to batch-size at a time):
+For each batch of resources (up to batch-size):
 
+**3a. Launch parallel agents:**
 ```
 Launch agent with prompt:
 "Run /evaluate-{singular-type} on {resource-name} ({resource-path}).
@@ -101,12 +102,10 @@ Type mapping:
 - `memories` → `/evaluate-memory`
 - `agents` → `/evaluate-agent`
 
-### 4. Collect Results
+**3b. Collect batch results:**
+Wait for batch agents to complete. Parse JSON from each response.
 
-Wait for all agents to complete. Parse JSON from each response.
-
-### 5. Update evaluations.json
-
+**3c. Write batch to evaluations.json immediately:**
 Add each result to `.claude/evaluations.json` under `{type}.resources.{name}`:
 
 ```json
@@ -122,9 +121,20 @@ Add each result to `.claude/evaluations.json` under `{type}.resources.{name}`:
 }
 ```
 
-### 6. Report Summary
+**3d. Report batch summary:**
+```
+Batch 1/3 complete:
+| Resource | Grade | Score |
+|----------|-------|-------|
+| name-1   | A     | 93/100 |
+| name-2   | A-    | 89/100 |
+```
 
-Output a summary table:
+**Why write after each batch:** If later batches fail or timeout, earlier results are already saved. Re-running the command will skip already-evaluated resources.
+
+### 4. Final Summary
+
+After all batches complete:
 
 ```
 | Resource | Grade | Score |
@@ -181,16 +191,17 @@ Evaluate in this order when doing full audit:
 
 ### Resuming Interrupted Batches
 
-If batch is interrupted (timeout, user cancel, error):
-1. Check evaluations.json - completed evaluations are already saved
-2. Run same command again - Filter step will skip already-evaluated resources
-3. Only remaining/failed resources will be re-evaluated
+Since results are written after each batch completes:
+1. Completed batches are already in evaluations.json
+2. Run same command again - Filter step skips already-evaluated resources
+3. Only remaining batches will be processed
 
-**Partial failure example:**
+**Example - 15 resources, batch-size=5, interrupted after batch 2:**
 ```
-Batch of 5 started → 3 complete, 2 timeout
-evaluations.json has 3 new entries
-Re-run same command → only 2 resources in queue
+Batch 1: 5 evaluated → written to evaluations.json
+Batch 2: 5 evaluated → written to evaluations.json
+Batch 3: interrupted before completion
+Re-run → Filter finds only 5 remaining → single batch needed
 ```
 
 ## Example Invocation
@@ -236,3 +247,4 @@ Added 2 evaluations to .claude/evaluations.json
 | **Serial execution** | Running one at a time | Use parallel Task calls up to batch-size |
 | **Over-parallelizing** | Burns tokens fast, hits API throughput limits | Keep batch-size ≤5, run batches sequentially |
 | **Missing JSON format** | Agent returns prose, not structured data | Explicitly request JSON in agent prompt |
+| **Write at end only** | Lose all progress if later batch fails | Write to evaluations.json after each batch |

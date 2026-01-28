@@ -20,10 +20,6 @@ Where should I put worktrees?
 | Sibling dirs | Quick experiments | None |
 | Central dir | Multi-project workflows | One-time setup |
 
-## What Are Worktrees?
-
-Multiple working directories sharing the same git repo. Each worktree has its own branch checked out. Changes in one don't affect others until merged.
-
 ## Where to Put Worktrees
 
 ### Option A: Inside Project (Recommended)
@@ -126,6 +122,8 @@ Reference via environment variable or config file.
 
 ### 1. Forgetting to Gitignore
 
+**Why bad:** Worktree directories contain full source trees. Without gitignore, `git status` shows thousands of "new files" and you risk accidentally committing the entire worktree as nested files.
+
 ```bash
 # BEFORE creating worktrees
 echo ".worktrees/" >> .gitignore
@@ -133,6 +131,8 @@ git add .gitignore && git commit -m "Ignore worktrees directory"
 ```
 
 ### 2. Worktree Gets Stale
+
+**Why bad:** Your worktree diverges from main. When you eventually merge, you face massive conflicts that could have been small incremental rebases. Worst case: you build on outdated code that's already been refactored.
 
 Worktrees don't auto-update. Periodically:
 ```bash
@@ -143,12 +143,16 @@ git rebase origin/main  # or merge
 
 ### 3. Orphaned Worktrees
 
+**Why bad:** Git maintains internal references to worktrees. If you `rm -rf` a worktree directory without `git worktree remove`, git still thinks it exists. You can't check out that branch elsewhere and `git worktree list` shows stale entries.
+
 After deleting a worktree directory manually:
 ```bash
 git worktree prune
 ```
 
 ### 4. Dependencies Not Installed
+
+**Why bad:** Tests pass in main worktree but fail in feature worktree. Or worse: tests pass locally because dependencies bleed through from wrong `node_modules`, then fail in CI. Subtle version mismatches cause hours of debugging.
 
 Each worktree needs its own `node_modules`, `.venv`, etc:
 ```bash
@@ -159,6 +163,8 @@ cargo build
 ```
 
 ### 5. Can't Delete Branch
+
+**Why bad:** Git refuses to delete a branch checked out in any worktree. You'll see "error: Cannot delete branch 'feature-x' checked out at '/path/to/worktree'" with no indication which worktree is blocking it.
 
 If branch is checked out in a worktree, you can't delete it:
 ```bash
@@ -186,13 +192,3 @@ git worktree remove .worktrees/agent-2-api
 ```
 
 **Note:** After setting up a worktree, implementation is typically handled by another Claude instance working in that worktree. This instance won't see uncommitted changes - check `git log` (not just `git status`) to see commits made by other instances.
-
-## Quick Reference
-
-| Task | Command |
-|------|---------|
-| Create | `git worktree add <path> -b <branch>` |
-| List | `git worktree list` |
-| Remove | `git worktree remove <path>` |
-| Prune | `git worktree prune` |
-| Where am I? | `git worktree list` (current marked) |

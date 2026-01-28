@@ -17,52 +17,72 @@ The user provides context after `/analyze-idea` describing what to investigate. 
 1. **Understand the scope**: Parse the user's context to identify what needs analysis.
 
 2. **Explore thoroughly**:
-   - Use Glob, Grep, Read to investigate relevant code/docs
-   - Use Task tool with Explore agent for broad codebase questions
    - Gather concrete evidence (file paths, line counts, patterns found)
+   - Use Task tool with Explore agent for broad codebase questions
 
-### Investigation Techniques
+### Investigation Heuristics
 
-#### For Code Analysis
-```bash
-# Find all implementations of a pattern
-grep -rn "pattern" src/ --include="*.py"
+#### Search Strategy (Not Mechanics)
 
-# Trace dependencies
-grep -rn "from module import" . --include="*.py"
+**Start wide, narrow fast:**
+- First search: cast a wide net to understand the landscape
+- Second search: target specific patterns from initial findings
+- Third search: verify edge cases and counterexamples
+- Stop when new searches return familiar results
 
-# Find test coverage for a module
-grep -rn "test_modulename" tests/
+**What reveals truth about code:**
+- Tests show intended behavior; absence of tests shows uncertainty
+- Error handling reveals what authors feared would go wrong
+- Comments often lie; commit messages lie less; code behavior is truth
+- Unused code persists longer than you'd expect - verify before assuming "dead"
 
-# Check git history for context
-git log --oneline -20 -- path/to/file.py
-git blame path/to/file.py | head -50
+#### Expert Patterns (by Analysis Type)
+
+**Code Analysis** - Follow the money (data/control flow):
+- Who calls this? Who does it call? What state does it touch?
+- Where are the exits? (returns, throws, panics, process.exit)
+- What must be true for this to work? (preconditions, env, config)
+- What's the blast radius of changing this?
+
+**Architecture** - Look for tension:
+- Where does code "fight" the architecture? (workarounds, TODOs, hacks)
+- What's easy to change vs. what requires touching many files?
+- Which components have unstable interfaces? (frequent signature changes)
+- Where do abstractions leak? (internal details exposed in public APIs)
+
+**Coverage Gaps** - Test what matters:
+- High complexity + low coverage = risk (use cyclomatic complexity as guide)
+- Error paths without tests = production surprises waiting to happen
+- Mock-heavy tests = integration gaps
+- Flaky tests = concurrency or timing issues
+
+**Feasibility** - Find the hard parts first:
+- What's the most uncertain assumption? Attack that first
+- Prior attempts: check closed PRs, reverted commits, abandoned branches
+- Dependencies: unmaintained = you own the bugs
+- Can you build a walking skeleton in hours, not days?
+
+### Evidence Triangulation
+
+Cross-validate findings from multiple sources before concluding:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Source Type        │ Strength │ Watch For                   │
+├────────────────────┼──────────┼─────────────────────────────┤
+│ Current code       │ Strong   │ May be outdated/dead        │
+│ Tests              │ Strong   │ May not reflect prod usage  │
+│ Git history        │ Medium   │ Context lost over time      │
+│ Comments/docs      │ Weak     │ Often stale                 │
+│ Config files       │ Strong   │ Env-specific variations     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### For Architecture Questions
-1. Start with entry points (main.py, __init__.py, routes/)
-2. Follow imports to trace data flow
-3. Check tests for expected behavior
-4. Look for existing docs (README, docstrings, comments)
-
-#### For Coverage/Gap Analysis
-```bash
-# Count lines per module
-find src/ -name "*.py" -exec wc -l {} + | sort -n
-
-# Find untested modules
-diff <(ls src/*.py | xargs -n1 basename | sed 's/.py//') \
-     <(ls tests/test_*.py | xargs -n1 basename | sed 's/test_//' | sed 's/.py//')
-
-# Check for TODO/FIXME
-grep -rn "TODO\|FIXME\|HACK" src/
-```
-
-#### For Feasibility Analysis
-1. Identify dependencies (external libs, APIs, infrastructure)
-2. Check for similar implementations in codebase
-3. Estimate scope by counting affected files
-4. Look for blockers (tech debt, missing abstractions)
+**Triangulation Rules:**
+- 1 source = hypothesis, 2 sources = likely, 3+ sources = confident
+- When sources conflict, prefer code > tests > git > docs
+- Note contradictions explicitly - they often reveal the real story
+- Missing evidence is evidence: no tests often means no confidence
 
 ### When to Stop Investigating
 
@@ -163,3 +183,32 @@ Should I keep digging?
 | **Confirmation Bias** | Only finding evidence for hypothesis | Actively seek counter-evidence |
 | **Shallow Investigation** | Surface-level grep | Trace code paths, check tests, read commits |
 | **No Evidence** | "I think X is true" | Include file paths, line numbers, metrics |
+
+## Edge Cases
+
+### Vague or Unbounded Scope
+When the user's request is too broad (e.g., "analyze the codebase"):
+1. Ask one clarifying question OR pick the most likely interpretation
+2. State your scope assumption explicitly in the report
+3. Deliver narrow findings rather than shallow broad findings
+
+### Contradictory Evidence
+When code says X but docs/tests say Y:
+1. Note the contradiction as a finding (this IS valuable information)
+2. Prefer code behavior over documentation claims
+3. Check git blame/history to understand which is newer
+4. Recommend reconciliation in your report
+
+### No Relevant Code Found
+When searches return nothing useful:
+1. Document what you searched for and where
+2. Distinguish "doesn't exist" from "exists but named differently"
+3. Check for alternative implementations (vendored, generated, external service)
+4. "No evidence of X" is a valid finding - state it confidently
+
+### Security-Sensitive Findings
+When investigation reveals potential security issues:
+1. Include in report with appropriate severity assessment
+2. Be specific about the risk (not vague "this might be bad")
+3. Do NOT test exploits or demonstrate vulnerabilities
+4. Recommend security review if findings are significant
