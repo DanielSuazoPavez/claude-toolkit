@@ -12,7 +12,52 @@
       "D7": { "name": "Pattern Recognition", "max": 10 },
       "D8": { "name": "Practical Usability", "max": 15 }
     },
-    "resources": {}
+    "resources": {
+      "write-skill": {
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 12,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Refine frontmatter description - remove workflow hints, add trigger keywords",
+          "Add decision tree for when to split skill into supporting files",
+          "Remove or condense naming convention section (redundant)"
+        ]
+      },
+      "evaluate-skill": {
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 12,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 12
+        },
+        "top_improvements": [
+          "Add explicit keywords to frontmatter/description for better triggering",
+          "Provide evaluation output template for consistent results",
+          "Expand worked example to full evaluation"
+        ]
+      }
+    }
   },
   "hooks": {
     "evaluate_skill": "/evaluate-hook",
@@ -24,7 +69,27 @@
       "D4": { "name": "Maintainability", "max": 20 },
       "D5": { "name": "Documentation", "max": 15 }
     },
-    "resources": {}
+    "resources": {
+      "secrets-guard": {
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 89,
+        "max": 100,
+        "percentage": 89.0,
+        "dimensions": {
+          "D1": 22,
+          "D2": 18,
+          "D3": 17,
+          "D4": 18,
+          "D5": 14
+        },
+        "top_improvements": [
+          "Strengthen Bash pattern detection - add quoted path handling and additional read patterns",
+          "Add edge case tests - quoted paths, absolute paths, multiline commands",
+          "Document known limitations and bypass vectors"
+        ]
+      }
+    }
   },
   "memories": {
     "evaluate_skill": "/evaluate-memory",
@@ -36,7 +101,27 @@
       "D4": { "name": "Load Timing Appropriateness", "max": 15 },
       "D5": { "name": "Structure & Formatting", "max": 20 }
     },
-    "resources": {}
+    "resources": {
+      "essential-conventions-code_style": {
+        "date": "2026-01-28",
+        "grade": "B+",
+        "score": 84,
+        "max": 100,
+        "percentage": 84.0,
+        "dimensions": {
+          "D1": 18,
+          "D2": 18,
+          "D3": 17,
+          "D4": 13,
+          "D5": 18
+        },
+        "top_improvements": [
+          "Fix Quick Reference pattern - use ONLY READ WHEN instead of Read at",
+          "Align title with filename - change to Code Style Conventions",
+          "Generalize language-specific content (Python/Polars examples)"
+        ]
+      }
+    }
   },
   "agents": {
     "evaluate_skill": "/evaluate-agent",
@@ -47,6 +132,115 @@
       "D3": { "name": "Coherent Persona", "max": 25 },
       "D4": { "name": "Tool Selection", "max": 15 }
     },
-    "resources": {}
+    "resources": {
+      "implementation-checker": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 93,
+        "max": 100,
+        "percentage": 93.0,
+        "dimensions": {
+          "D1": 27,
+          "D2": 28,
+          "D3": 24,
+          "D4": 14
+        },
+        "top_improvements": [
+          "Add Recommended Actions section to report format",
+          "Clarify differentiation from goal-verifier agent",
+          "Add example invocation showing when to use"
+        ]
+      },
+      "pattern-finder": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 91,
+        "max": 100,
+        "percentage": 91.0,
+        "dimensions": {
+          "D1": 28,
+          "D2": 26,
+          "D3": 23,
+          "D4": 14
+        },
+        "top_improvements": [
+          "Add explicit handoff guidance - what should user do after patterns are cataloged",
+          "Clarify tool usage - Bash grep commands vs Grep tool redundancy",
+          "Add pattern report structure for multiple patterns with count expectations"
+        ]
+      },
+      "goal-verifier": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 91,
+        "max": 100,
+        "percentage": 91.0,
+        "dimensions": {
+          "D1": 27,
+          "D2": 28,
+          "D3": 21,
+          "D4": 15
+        },
+        "top_improvements": [
+          "Strengthen persona voice - make the skeptical identity more memorable and pervasive",
+          "Add calibration examples showing appropriate verification intensity for different artifact types",
+          "Consider making file-writing optional or removing Write tool to keep agent purely read-only"
+        ]
+      },
+      "code-reviewer": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 92,
+        "max": 100,
+        "percentage": 92.0,
+        "dimensions": {
+          "D1": 28,
+          "D2": 27,
+          "D3": 23,
+          "D4": 14
+        },
+        "top_improvements": [
+          "Add trigger conditions specifying when to use this agent vs. other reviewers",
+          "Add explicit handoff/next steps after review completion",
+          "Include concrete before/after examples showing proportional feedback"
+        ]
+      },
+      "code-debugger": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 90,
+        "max": 100,
+        "percentage": 90.0,
+        "dimensions": {
+          "D1": 27,
+          "D2": 28,
+          "D3": 21,
+          "D4": 14
+        },
+        "top_improvements": [
+          "Fix first/third person inconsistency in persona (mixes 'You are' with 'I follow')",
+          "Add scope calibration for bug complexity (simple typos vs. architectural issues)",
+          "Strengthen persona opening with more distinctive identity statement"
+        ]
+      },
+      "codebase-explorer": {
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 92,
+        "max": 100,
+        "percentage": 92.0,
+        "dimensions": {
+          "D1": 27,
+          "D2": 28,
+          "D3": 23,
+          "D4": 14
+        },
+        "top_improvements": [
+          "Add templates for INTEGRATIONS.md and STRUCTURE.md to match the output table",
+          "Consider splitting tech and arch into separate single-focus agents",
+          "Strengthen the cartographer voice with more distinctive language patterns"
+        ]
+      }
+    }
   }
 }
