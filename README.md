@@ -72,7 +72,7 @@ A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 
 ## What's Included
 
-### Skills (23)
+### Skills (26)
 
 User-invocable skills activated with `/skill-name`:
 
@@ -81,26 +81,29 @@ User-invocable skills activated with `/skill-name`:
 | `analyze-idea` | Research and exploration - investigates topics, gathers evidence, generates reports |
 | `brainstorm-idea` | Turn fuzzy ideas into clear designs through structured dialogue |
 | `design-db` | Design robust database schemas with normalization and indexing guidance |
-| `design-docker` | Generate Dockerfile and docker-compose for projects |
-| `draft-pr` | Generate pull request descriptions for the current branch |
-| `setup-worktree` | Reference for git worktrees - setup, usage, and common pitfalls |
-| `read-json` | Read and analyze JSON files efficiently using jq |
-| `list-memories` | List available memories with Quick Reference summaries |
 | `design-diagram` | Create diagrams for architecture, flows, and models |
-| `analyze-naming` | Analyze and suggest better variable/function names |
-| `write-handoff` | Capture context before `/clear` for session continuity |
+| `design-docker` | Generate Dockerfile and docker-compose for projects |
 | `design-qa` | Plan comprehensive QA testing strategy |
+| `design-tests` | Pytest patterns for fixtures, mocking, and test organization |
+| `draft-pr` | Generate pull request descriptions for the current branch |
+| `evaluate-agent` | Evaluate agent prompt quality and design |
+| `evaluate-batch` | Evaluate multiple resources in parallel with quality tracking |
+| `evaluate-hook` | Evaluate hook quality before deployment |
+| `evaluate-memory` | Evaluate memory file quality against conventions |
+| `evaluate-skill` | Evaluate skill design quality against specifications |
+| `list-memories` | List available memories with Quick Reference summaries |
+| `read-json` | Read and analyze JSON files efficiently using jq |
 | `review-changes` | Fast code review focused on blockers |
 | `review-plan` | Review implementation plans against quality criteria |
+| `setup-worktree` | Reference for git worktrees - setup, usage, and common pitfalls |
 | `snap-back` | Reset tone when Claude drifts into sycophancy |
-| `wrap-up` | Session wrap-up and handoff documentation |
+| `teardown-worktree` | Safe worktree closure after agent completion |
+| `wrap-up` | Finish feature branch - changelog, version bump, commit |
+| `write-agent` | Create new agents for specialized tasks |
+| `write-handoff` | Capture context before `/clear` for session continuity |
 | `write-hook` | Create new hooks for Claude Code |
 | `write-memory` | Create new memory files following conventions |
 | `write-skill` | Create new skills using test-driven documentation |
-| `evaluate-agent` | Evaluate agent prompt quality and design |
-| `evaluate-skill` | Evaluate skill design quality against specifications |
-| `evaluate-hook` | Evaluate hook quality before deployment |
-| `evaluate-memory` | Evaluate memory file quality against conventions |
 
 ### Agents (6)
 
@@ -132,7 +135,7 @@ Automation hooks configured in `settings.json`:
 
 **Note:** `enforce-uv-run.sh` is Python-specific. Remove or modify for non-Python projects.
 
-### Memory Templates (7)
+### Memory Templates (9)
 
 Starting point for project memories in `.claude/memories/`:
 
@@ -143,8 +146,10 @@ Starting point for project memories in `.claude/memories/`:
 | `essential-preferences-communication_style` | Communication style preferences |
 | `essential-workflow-branch_development` | Branch-based development workflow |
 | `essential-workflow-task_completion` | Task completion checklist |
-| `relevant-reference-commands` | CLI and Make commands reference |
-| `philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
+| `experimental-preferences-casual_communication_style` | Casual communication mode for meta-discussions |
+| `relevant-conventions-backlog_schema` | Standardized BACKLOG.md format |
+| `relevant-philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
+| `relevant-reference-hooks_config` | Hook environment variables reference |
 
 ## Configuration
 

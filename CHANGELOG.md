@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.0.0] - 2026-01-28 - Quality-gated release
+
+### Added
+- **Evaluation system**: Track resource quality with dimensional scoring
+  - `evaluations.json` with per-resource grades (A/A-/B+/B/C), scores, and improvement suggestions
+  - `evaluate-batch` skill for parallel evaluation of multiple resources
+  - File hash tracking for staleness detection
+  - All skills at A- or better (85%+), all agents at A (90%+)
+- **New skills**: `evaluate-batch`, `design-tests`, `teardown-worktree`
+- **New memories**: `experimental-preferences-casual_communication_style`, `relevant-conventions-backlog_schema`, `relevant-philosophy-reducing_entropy`, `relevant-reference-hooks_config`
+- Automated tests: hooks (45 tests), CLI (25 tests), backlog-query (35 tests)
+- `make check` target runs all validation
+
+### Changed
+- All skills improved with expert heuristics, edge cases, and anti-patterns
+- All agents improved with stronger personas and clearer boundaries
+- Skill descriptions standardized to inline keyword format for better routing
+- `session-start` hook enhanced with git context and memory guidance
+
+### Removed
+- `analyze-naming` skill (consolidated into other workflows)
+
+### Quality Summary
+- **26 skills**: All A- or better (102-112/120)
+- **6 agents**: All A grade (90-94/100)
+- **8 hooks**: All B or better (80-94/100)
+- **9 memories**: All B or better (84-100/100)
+
 ## [0.15.0] - 2026-01-27 - CLI redesign
 
 ### Changed
