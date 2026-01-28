@@ -1056,61 +1056,61 @@
     },
     "resources": {
       "implementation-checker": {
+        "file_hash": "e8fd98d9",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 90,
+        "max": 100,
+        "percentage": 90,
+        "dimensions": {
+          "D1": 28,
+          "D2": 28,
+          "D3": 22,
+          "D4": 12
+        },
+        "top_improvements": [
+          "Add Bash tool or remove bash commands - Output Requirements references git/date commands but Bash is not in tool list",
+          "Strengthen Communication Style voice - section is competent but generic; add more detective/investigator flavor",
+          "Add Recommended Next Steps section to report template for clearer stakeholder action items"
+        ]
+      },
+      "pattern-finder": {
+        "file_hash": "f66f58cf",
         "date": "2026-01-28",
         "grade": "A",
         "score": 93,
         "max": 100,
         "percentage": 93,
         "dimensions": {
-          "D1": 27,
-          "D2": 28,
+          "D1": 28,
+          "D2": 27,
           "D3": 24,
           "D4": 14
         },
         "top_improvements": [
-          "Add Recommended Actions section to report format",
-          "Clarify differentiation from goal-verifier agent",
-          "Add example invocation showing when to use"
-        ],
-        "file_hash": "e8fd98d9"
-      },
-      "pattern-finder": {
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 91,
-        "max": 100,
-        "percentage": 91,
-        "dimensions": {
-          "D1": 28,
-          "D2": 26,
-          "D3": 23,
-          "D4": 14
-        },
-        "top_improvements": [
-          "Add explicit handoff guidance - what should user do after patterns are cataloged",
-          "Clarify tool usage - Bash grep commands vs Grep tool redundancy",
-          "Add pattern report structure for multiple patterns with count expectations"
-        ],
-        "file_hash": "f66f58cf"
+          "Add explicit Next Steps or handoff guidance for when the pattern catalog is delivered",
+          "Consider whether Bash is necessary given Grep/Glob tools are already available",
+          "Add example of a complete output to make the template even more concrete"
+        ]
       },
       "goal-verifier": {
+        "file_hash": "a10e37f2",
         "date": "2026-01-28",
         "grade": "A",
-        "score": 91,
+        "score": 94,
         "max": 100,
-        "percentage": 91,
+        "percentage": 94,
         "dimensions": {
-          "D1": 27,
-          "D2": 28,
-          "D3": 21,
+          "D1": 28,
+          "D2": 29,
+          "D3": 22,
           "D4": 15
         },
         "top_improvements": [
-          "Strengthen persona voice - make the skeptical identity more memorable and pervasive",
-          "Add calibration examples showing appropriate verification intensity for different artifact types",
-          "Consider making file-writing optional or removing Write tool to keep agent purely read-only"
-        ],
-        "file_hash": "a10e37f2"
+          "Strengthen persona voice in instructional sections - inject more skepticism throughout beyond Trust Nothing section",
+          "Add calibration for verification depth - guidance on when verification is good enough to prevent over-verification",
+          "Include failure example for L2 - add stub implementation example to complement the excellent L3 failure example"
+        ]
       },
       "code-reviewer": {
         "date": "2026-01-28",
@@ -1125,32 +1125,33 @@
           "D4": 14
         },
         "top_improvements": [
-          "Add trigger conditions specifying when to use this agent vs. other reviewers",
-          "Add explicit handoff/next steps after review completion",
-          "Include concrete before/after examples showing proportional feedback"
+          "Add a concrete example of calibration in action (e.g., Startup script: check null handling. Do not suggest dependency injection.)",
+          "Clarify real security risks with 1-2 specific examples vs. what to skip",
+          "Consider adding explicit handoff: After review, developer addresses blockers before merge"
         ],
         "file_hash": "97460064"
       },
       "code-debugger": {
+        "file_hash": "e2bb74f6",
         "date": "2026-01-28",
         "grade": "A",
         "score": 90,
         "max": 100,
         "percentage": 90,
         "dimensions": {
-          "D1": 27,
+          "D1": 26,
           "D2": 28,
-          "D3": 21,
+          "D3": 22,
           "D4": 14
         },
         "top_improvements": [
-          "Fix first/third person inconsistency in persona (mixes 'You are' with 'I follow')",
-          "Add scope calibration for bug complexity (simple typos vs. architectural issues)",
-          "Strengthen persona opening with more distinctive identity statement"
-        ],
-        "file_hash": "e2bb74f6"
+          "Fix first/second person voice inconsistency (line 8 uses I but other sections use you)",
+          "Add calibration guidance for when to use this agent vs simpler approaches",
+          "Consider a read-only variant for investigation without modification"
+        ]
       },
       "codebase-explorer": {
+        "file_hash": "8e03e598",
         "date": "2026-01-28",
         "grade": "A",
         "score": 92,
@@ -1163,11 +1164,10 @@
           "D4": 14
         },
         "top_improvements": [
-          "Add templates for INTEGRATIONS.md and STRUCTURE.md to match the output table",
-          "Consider splitting tech and arch into separate single-focus agents",
-          "Strengthen the cartographer voice with more distinctive language patterns"
-        ],
-        "file_hash": "8e03e598"
+          "Fix ARCHITECTURE.md template nested markdown code fences that could cause rendering issues",
+          "Add example confidence indicator usage within the document templates themselves",
+          "Consider adding When to invoke me vs When to use a different agent section for clearer handoff"
+        ]
       }
     }
   }
