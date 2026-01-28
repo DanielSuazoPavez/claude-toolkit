@@ -16,3 +16,6 @@
 .claude/plans/
 .claude/reviews/
 .claude/settings.local.json
+
+docs/plans/*
+docs/sessions/*

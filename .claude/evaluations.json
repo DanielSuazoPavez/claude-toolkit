@@ -38,73 +38,73 @@
     },
     "resources": {
       "write-skill": {
+        "file_hash": "0bb9af70",
         "date": "2026-01-28",
-        "grade": "A-",
-        "score": 107,
+        "grade": "A",
+        "score": 111,
         "max": 120,
-        "percentage": 89.2,
+        "percentage": 92.5,
+        "dimensions": {
+          "D1": 18,
+          "D2": 14,
+          "D3": 14,
+          "D4": 14,
+          "D5": 14,
+          "D6": 14,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Condense complete example section - reduce from 50+ lines to ~30 lines while preserving the before/after contrast",
+          "Add edge case guidance for when to abandon/reject a skill idea vs. iterate",
+          "Expand REFACTOR phase with specific iteration techniques for tightening language"
+        ]
+      },
+      "evaluate-skill": {
+        "file_hash": "2b222d30",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 112,
+        "max": 120,
+        "percentage": 93.3,
+        "dimensions": {
+          "D1": 19,
+          "D2": 14,
+          "D3": 14,
+          "D4": 14,
+          "D5": 14,
+          "D6": 14,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Add calibration tables for dimensions D4-D7 - D1 and D3 have detailed tables but other dimensions lack equivalent scoring guidance",
+          "Condense to ~200 lines - at 240 lines exceeds Process pattern target; consider moving Example Evaluation to supporting reference file",
+          "Add evaluator anti-patterns section - common mistakes like conflating activation with redundant knowledge, over-penalizing brevity"
+        ]
+      },
+      "evaluate-batch": {
+        "file_hash": "a607b2bb",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 109,
+        "max": 120,
+        "percentage": 90.8,
         "dimensions": {
           "D1": 17,
           "D2": 14,
           "D3": 14,
-          "D4": 12,
-          "D5": 13,
-          "D6": 14,
-          "D7": 9,
-          "D8": 14
-        },
-        "top_improvements": [
-          "Refine frontmatter description - remove workflow hints, add trigger keywords",
-          "Add decision tree for when to split skill into supporting files",
-          "Remove or condense naming convention section (redundant)"
-        ],
-        "file_hash": "fac574cb"
-      },
-      "evaluate-skill": {
-        "date": "2026-01-28",
-        "grade": "A-",
-        "score": 104,
-        "max": 120,
-        "percentage": 86.7,
-        "dimensions": {
-          "D1": 17,
-          "D2": 13,
-          "D3": 14,
-          "D4": 12,
-          "D5": 13,
-          "D6": 14,
-          "D7": 9,
-          "D8": 12
-        },
-        "top_improvements": [
-          "Add explicit keywords to frontmatter/description for better triggering",
-          "Provide evaluation output template for consistent results",
-          "Expand worked example to full evaluation"
-        ],
-        "file_hash": "8e820089"
-      },
-      "evaluate-batch": {
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 110,
-        "max": 120,
-        "percentage": 91.7,
-        "dimensions": {
-          "D1": 17,
-          "D2": 13,
-          "D3": 14,
           "D4": 14,
-          "D5": 15,
+          "D5": 13,
           "D6": 14,
           "D7": 9,
           "D8": 14
         },
         "top_improvements": [
-          "Add 'Why Batch?' mindset section for when batch adds value",
-          "Add 'Over-parallelizing' anti-pattern warning",
-          "Include sample evaluations.json complete output example"
-        ],
-        "file_hash": "cbb88dd4"
+          "Add table of contents for 239-line skill to improve navigation",
+          "Expand edge case examples in worked example section",
+          "Add explicit trigger guidance for 2+ resources threshold in description"
+        ]
       }
     }
   },

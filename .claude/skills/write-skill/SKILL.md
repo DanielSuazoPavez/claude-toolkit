@@ -1,6 +1,6 @@
 ---
 name: write-skill
-description: Create new skills using test-driven documentation. Use when adding, improving, or extracting skills.
+description: Use when adding a new skill, improving an unreliable skill, or extracting a repeatable pattern. Keywords: create skill, new skill, skill template, SKILL.md.
 ---
 
 Create new skills using test-driven documentation. No skill without a failing test first.
@@ -13,9 +13,17 @@ Create new skills using test-driven documentation. No skill without a failing te
 
 ## Process: Red-Green-Refactor for Skills
 
+### Pre-check: Existing Evaluations
+
+When refining an existing skill, first check `.claude/evaluations.json`:
+```bash
+jq '.skills.resources["<skill-name>"].top_improvements' .claude/evaluations.json
+```
+Address documented improvements before inventing new ones.
+
 ### RED: Document the Failure
 
-Before writing the skill:
+Before writing a new skill:
 1. Run the scenario without the skill
 2. Document what goes wrong (missed steps, wrong approach, etc.)
 3. This is your "failing test" - the gap the skill must fill
@@ -51,7 +59,7 @@ The first line (description) must:
 - List only triggering conditions
 - Never summarize the workflow
 
-Why? If description summarizes workflow, Claude may follow description instead of reading full content.
+**Why this matters:** Claude's tool routing uses the description to decide whether to load the skill. If the description contains workflow steps (e.g., "Updates changelog, bumps version"), Claude may execute those steps directly from the description without reading the full SKILL.md body—missing nuances, anti-patterns, and edge cases. Keep descriptions as pure triggers.
 
 ## Token Efficiency
 
@@ -67,6 +75,22 @@ Techniques:
 - Compress: show pattern once, not every variation
 
 ## Progressive Disclosure Pattern
+
+### Decision Tree: When to Split
+
+```
+Is your skill >400 lines?
+├─ No → Keep as single SKILL.md
+└─ Yes
+   ├─ Is it reference material (API docs, field definitions)?
+   │  └─ Yes → Move to resources/*.md, keep process in SKILL.md
+   ├─ Is it multiple distinct workflows?
+   │  └─ Yes → Consider separate skills instead of splitting
+   └─ Is it heavy examples/templates?
+      └─ Yes → Move examples to resources/, keep one inline
+```
+
+### Structure
 
 When a skill exceeds ~400 lines, split it:
 
@@ -182,5 +206,5 @@ With skill active, Claude consistently:
 |---------|---------|-----|
 | **No Failing Test** | Skill solves imaginary problem | Document the gap BEFORE writing |
 | **Kitchen Sink** | 800-line skill covering everything | Focus on one gap, cross-reference others |
-| **Workflow in Description** | Claude follows description, skips body | Description = triggers only, not steps |
+| **Workflow in Description** | Claude executes from description, misses nuances in body | Description = triggers only, not steps |
 | **Tutorial Content** | Explains what Claude already knows | Only include expert knowledge delta |

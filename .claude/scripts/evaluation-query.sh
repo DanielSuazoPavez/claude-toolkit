@@ -72,7 +72,7 @@ list_resources() {
             ;;
         hooks)
             for f in "$CLAUDE_DIR/hooks"/*.sh; do
-                [[ -f "$f" ]] && basename "$f"
+                [[ -f "$f" ]] && basename "$f" .sh
             done
             ;;
         memories)

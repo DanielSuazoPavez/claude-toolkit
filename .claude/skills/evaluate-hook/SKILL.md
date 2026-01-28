@@ -118,7 +118,7 @@ Compute file_hash with: `md5sum <hook-file> | cut -c1-8`
 
 ## Invocation
 
-**Launch a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+**Launch a subagent** for fresh, unbiased evaluation.
 
 ```
 Task tool with:
@@ -127,10 +127,13 @@ Task tool with:
   prompt: |
     Evaluate the hook at <path> using the evaluate-hook rubric.
     Read .claude/skills/evaluate-hook/SKILL.md for the full rubric.
+
+    Perform FRESH scoring. Do NOT read evaluations.json or prior scores.
+
     Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
 ```
 
-Using a separate agent ensures objective assessment without influence from the current conversation context.
+Using a separate agent ensures objective assessment without influence from prior evaluations.
 
 ## Evaluation Protocol
 
