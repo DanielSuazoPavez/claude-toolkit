@@ -19,7 +19,7 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `review-changes` | new | Fast code review focused on blockers |
 | `analyze-naming` | new | Analyze and suggest better variable/function names |
-| `design-qa` | new | Plan comprehensive QA testing strategy |
+| `design-qa` | alpha | Plan comprehensive QA testing strategy |
 | `design-tests` | alpha | Pytest patterns for fixtures, mocking, organization, test prioritization |
 
 ## Design & Architecture
@@ -27,7 +27,7 @@ User-invocable skills activated with `/skill-name`.
 | Skill | Status | Description |
 |-------|--------|-------------|
 | `design-db` | alpha | Design database schemas with normalization and indexing guidance |
-| `design-diagram` | new | Create diagrams for architecture, flows, and models |
+| `design-diagram` | alpha | Create diagrams for architecture, flows, and models |
 
 ## Development Tools
 
