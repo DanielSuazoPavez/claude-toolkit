@@ -27,6 +27,15 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 └── memories/   # Memory templates
 ```
 
+## Resource Indexes
+
+Summary and status of all resources:
+
+- `.claude/SKILLS.md` - All skills with status and descriptions
+- `.claude/AGENTS.md` - All agents with status, descriptions, and tools
+- `.claude/HOOKS.md` - All hooks with triggers and configuration
+- `.claude/MEMORIES.md` - All memories with categories and purposes
+
 ## When You're Done
 
 - Run `scripts/validate-resources-indexed.sh` to check all resources are indexed
