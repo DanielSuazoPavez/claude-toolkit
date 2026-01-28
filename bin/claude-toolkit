@@ -491,12 +491,14 @@ done
 
 # Handle conflicts
 declare -a FILES_TO_COPY=()
-FILES_TO_COPY+=("${NEW_FILES[@]:-}")
+if [[ ${#NEW_FILES[@]} -gt 0 ]]; then
+    FILES_TO_COPY+=("${NEW_FILES[@]}")
+fi
 
 # Track if templates were synced
 local templates_synced=false
 
-for f in "${CONFLICT_FILES[@]:-}"; do
+for f in "${CONFLICT_FILES[@]+"${CONFLICT_FILES[@]}"}"; do
     if $FORCE; then
         FILES_TO_COPY+=("$f")
         [[ "$f" == templates/* ]] && templates_synced=true
@@ -527,7 +529,7 @@ for f in "${CONFLICT_FILES[@]:-}"; do
 done
 
 # Check if any new files are templates
-for f in "${NEW_FILES[@]:-}"; do
+for f in "${NEW_FILES[@]+"${NEW_FILES[@]}"}"; do
     [[ "$f" == templates/* ]] && templates_synced=true
 done
 
