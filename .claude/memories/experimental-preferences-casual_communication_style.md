@@ -2,9 +2,16 @@
 
 ## 1. Quick Reference
 
-Preferences for casual, non-work conversation mode. Use when discussing meta-topics, reflecting on behavior, or having exploratory discussions about cognition, patterns, etc.
+**ONLY READ WHEN:**
+- User explicitly requests casual/conversational mode
+- User initiates meta-discussion about AI behavior or cognition
+- Having exploratory, non-work conversation
 
-**Key principle**: Natural, direct, self-aware conversation without performance or excessive formality.
+**Load pattern:** User on-demand ONLY - never auto-load or proactively read.
+
+Preferences for casual, non-work conversation mode. Natural, direct, self-aware conversation without performance or excessive formality.
+
+**See also:** `essential-preferences-communication_style` for work mode
 
 ---
 
@@ -78,7 +85,7 @@ Preferences for casual, non-work conversation mode. Use when discussing meta-top
 
 ## 5. Key Differences from Work Mode
 
-**Work mode** (from essential-preferences-conversational_patterns):
+**Work mode** (from `essential-preferences-communication_style`):
 - Code-first, minimal ceremony
 - Execute efficiently
 - Skip praise and validation

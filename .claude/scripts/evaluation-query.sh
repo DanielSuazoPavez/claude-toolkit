@@ -116,13 +116,12 @@ grade_to_min_percent() {
 display_resource() {
     local type="$1"
     local name="$2"
-    local total="$3"
+    local score="$3"
     local max="$4"
     local grade="$5"
     local date="$6"
-    local version="$7"
 
-    local percent=$((total * 100 / max))
+    local percent=$((score * 100 / max))
 
     # Color grade
     local grade_color
@@ -133,16 +132,16 @@ display_resource() {
         *) grade_color="$RED" ;;
     esac
 
-    printf "[%-8s] %-30s ${grade_color}%s${NC} (%d/%d) %s v%s\n" \
-        "$type" "$name" "$grade" "$total" "$max" "$date" "$version"
+    printf "[%-8s] %-40s ${grade_color}%s${NC} (%d/%d) %s\n" \
+        "$type" "$name" "$grade" "$score" "$max" "$date"
 
     if [[ "$VERBOSE" == "1" ]]; then
         # Show dimension scores
-        local scores
-        scores=$(jq -r --arg t "$type" --arg n "$name" \
-            '.[$t].resources[$n].scores | to_entries | .[] | "    \(.key): \(.value)"' \
+        local dimensions
+        dimensions=$(jq -r --arg t "$type" --arg n "$name" \
+            '.[$t].resources[$n].dimensions | to_entries | .[] | "    \(.key): \(.value)"' \
             "$EVAL_FILE" 2>/dev/null)
-        [[ -n "$scores" ]] && echo "$scores"
+        [[ -n "$dimensions" ]] && echo "$dimensions"
     fi
 }
 
@@ -160,11 +159,11 @@ cmd_list() {
         for name in $resources; do
             local data
             data=$(jq -r --arg t "$type" --arg n "$name" \
-                '.[$t].resources[$n] | "\(.total)\t\(.max)\t\(.grade)\t\(.date)\t\(.version)"' \
+                '.[$t].resources[$n] | "\(.score)\t\(.max)\t\(.grade)\t\(.date)"' \
                 "$EVAL_FILE")
 
-            IFS=$'\t' read -r total max grade date version <<< "$data"
-            display_resource "$type" "$name" "$total" "$max" "$grade" "$date" "$version"
+            IFS=$'\t' read -r score max grade date <<< "$data"
+            display_resource "$type" "$name" "$score" "$max" "$grade" "$date"
             ((count++)) || true
         done
     done
@@ -261,14 +260,14 @@ cmd_grade() {
         for name in $resources; do
             local data
             data=$(jq -r --arg t "$type" --arg n "$name" \
-                '.[$t].resources[$n] | "\(.total)\t\(.max)\t\(.grade)\t\(.date)\t\(.version)"' \
+                '.[$t].resources[$n] | "\(.score)\t\(.max)\t\(.grade)\t\(.date)"' \
                 "$EVAL_FILE")
 
-            IFS=$'\t' read -r total max grade date version <<< "$data"
-            local percent=$((total * 100 / max))
+            IFS=$'\t' read -r score max grade date <<< "$data"
+            local percent=$((score * 100 / max))
 
             if (( percent >= min_percent )); then
-                display_resource "$type" "$name" "$total" "$max" "$grade" "$date" "$version"
+                display_resource "$type" "$name" "$score" "$max" "$grade" "$date"
                 ((count++)) || true
             fi
         done

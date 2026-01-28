@@ -19,7 +19,6 @@ Always loaded at session start:
 | Memory | Status | Purpose |
 |--------|--------|---------|
 | `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
-| `relevant-reference-commands` | stable | CLI and Make commands reference |
 | `relevant-reference-hooks_config` | beta | Hooks configuration and environment variables |
 
 ## Philosophy
@@ -53,6 +52,11 @@ Always loaded at session start:
 ### `idea` (Temporary)
 - Future implementation ideas
 - **Format**: `idea-{YYYYMMDD}-{context}-{plan_idea}`
+
+### `experimental` (Testing)
+- Trying out new approaches or A/B testing behaviors
+- **Format**: `experimental-{context}-{descriptive_name}`
+- May be promoted to `relevant`/`essential` or deleted
 
 ## Creating Memories
 

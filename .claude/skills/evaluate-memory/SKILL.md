@@ -59,10 +59,11 @@ Memories don't load themselves. Loading is driven by:
 | 0-6 | Wrong category or broken naming |
 
 **Check against categories:**
-- `essential-{context}-{name}` - Permanent, core info
-- `relevant-{context}-{name}` - Long-term, may evolve
-- `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific
-- `idea-{YYYYMMDD}-{context}-{idea}` - Future work, needs permission
+- `essential-{context}-{name}` - Permanent, core info (auto-loaded at session start)
+- `relevant-{context}-{name}` - Long-term, may evolve (on-demand)
+- `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific (on-demand)
+- `idea-{YYYYMMDD}-{context}-{idea}` - Future work, needs permission (on-demand)
+- `experimental-{context}-{name}` - Testing new approaches (user on-demand ONLY)
 
 ### D2: Quick Reference Section (25 pts) - Required
 
@@ -105,7 +106,8 @@ Memories don't load themselves. Loading is driven by:
 
 **Guidelines:**
 - Session start: Only `essential-` that affect every interaction
-- On-demand: Reference docs, detailed guides
+- On-demand: `relevant-`, reference docs, detailed guides
+- User on-demand ONLY: `experimental-` (user must explicitly request)
 - Never auto-load: `idea-` (requires permission)
 
 ### D5: Structure & Formatting (20 pts)

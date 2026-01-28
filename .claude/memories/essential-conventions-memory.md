@@ -15,23 +15,33 @@ Guidelines for naming and structuring memory files, including categories, format
 
 ### `essential` (Permanent)
 - **Principle:** For core, stable project information that is fundamental to development, such as architecture, style guides, or key workflows.
+- **Load pattern:** Auto-loaded at session start via hook.
 - **Format:** `essential-{context}-{descriptive_name}`
 - **Example:** `essential-conventions-code_style`
 
 ### `relevant` (Long-term)
 - **Principle:** For important, general context that may evolve or become outdated over time, such as architectural decisions or specific analyses.
+- **Load pattern:** On-demand when relevant to current task.
 - **Format:** `relevant-{context}-{descriptive_name}`
 - **Example:** `relevant-data_model-migration_context`
 
 ### `branch` (Temporary)
 - **Principle:** For work-in-progress context specific to a feature branch. These memories should be deleted after the branch is merged or abandoned.
+- **Load pattern:** On-demand when working on the branch.
 - **Format:** `branch-{YYYYMMDD}-{branch_name}-{context}`
 - **Example:** `branch-20251001-feat_update_data_model-updating_schema_definitions`
 
 ### `idea` (Temporary)
 - **Principle:** For future implementation ideas that might appear during development of features. To be reviewed and prioritized with the team, then moved by the user to an appropriate location.
+- **Load pattern:** Requires explicit user permission before reading.
 - **Format:** `idea-{YYYYMMDD}-{context}-{plan_idea}`
 - **Example:** `idea-20251001-logging-simple_monitoring`
+
+### `experimental` (Testing)
+- **Principle:** For trying out new approaches, alternative configurations, or A/B testing different behaviors. May be promoted to `relevant` or `essential` if proven useful, or deleted if not.
+- **Load pattern:** User on-demand ONLY - never auto-load or proactively read. User must explicitly request.
+- **Format:** `experimental-{context}-{descriptive_name}`
+- **Example:** `experimental-preferences-casual_communication_style`
 
 ---
 
