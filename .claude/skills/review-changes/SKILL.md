@@ -1,6 +1,6 @@
 ---
 name: review-changes
-description: Quick code quality check focusing on critical and major issues
+description: Quick code quality check focusing on critical and major issues. Use when requests mention "review code", "check changes", "code review", "review diff", or "PR review".
 argument-hint: File paths or leave empty for recent changes
 disable-model-invocation: true
 context: fork

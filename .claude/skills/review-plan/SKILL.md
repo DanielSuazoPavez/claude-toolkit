@@ -1,6 +1,6 @@
 ---
 name: review-plan
-description: Review a plan against quality criteria before approving. Use when presented with a plan in plan mode. Keywords: plan review, check plan, verify plan, approve plan.
+description: Review a plan against quality criteria before approving. Use when requests mention "review plan", "check plan", "verify plan", or "approve plan".
 argument-hint: Path to plan file (optional, auto-detected from context)
 ---
 

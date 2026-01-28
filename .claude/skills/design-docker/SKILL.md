@@ -1,6 +1,6 @@
 ---
 name: design-docker
-description: Use when generating, reviewing, or refining Dockerfiles and docker-compose.yml configs. Triggers on: dockerize, container, image size, deployment config, compose.
+description: Use when requests mention "dockerfile", "docker-compose", "containerize", "image size", or "deployment config".
 ---
 
 Use when working with Docker deployment configs - generating new ones, reviewing existing, or iterative refinement.
