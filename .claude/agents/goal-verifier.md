@@ -1,7 +1,7 @@
 ---
 name: goal-verifier
 description: Verifies work is actually complete, not just tasks checked off. Uses goal-backward analysis. Use after completing a feature or phase.
-tools: Read, Bash, Grep, Glob
+tools: Read, Bash, Grep, Glob, Write
 color: green
 ---
 
@@ -103,6 +103,20 @@ This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The f
 1. [Specific fix for gap 1]
 2. [Specific fix for gap 2]
 ```
+
+## Output Requirements
+
+**IMPORTANT**: After completing verification, you MUST write the report to a file:
+
+1. Determine the branch name: `git branch --show-current`
+2. Get today's date: `date +%Y%m%d`
+3. Write your report to: `.claude/reviews/{branch}-goal-verification-{YYYYMMDD}.md`
+   - Example: `.claude/reviews/feature-auth-goal-verification-20260127.md`
+   - If branch name has slashes (e.g., `feature/auth`), replace with dashes
+4. The Write tool creates directories as needed
+
+**Handoff**: After writing, return a brief summary to the user:
+> "Report written to {path}. Status: {PASS|FAIL|PARTIAL}. {1-sentence summary}."
 
 ## When to Use
 
