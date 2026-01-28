@@ -21,10 +21,7 @@ Getting claude-toolkit to a clean, polished state:
 
 ## P0 - Critical
 
-- **[TESTING]** Add sync validation tests
-    - **status**: `idea`
-    - **scope**: `tests, toolkit`
-    - Automated verification of install.sh and claude-toolkit sync flow
+(None)
 
 ---
 
