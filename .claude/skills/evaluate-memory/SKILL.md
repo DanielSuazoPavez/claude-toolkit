@@ -162,9 +162,42 @@ Is the memory > 300 lines?
 | **Always loads, rarely needed** | Context bloat | D4: -10 |
 | **Wall of text** | Unscannable | D5: -10 |
 
-## Evaluation Protocol
+## JSON Output Format
 
-**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+```json
+{
+  "file_hash": "<first 8 chars of MD5>",
+  "date": "YYYY-MM-DD",
+  "grade": "A/B/C/D/F",
+  "score": <total>,
+  "max": 100,
+  "percentage": <score/max * 100>,
+  "dimensions": {
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>
+  },
+  "top_improvements": ["...", "...", "..."]
+}
+```
+
+Compute file_hash with: `md5sum <memory-file> | cut -c1-8`
+
+## Invocation
+
+**Launch a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  model: "opus"
+  prompt: |
+    Evaluate the memory at <path> using the evaluate-memory rubric.
+    Read .claude/skills/evaluate-memory/SKILL.md for the full rubric.
+    Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
+```
+
+Using a separate agent ensures objective assessment without influence from the current conversation context.
+
+## Evaluation Protocol
 
 1. Check filename against category patterns
 2. Verify Quick Reference is section 1 with correct pattern
@@ -172,7 +205,11 @@ Is the memory > 300 lines?
 4. Evaluate load timing vs content criticality
 5. Review structure and formatting
 6. Score each dimension with evidence
-7. Generate report with grade and top 3 improvements
+7. Generate report with JSON output including file_hash and top 3 improvements
+8. Update `.claude/evaluations.json` using jq:
+   ```bash
+   jq --argjson result '<JSON>' '.memories.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
+   ```
 
 ## Example Evaluation
 

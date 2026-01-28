@@ -125,15 +125,53 @@ Decision trees, working examples, error handling, edge cases?
 | **The Invisible Skill** | Great content, vague description | Add WHEN and KEYWORDS to description |
 | **The Freedom Mismatch** | Rigid for creative, vague for fragile | Match freedom to task risk |
 
-## Evaluation Protocol
+## JSON Output Format
 
-**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+```json
+{
+  "file_hash": "<first 8 chars of MD5>",
+  "date": "YYYY-MM-DD",
+  "grade": "A/A-/B+/B/B-/C+/C/D/F",
+  "score": <total>,
+  "max": 120,
+  "percentage": <score/max * 100>,
+  "dimensions": {
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>,
+    "D5": <score>, "D6": <score>, "D7": <score>, "D8": <score>
+  },
+  "top_improvements": ["...", "...", "..."]
+}
+```
+
+Compute file_hash with: `md5sum <skill-file> | cut -c1-8`
+
+## Invocation
+
+**Launch a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  model: "opus"
+  prompt: |
+    Evaluate the skill at <path> using the evaluate-skill rubric.
+    Read .claude/skills/evaluate-skill/SKILL.md for the full rubric.
+    Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
+```
+
+Using a separate agent ensures objective assessment without influence from the current conversation context.
+
+## Evaluation Protocol
 
 1. Read completely, mark sections as [E]xpert, [A]ctivation, [R]edundant
 2. Analyze structure: frontmatter, line count, pattern
 3. Score each dimension with evidence
 4. Calculate total, assign grade
-5. Generate report with critical issues and top 3 improvements
+5. Generate report with JSON output including file_hash and top 3 improvements
+6. Update `.claude/evaluations.json` using jq:
+   ```bash
+   jq --argjson result '<JSON>' '.skills.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
+   ```
 
 ## Example Evaluation
 

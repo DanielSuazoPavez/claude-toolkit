@@ -122,15 +122,52 @@ Green flags: Tools match stated purpose, no unnecessary capabilities
 | **Read-only analyzer** | D4: no Edit/Write tools; penalize if present |
 | **Interactive agent** | D2: output may be conversational, not templated |
 
-## Evaluation Protocol
+## JSON Output Format
 
-**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+```json
+{
+  "file_hash": "<first 8 chars of MD5>",
+  "date": "YYYY-MM-DD",
+  "grade": "A/A-/B+/B/B-/C/D/F",
+  "score": <total>,
+  "max": 100,
+  "percentage": <score/max * 100>,
+  "dimensions": {
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>
+  },
+  "top_improvements": ["...", "...", "..."]
+}
+```
+
+Compute file_hash with: `md5sum <agent-file> | cut -c1-8`
+
+## Invocation
+
+**Launch a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  model: "opus"
+  prompt: |
+    Evaluate the agent at <path> using the evaluate-agent rubric.
+    Read .claude/skills/evaluate-agent/SKILL.md for the full rubric.
+    Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
+```
+
+Using a separate agent ensures objective assessment without influence from the current conversation context.
+
+## Evaluation Protocol
 
 1. Read completely, noting scope boundaries and output format
 2. Check frontmatter: name, description, tools
 3. Score each dimension with evidence
 4. Calculate total, assign grade
-5. Generate report with top improvements
+5. Generate report with JSON output including file_hash and top improvements
+6. Update `.claude/evaluations.json` using jq:
+   ```bash
+   jq --argjson result '<JSON>' '.agents.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
+   ```
 
 ## Example Evaluation
 

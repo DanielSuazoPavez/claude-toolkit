@@ -3,14 +3,38 @@
     "evaluate_skill": "/evaluate-skill",
     "write_skill": "/write-skill",
     "dimensions": {
-      "D1": { "name": "Knowledge Delta", "max": 20 },
-      "D2": { "name": "Mindset + Procedures", "max": 15 },
-      "D3": { "name": "Anti-Pattern Quality", "max": 15 },
-      "D4": { "name": "Specification Compliance", "max": 15 },
-      "D5": { "name": "Progressive Disclosure", "max": 15 },
-      "D6": { "name": "Freedom Calibration", "max": 15 },
-      "D7": { "name": "Pattern Recognition", "max": 10 },
-      "D8": { "name": "Practical Usability", "max": 15 }
+      "D1": {
+        "name": "Knowledge Delta",
+        "max": 20
+      },
+      "D2": {
+        "name": "Mindset + Procedures",
+        "max": 15
+      },
+      "D3": {
+        "name": "Anti-Pattern Quality",
+        "max": 15
+      },
+      "D4": {
+        "name": "Specification Compliance",
+        "max": 15
+      },
+      "D5": {
+        "name": "Progressive Disclosure",
+        "max": 15
+      },
+      "D6": {
+        "name": "Freedom Calibration",
+        "max": 15
+      },
+      "D7": {
+        "name": "Pattern Recognition",
+        "max": 10
+      },
+      "D8": {
+        "name": "Practical Usability",
+        "max": 15
+      }
     },
     "resources": {
       "write-skill": {
@@ -33,7 +57,8 @@
           "Refine frontmatter description - remove workflow hints, add trigger keywords",
           "Add decision tree for when to split skill into supporting files",
           "Remove or condense naming convention section (redundant)"
-        ]
+        ],
+        "file_hash": "fac574cb"
       },
       "evaluate-skill": {
         "date": "2026-01-28",
@@ -55,7 +80,8 @@
           "Add explicit keywords to frontmatter/description for better triggering",
           "Provide evaluation output template for consistent results",
           "Expand worked example to full evaluation"
-        ]
+        ],
+        "file_hash": "8e820089"
       },
       "evaluate-batch": {
         "date": "2026-01-28",
@@ -77,7 +103,8 @@
           "Add 'Why Batch?' mindset section for when batch adds value",
           "Add 'Over-parallelizing' anti-pattern warning",
           "Include sample evaluations.json complete output example"
-        ]
+        ],
+        "file_hash": "cbb88dd4"
       }
     }
   },
@@ -85,11 +112,26 @@
     "evaluate_skill": "/evaluate-hook",
     "write_skill": "/write-hook",
     "dimensions": {
-      "D1": { "name": "Correctness", "max": 25 },
-      "D2": { "name": "Testability", "max": 20 },
-      "D3": { "name": "Safety & Robustness", "max": 20 },
-      "D4": { "name": "Maintainability", "max": 20 },
-      "D5": { "name": "Documentation", "max": 15 }
+      "D1": {
+        "name": "Correctness",
+        "max": 25
+      },
+      "D2": {
+        "name": "Testability",
+        "max": 20
+      },
+      "D3": {
+        "name": "Safety & Robustness",
+        "max": 20
+      },
+      "D4": {
+        "name": "Maintainability",
+        "max": 20
+      },
+      "D5": {
+        "name": "Documentation",
+        "max": 15
+      }
     },
     "resources": {
       "secrets-guard": {
@@ -97,7 +139,7 @@
         "grade": "A-",
         "score": 89,
         "max": 100,
-        "percentage": 89.0,
+        "percentage": 89,
         "dimensions": {
           "D1": 22,
           "D2": 18,
@@ -109,7 +151,8 @@
           "Strengthen Bash pattern detection - add quoted path handling and additional read patterns",
           "Add edge case tests - quoted paths, absolute paths, multiline commands",
           "Document known limitations and bypass vectors"
-        ]
+        ],
+        "file_hash": "df41ddb4"
       },
       "enforce-make-commands": {
         "date": "2026-01-28",
@@ -128,7 +171,8 @@
           "Add logging of blocked commands to stderr for debugging",
           "Strengthen regex patterns to catch edge cases like 'env pytest' or './pytest'",
           "Consider adding a verbose mode that explains why a specific pattern matched"
-        ]
+        ],
+        "file_hash": "80006b93"
       },
       "enforce-uv-run": {
         "date": "2026-01-28",
@@ -147,7 +191,8 @@
           "Fix documentation mismatch: HOOKS.md claims hook blocks pip/pytest/ruff/mypy but implementation only blocks python",
           "Handle edge case: python command without trailing space isn't blocked by current regex",
           "Add test cases for documented-but-missing patterns (pip, pytest) and edge cases"
-        ]
+        ],
+        "file_hash": "bbfc117f"
       },
       "copy-plan-to-project": {
         "date": "2026-01-28",
@@ -166,7 +211,8 @@
           "Add more test cases: fallback filename when title is missing, error conditions",
           "Validate/sanitize file_path input to prevent path traversal attacks from malformed JSON",
           "Document the slug generation algorithm and add examples of expected output file names"
-        ]
+        ],
+        "file_hash": "413452f6"
       },
       "suggest-json-reader": {
         "date": "2026-01-28",
@@ -185,7 +231,8 @@
           "Add test case for warn mode (JSON_READ_WARN=1) in documentation",
           "Normalize JSON output formatting (remove space inconsistency between allow/block outputs)",
           "Add comment explaining the glob-to-regex sed conversion logic"
-        ]
+        ],
+        "file_hash": "48a16b02"
       },
       "enforce-feature-branch": {
         "date": "2026-01-28",
@@ -204,7 +251,8 @@
           "Enhance git commit regex to catch edge cases like 'git -C /path commit'",
           "Add DEBUG=1 logging option to help troubleshoot blocking decisions",
           "Consider adding git push blocking to protected branches"
-        ]
+        ],
+        "file_hash": "b8f27439"
       },
       "session-start": {
         "date": "2026-01-28",
@@ -223,7 +271,8 @@
           "Add path sanity check for CLAUDE_MEMORIES_DIR (prevent path traversal)",
           "Consider adding a verbose/debug mode for troubleshooting",
           "Add timing/performance note for large memory files"
-        ]
+        ],
+        "file_hash": "757f100d"
       },
       "block-dangerous-commands": {
         "date": "2026-01-28",
@@ -242,7 +291,8 @@
           "Add logging of blocked commands for security auditing",
           "Extract dangerous patterns into a configurable array or config file",
           "Add more test cases covering mkfs, dd, and chmod patterns"
-        ]
+        ],
+        "file_hash": "c7d81b52"
       }
     }
   },
@@ -250,11 +300,26 @@
     "evaluate_skill": "/evaluate-memory",
     "write_skill": "/write-memory",
     "dimensions": {
-      "D1": { "name": "Category & Naming", "max": 20 },
-      "D2": { "name": "Quick Reference Section", "max": 25 },
-      "D3": { "name": "Content Scope", "max": 20 },
-      "D4": { "name": "Load Timing Appropriateness", "max": 15 },
-      "D5": { "name": "Structure & Formatting", "max": 20 }
+      "D1": {
+        "name": "Category & Naming",
+        "max": 20
+      },
+      "D2": {
+        "name": "Quick Reference Section",
+        "max": 25
+      },
+      "D3": {
+        "name": "Content Scope",
+        "max": 20
+      },
+      "D4": {
+        "name": "Load Timing Appropriateness",
+        "max": 15
+      },
+      "D5": {
+        "name": "Structure & Formatting",
+        "max": 20
+      }
     },
     "resources": {
       "essential-conventions-code_style": {
@@ -262,7 +327,7 @@
         "grade": "B+",
         "score": 84,
         "max": 100,
-        "percentage": 84.0,
+        "percentage": 84,
         "dimensions": {
           "D1": 18,
           "D2": 18,
@@ -274,7 +339,8 @@
           "Fix Quick Reference pattern - use ONLY READ WHEN instead of Read at",
           "Align title with filename - change to Code Style Conventions",
           "Generalize language-specific content (Python/Polars examples)"
-        ]
+        ],
+        "file_hash": "1a3cf621"
       },
       "essential-conventions-memory": {
         "date": "2026-01-28",
@@ -293,7 +359,8 @@
           "Consider whether essential- prefix aligns with 'ONLY READ WHEN' guidance",
           "Make descriptive name more specific (e.g., 'memory_naming' instead of just 'memory')",
           "Add a 'See also' cross-reference to related memories in Quick Reference"
-        ]
+        ],
+        "file_hash": "0a1fd084"
       },
       "essential-preferences-communication_style": {
         "date": "2026-01-28",
@@ -312,7 +379,8 @@
           "None - exemplary memory, use as template for other essential-preferences memories",
           "Consider extracting 'The Test' heuristic as a reusable pattern for other memories",
           "Could add more anti-pattern examples if encountered in practice"
-        ]
+        ],
+        "file_hash": "78cf4171"
       },
       "essential-workflow-task_completion": {
         "date": "2026-01-28",
@@ -331,7 +399,8 @@
           "Consider renaming to relevant- since content is situational (only needed when completing tasks)",
           "Add See also section in Quick Reference linking to related memories/skills",
           "Consider moving Bug Fix Guidelines to separate memory or integrating into code_style"
-        ]
+        ],
+        "file_hash": "8f2076f7"
       },
       "essential-workflow-branch_development": {
         "date": "2026-01-28",
@@ -350,7 +419,8 @@
           "Enhance Quick Reference with 'ONLY READ WHEN' bullets for more specific load guidance",
           "Consolidate overlapping command sections (3 and 6) to reduce redundancy",
           "Add explicit cross-reference to CLAUDE.md for the --no-ff merge policy overlap"
-        ]
+        ],
+        "file_hash": "993fd43f"
       },
       "relevant-conventions-backlog_schema": {
         "date": "2026-01-28",
@@ -369,7 +439,8 @@
           "Add 'See also' in Quick Reference to link related memories",
           "Note that categories (DE/DS/UI/API) are project-specific examples to customize",
           "Add summary navigation table at top for faster section lookup"
-        ]
+        ],
+        "file_hash": "0c41ee87"
       },
       "experimental-preferences-casual_communication_style": {
         "date": "2026-01-28",
@@ -388,7 +459,8 @@
           "Consider adding section numbering consistency check (currently 1-7)",
           "The 'Claudito's Battle Royale' reference is project-specific context that may not transfer",
           "Could add explicit 'when to exit casual mode' guidance beyond current transitions section"
-        ]
+        ],
+        "file_hash": "f1a710bf"
       },
       "relevant-reference-hooks_config": {
         "date": "2026-01-28",
@@ -407,7 +479,8 @@
           "Add 'See also' in Quick Reference linking to .claude/HOOKS.md index",
           "Consider adding a brief table of contents for navigation",
           "Could mention when session-start hook errors might indicate need to read this memory"
-        ]
+        ],
+        "file_hash": "5c6aa7eb"
       },
       "relevant-philosophy-reducing_entropy": {
         "date": "2026-01-28",
@@ -426,7 +499,8 @@
           "Consider converting 'Three Questions Before Any Change' to table format for scannability",
           "Add one more specific trigger scenario to Quick Reference",
           "Evaluate if this should be promoted to essential- given its foundational nature"
-        ]
+        ],
+        "file_hash": "c4c8bffb"
       }
     }
   },
@@ -434,10 +508,22 @@
     "evaluate_skill": "/evaluate-agent",
     "write_skill": "/write-agent",
     "dimensions": {
-      "D1": { "name": "Right-sized Focus", "max": 30 },
-      "D2": { "name": "Output Quality", "max": 30 },
-      "D3": { "name": "Coherent Persona", "max": 25 },
-      "D4": { "name": "Tool Selection", "max": 15 }
+      "D1": {
+        "name": "Right-sized Focus",
+        "max": 30
+      },
+      "D2": {
+        "name": "Output Quality",
+        "max": 30
+      },
+      "D3": {
+        "name": "Coherent Persona",
+        "max": 25
+      },
+      "D4": {
+        "name": "Tool Selection",
+        "max": 15
+      }
     },
     "resources": {
       "implementation-checker": {
@@ -445,7 +531,7 @@
         "grade": "A",
         "score": 93,
         "max": 100,
-        "percentage": 93.0,
+        "percentage": 93,
         "dimensions": {
           "D1": 27,
           "D2": 28,
@@ -456,14 +542,15 @@
           "Add Recommended Actions section to report format",
           "Clarify differentiation from goal-verifier agent",
           "Add example invocation showing when to use"
-        ]
+        ],
+        "file_hash": "e8fd98d9"
       },
       "pattern-finder": {
         "date": "2026-01-28",
         "grade": "A",
         "score": 91,
         "max": 100,
-        "percentage": 91.0,
+        "percentage": 91,
         "dimensions": {
           "D1": 28,
           "D2": 26,
@@ -474,14 +561,15 @@
           "Add explicit handoff guidance - what should user do after patterns are cataloged",
           "Clarify tool usage - Bash grep commands vs Grep tool redundancy",
           "Add pattern report structure for multiple patterns with count expectations"
-        ]
+        ],
+        "file_hash": "f66f58cf"
       },
       "goal-verifier": {
         "date": "2026-01-28",
         "grade": "A",
         "score": 91,
         "max": 100,
-        "percentage": 91.0,
+        "percentage": 91,
         "dimensions": {
           "D1": 27,
           "D2": 28,
@@ -492,14 +580,15 @@
           "Strengthen persona voice - make the skeptical identity more memorable and pervasive",
           "Add calibration examples showing appropriate verification intensity for different artifact types",
           "Consider making file-writing optional or removing Write tool to keep agent purely read-only"
-        ]
+        ],
+        "file_hash": "a10e37f2"
       },
       "code-reviewer": {
         "date": "2026-01-28",
         "grade": "A",
         "score": 92,
         "max": 100,
-        "percentage": 92.0,
+        "percentage": 92,
         "dimensions": {
           "D1": 28,
           "D2": 27,
@@ -510,14 +599,15 @@
           "Add trigger conditions specifying when to use this agent vs. other reviewers",
           "Add explicit handoff/next steps after review completion",
           "Include concrete before/after examples showing proportional feedback"
-        ]
+        ],
+        "file_hash": "97460064"
       },
       "code-debugger": {
         "date": "2026-01-28",
         "grade": "A",
         "score": 90,
         "max": 100,
-        "percentage": 90.0,
+        "percentage": 90,
         "dimensions": {
           "D1": 27,
           "D2": 28,
@@ -528,14 +618,15 @@
           "Fix first/third person inconsistency in persona (mixes 'You are' with 'I follow')",
           "Add scope calibration for bug complexity (simple typos vs. architectural issues)",
           "Strengthen persona opening with more distinctive identity statement"
-        ]
+        ],
+        "file_hash": "e2bb74f6"
       },
       "codebase-explorer": {
         "date": "2026-01-28",
         "grade": "A",
         "score": 92,
         "max": 100,
-        "percentage": 92.0,
+        "percentage": 92,
         "dimensions": {
           "D1": 27,
           "D2": 28,
@@ -546,7 +637,8 @@
           "Add templates for INTEGRATIONS.md and STRUCTURE.md to match the output table",
           "Consider splitting tech and arch into separate single-focus agents",
           "Strengthen the cartographer voice with more distinctive language patterns"
-        ]
+        ],
+        "file_hash": "8e03e598"
       }
     }
   }
