@@ -482,6 +482,48 @@ test_send_happy_path() {
     teardown_test_env
 }
 
+test_send_issue_missing_description() {
+    echo ""
+    echo "=== send --issue: missing description ==="
+    setup_test_env
+
+    expect_output "errors when issue description missing" "Issue description required" \
+        send --issue --project myapp
+
+    teardown_test_env
+}
+
+test_send_issue_happy_path() {
+    echo ""
+    echo "=== send --issue: happy path ==="
+    setup_test_env
+
+    run_toolkit send --issue "bug with hook X not detecting scripts" \
+        --project myapp > /dev/null 2>&1 || true
+
+    # Check that an issue file was created
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local issue_file
+    issue_file=$(ls "$TEMP_DIR/toolkit/suggestions-box/myapp/"*_issue.txt 2>/dev/null | head -1)
+    if [[ -n "$issue_file" && -f "$issue_file" ]]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        echo -e "  ${GREEN}PASS${NC}: creates issue file in suggestions-box"
+        log_verbose "    File: $issue_file"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        echo -e "  ${RED}FAIL${NC}: creates issue file in suggestions-box"
+        echo "    Expected: *_issue.txt in suggestions-box/myapp/"
+        echo "    Got: $(ls "$TEMP_DIR/toolkit/suggestions-box/myapp/" 2>&1)"
+    fi
+
+    # Check content
+    if [[ -n "$issue_file" ]]; then
+        expect_file_content "issue contains description" "$issue_file" "bug with hook X"
+    fi
+
+    teardown_test_env
+}
+
 # === RUN TESTS ===
 echo "Running CLI tests..."
 echo "Toolkit directory: $TOOLKIT_DIR"
@@ -507,6 +549,8 @@ if [ -z "$FILTER" ]; then
     test_send_invalid_type
     test_send_file_not_found
     test_send_happy_path
+    test_send_issue_missing_description
+    test_send_issue_happy_path
 else
     # Run specific test group
     case "$FILTER" in
@@ -529,6 +573,8 @@ else
             test_send_invalid_type
             test_send_file_not_found
             test_send_happy_path
+            test_send_issue_missing_description
+            test_send_issue_happy_path
             ;;
         *)
             echo "Unknown filter: $FILTER"

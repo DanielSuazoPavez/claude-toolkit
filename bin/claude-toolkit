@@ -58,28 +58,32 @@ cmd_send() {
     local source_path=""
     local type=""
     local project=""
+    local is_issue=false
 
     # Check for help flag first
     for arg in "$@"; do
         case "$arg" in
             -h|--help)
                 cat << 'EOF'
-claude-toolkit send - Send a resource to suggestions-box for review
+claude-toolkit send - Send a resource or issue to suggestions-box
 
 USAGE:
     claude-toolkit send <path> --type <type> --project <name>
+    claude-toolkit send --issue "<description>" --project <name>
 
 ARGUMENTS:
-    <path>              Path to the resource file
+    <path>              Path to the resource file (or issue text with --issue)
 
 OPTIONS:
     --type <type>       Resource type: skill, agent, hook, memory
     --project <name>    Project name for organizing in suggestions-box
+    --issue             Send an issue/bug report instead of a file
     -h, --help          Show this help message
 
 EXAMPLES:
     claude-toolkit send .claude/skills/draft-pr/SKILL.md --type skill --project myapp
     claude-toolkit send .claude/agents/custom-agent.md --type agent --project myapp
+    claude-toolkit send --issue "bug with hook X not detecting scripts" --project myapp
 EOF
                 return 0
                 ;;
@@ -91,33 +95,51 @@ EOF
         case "$1" in
             --type) type="$2"; shift 2 ;;
             --project) project="$2"; shift 2 ;;
+            --issue) is_issue=true; shift ;;
             -*) error "Unknown option: $1" ;;
             *) source_path="$1"; shift ;;
         esac
     done
 
     # Validate required args
-    [[ -z "$source_path" ]] && error "Source path required"
-    [[ -z "$type" ]] && error "--type required (skill|agent|hook|memory)"
     [[ -z "$project" ]] && error "--project required"
-    [[ ! "$type" =~ ^(skill|agent|hook|memory)$ ]] && error "Invalid type: $type"
-    [[ ! -f "$source_path" ]] && error "File not found: $source_path"
 
-    # Derive name from path
-    # .claude/skills/draft-pr/SKILL.md -> draft-pr
-    local name
-    name=$(basename "$(dirname "$source_path")")
-    [[ "$name" == "." || "$name" == ".claude" ]] && name=$(basename "$source_path" .md)
+    if $is_issue; then
+        # Issue mode: source_path is the issue text
+        [[ -z "$source_path" ]] && error "Issue description required"
 
-    # Build destination
-    local dest_dir="$TOOLKIT_DIR/suggestions-box/$project"
-    local dest_file="$dest_dir/${name}-${type^^}.md"
+        local timestamp
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        local dest_dir="$TOOLKIT_DIR/suggestions-box/$project"
+        local dest_file="$dest_dir/${timestamp}_issue.txt"
 
-    # Create dir and copy
-    mkdir -p "$dest_dir"
-    cp "$source_path" "$dest_file"
+        mkdir -p "$dest_dir"
+        echo "$source_path" > "$dest_file"
 
-    echo "Sent: $source_path -> $dest_file"
+        echo "Issue created: $dest_file"
+    else
+        # Resource mode: source_path is a file
+        [[ -z "$source_path" ]] && error "Source path required"
+        [[ -z "$type" ]] && error "--type required (skill|agent|hook|memory)"
+        [[ ! "$type" =~ ^(skill|agent|hook|memory)$ ]] && error "Invalid type: $type"
+        [[ ! -f "$source_path" ]] && error "File not found: $source_path"
+
+        # Derive name from path
+        # .claude/skills/draft-pr/SKILL.md -> draft-pr
+        local name
+        name=$(basename "$(dirname "$source_path")")
+        [[ "$name" == "." || "$name" == ".claude" ]] && name=$(basename "$source_path" .md)
+
+        # Build destination
+        local dest_dir="$TOOLKIT_DIR/suggestions-box/$project"
+        local dest_file="$dest_dir/${name}-${type^^}.md"
+
+        # Create dir and copy
+        mkdir -p "$dest_dir"
+        cp "$source_path" "$dest_file"
+
+        echo "Sent: $source_path -> $dest_file"
+    fi
 }
 
 # === categorize_file: Map file path to category ===
