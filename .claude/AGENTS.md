@@ -6,7 +6,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-mapper` | alpha | Explores codebase and writes structured analysis documents to `.planning/codebase/` | Read, Bash, Grep, Glob, Write |
+| `codebase-explorer` | alpha | Explores codebase and writes structured analysis to `.planning/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
 | `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality
@@ -28,7 +28,7 @@ Specialized agents for complex, multi-step tasks.
 Agents are invoked by Claude when appropriate for the task. You can also request them explicitly:
 
 ```
-Use the codebase-mapper agent to analyze the tech stack
+Use the codebase-explorer agent to analyze the tech stack
 Use the code-debugger agent to investigate this issue
 ```
 
