@@ -51,6 +51,7 @@ User-invocable skills activated with `/skill-name`.
 | `evaluate-agent` | stable | Evaluate agent prompt quality and design |
 | `evaluate-hook` | stable | Evaluate hook quality before deployment |
 | `evaluate-memory` | stable | Evaluate memory file quality against conventions |
+| `evaluate-batch` | stable | Batch evaluate resources by type with parallel agents |
 
 ## Meta
 
