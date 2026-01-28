@@ -17,4 +17,4 @@ test:
 .PHONY: claude-toolkit-sync
 
 claude-toolkit-sync:
-	~/claude-toolkit/bin/claude-toolkit sync .
+	~/projects/personal/claude-toolkit/bin/claude-toolkit sync .

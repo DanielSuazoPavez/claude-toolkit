@@ -10,16 +10,6 @@
         ]
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/track-skill-usage.sh"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "EnterPlanMode|Bash",
@@ -73,15 +63,6 @@
           {
             "type": "command",
             "command": ".claude/hooks/copy-plan-to-project.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/track-agent-usage.sh"
           }
         ]
       }

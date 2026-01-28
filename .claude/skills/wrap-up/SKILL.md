@@ -1,7 +1,6 @@
 ---
 name: wrap-up
 description: Use when finishing work on a feature branch. Updates changelog, bumps version, updates backlog, and commits changes.
-disable-model-invocation: true
 ---
 
 Use when finishing a feature branch.

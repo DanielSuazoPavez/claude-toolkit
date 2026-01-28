@@ -26,7 +26,7 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `design-db` | new | Design database schemas with normalization and indexing guidance |
+| `design-db` | alpha | Design database schemas with normalization and indexing guidance |
 | `design-diagram` | new | Create diagrams for architecture, flows, and models |
 
 ## Development Tools
@@ -35,9 +35,9 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
 | `setup-worktree` | alpha | Reference for git worktrees - setup, usage, pitfalls |
-| `teardown-worktree` | new | Safe worktree closure after agent completion |
-| `read-json` | new | Read and analyze JSON files efficiently using jq |
-| `design-docker` | new | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
+| `teardown-worktree` | alpha | Safe worktree closure after agent completion |
+| `read-json` | stable | Read and analyze JSON files efficiently using jq |
+| `design-docker` | alpha | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
 
 ## Toolkit Development
 
