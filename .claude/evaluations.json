@@ -84,7 +84,329 @@
         ]
       },
       "evaluate-batch": {
-        "file_hash": "a607b2bb",
+        "file_hash": "bc5cfd24",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 14,
+          "D5": 12,
+          "D6": 13,
+          "D7": 8,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Trim redundant content (basic glob patterns, generic JSON examples) to approach 200-line Process pattern target",
+          "Add specific JSON extraction strategies for when agents return prose instead of structured data",
+          "Deepen the mental model for recognizing systematic issues mid-batch beyond the simple table criteria"
+        ]
+      },
+      "analyze-idea": {
+        "file_hash": "20646d79",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 13,
+          "D4": 14,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Add a concrete worked example showing investigation heuristics applied to a real scenario",
+          "Strengthen mindset framing with explicit \"Think like an investigator\" mental models",
+          "Expand anti-patterns with production experience patterns like \"Premature Conclusions\""
+        ]
+      },
+      "brainstorm-idea": {
+        "file_hash": "bfd3c5d1",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 108,
+        "max": 120,
+        "percentage": 90,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 14,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add anti-pattern example showing Question Dump vs proper pacing",
+          "Expand Example Dialogue to show Phase 3 incremental validation in action",
+          "Trim Key Principles section (mostly activation knowledge)"
+        ]
+      },
+      "design-db": {
+        "file_hash": "59825518",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 103,
+        "max": 120,
+        "percentage": 85.8,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 12,
+          "D5": 13,
+          "D6": 12,
+          "D7": 8,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Add more trigger keywords to description (schema design, database migration, indexing strategy)",
+          "Add NoSQL-specific patterns (MongoDB schema design, Redis data modeling)",
+          "Consider adding When NOT to use section for embedded databases or ORM-managed migrations"
+        ]
+      },
+      "design-diagram": {
+        "file_hash": "428b9acd",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 102,
+        "max": 120,
+        "percentage": 85,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 13,
+          "D5": 14,
+          "D6": 12,
+          "D7": 9,
+          "D8": 12
+        },
+        "top_improvements": [
+          "Add brief when NOT to diagram guidance - avoid unnecessary documentation",
+          "Strengthen anti-pattern reasoning: add WHY each pattern causes problems",
+          "Make subgraph threshold more precise: add node count heuristics beyond <20 nodes"
+        ]
+      },
+      "design-docker": {
+        "file_hash": "c681a9e5",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 12,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Reduce redundant basics in .dockerignore section - just reference common excludes without explicit listing",
+          "Add more decision guidance for edge cases like when to use alpine vs slim in practice with concrete criteria",
+          "Add troubleshooting section for common Docker issues (build context too large, layer cache invalidation debugging)"
+        ]
+      },
+      "design-qa": {
+        "file_hash": "4fb6430e",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 14,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add a worked example showing the complete QA workflow from requirements to release sign-off, demonstrating how the various heuristics connect in practice",
+          "Replace basic bug report structure with more expert content - the minimum viable bug report section is activation knowledge; instead focus on expert judgment calls like severity assessment heuristics",
+          "Add decision tree for test type selection - when to use unit vs integration vs E2E based on risk/cost tradeoffs"
+        ]
+      },
+      "design-tests": {
+        "file_hash": "61876f0e",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 13,
+          "D4": 14,
+          "D5": 13,
+          "D6": 12,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Trim redundant pytest basics to increase knowledge delta score",
+          "Add edge case guidance for fixture cleanup failures and async test patterns",
+          "Strengthen freedom calibration with more prescriptive guidance for high-risk scenarios like database transactions"
+        ]
+      },
+      "draft-pr": {
+        "file_hash": "27fd6893",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 103,
+        "max": 120,
+        "percentage": 85.8,
+        "dimensions": {
+          "D1": 15,
+          "D2": 13,
+          "D3": 14,
+          "D4": 11,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Add trigger keywords (PR description, pull request draft, open PR) to description for better discoverability",
+          "Include expert knowledge on reviewer psychology - what makes reviewers accept/reject quickly",
+          "Expand stacked PR workflow with concrete examples of managing PR chains"
+        ]
+      },
+      "evaluate-agent": {
+        "file_hash": "a52c3aac",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 106,
+        "max": 120,
+        "percentage": 88.3,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 13,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add explicit TOC at top for navigation since file is 232 lines",
+          "Make D1 calibration criteria more specific (define 'laser-focused' vs 'mostly appropriate' with examples)",
+          "Add error handling guidance for malformed agent files or missing frontmatter"
+        ]
+      },
+      "evaluate-hook": {
+        "file_hash": "3942d73b",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 106,
+        "max": 120,
+        "percentage": 88.3,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 15,
+          "D4": 13,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add more expert-only content in D1-D5 criteria (some testability/maintainability points are general software principles)",
+          "Add a Table of Contents for easier navigation of the 186-line document",
+          "Include additional worked examples covering edge case hook types (logging-only, passthrough)"
+        ]
+      },
+      "evaluate-memory": {
+        "file_hash": "0c1cb549",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 14,
+          "D4": 13,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add explicit TOC at top for easier navigation in 200+ line file",
+          "Include 'Fix' column in Anti-Patterns table for complete guidance",
+          "Add a contrasting 'failing memory' example alongside the passing example"
+        ]
+      },
+      "list-memories": {
+        "file_hash": "7449467e",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 14,
+          "D4": 14,
+          "D5": 14,
+          "D6": 12,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add guidance for handling malformed memories (missing sections, invalid frontmatter)",
+          "Consider adding a verbose mode that shows file sizes or last-modified dates",
+          "Strengthen D6 with a second command variant for edge cases"
+        ]
+      },
+      "read-json": {
+        "file_hash": "befdb400",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 102,
+        "max": 120,
+        "percentage": 85,
+        "dimensions": {
+          "D1": 15,
+          "D2": 12,
+          "D3": 12,
+          "D4": 14,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add shell quoting anti-patterns - jq expressions with special characters often fail due to shell quoting issues",
+          "Include malformed JSON handling - patterns for recovering from or validating corrupted/incomplete JSON files",
+          "Reduce redundant basic syntax - Common Operations table could be trimmed as Claude knows basic jq syntax"
+        ]
+      },
+      "review-changes": {
+        "file_hash": "69f1412a",
         "date": "2026-01-28",
         "grade": "A",
         "score": 109,
@@ -93,17 +415,224 @@
         "dimensions": {
           "D1": 17,
           "D2": 14,
+          "D3": 13,
+          "D4": 14,
+          "D5": 15,
+          "D6": 14,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add a worked example showing the decision tree applied to a real scenario (e.g., tracing 'missing validation' to find it handled at API boundary)",
+          "Expand anti-pattern reasoning with 'Why This Happens' column explaining the cognitive bias behind each reviewer mistake",
+          "Add edge case guidance for very large diffs (>500 lines) or multi-feature PRs"
+        ]
+      },
+      "review-plan": {
+        "file_hash": "d9333929",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 108,
+        "max": 120,
+        "percentage": 90,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
           "D3": 14,
           "D4": 14,
-          "D5": 13,
+          "D5": 14,
           "D6": 14,
           "D7": 9,
           "D8": 14
         },
         "top_improvements": [
-          "Add table of contents for 239-line skill to improve navigation",
-          "Expand edge case examples in worked example section",
-          "Add explicit trigger guidance for 2+ resources threshold in description"
+          "Add table of contents for quick navigation at 181 lines",
+          "Include complete before/after plan example showing transformation",
+          "Expand trigger keywords in description (add 'validate plan', 'critique plan', 'sanity check')"
+        ]
+      },
+      "setup-worktree": {
+        "file_hash": "104f59d5",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 103,
+        "max": 120,
+        "percentage": 85.8,
+        "dimensions": {
+          "D1": 15,
+          "D2": 13,
+          "D3": 14,
+          "D4": 12,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Basic Commands section is mostly activation knowledge - could be condensed to 2-3 lines or moved to reference",
+          "Add edge case: worktree on different filesystem (symlinks break, performance implications)",
+          "Description could add more trigger keywords like isolation, concurrent development, multiple features"
+        ]
+      },
+      "snap-back": {
+        "file_hash": "26533d29",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 103,
+        "max": 120,
+        "percentage": 85.8,
+        "dimensions": {
+          "D1": 14,
+          "D2": 13,
+          "D3": 12,
+          "D4": 14,
+          "D5": 15,
+          "D6": 14,
+          "D7": 9,
+          "D8": 12
+        },
+        "top_improvements": [
+          "Add a worked 'reset in action' example showing before/after of Claude mid-drift",
+          "Expand knowledge delta with non-obvious sycophancy triggers (e.g., after user praise, long sessions)",
+          "Add severity calibration guidance - when full reset vs minor adjustment"
+        ]
+      },
+      "teardown-worktree": {
+        "file_hash": "aa722503",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 102,
+        "max": 120,
+        "percentage": 85,
+        "dimensions": {
+          "D1": 15,
+          "D2": 13,
+          "D3": 12,
+          "D4": 14,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 12
+        },
+        "top_improvements": [
+          "Add example report output showing what implementation-checker produces for GREEN/YELLOW/RED cases",
+          "Deepen anti-pattern reasoning - expand WHY column with consequences similar to uncommitted changes explanation",
+          "Add TOC for navigation at 106 lines"
+        ]
+      },
+      "wrap-up": {
+        "file_hash": "ebdad17e",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 102,
+        "max": 120,
+        "percentage": 85,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 11,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add explicit KEYWORDS to description for better trigger recognition",
+          "Include example branch analysis output showing full wrap-up workflow",
+          "Add guidance for hotfix branches vs feature branches"
+        ]
+      },
+      "write-agent": {
+        "file_hash": "56c25857",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 108,
+        "max": 120,
+        "percentage": 90,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 13,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Strengthen Tool Selection Guide with edge cases (when to add WebFetch, WebSearch for research-heavy agents)",
+          "Add TOC at top for navigation in 210-line file",
+          "Consider adding a second worked example showing agent refinement after failing /evaluate-agent"
+        ]
+      },
+      "write-handoff": {
+        "file_hash": "c7bbc19d",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 14,
+          "D4": 14,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Deepen D1 (Knowledge Delta): Add expert heuristics for estimating staleness of continuation files and when to abandon vs use them",
+          "Strengthen D2 (Mindset): Explain the minimum viable context philosophy - why less is more for resumption",
+          "Add troubleshooting to D8: What to do when continuation file points to stale context or branch no longer exists"
+        ]
+      },
+      "write-hook": {
+        "file_hash": "550a1c71",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 14,
+          "D5": 12,
+          "D6": 14,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "Add TOC to HOOKS_API.md - reference file is 401 lines without navigation",
+          "Add brief context to naming convention reference at line 8",
+          "Expand mindset transfer with explicit defensive thinking section"
+        ]
+      },
+      "write-memory": {
+        "file_hash": "022dacb1",
+        "date": "2026-01-28",
+        "grade": "A-",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 14,
+          "D5": 13,
+          "D6": 12,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add filename examples for each category - a quick table showing essential/relevant/branch/idea/experimental filename patterns would improve practical usability",
+          "Add brief TOC - at 169 lines with multiple sections, a 5-line navigation table would improve discoverability",
+          "Strengthen why for category philosophy - add 1-2 sentences explaining the underlying principle (auto-load budget, context window conservation)"
         ]
       }
     }
