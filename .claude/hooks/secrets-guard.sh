@@ -10,7 +10,7 @@
 #
 # Blocks:
 #   Read tool:
-#     - Files matching .env, .env.* (except safe extensions)
+#     - Files matching .env, .env.*, *.env (except safe extensions)
 #   Bash tool:
 #     - cat .env, less .env, head .env, tail .env
 #     - source .env, . .env
@@ -63,8 +63,8 @@ if [ "$TOOL_NAME" = "Read" ]; then
         fi
     done
 
-    # Block .env or .env.* files
-    if [[ "$FILENAME" = ".env" ]] || [[ "$FILENAME" =~ ^\.env\. ]]; then
+    # Block .env, .env.*, or *.env files
+    if [[ "$FILENAME" = ".env" ]] || [[ "$FILENAME" =~ ^\.env\. ]] || [[ "$FILENAME" =~ \.env$ ]]; then
         block "BLOCKED: Reading .env file may expose secrets. Use .env.example as a template reference. Set ALLOW_ENV_READ=1 to bypass."
     fi
 

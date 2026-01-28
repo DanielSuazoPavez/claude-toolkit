@@ -156,6 +156,10 @@ test_secrets_guard() {
         "blocks reading .env.local"
     expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.production"}}' \
         "blocks reading .env.production"
+    expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/prod.env"}}' \
+        "blocks reading prod.env (*.env pattern)"
+    expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/staging.env"}}' \
+        "blocks reading staging.env (*.env pattern)"
 
     # Should block Bash
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}' \
