@@ -1,0 +1,52 @@
+{
+  "skills": {
+    "evaluate_skill": "/evaluate-skill",
+    "write_skill": "/write-skill",
+    "dimensions": {
+      "D1": { "name": "Knowledge Delta", "max": 20 },
+      "D2": { "name": "Mindset + Procedures", "max": 15 },
+      "D3": { "name": "Anti-Pattern Quality", "max": 15 },
+      "D4": { "name": "Specification Compliance", "max": 15 },
+      "D5": { "name": "Progressive Disclosure", "max": 15 },
+      "D6": { "name": "Freedom Calibration", "max": 15 },
+      "D7": { "name": "Pattern Recognition", "max": 10 },
+      "D8": { "name": "Practical Usability", "max": 15 }
+    },
+    "resources": {}
+  },
+  "hooks": {
+    "evaluate_skill": "/evaluate-hook",
+    "write_skill": "/write-hook",
+    "dimensions": {
+      "D1": { "name": "Correctness", "max": 25 },
+      "D2": { "name": "Testability", "max": 20 },
+      "D3": { "name": "Safety & Robustness", "max": 20 },
+      "D4": { "name": "Maintainability", "max": 20 },
+      "D5": { "name": "Documentation", "max": 15 }
+    },
+    "resources": {}
+  },
+  "memories": {
+    "evaluate_skill": "/evaluate-memory",
+    "write_skill": "/write-memory",
+    "dimensions": {
+      "D1": { "name": "Category & Naming", "max": 20 },
+      "D2": { "name": "Quick Reference Section", "max": 25 },
+      "D3": { "name": "Content Scope", "max": 20 },
+      "D4": { "name": "Load Timing Appropriateness", "max": 15 },
+      "D5": { "name": "Structure & Formatting", "max": 20 }
+    },
+    "resources": {}
+  },
+  "agents": {
+    "evaluate_skill": "/evaluate-agent",
+    "write_skill": "/write-agent",
+    "dimensions": {
+      "D1": { "name": "Right-sized Focus", "max": 30 },
+      "D2": { "name": "Output Quality", "max": 30 },
+      "D3": { "name": "Coherent Persona", "max": 25 },
+      "D4": { "name": "Tool Selection", "max": 15 }
+    },
+    "resources": {}
+  }
+}
