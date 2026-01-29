@@ -1,6 +1,6 @@
 ---
 name: design-db
-description: Design robust, scalable database schemas for SQL and NoSQL databases. Provides normalization guidelines, indexing strategies, migration patterns, constraint design, and performance optimization. Use when designing tables, reviewing schemas, or planning migrations.
+description: Use when requests mention "schema design", "database migration", "data modeling", "table design", "indexing strategy", or "normalize". Designs robust SQL/NoSQL schemas with normalization, indexing, migrations, constraints, and performance optimization.
 ---
 
 # Database Schema Designer

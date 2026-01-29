@@ -16,7 +16,7 @@
 ### Changed
 - All skills improved with expert heuristics, edge cases, and anti-patterns
 - All agents improved with stronger personas and clearer boundaries
-- Skill descriptions standardized to inline keyword format for better routing
+- Skill descriptions standardized to inline keyword format for better routing (`design-db`, `draft-pr`, `wrap-up` improved)
 - `session-start` hook enhanced with git context and memory guidance
 - Renamed `essential-workflow-*` memories to `relevant-workflow-*` (on-demand, not session-critical)
 

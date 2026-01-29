@@ -153,26 +153,26 @@
         ]
       },
       "design-db": {
-        "file_hash": "59825518",
+        "file_hash": "313f9ebb",
         "date": "2026-01-28",
         "grade": "A-",
-        "score": 103,
+        "score": 106,
         "max": 120,
-        "percentage": 85.8,
+        "percentage": 88.3,
         "dimensions": {
           "D1": 17,
           "D2": 13,
           "D3": 14,
-          "D4": 12,
+          "D4": 14,
           "D5": 13,
-          "D6": 12,
-          "D7": 8,
-          "D8": 14
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
         },
         "top_improvements": [
-          "Add more trigger keywords to description (schema design, database migration, indexing strategy)",
-          "Add NoSQL-specific patterns (MongoDB schema design, Redis data modeling)",
-          "Consider adding When NOT to use section for embedded databases or ORM-managed migrations"
+          "Add index performance trade-offs: guidance on when NOT to index and index maintenance costs",
+          "Expand error handling examples: deadlock handling, transaction retry logic, more constraint violation scenarios",
+          "Add capacity planning section: table size estimation, partition strategies, archiving patterns"
         ]
       },
       "design-diagram": {
@@ -268,26 +268,26 @@
         ]
       },
       "draft-pr": {
-        "file_hash": "27fd6893",
+        "file_hash": "2c431576",
         "date": "2026-01-28",
-        "grade": "A-",
-        "score": 103,
+        "grade": "A",
+        "score": 110,
         "max": 120,
-        "percentage": 85.8,
+        "percentage": 91.67,
         "dimensions": {
-          "D1": 15,
-          "D2": 13,
-          "D3": 14,
-          "D4": 11,
+          "D1": 17,
+          "D2": 14,
+          "D3": 15,
+          "D4": 14,
           "D5": 14,
           "D6": 13,
           "D7": 9,
           "D8": 14
         },
         "top_improvements": [
-          "Add trigger keywords (PR description, pull request draft, open PR) to description for better discoverability",
-          "Include expert knowledge on reviewer psychology - what makes reviewers accept/reject quickly",
-          "Expand stacked PR workflow with concrete examples of managing PR chains"
+          "Add edge case guidance for monorepo PRs, infrastructure changes, or security fixes that may warrant different sizing rules",
+          "Expand stacked PRs workflow with more detail on managing dependent feature sequences",
+          "Add explicit guidance on when NOT to use this skill (e.g., trivial single-commit fixes)"
         ]
       },
       "evaluate-agent": {
@@ -521,26 +521,26 @@
         ]
       },
       "wrap-up": {
-        "file_hash": "ebdad17e",
+        "file_hash": "735dd56b",
         "date": "2026-01-28",
         "grade": "A-",
-        "score": 102,
+        "score": 105,
         "max": 120,
-        "percentage": 85,
+        "percentage": 87.5,
         "dimensions": {
           "D1": 16,
           "D2": 13,
-          "D3": 13,
-          "D4": 11,
+          "D3": 12,
+          "D4": 14,
           "D5": 14,
-          "D6": 13,
+          "D6": 14,
           "D7": 9,
           "D8": 13
         },
         "top_improvements": [
-          "Add explicit KEYWORDS to description for better trigger recognition",
-          "Include example branch analysis output showing full wrap-up workflow",
-          "Add guidance for hotfix branches vs feature branches"
+          "Add deeper reasoning to anti-patterns - explain why patterns are problematic (e.g., stale backlog causes tracking drift)",
+          "Include version file update examples for pyproject.toml, package.json, Cargo.toml",
+          "Add brief TOC for quick navigation to edge cases and anti-patterns"
         ]
       },
       "write-agent": {
