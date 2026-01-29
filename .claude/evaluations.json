@@ -664,86 +664,67 @@
     },
     "resources": {
       "secrets-guard": {
-        "date": "2026-01-28",
-        "grade": "A-",
-        "score": 89,
-        "max": 100,
-        "percentage": 89,
-        "dimensions": {
-          "D1": 22,
-          "D2": 18,
-          "D3": 17,
-          "D4": 18,
-          "D5": 14
-        },
-        "top_improvements": [
-          "Strengthen Bash pattern detection - add quoted path handling and additional read patterns",
-          "Add edge case tests - quoted paths, absolute paths, multiline commands",
-          "Document known limitations and bypass vectors"
-        ],
-        "file_hash": "df41ddb4"
-      },
-      "enforce-make-commands": {
+        "file_hash": "df41ddb4",
         "date": "2026-01-28",
         "grade": "A",
-        "score": 92,
+        "score": 91,
         "max": 100,
-        "percentage": 92,
+        "percentage": 91,
         "dimensions": {
-          "D1": 23,
+          "D1": 21,
+          "D2": 19,
+          "D3": 19,
+          "D4": 17,
+          "D5": 15
+        },
+        "top_improvements": [
+          "Strengthen Bash regex patterns to catch paths with quotes or absolute paths (e.g., cat \"/path/.env\")",
+          "Add detection for edge cases: sudo env, bash -c env, and .env.local variants in Bash patterns",
+          "Consider extracting bash dangerous patterns into a configurable array for easier maintenance"
+        ]
+      },
+      "enforce-make-commands": {
+        "file_hash": "80006b93",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 91,
+        "max": 100,
+        "percentage": 91,
+        "dimensions": {
+          "D1": 22,
           "D2": 19,
           "D3": 18,
           "D4": 18,
           "D5": 14
         },
         "top_improvements": [
-          "Add logging of blocked commands to stderr for debugging",
-          "Strengthen regex patterns to catch edge cases like 'env pytest' or './pytest'",
-          "Consider adding a verbose mode that explains why a specific pattern matched"
-        ],
-        "file_hash": "80006b93"
+          "Strengthen regex patterns to handle edge cases like leading spaces or command prefixes (env pytest, ./pytest)",
+          "Add stderr logging when jq fails for easier debugging",
+          "Consider adding a configurable safety level (warn vs block mode)"
+        ]
       },
       "enforce-uv-run": {
+        "file_hash": "bbfc117f",
         "date": "2026-01-28",
-        "grade": "B",
-        "score": 80,
+        "grade": "A",
+        "score": 91,
         "max": 100,
-        "percentage": 80,
+        "percentage": 91,
         "dimensions": {
-          "D1": 18,
-          "D2": 17,
-          "D3": 18,
+          "D1": 21,
+          "D2": 19,
+          "D3": 19,
           "D4": 17,
-          "D5": 10
+          "D5": 15
         },
         "top_improvements": [
-          "Fix documentation mismatch: HOOKS.md claims hook blocks pip/pytest/ruff/mypy but implementation only blocks python",
-          "Handle edge case: python command without trailing space isn't blocked by current regex",
-          "Add test cases for documented-but-missing patterns (pip, pytest) and edge cases"
-        ],
-        "file_hash": "bbfc117f"
+          "Fix regex edge cases - pattern requires trailing space so python/python3 without arguments wont be caught; consider ^python(3(\\.[0-9]+)?)?($| )",
+          "Handle multi-command scenarios - commands like cd /tmp && python script.py or VAR=x python script.py bypass the check since python isnt at the start",
+          "Make patterns configurable - extract blocked command patterns to a configuration file or env var for easier customization"
+        ]
       },
       "copy-plan-to-project": {
-        "date": "2026-01-28",
-        "grade": "B",
-        "score": 84,
-        "max": 100,
-        "percentage": 84,
-        "dimensions": {
-          "D1": 22,
-          "D2": 16,
-          "D3": 17,
-          "D4": 17,
-          "D5": 12
-        },
-        "top_improvements": [
-          "Add more test cases: fallback filename when title is missing, error conditions",
-          "Validate/sanitize file_path input to prevent path traversal attacks from malformed JSON",
-          "Document the slug generation algorithm and add examples of expected output file names"
-        ],
-        "file_hash": "413452f6"
-      },
-      "suggest-json-reader": {
+        "file_hash": "5c24bce3",
         "date": "2026-01-28",
         "grade": "A",
         "score": 94,
@@ -752,76 +733,95 @@
         "dimensions": {
           "D1": 24,
           "D2": 19,
-          "D3": 19,
+          "D3": 18,
           "D4": 18,
-          "D5": 14
+          "D5": 15
         },
         "top_improvements": [
-          "Add test case for warn mode (JSON_READ_WARN=1) in documentation",
-          "Normalize JSON output formatting (remove space inconsistency between allow/block outputs)",
-          "Add comment explaining the glob-to-regex sed conversion logic"
-        ],
-        "file_hash": "48a16b02"
+          "Add mkdir error handling (unlikely to fail, but for completeness)",
+          "Validate PLANS_DIR does not contain path traversal sequences",
+          "Consider adding DEBUG mode to log decisions to stderr"
+        ]
       },
-      "enforce-feature-branch": {
+      "suggest-json-reader": {
+        "file_hash": "48a16b02",
         "date": "2026-01-28",
         "grade": "A",
-        "score": 92,
+        "score": 97,
         "max": 100,
-        "percentage": 92,
+        "percentage": 97,
+        "dimensions": {
+          "D1": 24,
+          "D2": 19,
+          "D3": 20,
+          "D4": 19,
+          "D5": 15
+        },
+        "top_improvements": [
+          "Add a size-based test case (e.g., file > threshold) to documented test cases",
+          "Make wildcard regex conversion more robust (escape additional special regex chars like +, ?, etc.)",
+          "Add fallback handling if both stat commands fail (currently defaults to 0, allowing the file)"
+        ]
+      },
+      "enforce-feature-branch": {
+        "file_hash": "b8f27439",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 94,
+        "max": 100,
+        "percentage": 94,
         "dimensions": {
           "D1": 23,
           "D2": 19,
-          "D3": 18,
+          "D3": 19,
           "D4": 18,
-          "D5": 14
+          "D5": 15
         },
         "top_improvements": [
-          "Enhance git commit regex to catch edge cases like 'git -C /path commit'",
-          "Add DEBUG=1 logging option to help troubleshoot blocking decisions",
-          "Consider adding git push blocking to protected branches"
-        ],
-        "file_hash": "b8f27439"
+          "Extract branch-checking logic into a function to reduce duplication between EnterPlanMode and Bash handling blocks",
+          "Enhance git commit detection to handle edge cases like subshell contexts $(git commit ...) or heredocs",
+          "Add logging option for debugging (e.g., HOOK_DEBUG=1 to log decisions to stderr)"
+        ]
       },
       "session-start": {
+        "file_hash": "757f100d",
         "date": "2026-01-28",
         "grade": "A",
-        "score": 93,
+        "score": 94,
         "max": 100,
-        "percentage": 93,
+        "percentage": 94,
         "dimensions": {
           "D1": 24,
           "D2": 19,
           "D3": 18,
           "D4": 18,
-          "D5": 14
+          "D5": 15
         },
         "top_improvements": [
-          "Add path sanity check for CLAUDE_MEMORIES_DIR (prevent path traversal)",
-          "Consider adding a verbose/debug mode for troubleshooting",
-          "Add timing/performance note for large memory files"
-        ],
-        "file_hash": "757f100d"
+          "Add shellcheck directive for script validation",
+          "Consider structured logging for debugging purposes",
+          "Add timeout protection for git commands on network-mounted repos"
+        ]
       },
       "block-dangerous-commands": {
+        "file_hash": "c7d81b52",
         "date": "2026-01-28",
-        "grade": "B",
-        "score": 87,
+        "grade": "A",
+        "score": 90,
         "max": 100,
-        "percentage": 87,
+        "percentage": 90,
         "dimensions": {
           "D1": 22,
-          "D2": 18,
-          "D3": 17,
-          "D4": 16,
+          "D2": 19,
+          "D3": 18,
+          "D4": 17,
           "D5": 14
         },
         "top_improvements": [
           "Add logging of blocked commands for security auditing",
-          "Extract dangerous patterns into a configurable array or config file",
-          "Add more test cases covering mkfs, dd, and chmod patterns"
-        ],
-        "file_hash": "c7d81b52"
+          "Consider handling long-form flags like --recursive --force",
+          "Extract dangerous patterns into a configurable array for easier maintenance"
+        ]
       }
     }
   },

@@ -25,7 +25,7 @@
 ### Quality Summary
 - **26 skills**: All A- or better (102-112/120)
 - **6 agents**: All A grade (90-94/100)
-- **8 hooks**: All B or better (80-94/100)
+- **8 hooks**: All A grade (90-97/100)
 - **9 memories**: All B or better (84-100/100)
 
 ## [0.15.0] - 2026-01-27 - CLI redesign
