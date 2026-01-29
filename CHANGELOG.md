@@ -18,6 +18,7 @@
 - All agents improved with stronger personas and clearer boundaries
 - Skill descriptions standardized to inline keyword format for better routing
 - `session-start` hook enhanced with git context and memory guidance
+- Renamed `essential-workflow-*` memories to `relevant-workflow-*` (on-demand, not session-critical)
 
 ### Removed
 - `analyze-naming` skill (consolidated into other workflows)
@@ -26,7 +27,7 @@
 - **26 skills**: All A- or better (102-112/120)
 - **6 agents**: All A grade (90-94/100)
 - **8 hooks**: All A grade (90-97/100)
-- **9 memories**: All B or better (84-100/100)
+- **9 memories**: All A grade (90-100/100)
 
 ## [0.15.0] - 2026-01-27 - CLI redesign
 
@@ -161,7 +162,7 @@
 
 ### Added
 - `evaluate-memory` skill: evaluate memory files against conventions (category, naming, Quick Reference, load timing)
-- `essential-workflow-branch_development` memory: branch-first development workflow conventions
+- `relevant-workflow-branch_development` memory: branch-based development workflow conventions
 - README Concepts section: explains difference between skills, memories, agents, hooks
 
 ### Changed
@@ -175,7 +176,7 @@
 ### Added
 - `block-dangerous-commands.sh` hook: blocks rm -rf /, fork bombs, mkfs, dd to disks
 - `secrets-guard.sh` hook: blocks .env reads and env/printenv commands
-- `suggest-json-reader.sh` hook: suggests /json-reader for large JSON files
+- `suggest-read-json.sh` hook: suggests /json-reader for large JSON files
 - `scripts/analyze-usage.sh`: extracts skill/agent usage from transcripts (captures both user and agent invocations)
 - `scripts/validate-resources-indexed.sh`: validates index files match actual resources
 

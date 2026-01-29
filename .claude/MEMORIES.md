@@ -11,14 +11,14 @@ Always loaded at session start:
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
 | `essential-conventions-memory` | stable | Memory naming conventions and categories |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
-| `essential-workflow-branch_development` | stable | Branch-based development workflow |
-| `essential-workflow-task_completion` | stable | Task completion checklist |
 
 ## Relevant Memories
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
 | `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
+| `relevant-workflow-branch_development` | stable | Branch-based development workflow |
+| `relevant-workflow-task_completion` | stable | Task completion checklist |
 | `relevant-reference-hooks_config` | beta | Hooks configuration and environment variables |
 
 ## Philosophy

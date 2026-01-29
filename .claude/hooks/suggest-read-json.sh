@@ -2,7 +2,7 @@
 # PreToolUse hook: suggest /read-json skill for JSON files
 #
 # Settings.json:
-#   "PreToolUse": [{"matcher": "Read", "hooks": [{"type": "command", "command": "bash .claude/hooks/suggest-json-reader.sh"}]}]
+#   "PreToolUse": [{"matcher": "Read", "hooks": [{"type": "command", "command": "bash .claude/hooks/suggest-read-json.sh"}]}]
 #
 # Environment:
 #   ALLOW_JSON_READ=1  - bypass completely (allow all raw JSON reads)
@@ -18,13 +18,13 @@
 #   JSON files can be large; /read-json uses jq for efficient querying
 #
 # Test cases:
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' | ./suggest-json-reader.sh
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' | ./suggest-read-json.sh
 #   # Expected: {"decision":"block","reason":"..."} (if file > threshold)
 #
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/package.json"}}' | ./suggest-json-reader.sh
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/package.json"}}' | ./suggest-read-json.sh
 #   # Expected: (empty - allowed, in default allowlist)
 #
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' | ./suggest-json-reader.sh
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' | ./suggest-read-json.sh
 #   # Expected: (empty - allowed, not json)
 
 # Allowlist: skip if explicitly allowed

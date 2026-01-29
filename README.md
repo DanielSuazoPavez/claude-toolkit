@@ -130,7 +130,7 @@ Automation hooks configured in `settings.json`:
 | `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
 | `secrets-guard.sh` | PreToolUse (Read\|Bash) | Warns before reading .env files |
-| `suggest-json-reader.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
+| `suggest-read-json.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
 | `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.claude/plans/` |
 
 **Note:** `enforce-uv-run.sh` is Python-specific. Remove or modify for non-Python projects.
@@ -144,8 +144,8 @@ Starting point for project memories in `.claude/memories/`:
 | `essential-conventions-code_style` | Coding conventions and style guide |
 | `essential-conventions-memory` | Memory naming conventions |
 | `essential-preferences-communication_style` | Communication style preferences |
-| `essential-workflow-branch_development` | Branch-based development workflow |
-| `essential-workflow-task_completion` | Task completion checklist |
+| `relevant-workflow-branch_development` | Branch-based development workflow |
+| `relevant-workflow-task_completion` | Task completion checklist |
 | `experimental-preferences-casual_communication_style` | Casual communication mode for meta-discussions |
 | `relevant-conventions-backlog_schema` | Standardized BACKLOG.md format |
 | `relevant-philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |

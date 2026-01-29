@@ -216,14 +216,14 @@ Using a separate agent ensures objective assessment without influence from prior
 
 ## Example Evaluation
 
-**Memory:** `essential-workflow-branch_development.md`
+**Memory:** `relevant-workflow-branch_development.md`
 
 | Dimension | Score | Evidence |
 |-----------|-------|----------|
-| D1: Category & Naming | 19/20 | Correct essential- prefix, clear context (workflow), descriptive name |
-| D2: Quick Reference | 23/25 | Present as section 1, "Read at" pattern, clear timing |
-| D3: Content Scope | 17/20 | Focused on branch workflow, links to related skill |
-| D4: Load Timing | 14/15 | Session start appropriate for workflow guidance |
-| D5: Structure | 18/20 | Good tables, clear sections, scannable |
+| D1: Category & Naming | 19/20 | Correct relevant- prefix for on-demand content, clear context (workflow) |
+| D2: Quick Reference | 24/25 | Section 1, proper "ONLY READ WHEN" bullets, See also cross-refs |
+| D3: Content Scope | 19/20 | Focused on branch workflow, cross-references instead of duplicating |
+| D4: Load Timing | 14/15 | On-demand appropriate for reference material |
+| D5: Structure | 19/20 | Good tables, code blocks, scannable sections |
 
-**Total: 91/100 - Grade A**
+**Total: 95/100 - Grade A**

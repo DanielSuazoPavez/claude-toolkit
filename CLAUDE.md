@@ -35,6 +35,7 @@ Summary and status of all resources:
 - `.claude/AGENTS.md` - All agents with status, descriptions, and tools
 - `.claude/HOOKS.md` - All hooks with triggers and configuration
 - `.claude/MEMORIES.md` - All memories with categories and purposes
+- `.claude/evaluations.json` - Quality scores, grades, and improvement suggestions
 
 ## When You're Done
 

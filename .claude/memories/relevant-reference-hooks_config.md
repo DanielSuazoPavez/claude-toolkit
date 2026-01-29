@@ -33,7 +33,7 @@ Reference for hook triggers, environment variables, and customization options.
 ### PreToolUse (Read)
 | Hook | Purpose |
 |------|---------|
-| `suggest-json-reader.sh` | Suggests /read-json for large JSON files |
+| `suggest-read-json.sh` | Suggests /read-json for large JSON files |
 
 ### PreToolUse (EnterPlanMode|Bash)
 | Hook | Purpose |

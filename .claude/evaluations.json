@@ -337,7 +337,7 @@
         ]
       },
       "evaluate-memory": {
-        "file_hash": "0c1cb549",
+        "file_hash": "2f51fb27",
         "date": "2026-01-28",
         "grade": "A-",
         "score": 105,
@@ -743,26 +743,6 @@
           "Consider adding DEBUG mode to log decisions to stderr"
         ]
       },
-      "suggest-json-reader": {
-        "file_hash": "48a16b02",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 97,
-        "max": 100,
-        "percentage": 97,
-        "dimensions": {
-          "D1": 24,
-          "D2": 19,
-          "D3": 20,
-          "D4": 19,
-          "D5": 15
-        },
-        "top_improvements": [
-          "Add a size-based test case (e.g., file > threshold) to documented test cases",
-          "Make wildcard regex conversion more robust (escape additional special regex chars like +, ?, etc.)",
-          "Add fallback handling if both stat commands fail (currently defaults to 0, allowing the file)"
-        ]
-      },
       "enforce-feature-branch": {
         "file_hash": "b8f27439",
         "date": "2026-01-28",
@@ -822,6 +802,26 @@
           "Consider handling long-form flags like --recursive --force",
           "Extract dangerous patterns into a configurable array for easier maintenance"
         ]
+      },
+      "suggest-read-json": {
+        "file_hash": "172c0316",
+        "date": "2026-01-28",
+        "grade": "A",
+        "score": 97,
+        "max": 100,
+        "percentage": 97,
+        "dimensions": {
+          "D1": 24,
+          "D2": 19,
+          "D3": 20,
+          "D4": 19,
+          "D5": 15
+        },
+        "top_improvements": [
+          "Add a size-based test case (e.g., file > threshold) to documented test cases",
+          "Make wildcard regex conversion more robust (escape additional special regex chars like +, ?, etc.)",
+          "Add fallback handling if both stat commands fail (currently defaults to 0, allowing the file)"
+        ]
       }
     }
   },
@@ -852,24 +852,24 @@
     },
     "resources": {
       "essential-conventions-code_style": {
+        "file_hash": "1827f8e2",
         "date": "2026-01-28",
-        "grade": "B+",
-        "score": 84,
+        "grade": "A",
+        "score": 90,
         "max": 100,
-        "percentage": 84,
+        "percentage": 90,
         "dimensions": {
-          "D1": 18,
-          "D2": 18,
+          "D1": 19,
+          "D2": 22,
           "D3": 17,
-          "D4": 13,
+          "D4": 14,
           "D5": 18
         },
         "top_improvements": [
-          "Fix Quick Reference pattern - use ONLY READ WHEN instead of Read at",
-          "Align title with filename - change to Code Style Conventions",
-          "Generalize language-specific content (Python/Polars examples)"
-        ],
-        "file_hash": "1a3cf621"
+          "Add a bullet summary of top 3-5 rules in Quick Reference for faster recall",
+          "Remove section dividers (---) to match memory formatting conventions",
+          "Consolidate Core Philosophy into Design Principles to reduce overlap"
+        ]
       },
       "essential-conventions-memory": {
         "date": "2026-01-28",
@@ -911,45 +911,45 @@
         ],
         "file_hash": "78cf4171"
       },
-      "essential-workflow-task_completion": {
+      "relevant-workflow-task_completion": {
+        "file_hash": "8bcf7e8c",
         "date": "2026-01-28",
-        "grade": "B",
-        "score": 86,
+        "grade": "A",
+        "score": 93,
         "max": 100,
-        "percentage": 86,
+        "percentage": 93,
         "dimensions": {
           "D1": 19,
-          "D2": 22,
+          "D2": 24,
           "D3": 18,
-          "D4": 9,
+          "D4": 14,
           "D5": 18
         },
         "top_improvements": [
-          "Consider renaming to relevant- since content is situational (only needed when completing tasks)",
-          "Add See also section in Quick Reference linking to related memories/skills",
-          "Consider moving Bug Fix Guidelines to separate memory or integrating into code_style"
-        ],
-        "file_hash": "8f2076f7"
+          "Section 5 (Bug Fix Approach) is somewhat tangential to task completion - consider moving to code_style or adding intro context",
+          "Add a brief intro sentence to Bug Fix section explaining why it belongs in task completion workflow",
+          "Consider adding a section on handling failed tests/lint (retry strategies, when to escalate)"
+        ]
       },
-      "essential-workflow-branch_development": {
+      "relevant-workflow-branch_development": {
+        "file_hash": "de29198c",
         "date": "2026-01-28",
-        "grade": "B",
-        "score": 86,
+        "grade": "A",
+        "score": 95,
         "max": 100,
-        "percentage": 86,
+        "percentage": 95,
         "dimensions": {
-          "D1": 18,
-          "D2": 20,
-          "D3": 17,
-          "D4": 13,
-          "D5": 18
+          "D1": 19,
+          "D2": 24,
+          "D3": 19,
+          "D4": 14,
+          "D5": 19
         },
         "top_improvements": [
-          "Enhance Quick Reference with 'ONLY READ WHEN' bullets for more specific load guidance",
-          "Consolidate overlapping command sections (3 and 6) to reduce redundancy",
-          "Add explicit cross-reference to CLAUDE.md for the --no-ff merge policy overlap"
-        ],
-        "file_hash": "993fd43f"
+          "Minor: Could expand Quick Reference with additional scenario triggers for edge cases",
+          "Cross-reference could be stronger - consider linking to related memories beyond CLAUDE.md",
+          "Parallel work section (6) could be condensed since it mainly points to /setup-worktree skill"
+        ]
       },
       "relevant-conventions-backlog_schema": {
         "date": "2026-01-28",

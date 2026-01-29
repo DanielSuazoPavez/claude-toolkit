@@ -233,8 +233,8 @@ test_enforce_make_commands() {
 # === SUGGEST JSON READER ===
 test_suggest_json_reader() {
     echo ""
-    echo "=== suggest-json-reader.sh ==="
-    local hook="suggest-json-reader.sh"
+    echo "=== suggest-read-json.sh ==="
+    local hook="suggest-read-json.sh"
 
     # Should block (large JSON or unknown JSON)
     expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' \

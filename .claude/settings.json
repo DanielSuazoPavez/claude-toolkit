@@ -51,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/suggest-json-reader.sh"
+            "command": "bash .claude/hooks/suggest-read-json.sh"
           }
         ]
       }
