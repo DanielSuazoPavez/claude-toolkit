@@ -21,7 +21,7 @@ Getting claude-toolkit to a clean, polished state:
 
 ## P0 - Critical
 
-(None currently)
+(None)
 
 ---
 
@@ -32,6 +32,35 @@ Getting claude-toolkit to a clean, polished state:
     - **scope**: `skills`
     - Structured logging, metrics, tracing setup
 
+---
+
+## P2 - Medium
+
+- **[AGENTS]** Create `test-gap-analyzer` agent
+    - **status**: `idea`
+    - **scope**: `agents`
+    - Analyzes existing tests, finds coverage gaps, suggests what to test
+    - Pairs with `design-tests` skill (pytest patterns)
+    - Multi-step: discover test files → analyze source coverage → report gaps
+
+- **[SKILLS]** Create `review-documentation` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - Reviews non-code parts: README, docs/, docstrings, comments
+    - Checks completeness, accuracy vs code, consistency, broken links
+    - Does NOT review code logic, just documentation quality
+
+- **[SKILLS]** Create `github-actions` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - CI/CD pipeline patterns, caching, matrix builds
+
+- **[SKILLS]** Create `write-documentation` skill
+    - **status**: `idea`
+    - **scope**: `skills`
+    - API docs, docstrings, README generation
+
+
 - **[TOOLKIT]** Session lessons system
     - **status**: `idea`
     - **scope**: `toolkit, skills, memories`
@@ -39,20 +68,6 @@ Getting claude-toolkit to a clean, polished state:
     - Meta-tags: `[T]` transferable vs `[P:project]` project-specific
     - Centralized collection from projects (similar to suggestions-box)
     - Reference: bm-sop `experimental-sessions_lessons.md` + `search-session-lessons/`
-
----
-
-## P2 - Medium
-
-- **[SKILLS]** Create `github-actions` skill
-    - **status**: `idea`
-    - **scope**: `skills`
-    - CI/CD pipeline patterns, caching, matrix builds
-
-- **[SKILLS]** Create `docgen` skill
-    - **status**: `idea`
-    - **scope**: `skills`
-    - API docs, docstrings, README generation
 
 ---
 
@@ -83,11 +98,6 @@ Getting claude-toolkit to a clean, polished state:
     - **status**: `idea`
     - **scope**: `skills`
     - Lazy frames, expressions, optimizations
-
-- **[TESTING]** Add sync validation tests
-    - **status**: `idea`
-    - **scope**: `tests, toolkit`
-    - Automated verification of install.sh and claude-sync flow
 
 ---
 

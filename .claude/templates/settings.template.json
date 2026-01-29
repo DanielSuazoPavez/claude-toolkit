@@ -22,12 +22,6 @@
         "command": ".claude/hooks/session-start.sh"
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "type": "command",
-        "command": ".claude/hooks/track-skill-usage.sh"
-      }
-    ],
     "PreToolUse": [
       {
         "type": "command",
@@ -45,11 +39,6 @@
         "type": "command",
         "matcher": "Write",
         "command": ".claude/hooks/copy-plan-to-project.sh"
-      },
-      {
-        "type": "command",
-        "matcher": "Task",
-        "command": ".claude/hooks/track-agent-usage.sh"
       }
     ]
   }

@@ -1,6 +1,6 @@
 ---
 name: design-db
-description: Design robust, scalable database schemas for SQL and NoSQL databases. Provides normalization guidelines, indexing strategies, migration patterns, constraint design, and performance optimization. Use when designing tables, reviewing schemas, or planning migrations.
+description: Use when requests mention "schema design", "database migration", "data modeling", "table design", "indexing strategy", or "normalize". Designs robust SQL/NoSQL schemas with normalization, indexing, migrations, constraints, and performance optimization.
 ---
 
 # Database Schema Designer
@@ -60,14 +60,6 @@ What's your primary access pattern?
 
 *Some NoSQL (MongoDB, FaunaDB) support transactions
 
-## Normal Forms
-
-| Form | Rule | Violation |
-|------|------|-----------|
-| 1NF | Atomic values | `product_ids = '1,2,3'` |
-| 2NF | No partial dependencies | customer_name in order_items |
-| 3NF | No transitive dependencies | country derived from postal_code |
-
 ## Data Types
 
 ```sql
@@ -83,23 +75,6 @@ id BIGINT AUTO_INCREMENT PRIMARY KEY  -- Simple
 id CHAR(36) DEFAULT (UUID())          -- Distributed
 ```
 
-## Relationships
-
-```sql
--- One-to-Many
-CREATE TABLE orders (
-  id BIGINT PRIMARY KEY,
-  customer_id BIGINT NOT NULL REFERENCES customers(id)
-);
-
--- Many-to-Many (junction table)
-CREATE TABLE enrollments (
-  student_id BIGINT REFERENCES students(id) ON DELETE CASCADE,
-  course_id BIGINT REFERENCES courses(id) ON DELETE CASCADE,
-  PRIMARY KEY (student_id, course_id)
-);
-```
-
 ## Indexing
 
 ```sql
@@ -108,18 +83,32 @@ CREATE INDEX idx_orders_customer ON orders(customer_id);
 
 -- Composite: most selective first
 CREATE INDEX idx_orders_status_date ON orders(status, created_at);
+
+-- Partial indexes: index only relevant rows (PostgreSQL)
+CREATE INDEX idx_orders_pending ON orders(created_at)
+  WHERE status = 'pending';  -- Much smaller, faster index
+
+-- Partial index for sparse columns (mostly NULL)
+CREATE INDEX idx_users_deleted ON users(deleted_at)
+  WHERE deleted_at IS NOT NULL;  -- Index only deleted users
+
+-- Covering index: avoid table lookups
+CREATE INDEX idx_orders_covering ON orders(customer_id, status, total)
+  INCLUDE (created_at);  -- Query satisfied entirely from index
 ```
 
 ## Anti-Patterns
 
-| Avoid | Instead |
-|-------|---------|
-| VARCHAR(255) everywhere | Size appropriately |
-| FLOAT for money | DECIMAL(10,2) |
-| Missing FK constraints | Always define FKs |
-| No indexes on FKs | Index every FK |
-| Dates as strings | DATE, TIMESTAMP types |
-| Non-reversible migrations | Always write DOWN |
+| Avoid | Instead | Why |
+|-------|---------|-----|
+| VARCHAR(255) everywhere | Size appropriately | Wastes memory in indexes, misleads validation |
+| FLOAT for money | DECIMAL(10,2) | FLOAT causes rounding errors: `0.1 + 0.2 != 0.3` |
+| Missing FK constraints | Always define FKs | Orphaned records, data corruption over time |
+| No indexes on FKs | Index every FK | JOINs become full table scans, cascade deletes slow |
+| Dates as strings | DATE, TIMESTAMP types | Can't compare, sort, or do date math correctly |
+| Non-reversible migrations | Always write DOWN | Stuck deployments, can't rollback safely |
+| Hard deletes | Soft delete with `deleted_at` | Lose audit trail, break foreign key references |
+| EAV (Entity-Attribute-Value) | JSON column or separate tables | Impossible to query efficiently, no type safety |
 
 ## Migration Template
 
@@ -135,6 +124,74 @@ BEGIN;
 DROP INDEX idx_users_phone ON users;
 ALTER TABLE users DROP COLUMN phone;
 COMMIT;
+```
+
+## Schema Evolution Patterns
+
+### Adding Columns Safely
+```sql
+-- Safe: nullable column with default
+ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}';
+
+-- Unsafe: NOT NULL without default on large table (locks table)
+-- Instead: add nullable, backfill, then add constraint
+ALTER TABLE users ADD COLUMN tenant_id BIGINT;
+UPDATE users SET tenant_id = 1 WHERE tenant_id IS NULL;  -- Batch this!
+ALTER TABLE users ALTER COLUMN tenant_id SET NOT NULL;
+```
+
+### Online DDL for Large Tables
+```sql
+-- PostgreSQL: CREATE INDEX CONCURRENTLY (no lock)
+CREATE INDEX CONCURRENTLY idx_orders_customer ON orders(customer_id);
+
+-- MySQL: pt-online-schema-change or gh-ost for large tables
+-- Avoid: ALTER TABLE on multi-million row tables during traffic
+```
+
+### Constraint Violation Handling
+```sql
+-- Upsert pattern (PostgreSQL)
+INSERT INTO users (email, name) VALUES ('a@b.com', 'Alice')
+ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;
+
+-- Upsert pattern (MySQL)
+INSERT INTO users (email, name) VALUES ('a@b.com', 'Alice')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+```
+
+## Multi-Tenancy Strategies
+
+| Strategy | Implementation | Trade-offs |
+|----------|---------------|------------|
+| **Shared tables** | `tenant_id` column + RLS | Simple, but noisy neighbor risk |
+| **Schema per tenant** | `tenant_123.users` | Good isolation, harder migrations |
+| **Database per tenant** | Separate DB connections | Full isolation, operational complexity |
+
+```sql
+-- Row-Level Security (PostgreSQL)
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON orders
+  USING (tenant_id = current_setting('app.tenant_id')::bigint);
+
+-- Always filter by tenant_id first (index it!)
+CREATE INDEX idx_orders_tenant ON orders(tenant_id, created_at);
+```
+
+## Soft Delete Patterns
+
+```sql
+-- Standard soft delete
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP;
+CREATE INDEX idx_users_active ON users(id) WHERE deleted_at IS NULL;
+
+-- Queries must filter: WHERE deleted_at IS NULL
+-- Consider: view for active records
+CREATE VIEW active_users AS SELECT * FROM users WHERE deleted_at IS NULL;
+
+-- Unique constraints with soft delete (PostgreSQL)
+CREATE UNIQUE INDEX idx_users_email_active ON users(email)
+  WHERE deleted_at IS NULL;  -- Allows reuse of deleted emails
 ```
 
 ## Normalize vs Denormalize
@@ -156,6 +213,29 @@ Should I normalize this data?
 | Cached aggregates | Denormalize | Store `order_count` on user |
 
 **Rule of thumb:** Start normalized, denormalize only when you have measured performance problems.
+
+## Edge Cases
+
+### Large Table Migrations
+- **Never** run `ALTER TABLE` on million+ row tables during peak traffic
+- Use `pt-online-schema-change` (MySQL) or `CREATE INDEX CONCURRENTLY` (PostgreSQL)
+- Backfill data in batches: `UPDATE ... WHERE id BETWEEN x AND y LIMIT 1000`
+- Add columns as nullable first, backfill, then add NOT NULL constraint
+
+### Handling Constraint Violations
+- Use `ON CONFLICT` / `ON DUPLICATE KEY` for upserts
+- Wrap bulk inserts in transactions with `SAVEPOINT` for partial success
+- Log violations for debugging rather than silently ignoring
+
+### Partial Indexes for Sparse Data
+- Index only non-NULL values: `WHERE column IS NOT NULL`
+- Index only active records: `WHERE status = 'active'`
+- Index hot data: `WHERE created_at > NOW() - INTERVAL '30 days'`
+
+### UUID vs Integer Keys
+- UUIDs: no sequence bottleneck, safe for distributed systems, but larger indexes
+- Use UUIDv7 (time-ordered) for better index locality than UUIDv4
+- Consider `BIGINT` for internal tables, `UUID` for public-facing IDs
 
 ## Checklist
 

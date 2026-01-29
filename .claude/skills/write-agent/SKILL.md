@@ -1,6 +1,6 @@
 ---
 name: write-agent
-description: Create new agents for specialized tasks. Use when adding behavioral specialists to `.claude/agents/`. Keywords: agent creation, new agent, behavioral specialist, subagent.
+description: Create new agents for specialized tasks. Use when adding behavioral specialists to `.claude/agents/`. Keywords: agent creation, new agent, behavioral specialist, subagent, Task tool, spawned agent.
 ---
 
 Use when adding a new agent to `.claude/agents/`.
@@ -122,6 +122,40 @@ Before running `/evaluate-agent`, verify:
 - [ ] Tool set is minimal for the task?
 - [ ] Description includes "Use when [trigger]"?
 
+## Edge Cases
+
+### Scope Overlap with Existing Agent
+
+When the new agent overlaps with an existing one:
+
+| Situation | Resolution |
+|-----------|------------|
+| 80%+ overlap | Extend existing agent instead of creating new |
+| Different perspective, same domain | Create new agent with explicit boundary ("I focus on X, not Y") |
+| Subset of existing agent | Consider if skill is better fit (one-shot vs persistent) |
+
+**Red flag:** If you're adding "What I Don't Do" items that another agent handles, the agents may conflict.
+
+### Persona Red Flags
+
+These weak personas signal an unfocused agent:
+
+| Red Flag | Problem | Better Alternative |
+|----------|---------|-------------------|
+| "helpful assistant" | No behavioral constraint | Specific role with perspective |
+| "expert in X" | Expertise isn't behavior | "skeptical reviewer who..." |
+| "handles all aspects" | Generalist, no focus | Pick ONE aspect |
+| "assists with" | Passive, no ownership | "verifies", "catalogs", "enforces" |
+| No "who [constraint]" | Missing perspective | Add behavioral modifier |
+
+### When to Abandon an Agent Idea
+
+Stop and reconsider if:
+- Can't articulate a single "What I Don't Do" boundary
+- Persona keeps drifting to "helpful" or "general"
+- Existing skill covers 80%+ of the need
+- Output format is "whatever's useful" (no structure)
+
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
@@ -131,6 +165,41 @@ Before running `/evaluate-agent`, verify:
 | **Tool Hoarder** | Every tool listed | Match tools to actual needs |
 | **No Persona** | "You are a helpful assistant" | Specific role with perspective |
 | **Missing Boundaries** | No "What I Don't Do" | Always include explicit limits |
+| **Overlapping Scope** | Conflicts with existing agent | Check `.claude/AGENTS.md` first |
+
+## Worked Example: Creating a Focused Agent
+
+**Request:** "Create an agent that helps with database work"
+
+**RED FLAG:** Too broad. "Database work" includes schema design, query optimization, migrations, debugging...
+
+**Refinement questions:**
+1. What specific database task recurs? → "Reviewing migrations for safety"
+2. What perspective is needed? → "Skeptical - assume migrations break production"
+3. What does it NOT do? → "Doesn't write migrations, just reviews them"
+
+**Result: `migration-reviewer.md`**
+```markdown
+---
+name: migration-reviewer
+description: Reviews database migrations for production safety. Use when checking migrations before deploy.
+tools: Read, Grep, Glob
+---
+
+You are a skeptical DBA who assumes every migration will break production until proven safe.
+
+## Focus
+- Check for missing rollback steps
+- Flag destructive operations (DROP, TRUNCATE)
+- Verify index additions won't lock tables
+
+## What I Don't Do
+- Write migrations (use write-migration skill)
+- Optimize queries (use query-optimizer agent)
+- Design schemas (use design-db skill)
+```
+
+**Evaluation:** Run `/evaluate-agent migration-reviewer` → Target B (75+)
 
 ## Reference
 

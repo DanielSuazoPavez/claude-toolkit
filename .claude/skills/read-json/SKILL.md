@@ -1,13 +1,9 @@
 ---
 name: read-json
-description: Use when reading, inspecting, or analyzing any JSON file. Uses jq for efficient querying instead of loading entire files into context. Activate this skill whenever a user asks to read, view, explore, or extract data from a .json file.
+description: Use when reading, querying, or analyzing JSON files. Keywords: .json, jq, JSON file, read JSON, parse JSON, query JSON, inspect JSON, extract from JSON. Uses jq for efficient querying.
 ---
 
 # JSON Reader Skill
-
-## Purpose
-
-When working with JSON files, use jq for efficient, targeted querying instead of the Read tool.
 
 ## Core Instructions
 
@@ -47,22 +43,58 @@ jq '.specific.path' /path/to/file.json
 | Get first N | `jq '.[0:5]' file.json` |
 | Remove quotes | `jq -r '.field' file.json` |
 
-## When to Use This Skill
+### 4. Error Handling Patterns
 
-- Analyzing JSON configuration files
-- Extracting data from JSON APIs
-- Filtering large JSON datasets
-- Transforming JSON structures
-- Validating JSON format
-- Any JSON inspection/manipulation task
+```bash
+# Handle missing keys (return null instead of error)
+jq '.missing_key // null' file.json
 
-## Advantages
+# Return default value for missing keys
+jq '.config.timeout // 30' file.json
 
-- Handles large files efficiently (doesn't load entire file into context)
-- Precise targeting with jq selectors
-- Composable with other Unix tools
-- Clear, readable syntax
-- Industry-standard tool
+# Handle null values in arrays
+jq '[.items[] | select(. != null)]' file.json
+
+# Safe nested access (won't error if intermediate is null)
+jq '.data?.nested?.value' file.json
+
+# Try/catch for potentially invalid paths
+jq 'try .path.to.value catch "not found"' file.json
+
+# Validate JSON before processing
+jq empty file.json && echo "Valid JSON" || echo "Invalid JSON"
+
+# Handle both object and array inputs
+jq 'if type == "array" then .[0] else . end' file.json
+```
+
+### 5. Complex Query Examples
+
+```bash
+# Nested access with multiple conditions
+jq '.users[] | select(.age > 21 and .status == "active") | .name' file.json
+
+# Combine filters with transformation
+jq '[.items[] | select(.price < 100) | {name, discounted: (.price * 0.9)}]' file.json
+
+# Group and count
+jq 'group_by(.category) | map({category: .[0].category, count: length})' file.json
+
+# Flatten nested arrays
+jq '[.departments[].employees[].name]' file.json
+
+# Custom output formatting
+jq -r '.users[] | "\(.name): \(.email)"' file.json
+
+# Multiple filters with different outputs
+jq '{total: length, active: [.[] | select(.active)] | length}' file.json
+
+# Sort and limit
+jq '[.[] | select(.score > 50)] | sort_by(.score) | reverse | .[0:10]' file.json
+
+# Merge objects
+jq '.defaults * .overrides' file.json
+```
 
 ## Fallback: When jq Is Unavailable
 

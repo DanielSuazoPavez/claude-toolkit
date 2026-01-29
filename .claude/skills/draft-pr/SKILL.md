@@ -1,6 +1,6 @@
 ---
 name: draft-pr
-description: Generate a pull request description. Use after /wrap-up when ready to create a PR. Analyzes branch commits and generates a PR description.
+description: Use when requests mention "PR description", "pull request", "open PR", "create PR", or "draft PR". Analyzes branch commits and generates PR title and description. Use after /wrap-up.
 disable-model-invocation: true
 ---
 

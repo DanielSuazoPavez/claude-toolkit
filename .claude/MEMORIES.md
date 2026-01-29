@@ -11,22 +11,21 @@ Always loaded at session start:
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
 | `essential-conventions-memory` | stable | Memory naming conventions and categories |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
-| `essential-workflow-branch_development` | stable | Branch-based development workflow |
-| `essential-workflow-task_completion` | stable | Task completion checklist |
 
 ## Relevant Memories
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `relevant-conventions-backlog_schema` | new | BACKLOG.md schema: priority, categories, status values |
-| `relevant-reference-commands` | stable | CLI and Make commands reference |
-| `relevant-reference-hooks_config` | new | Hooks configuration and environment variables |
+| `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
+| `relevant-workflow-branch_development` | stable | Branch-based development workflow |
+| `relevant-workflow-task_completion` | stable | Task completion checklist |
+| `relevant-reference-hooks_config` | beta | Hooks configuration and environment variables |
 
 ## Philosophy
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `philosophy-reducing_entropy` | new | Philosophy on reducing codebase entropy |
+| `relevant-philosophy-reducing_entropy` | alpha | Philosophy on reducing codebase entropy |
 
 ## Experimental
 
@@ -53,6 +52,11 @@ Always loaded at session start:
 ### `idea` (Temporary)
 - Future implementation ideas
 - **Format**: `idea-{YYYYMMDD}-{context}-{plan_idea}`
+
+### `experimental` (Testing)
+- Trying out new approaches or A/B testing behaviors
+- **Format**: `experimental-{context}-{descriptive_name}`
+- May be promoted to `relevant`/`essential` or deleted
 
 ## Creating Memories
 

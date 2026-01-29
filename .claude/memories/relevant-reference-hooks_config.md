@@ -18,24 +18,22 @@ Reference for hook triggers, environment variables, and customization options.
 |------|---------|
 | `session-start.sh` | Loads essential memories at session start |
 
-### UserPromptSubmit
-| Hook | Purpose |
-|------|---------|
-| `track-skill-usage.sh` | Logs skill invocations to usage.log |
-
 ### PreToolUse (Bash)
 | Hook | Purpose |
 |------|---------|
 | `block-dangerous-commands.sh` | Blocks destructive git/rm commands |
 | `enforce-uv-run.sh` | Suggests `uv run` instead of direct `python` |
 | `enforce-make-commands.sh` | Suggests `make` targets instead of raw commands |
+
+### PreToolUse (Read|Bash)
+| Hook | Purpose |
+|------|---------|
 | `secrets-guard.sh` | Blocks reading .env files with secrets |
 
 ### PreToolUse (Read)
 | Hook | Purpose |
 |------|---------|
-| `suggest-json-reader.sh` | Suggests /read-json for large JSON files |
-| `secrets-guard.sh` | Blocks reading .env files with secrets |
+| `suggest-read-json.sh` | Suggests /read-json for large JSON files |
 
 ### PreToolUse (EnterPlanMode|Bash)
 | Hook | Purpose |
@@ -46,11 +44,6 @@ Reference for hook triggers, environment variables, and customization options.
 | Hook | Purpose |
 |------|---------|
 | `copy-plan-to-project.sh` | Copies plans from scratchpad to .claude/plans |
-
-### PostToolUse (Task)
-| Hook | Purpose |
-|------|---------|
-| `track-agent-usage.sh` | Logs agent invocations to usage.log |
 
 ---
 
@@ -73,12 +66,10 @@ Set these in your shell or `.envrc` to customize hook behavior.
 |----------|---------|---------|
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
 | `CLAUDE_PLANS_DIR` | `.claude/plans` | Plan copies destination |
-| `CLAUDE_USAGE_LOG` | `.claude/usage.log` | Usage log file path |
 
 ### Feature Toggles
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `CLAUDE_TRACK_USAGE` | `1` | Enable usage tracking (set to 0 to disable) |
 | `CLAUDE_SKIP_PLAN_COPY` | `0` | Disable plan copying |
 | `JSON_READ_WARN` | `0` | Warn instead of block for JSON files |
 

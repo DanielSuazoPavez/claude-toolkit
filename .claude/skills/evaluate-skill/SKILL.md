@@ -1,11 +1,21 @@
 ---
 name: evaluate-skill
-description: Evaluate Agent Skill design quality against specifications and best practices. Use when reviewing, auditing, or improving SKILL.md files. Provides multi-dimensional scoring and actionable improvements.
+description: Use when reviewing, auditing, or scoring a SKILL.md file. Keywords: skill evaluation, skill audit, skill quality, evaluate skill, score skill, review skill.
 ---
 
 # Skill Judge
 
 Evaluate skill design quality against best practices.
+
+## Contents
+
+1. [Core Philosophy](#core-philosophy) - Knowledge delta formula
+2. [Evaluation Dimensions](#evaluation-dimensions-120-points) - 8 scoring criteria
+3. [Scoring Calibration](#scoring-calibration) - Score-to-criteria mapping
+4. [Grading Scale](#grading-scale) - Grade thresholds
+5. [JSON Output Format](#json-output-format) - Result schema
+6. [Invocation](#invocation) - How to run evaluations
+7. [Example Evaluation](#example-evaluation) - Complete worked example
 
 ## Core Philosophy
 
@@ -125,26 +135,77 @@ Decision trees, working examples, error handling, edge cases?
 | **The Invisible Skill** | Great content, vague description | Add WHEN and KEYWORDS to description |
 | **The Freedom Mismatch** | Rigid for creative, vague for fragile | Match freedom to task risk |
 
-## Evaluation Protocol
+## JSON Output Format
 
-**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+```json
+{
+  "file_hash": "<first 8 chars of MD5>",
+  "date": "YYYY-MM-DD",
+  "grade": "A/A-/B+/B/B-/C+/C/D/F",
+  "score": <total>,
+  "max": 120,
+  "percentage": <score/max * 100>,
+  "dimensions": {
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>,
+    "D5": <score>, "D6": <score>, "D7": <score>, "D8": <score>
+  },
+  "top_improvements": ["...", "...", "..."]
+}
+```
+
+Compute file_hash with: `md5sum <skill-file> | cut -c1-8`
+
+## Invocation
+
+**Launch a subagent** for fresh, unbiased evaluation.
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  model: "opus"
+  prompt: |
+    Evaluate the skill at <path> using the evaluate-skill rubric.
+    Read .claude/skills/evaluate-skill/SKILL.md for the full rubric.
+
+    Perform FRESH scoring. Do NOT read evaluations.json or prior scores.
+
+    Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
+```
+
+Using a separate agent ensures objective assessment without influence from prior evaluations.
+
+## Evaluation Protocol
 
 1. Read completely, mark sections as [E]xpert, [A]ctivation, [R]edundant
 2. Analyze structure: frontmatter, line count, pattern
 3. Score each dimension with evidence
 4. Calculate total, assign grade
-5. Generate report with critical issues and top 3 improvements
+5. Generate report with JSON output including file_hash and top 3 improvements
+6. Update `.claude/evaluations.json` using jq:
+   ```bash
+   jq --argjson result '<JSON>' '.skills.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
+   ```
 
 ## Example Evaluation
+
+**Skill:** `git-workflow` (hypothetical)
 
 **Before (D - 62/120):**
 ```markdown
 # Git Workflow
 Use branches for features. Commit often. Write good messages.
 ```
-- D1: 6/20 - Claude knows this
-- D3: 0/15 - No anti-patterns
-- D8: 4/15 - No decision trees
+
+| Dim | Score | Evidence |
+|-----|-------|----------|
+| D1 | 6/20 | Pure basics - Claude knows branching and commits |
+| D2 | 5/15 | No mindset transfer, just commands |
+| D3 | 0/15 | No anti-patterns section |
+| D4 | 8/15 | Vague description, no keywords |
+| D5 | 12/15 | Short (good), but too sparse |
+| D6 | 10/15 | Neither rigid nor principled - just vague |
+| D7 | 7/10 | Doesn't match any pattern well |
+| D8 | 4/15 | No decision trees, no examples |
 
 **After (A - 112/120):**
 ```markdown
@@ -160,9 +221,17 @@ Use branches for features. Commit often. Write good messages.
 | Pattern | Why Bad | Fix |
 | Mega-commit | Unreviewable | [specific split strategy]
 ```
-- D1: 18/20 - Team-specific expert knowledge
-- D3: 14/15 - Specific anti-patterns with fixes
-- D8: 14/15 - Decision trees, examples
+
+| Dim | Score | Evidence |
+|-----|-------|----------|
+| D1 | 18/20 | Team-specific naming conventions, sizing heuristics |
+| D2 | 14/15 | Transfers "think in atomic units" mindset |
+| D3 | 14/15 | Specific anti-patterns with reasoning and fixes |
+| D4 | 13/15 | Clear triggers, could add keywords |
+| D5 | 14/15 | ~150 lines, well-structured |
+| D6 | 13/15 | Appropriate freedom for git (medium risk) |
+| D7 | 9/10 | Matches Process pattern |
+| D8 | 14/15 | Decision tree, tables, concrete examples |
 
 ## The Meta-Question
 

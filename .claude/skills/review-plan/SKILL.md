@@ -1,6 +1,6 @@
 ---
 name: review-plan
-description: Review a plan against quality criteria before approving. Use when presented with a plan in plan mode.
+description: Review a plan against quality criteria before approving. Use when requests mention "review plan", "check plan", "verify plan", or "approve plan".
 argument-hint: Path to plan file (optional, auto-detected from context)
 ---
 
@@ -14,40 +14,113 @@ Review the plan and provide structured feedback before the user decides to appro
 2. Otherwise, look for the plan path in recent conversation context (usually mentioned when exiting plan mode)
 3. If still not found, check `~/.claude/plans/` for the most recently modified `.md` file
 
-## Quality Criteria
+## Step 1: Identify Plan Type and Calibrate
 
-Evaluate the plan against these criteria:
+First, determine what kind of plan this is:
 
-### Structure (must have)
+| Plan Type | Strictness | Primary Focus |
+|-----------|------------|---------------|
+| Bug fix | Low | Root cause identified? Regression test? |
+| New feature | Medium | Scope boundaries? Integration points? |
+| Refactor | High | Behavior preservation? Incremental steps? |
+| Data migration | Very High | Backup strategy? Verification? Rollback? |
+| Security fix | Very High | Attack surface? Timing? Disclosure? |
+| Infrastructure | High | Rollback? Monitoring? Blast radius? |
 
-| Element | Check |
-|---------|-------|
-| **Clear goal** | Is the objective stated upfront? |
-| **Atomic steps** | Are steps small and independently verifiable? |
-| **File list** | Are affected files explicitly listed? |
-| **Verification** | Is there a way to confirm success? |
+**Calibration rule:** Match review depth to plan risk. A 3-step bug fix doesn't need the same scrutiny as a database migration.
 
-### Clarity (should have)
+## Step 2: Check Structure
 
-| Element | Check |
-|---------|-------|
-| **No ambiguity** | Are requirements specific enough to implement without guessing? |
-| **Order/dependencies** | Is the sequence logical? Are dependencies clear? |
-| **Scope boundaries** | Is it clear what's NOT included? |
+### Is the goal clear?
 
-### Pragmatism (watch for)
+```
+Goal statement check:
+├─ States the problem being solved? → Good
+├─ States the desired end state? → Good
+├─ Just says "implement X"? → Needs: why and what success looks like
+└─ Missing entirely? → Major issue
+```
 
-| Anti-pattern | Description |
-|--------------|-------------|
-| **Over-engineering** | Adding unnecessary abstractions, config, or flexibility |
-| **Scope creep** | Steps that go beyond the original request |
-| **Premature optimization** | Performance concerns before correctness |
-| **Missing error paths** | Only happy path considered |
+### Are steps atomic enough?
+
+```
+Atomicity check for each step:
+├─ Can be verified in <5 minutes? → Atomic
+├─ Touches >3 files? → Probably split
+├─ Contains "and", "also", "then"? → Definitely split
+├─ Uses vague verbs (handle, set up, implement)? → Needs specifics
+└─ Could fail partially? → Split into success/failure paths
+```
+
+### Are files listed?
+
+```
+File list check:
+├─ Explicit list of files to modify? → Good
+├─ "Update relevant files"? → Bad - which ones?
+├─ New files clearly marked as new? → Good
+└─ Deleted files explicitly noted? → Required for refactors
+```
+
+### Is verification defined?
+
+```
+Verification check:
+├─ "Run tests" with specific test file/command? → Good
+├─ Just "run tests"? → Acceptable for small changes
+├─ Manual verification steps for UI/UX? → Required if applicable
+├─ No verification at all? → Major issue for non-trivial plans
+└─ For data changes: before/after comparison method? → Required
+```
+
+## Step 3: Check for Anti-Patterns
+
+| Anti-Pattern | Signal | Example | Fix |
+|--------------|--------|---------|-----|
+| **The Vague Step** | "Handle", "Set up", "Implement" with no specifics | "Handle edge cases" | List the specific edge cases |
+| **Hidden Dependency** | Step N assumes Step M but doesn't say so | "Update config" listed after "Deploy" | Reorder or make explicit |
+| **The Kitchen Sink** | Step combines 3+ distinct operations | "Refactor auth, add logging, update tests" | Split into separate steps |
+| **The Wishful Step** | Assumes something works without verification | "This should just work" | Add verification |
+| **Scope Creep** | Steps not traceable to original request | "While we're here, let's also..." | Remove or get explicit approval |
+| **Over-Engineering** | Abstractions for single use case | "Create generic handler for future..." | YAGNI - solve current problem only |
+| **Missing Rollback** | No recovery path for risky operations | Database schema change with no down migration | Add rollback step |
+| **The Optimistic Plan** | Only happy path, no error handling | "Call API and process response" | Add: "If API fails..." |
+
+## Step 4: Determine Verdict
+
+```
+Verdict decision tree:
+│
+├─ Are there fundamental approach problems?
+│   ├─ Wrong abstraction level? → RETHINK
+│   ├─ Solving wrong problem? → RETHINK
+│   ├─ Missing critical consideration (security, data loss)? → RETHINK
+│   └─ Over-engineered for the task? → RETHINK
+│
+├─ Are there specific fixable issues?
+│   ├─ Vague steps that need specifics? → REVISE
+│   ├─ Missing verification? → REVISE
+│   ├─ Order/dependency problems? → REVISE
+│   └─ Scope creep that should be removed? → REVISE
+│
+└─ Is intent clear and approach sound?
+    ├─ Minor gaps but implementation path is obvious? → APPROVE
+    └─ No issues found? → APPROVE
+```
+
+| Verdict | Criteria | Action |
+|---------|----------|--------|
+| **APPROVE** | Sound approach, intent clear, any gaps are minor | Proceed with implementation |
+| **REVISE** | Good approach but specific issues need fixing | List exact changes needed |
+| **RETHINK** | Fundamental problems with approach | Explain what's wrong and why |
 
 ## Output Format
 
 ```markdown
 # Plan Review
+
+**Plan type:** [Bug fix | Feature | Refactor | Migration | Security | Infrastructure]
+**Calibrated strictness:** [Low | Medium | High | Very High]
 
 ## Summary
 [1-2 sentences: Is this plan ready to execute?]
@@ -75,6 +148,7 @@ Evaluate the plan against these criteria:
 ### #1: [Issue title]
 **Severity:** Major | Minor
 **Location:** Step X / Section Y
+**Anti-pattern:** [Name from table, if applicable]
 
 [Description of what's wrong and why it matters]
 
@@ -87,26 +161,21 @@ Evaluate the plan against these criteria:
 [1-2 sentences on recommended action]
 ```
 
-## Verdicts
+## Calibration Guidance
 
-```
-What's the state of this plan?
-├─ Ready to implement as-is?
-│   └─ APPROVE
-├─ Good approach, but has specific fixable issues?
-│   └─ REVISE (list the specific changes needed)
-└─ Fundamental problems with the approach?
-    └─ RETHINK (explain what's wrong and why)
-```
+**Be stricter when:**
+- Plan involves data loss risk (migrations, deletions)
+- Plan touches security-sensitive code
+- Plan affects production systems
+- Plan has no rollback path
 
-| Verdict | When to Use | Examples |
-|---------|-------------|----------|
-| **APPROVE** | No blocking issues | Minor gaps OK if intent is clear |
-| **REVISE** | Fixable issues | Missing error handling, unclear step |
-| **RETHINK** | Wrong approach | Over-engineered, wrong abstraction level |
+**Be more lenient when:**
+- Plan is for a quick bug fix with obvious solution
+- Plan is exploratory/prototype work
+- User has indicated time pressure
+- Changes are easily reversible
 
-## Important
-
-- Be pragmatic, not pedantic. Minor gaps are fine if the intent is clear.
-- Flag only issues that would cause real problems during implementation.
-- If the plan is good, say so briefly and approve.
+**Always flag regardless of strictness:**
+- Missing verification for non-trivial changes
+- Hidden dependencies between steps
+- Security implications not addressed

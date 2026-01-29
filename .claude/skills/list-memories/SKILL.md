@@ -1,6 +1,6 @@
 ---
 name: list-memories
-description: List available memories with their Quick Reference summaries. Use to discover relevant context without loading full files into conversation.
+description: List available memories with their Quick Reference summaries. Use to discover relevant context without loading full files into conversation. Keywords: memory, context, preview, discover, scan, index.
 allowed-tools: Bash(for f in *)
 ---
 
@@ -19,6 +19,38 @@ for f in .claude/memories/*.md; do
   echo "---"
 done
 ```
+
+## Example Output
+
+```
+### essential-conventions
+- Use conventional commits: feat|fix|docs|refactor
+- Run tests before committing
+- Keep functions under 50 lines
+---
+### relevant-testing
+- Use pytest for all tests
+- Mocks go in conftest.py
+- Coverage minimum: 80%
+---
+### branch-feature-auth
+- Implementing OAuth2 flow
+- Blocked: waiting for API keys
+---
+```
+
+## Error Handling
+
+| Condition | What Happens | Action |
+|-----------|--------------|--------|
+| Empty memories directory | No output | Inform user: "No memories found" |
+| Memory missing Quick Reference | Empty section shown | Skip silently or note missing |
+| Directory doesn't exist | Glob fails silently | Create `.claude/memories/` first |
+
+If the command produces no output, check:
+1. Does `.claude/memories/` directory exist?
+2. Are there any `.md` files in it?
+3. Do the files have `## Quick Reference` sections?
 
 ## Decision Tree: What to Load
 

@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.0.0] - 2026-01-28 - Quality-gated release
+
+### Added
+- **Evaluation system**: Track resource quality with dimensional scoring
+  - `evaluations.json` with per-resource grades (A/A-/B+/B/C), scores, and improvement suggestions
+  - `evaluate-batch` skill for parallel evaluation of multiple resources
+  - File hash tracking for staleness detection
+  - All skills at A- or better (85%+), all agents at A (90%+)
+- **New skills**: `evaluate-batch`, `design-tests`, `teardown-worktree`
+- **New memories**: `experimental-preferences-casual_communication_style`, `relevant-conventions-backlog_schema`, `relevant-philosophy-reducing_entropy`, `relevant-reference-hooks_config`
+- Automated tests: hooks (45 tests), CLI (25 tests), backlog-query (35 tests)
+- `make check` target runs all validation
+
+### Changed
+- All skills improved with expert heuristics, edge cases, and anti-patterns
+- All agents improved with stronger personas and clearer boundaries
+- Skill descriptions standardized to inline keyword format for better routing (`design-db`, `draft-pr`, `wrap-up` improved)
+- `session-start` hook enhanced with git context and memory guidance
+- Renamed `essential-workflow-*` memories to `relevant-workflow-*` (on-demand, not session-critical)
+
+### Removed
+- `analyze-naming` skill (consolidated into other workflows)
+
+### Quality Summary
+- **26 skills**: All A- or better (102-112/120)
+- **6 agents**: All A grade (90-94/100)
+- **8 hooks**: All A grade (90-97/100)
+- **9 memories**: All A grade (90-100/100)
+
 ## [0.15.0] - 2026-01-27 - CLI redesign
 
 ### Changed
@@ -133,7 +162,7 @@
 
 ### Added
 - `evaluate-memory` skill: evaluate memory files against conventions (category, naming, Quick Reference, load timing)
-- `essential-workflow-branch_development` memory: branch-first development workflow conventions
+- `relevant-workflow-branch_development` memory: branch-based development workflow conventions
 - README Concepts section: explains difference between skills, memories, agents, hooks
 
 ### Changed
@@ -147,7 +176,7 @@
 ### Added
 - `block-dangerous-commands.sh` hook: blocks rm -rf /, fork bombs, mkfs, dd to disks
 - `secrets-guard.sh` hook: blocks .env reads and env/printenv commands
-- `suggest-json-reader.sh` hook: suggests /json-reader for large JSON files
+- `suggest-read-json.sh` hook: suggests /json-reader for large JSON files
 - `scripts/analyze-usage.sh`: extracts skill/agent usage from transcripts (captures both user and agent invocations)
 - `scripts/validate-resources-indexed.sh`: validates index files match actual resources
 

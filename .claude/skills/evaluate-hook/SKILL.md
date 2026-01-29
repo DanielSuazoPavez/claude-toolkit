@@ -97,9 +97,45 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 | D | 40-59 | Significant issues |
 | F | <40 | Not safe to deploy |
 
-## Evaluation Protocol
+## JSON Output Format
 
-**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+```json
+{
+  "file_hash": "<first 8 chars of MD5>",
+  "date": "YYYY-MM-DD",
+  "grade": "A/B/C/D/F",
+  "score": <total>,
+  "max": 100,
+  "percentage": <score/max * 100>,
+  "dimensions": {
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>
+  },
+  "top_improvements": ["...", "...", "..."]
+}
+```
+
+Compute file_hash with: `md5sum <hook-file> | cut -c1-8`
+
+## Invocation
+
+**Launch a subagent** for fresh, unbiased evaluation.
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  model: "opus"
+  prompt: |
+    Evaluate the hook at <path> using the evaluate-hook rubric.
+    Read .claude/skills/evaluate-hook/SKILL.md for the full rubric.
+
+    Perform FRESH scoring. Do NOT read evaluations.json or prior scores.
+
+    Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
+```
+
+Using a separate agent ensures objective assessment without influence from prior evaluations.
+
+## Evaluation Protocol
 
 1. Identify hook event and matcher
 2. Verify output format matches spec
@@ -107,7 +143,11 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 4. Look for error handling and allowlists
 5. Verify testability via stdin/stdout
 6. Score each dimension with evidence
-7. Generate report with grade and top 3 improvements
+7. Generate report with JSON output including file_hash and top 3 improvements
+8. Update `.claude/evaluations.json` using jq:
+   ```bash
+   jq --argjson result '<JSON>' '.hooks.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
+   ```
 
 ## Anti-Patterns
 

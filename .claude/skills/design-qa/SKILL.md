@@ -1,12 +1,21 @@
 ---
 name: design-qa
-description: Generate test plans, manual test cases, regression suites, and bug reports. Use when planning testing strategy, writing test cases, building regression suites, or documenting bugs.
+description: Design test plans, QA strategies, regression suites, and bug triage workflows. Use when requests mention "test plan", "QA strategy", "regression testing", "test coverage", "bug report", "quality assurance", "manual testing", "acceptance criteria", or "release testing".
 disable-model-invocation: true
 ---
 
 # QA Test Planner
 
-Create comprehensive testing documentation.
+Create testing documentation with expert-level quality judgment.
+
+## Quick Start
+
+Describe what you need:
+```
+create a test plan for the new checkout flow
+write test cases for user authentication
+design a regression suite for the payments module
+```
 
 ## Expert QA Mindset
 
@@ -19,13 +28,7 @@ Focus effort where failures hurt most:
 3. **Security boundaries** - Auth, permissions
 4. **High-traffic flows** - Login, search, checkout
 
-### When to Stop Testing
-- Time-boxed: Allocate fixed time per risk level
-- Diminishing returns: New tests find fewer bugs
-- Coverage plateau: Critical paths covered
-- Risk accepted: Stakeholder sign-off on gaps
-
-### Test Prioritization Matrix
+### Test Prioritization
 
 | Impact | Likelihood | Priority |
 |--------|------------|----------|
@@ -34,166 +37,151 @@ Focus effort where failures hurt most:
 | Low | High | P2 - Test basic paths |
 | Low | Low | P3 - Test if time permits |
 
-## Deliverables
+## Expert Heuristics
 
-| Task | Output | Time |
-|------|--------|------|
-| Test Plan | Strategy, scope, schedule, risks | 10-15 min |
-| Test Cases | Step-by-step with expected results | 5-10 min each |
-| Regression Suite | Smoke tests, critical paths | 15-20 min |
-| Bug Report | Reproducible steps, evidence | 5 min |
+### When to Escalate Bugs
 
-## Test Case Template
+**Escalate immediately** (don't wait for triage):
+- Data corruption or loss affecting production
+- Security vulnerabilities (auth bypass, data exposure)
+- Payment/billing failures
+- Compliance violations (GDPR, HIPAA)
 
-```markdown
-## TC-001: [Title]
+**Escalate within hours**:
+- Core feature completely broken, no workaround
+- Bug affecting >10% of users
+- Performance degradation >50%
 
-**Priority:** P0/P1/P2/P3
-**Type:** Functional | UI | Integration
+**Normal triage process**:
+- Feature partially broken with workaround
+- Edge cases, cosmetic issues
+- Low-traffic features
 
-### Preconditions
-- [Setup requirement]
-- [Test data needed]
+### Estimating Test Coverage Time
 
-### Steps
-1. [Action]
-   **Expected:** [Result]
+**Quick estimation formula**: `(features × 2) + (integrations × 3) + (risk_factors × 4)` hours
 
-2. [Action]
-   **Expected:** [Result]
+| Component | Smoke (min) | Full (hours) |
+|-----------|-------------|--------------|
+| Simple CRUD feature | 15 | 2-4 |
+| Payment integration | 30 | 4-8 |
+| Auth/permissions | 30 | 4-6 |
+| File upload/export | 20 | 2-3 |
+| Third-party API | 45 | 6-8 |
 
-### Test Data
-- Input: [values]
-- User: [test account]
-```
+**Multipliers**: Mobile +50%, accessibility +30%, i18n +20% per locale
 
-## Bug Report Template
+### Handling Flaky Tests
 
-```markdown
-# BUG-[ID]: [Clear title]
+**Identification**:
+- Same test fails/passes on identical code
+- Failures correlate with time-of-day, load, or parallel runs
+- Error messages mention timeouts, race conditions, or "element not found"
 
-**Severity:** Critical | High | Medium | Low
-**Priority:** P0 | P1 | P2 | P3
+**Investigation checklist**:
+1. Is it timing-dependent? (async waits, animations, network)
+2. Is it order-dependent? (shared state, database pollution)
+3. Is it environment-dependent? (resources, external services)
 
-## Environment
-- OS: [Windows 11, macOS, etc.]
-- Browser: [Chrome 120, etc.]
-- Build: [version]
+**Remediation by cause**:
+| Cause | Fix |
+|-------|-----|
+| Timing | Explicit waits for conditions, not fixed sleeps |
+| Shared state | Isolate test data, reset between tests |
+| External service | Mock/stub, or mark as integration test |
+| Resource contention | Reduce parallelism, increase timeouts |
 
-## Steps to Reproduce
-1. [Specific step]
-2. [Specific step]
+**When to quarantine**: If fix takes >2 hours and it's blocking CI, quarantine with ticket. Review quarantine weekly.
 
-## Expected
-[What should happen]
+### Writing Effective Bug Reports
 
-## Actual
-[What happens]
+**Title formula**: `[Area] Specific symptom + trigger condition`
+- Bad: "Login broken"
+- Good: "[Login] OTP verification fails when phone number has leading zeros"
 
-## Evidence
-- Screenshot: [attached]
-- Console errors: [if any]
-```
+**Minimum viable bug report**:
+1. **Steps to reproduce** (numbered, specific actions)
+2. **Expected result** (what should happen)
+3. **Actual result** (what happens instead)
+4. **Environment** (browser, OS, user role, data state)
 
-## Severity Definitions
+**Bonus for faster fixes**: screenshot/video, console errors, network trace, account credentials used.
 
-| Level | Criteria | Example |
-|-------|----------|---------|
-| Critical (P0) | System crash, data loss, security | Payment fails |
-| High (P1) | Major feature broken, no workaround | Search broken |
-| Medium (P2) | Feature partial, workaround exists | Filter missing option |
-| Low (P3) | Cosmetic, rare edge cases | Typo, alignment |
+### Acceptance Criteria Validation
 
-## Regression Suite Types
+When reviewing acceptance criteria before testing:
+- **Testable?** Can you write a pass/fail test for it?
+- **Complete?** What about error states, edge cases, permissions?
+- **Measurable?** "Fast" is vague; "< 2 seconds" is testable
 
-| Suite | Duration | When | Coverage |
-|-------|----------|------|----------|
-| Smoke | 15-30 min | Daily | Critical paths |
-| Targeted | 30-60 min | Per change | Affected areas |
-| Full | 2-4 hours | Weekly/Release | Comprehensive |
-| Sanity | 10-15 min | After hotfix | Quick validation |
+Push back on: "works correctly", "handles errors gracefully", "user-friendly"
 
-## Pass/Fail Criteria
+## Edge Cases
 
-**PASS:**
-- All P0 tests pass
-- 90%+ P1 tests pass
-- No critical bugs open
+### Testing with Missing Requirements
 
-**FAIL (Block Release):**
-- Any P0 test fails
-- Critical bug discovered
-- Security vulnerability
+When specs are incomplete:
+1. **Document assumptions** - Write what you assume the behavior should be
+2. **Test the obvious** - Happy path, empty/null inputs, boundaries
+3. **Flag unknowns** - Mark test cases as "needs clarification" with specific questions
+4. **Test what exists** - Use the UI/API as the source of truth for current behavior
+
+Ask stakeholders: "If X happens, should the system do Y or Z?"
+
+### Testing with Limited Environments
+
+When you can't reproduce production:
+- **Prioritize risks** - Focus on logic, not environment-specific behavior
+- **Document gaps** - "Not tested: IE11, mobile Safari, screen readers"
+- **Use feature flags** - Test in production behind flags if staging differs
+- **Request access** - Escalate if critical paths can't be tested
+
+### Testing Under Time Pressure
+
+When you have hours, not days:
+1. **Smoke test critical paths only** (login, core feature, checkout)
+2. **Focus on changed code** - What was actually modified?
+3. **Test boundaries first** - 0, 1, max, empty, special characters
+4. **Document what's NOT tested** - Risk acceptance by stakeholder
+
+**Minimum viable testing**:
+- P0 paths: 100% coverage
+- P1 paths: Happy path only
+- P2/P3: Skip with documented risk
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| **Vague Steps** | "Test the feature" - not reproducible | Specific actions + expected results per step |
-| **Missing Preconditions** | Test fails due to setup not documented | Document all setup, test data, user state |
-| **Generic Bug Title** | "Login doesn't work" - unclear scope | Specific: "[Login] OTP fails when code contains leading zeros" |
-| **Happy Path Only** | Misses edge cases users will hit | Include boundary values, empty states, errors |
-| **No Priority** | Everything looks equally important | Assign P0-P3 based on impact × likelihood |
+| Vague Steps | "Test the feature" | One action + expected result per step |
+| Missing Preconditions | Test fails on setup | Document setup, test data, user state |
+| Happy Path Only | Misses real failures | Boundaries, empty states, errors |
+| Generic Bug Title | "Login broken" | "[Login] OTP fails with leading zeros" |
 
-## Writing Reproducible Steps
+## Release Readiness
 
-**Bad:** "Test login functionality"
+### Entry Criteria (start testing)
+- Code complete, deployed to test environment
+- Test data available, environment stable
+- Requirements/specs accessible
 
-**Good:**
-```markdown
-1. Navigate to https://app.example.com/login
-   **Expected:** Login form displays with email/password fields
+### Exit Criteria (ship it)
+- **PASS**: All P0 pass, 90%+ P1 pass, no critical bugs open
+- **FAIL (block release)**: Any P0 fails, critical bug, security vulnerability
 
-2. Enter "test@example.com" in email field
-   **Expected:** Input accepted, no validation errors
+### Regression Suite Tiers
 
-3. Enter "wrongpassword" in password field
-   **Expected:** Input masked with dots
+| Tier | Scope | When to Run | Duration |
+|------|-------|-------------|----------|
+| Smoke | Critical paths only | Every deploy | 15-30 min |
+| Targeted | Changed features + dependencies | PR merge | 1-2 hours |
+| Full | Everything | Release candidate | 4-8 hours |
 
-4. Click "Sign In" button
-   **Expected:** Error message "Invalid credentials" appears within 2 seconds
-```
+## Quick Reference
 
-**The rule:** Each step = one action + one expected result. No compound steps.
-
-## Risk → Test Effort Matrix
-
-```
-High Impact + High Likelihood → P0: Test first, test deeply
-├─ Payment flows, auth, data mutations
-│
-High Impact + Low Likelihood → P1: Test thoroughly
-├─ Edge cases in critical paths, error recovery
-│
-Low Impact + High Likelihood → P2: Test basic paths
-├─ UI quirks, minor features
-│
-Low Impact + Low Likelihood → P3: Test if time permits
-└─ Cosmetic issues, rare configurations
-```
-
-## Test Plan Outline
-
-1. **Scope**: In/out of scope
-2. **Strategy**: Test types, approach
-3. **Environment**: OS, browsers, devices
-4. **Entry Criteria**: When to start testing
-5. **Exit Criteria**: When testing is done
-6. **Risks**: What could go wrong
-
-## Checklist
-
-**Test Plan:**
-- [ ] Scope clearly defined
-- [ ] Entry/exit criteria specified
-- [ ] Risks identified
-
-**Test Cases:**
-- [ ] Each step has expected result
-- [ ] Preconditions documented
-- [ ] Priority assigned
-
-**Bug Reports:**
-- [ ] Reproducible steps
-- [ ] Environment documented
-- [ ] Evidence attached
+| Task | Key Elements |
+|------|--------------|
+| Test Plan | Scope, risks, schedule, entry/exit criteria |
+| Test Case | Preconditions, steps, expected result, priority |
+| Bug Report | Steps to reproduce, expected vs actual, environment |
+| Regression Suite | Tiered (smoke/targeted/full), pass/fail criteria |

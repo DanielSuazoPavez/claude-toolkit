@@ -7,17 +7,15 @@ Automation hooks configured in `settings.json`.
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
-| `track-skill-usage.sh` | stable | UserPromptSubmit | Tracks skill invocations to usage log |
-| `track-agent-usage.sh` | stable | PostToolUse (Task) | Tracks agent invocations to usage log |
 | `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
-| `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `secrets-guard.sh` | beta | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
-| `suggest-json-reader.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
-| `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
-| `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
-| `copy-plan-to-project.sh` | beta | PostToolUse (Write) | Copies plans to `.planning/` |
+| `block-dangerous-commands.sh` | alpha | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `secrets-guard.sh` | alpha | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
+| `suggest-read-json.sh` | alpha | PreToolUse (Read) | Suggests /read-json skill for JSON files |
+| `enforce-uv-run.sh` | alpha | PreToolUse (Bash) | Ensures Python uses `uv run` |
+| `enforce-make-commands.sh` | alpha | PreToolUse (Bash) | Encourages Make targets |
+| `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
-**Note**: Beta hooks work but have matcher scope issues (too broad). See backlog.
+**Note**: Alpha hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
 
 ---
 
@@ -62,7 +60,7 @@ Prevents accidental exposure of secrets from .env files.
 - Blocks Bash: `cat .env`, `source .env`, `export $(cat .env)`, `env`
 - Bypass: Set `ALLOW_ENV_READ=1`
 
-### suggest-json-reader.sh
+### suggest-read-json.sh
 
 **Trigger**: PreToolUse (Read)
 
@@ -96,7 +94,7 @@ Encourages using Make targets over raw commands.
 
 **Trigger**: PostToolUse (Write)
 
-Copies plan files to `.planning/` directory.
+Copies plan files to `.claude/plans/` directory.
 
 - Watches for plan file writes
 - Maintains planning documentation in project
@@ -131,7 +129,7 @@ Hooks are configured in `settings.json`:
       {
         "matcher": "Read",
         "hooks": [
-          {"type": "command", "command": "bash .claude/hooks/suggest-json-reader.sh"}
+          {"type": "command", "command": "bash .claude/hooks/suggest-read-json.sh"}
         ]
       }
     ]

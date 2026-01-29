@@ -6,7 +6,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-mapper` | new | Explores codebase and writes structured analysis documents to `.planning/codebase/` | Read, Bash, Grep, Glob, Write |
+| `codebase-explorer` | alpha | Explores codebase and writes structured analysis to `.claude/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
 | `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality
@@ -20,15 +20,15 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `goal-verifier` | new | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired) | Read, Bash, Grep, Glob |
-| `implementation-checker` | new | Compares implementation to planning docs, writes report to `.claude/reviews/` | Read, Grep, Glob, Write |
+| `goal-verifier` | beta | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `.claude/reviews/`. | Read, Bash, Grep, Glob, Write |
+| `implementation-checker` | stable | Compares implementation to planning docs, writes report to `.claude/reviews/` | Read, Grep, Glob, Write |
 
 ## Usage
 
 Agents are invoked by Claude when appropriate for the task. You can also request them explicitly:
 
 ```
-Use the codebase-mapper agent to analyze the tech stack
+Use the codebase-explorer agent to analyze the tech stack
 Use the code-debugger agent to investigate this issue
 ```
 

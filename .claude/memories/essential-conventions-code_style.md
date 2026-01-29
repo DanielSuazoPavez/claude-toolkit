@@ -1,12 +1,12 @@
-# Agentic Coding Conventions
+# Code Style Conventions
 
 ## 1. Quick Reference
 
-**Read at:** Session start (via hook) AND when implementing new code
+**MANDATORY:** Read at session start - affects all code written.
 
-Core coding philosophy: pragmatism, simplicity, and leveraging existing systems. Follow these conventions for maintainable code.
+Core philosophy: pragmatism, simplicity, leverage existing systems.
 
-**See also:** `essential-workflow-task_completion` for task completion steps
+**See also:** `relevant-workflow-task_completion` for completion checklist, `relevant-philosophy-reducing_entropy` for code minimalism
 
 ---
 
@@ -20,7 +20,7 @@ Deliver the simplest, most direct solution. Avoid over-engineering and unnecessa
 
 **Leverage Existing Systems First**
 - Check for existing patterns, functions, or library capabilities before writing new code
-- Example: Use Polars' built-in S3 support (`scan_parquet("s3://...")`) instead of custom readers
+- Use built-in library features over custom implementations
 
 **Prefer Functions Over Classes**
 - Use simple, stateless functions for operations
@@ -39,12 +39,12 @@ Deliver the simplest, most direct solution. Avoid over-engineering and unnecessa
 ## 4. Implementation Guidelines
 
 **Follow Existing Style**
-- Adhere to formatting/naming patterns in the codebase (PEP 8 baseline)
+- Adhere to formatting/naming patterns in the codebase
 - Look at similar existing code for patterns
 
 **Ensure Type Safety**
 - Use type hints for all function signatures
-- Verify with static analysis
+- Verify with static analysis tools
 
 **Write Focused Code**
 - Keep functions small, single-responsibility
@@ -55,5 +55,5 @@ Deliver the simplest, most direct solution. Avoid over-engineering and unnecessa
 - Concise comments for complex logic only
 
 **Be Idiomatic**
-- Use Python built-ins and comprehensions before custom implementations
-- Use Polars expressions over Python loops for dataframe operations
+- Use language built-ins and standard patterns before custom implementations
+- Prefer library-native operations over manual loops

@@ -1,6 +1,6 @@
 ---
 name: design-tests
-description: Use when writing or reviewing tests. Provides pytest patterns for fixtures, mocking, organization, and test prioritization based on what you're building. Keywords: pytest, fixtures, mocking, conftest, test organization, parametrize, marks.
+description: Use when writing or reviewing tests. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", or "test organization".
 ---
 
 # Test Design Guide

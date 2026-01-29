@@ -1,17 +1,30 @@
 #!/bin/bash
-# UserPromptSubmit hook: inject essential memories at session start
+# SessionStart hook: inject essential memories at session start
 #
 # Settings.json:
-#   "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "bash .claude/hooks/session-start.sh"}]}]
+#   "SessionStart": [{"hooks": [{"type": "command", "command": "bash .claude/hooks/session-start.sh"}]}]
 #
 # Environment:
 #   CLAUDE_MEMORIES_DIR - memories directory (default: .claude/memories)
 #
 # Requires: essential-*.md files in memories directory
 #
-# Test (manual):
+# Test cases:
+#   # Normal operation (from project root with memories)
 #   cd /path/to/project && bash .claude/hooks/session-start.sh
 #   # Expected: outputs essential memories, other memories list, git context
+#
+#   # No memories directory
+#   CLAUDE_MEMORIES_DIR=/nonexistent bash .claude/hooks/session-start.sh
+#   # Expected: "Warning: /nonexistent not found..." then exits 0
+#
+#   # Empty memories (no essential-*.md files)
+#   mkdir -p /tmp/empty-mem && CLAUDE_MEMORIES_DIR=/tmp/empty-mem bash .claude/hooks/session-start.sh
+#   # Expected: outputs headers but "0 essential memories loaded"
+#
+#   # No git repo
+#   cd /tmp && bash /path/to/.claude/hooks/session-start.sh
+#   # Expected: Branch shows "unknown", Main shows "main" (fallback)
 
 # Configuration
 MEMORIES_DIR="${CLAUDE_MEMORIES_DIR:-.claude/memories}"
@@ -28,14 +41,17 @@ fi
 for f in "$MEMORIES_DIR"/essential-*.md; do
   if [ -f "$f" ]; then
     echo "=== $(basename "$f" .md) ==="
-    cat "$f"
+    if ! cat "$f" 2>/dev/null; then
+      echo "(Error reading file - permission denied or corrupted)"
+    fi
     echo ""
   fi
 done
 
 # === AVAILABLE MEMORIES ===
 echo "=== OTHER MEMORIES AVAILABLE ==="
-ls -1 "$MEMORIES_DIR"/*.md 2>/dev/null | xargs -n1 basename | sed 's/.md$//' | grep -v "^essential-" || echo "(none)"
+OTHER_MEMORIES=$(ls -1 "$MEMORIES_DIR"/*.md 2>/dev/null | xargs -r -n1 basename 2>/dev/null | sed 's/.md$//' | grep -v "^essential-")
+[ -n "$OTHER_MEMORIES" ] && echo "$OTHER_MEMORIES" || echo "(none)"
 echo ""
 echo "Run /list-memories for Quick Reference summaries, or read specific files when relevant."
 

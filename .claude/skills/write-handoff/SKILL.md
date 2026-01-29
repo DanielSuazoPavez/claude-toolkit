@@ -1,6 +1,6 @@
 ---
 name: write-handoff
-description: Use before /clear when you have uncommitted changes, partial work, or context needed for next session.
+description: Use before /clear when you have uncommitted changes, partial work, or context needed for next session. Keywords: session handoff, save context, continuation file, preserve state, resume work.
 ---
 
 Use before /clear to preserve context. Generates a continuation file for resuming work in a new session.
@@ -133,3 +133,70 @@ read docs/sessions/YYYY-MM-DD_HHmm_continue.md
 2. Fix edge case: empty array input returns None instead of []
 3. Run `pytest tests/test_validator.py -v` to verify
 ```
+
+## Edge Cases
+
+### Merge Conflicts Pending
+
+When there are unresolved merge conflicts:
+
+```markdown
+## Branch
+`feature/x` - MERGE IN PROGRESS with conflicts
+
+## Conflicts to Resolve
+- `src/api.py` - conflicting imports (lines 5-12)
+- `tests/test_api.py` - both branches added tests
+
+## Resolution Notes
+- Keep the import from main (uses new auth module)
+- Merge test functions, don't replace
+```
+
+**Always note:** Which branch is being merged, specific conflict locations, resolution guidance.
+
+### Multi-Branch Work
+
+When working across multiple branches (e.g., with worktrees):
+
+```markdown
+## Active Branches
+| Branch | Worktree | Status |
+|--------|----------|--------|
+| `feature/auth` | `.worktrees/auth` | Ready for review |
+| `feature/api` | `.worktrees/api` | WIP - tests failing |
+| `main` | `.` | Clean |
+
+## Resume Priority
+1. Fix failing tests in `feature/api`
+2. Address review comments on `feature/auth`
+```
+
+### Interrupted Deployment
+
+When a deployment was started but not completed:
+
+```markdown
+## Deployment Status
+- **Environment:** staging
+- **State:** INTERRUPTED after step 3 of 5
+- **Completed:** migrations, asset build, config update
+- **Remaining:** service restart, health check
+
+## To Resume
+1. Check current service state: `kubectl get pods -n staging`
+2. If pods unhealthy, rollback: `kubectl rollout undo deployment/api`
+3. If pods healthy, continue from step 4: restart services
+```
+
+## Validation Checklist
+
+Before outputting "Wrote continuation file", verify:
+
+- [ ] **Branch name included?** First thing next session needs
+- [ ] **Uncommitted changes listed?** `git status` summary present
+- [ ] **Next steps actionable?** Specific files and line numbers, not vague
+- [ ] **Blockers noted?** Anything that prevents immediate resumption
+- [ ] **File path correct?** `docs/sessions/YYYY-MM-DD_HHmm_continue.md`
+
+If any check fails, fix the continuation file before announcing completion.

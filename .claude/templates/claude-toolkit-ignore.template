@@ -1,5 +1,5 @@
-# Claude Toolkit - Default .claude-sync-ignore patterns
-# Copy this to your project root as .claude-sync-ignore
+# Claude Toolkit - Default .claude-toolkit-ignore patterns
+# Copy this to your project root as .claude-toolkit-ignore
 
 # Skip Python-specific hooks if not using Python
 # hooks/enforce-uv-run.sh

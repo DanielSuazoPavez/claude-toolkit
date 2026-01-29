@@ -59,10 +59,11 @@ Memories don't load themselves. Loading is driven by:
 | 0-6 | Wrong category or broken naming |
 
 **Check against categories:**
-- `essential-{context}-{name}` - Permanent, core info
-- `relevant-{context}-{name}` - Long-term, may evolve
-- `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific
-- `idea-{YYYYMMDD}-{context}-{idea}` - Future work, needs permission
+- `essential-{context}-{name}` - Permanent, core info (auto-loaded at session start)
+- `relevant-{context}-{name}` - Long-term, may evolve (on-demand)
+- `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific (on-demand)
+- `idea-{YYYYMMDD}-{context}-{idea}` - Future work, needs permission (on-demand)
+- `experimental-{context}-{name}` - Testing new approaches (user on-demand ONLY)
 
 ### D2: Quick Reference Section (25 pts) - Required
 
@@ -105,7 +106,8 @@ Memories don't load themselves. Loading is driven by:
 
 **Guidelines:**
 - Session start: Only `essential-` that affect every interaction
-- On-demand: Reference docs, detailed guides
+- On-demand: `relevant-`, reference docs, detailed guides
+- User on-demand ONLY: `experimental-` (user must explicitly request)
 - Never auto-load: `idea-` (requires permission)
 
 ### D5: Structure & Formatting (20 pts)
@@ -160,9 +162,45 @@ Is the memory > 300 lines?
 | **Always loads, rarely needed** | Context bloat | D4: -10 |
 | **Wall of text** | Unscannable | D5: -10 |
 
-## Evaluation Protocol
+## JSON Output Format
 
-**Use a subagent** to run evaluations - avoids self-evaluation bias when reviewing your own work.
+```json
+{
+  "file_hash": "<first 8 chars of MD5>",
+  "date": "YYYY-MM-DD",
+  "grade": "A/B/C/D/F",
+  "score": <total>,
+  "max": 100,
+  "percentage": <score/max * 100>,
+  "dimensions": {
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>
+  },
+  "top_improvements": ["...", "...", "..."]
+}
+```
+
+Compute file_hash with: `md5sum <memory-file> | cut -c1-8`
+
+## Invocation
+
+**Launch a subagent** for fresh, unbiased evaluation.
+
+```
+Task tool with:
+  subagent_type: "general-purpose"
+  model: "opus"
+  prompt: |
+    Evaluate the memory at <path> using the evaluate-memory rubric.
+    Read .claude/skills/evaluate-memory/SKILL.md for the full rubric.
+
+    Perform FRESH scoring. Do NOT read evaluations.json or prior scores.
+
+    Follow the Evaluation Protocol and output JSON matching the JSON Output Format.
+```
+
+Using a separate agent ensures objective assessment without influence from prior evaluations.
+
+## Evaluation Protocol
 
 1. Check filename against category patterns
 2. Verify Quick Reference is section 1 with correct pattern
@@ -170,18 +208,22 @@ Is the memory > 300 lines?
 4. Evaluate load timing vs content criticality
 5. Review structure and formatting
 6. Score each dimension with evidence
-7. Generate report with grade and top 3 improvements
+7. Generate report with JSON output including file_hash and top 3 improvements
+8. Update `.claude/evaluations.json` using jq:
+   ```bash
+   jq --argjson result '<JSON>' '.memories.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
+   ```
 
 ## Example Evaluation
 
-**Memory:** `essential-workflow-branch_development.md`
+**Memory:** `relevant-workflow-branch_development.md`
 
 | Dimension | Score | Evidence |
 |-----------|-------|----------|
-| D1: Category & Naming | 19/20 | Correct essential- prefix, clear context (workflow), descriptive name |
-| D2: Quick Reference | 23/25 | Present as section 1, "Read at" pattern, clear timing |
-| D3: Content Scope | 17/20 | Focused on branch workflow, links to related skill |
-| D4: Load Timing | 14/15 | Session start appropriate for workflow guidance |
-| D5: Structure | 18/20 | Good tables, clear sections, scannable |
+| D1: Category & Naming | 19/20 | Correct relevant- prefix for on-demand content, clear context (workflow) |
+| D2: Quick Reference | 24/25 | Section 1, proper "ONLY READ WHEN" bullets, See also cross-refs |
+| D3: Content Scope | 19/20 | Focused on branch workflow, cross-references instead of duplicating |
+| D4: Load Timing | 14/15 | On-demand appropriate for reference material |
+| D5: Structure | 19/20 | Good tables, code blocks, scannable sections |
 
-**Total: 91/100 - Grade A**
+**Total: 95/100 - Grade A**
