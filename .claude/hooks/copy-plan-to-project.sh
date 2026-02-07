@@ -7,7 +7,7 @@
 # Environment:
 #   CLAUDE_PLANS_DIR - target directory (default: .claude/plans)
 #
-# Triggers on Write in plan mode for files in ~/.claude/plans/
+# Triggers on Write in plan mode for files in any .claude/plans/ path
 # Renames files based on plan title using slug generation:
 #   "# Plan: Add User Auth" -> 2026-01-24_1430_add-user-auth.md
 #
@@ -18,8 +18,8 @@
 #   echo '# Plan: Test Title' > /tmp/test-plan.md
 #
 #   echo '{"permission_mode":"plan","tool_name":"Write","tool_input":{"file_path":"/tmp/.claude/plans/test.md"}}' | \
-#     FILE_PATH_OVERRIDE=/tmp/test-plan.md ./copy-plan-to-project.sh
-#   # Expected output: Plan copied to project: .claude/plans/YYYY-MM-DD_HHMM_test-title.md
+#     bash copy-plan-to-project.sh
+#   # Expected output: Plan copied to project: .claude/plans/YYYY-MM-DD_HHMM_test-title.md (if file exists)
 #
 #   echo '{"permission_mode":"default","tool_name":"Write","tool_input":{"file_path":"/tmp/other.md"}}' | ./copy-plan-to-project.sh
 #   # Expected: (empty - not plan mode)
@@ -44,12 +44,9 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || 
 # Configuration
 PLANS_DIR="${CLAUDE_PLANS_DIR:-.claude/plans}"
 
-# For testing: allow overriding file path to check
-SOURCE_PATH="${FILE_PATH_OVERRIDE:-$FILE_PATH}"
-
 # Check source file exists
-if [[ ! -f "$SOURCE_PATH" ]]; then
-    echo "Warning: Plan file not found: $SOURCE_PATH" >&2
+if [[ ! -f "$FILE_PATH" ]]; then
+    echo "Warning: Plan file not found: $FILE_PATH" >&2
     exit 0
 fi
 
@@ -57,7 +54,7 @@ fi
 mkdir -p "$PLANS_DIR"
 
 # Extract title from "# Plan: <title>" header
-TITLE=$(grep -m1 '^# Plan:' "$SOURCE_PATH" | sed 's/^# Plan: *//')
+TITLE=$(grep -m1 '^# Plan:' "$FILE_PATH" | sed 's/^# Plan: *//')
 TIMESTAMP=$(date +%Y-%m-%d_%H%M)
 
 # Generate slug from title, or fallback to original filename
@@ -70,7 +67,7 @@ else
 fi
 
 # Copy plan to project with new name
-if cp "$SOURCE_PATH" "$PLANS_DIR/$NEW_FILENAME" 2>/dev/null; then
+if cp "$FILE_PATH" "$PLANS_DIR/$NEW_FILENAME" 2>/dev/null; then
     echo "Plan copied to project: $PLANS_DIR/$NEW_FILENAME"
 else
     echo "Warning: Failed to copy plan to $PLANS_DIR/$NEW_FILENAME" >&2
