@@ -108,11 +108,11 @@ This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The f
 
 **IMPORTANT**: After completing verification, you MUST write the report to a file:
 
-1. Determine the branch name: `git branch --show-current`
-2. Get today's date: `date +%Y%m%d`
-3. Write your report to: `.claude/reviews/{branch}-goal-verification-{YYYYMMDD}.md`
-   - Example: `.claude/reviews/feature-auth-goal-verification-20260127.md`
-   - If branch name has slashes (e.g., `feature/auth`), replace with dashes
+1. Determine the branch name: `git branch --show-current` (replace slashes with dashes)
+2. Get current timestamp: `date +%Y%m%d_%H%M`
+3. Write your report to: `.claude/reviews/{YYYYMMDD}_{HHMM}__goal-verifier__{branch}.md`
+   - Example: `.claude/reviews/20260127_1430__goal-verifier__feature-auth.md`
+   - Double underscores (`__`) separate timestamp, source, and context
 4. The Write tool creates directories as needed
 
 **Handoff**: After writing, return a brief summary to the user:

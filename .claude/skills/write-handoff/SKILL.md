@@ -28,7 +28,7 @@ Is this information...
 
 ## Output
 
-`docs/sessions/YYYY-MM-DD_HHmm_continue.md` - self-contained file to restore context after `/clear`.
+`.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md` - self-contained file to restore context after `/clear`.
 
 ## Instructions
 
@@ -49,7 +49,7 @@ find . -name "*.py" -o -name "*.md" | xargs ls -lt 2>/dev/null | head -15
 
 ### 2. Generate the Continuation File
 
-Create `docs/sessions/YYYY-MM-DD_HHmm_continue.md` with this structure:
+Create `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md` with this structure (use branch name or topic as context slug):
 
 ```markdown
 # Continue Session: [Date] [Time]
@@ -92,15 +92,15 @@ Create `docs/sessions/YYYY-MM-DD_HHmm_continue.md` with this structure:
 
 ### 4. Output
 
-1. Create directory if needed: `mkdir -p docs/sessions`
-2. Write the file to `docs/sessions/YYYY-MM-DD_HHmm_continue.md`
+1. Create directory if needed: `mkdir -p .claude/sessions`
+2. Write the file to `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
 3. Report with copy-paste ready path for new session:
 
 ```
 Wrote continuation file.
 
 To resume in a new session, paste:
-read docs/sessions/YYYY-MM-DD_HHmm_continue.md
+read .claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md
 ```
 
 ## Anti-Patterns
@@ -197,6 +197,6 @@ Before outputting "Wrote continuation file", verify:
 - [ ] **Uncommitted changes listed?** `git status` summary present
 - [ ] **Next steps actionable?** Specific files and line numbers, not vague
 - [ ] **Blockers noted?** Anything that prevents immediate resumption
-- [ ] **File path correct?** `docs/sessions/YYYY-MM-DD_HHmm_continue.md`
+- [ ] **File path correct?** `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
 
 If any check fails, fix the continuation file before announcing completion.

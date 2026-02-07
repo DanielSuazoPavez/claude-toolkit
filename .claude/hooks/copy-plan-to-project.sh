@@ -9,7 +9,7 @@
 #
 # Triggers on Write in plan mode for files in any .claude/plans/ path
 # Renames files based on plan title using slug generation:
-#   "# Plan: Add User Auth" -> 2026-01-24_1430_add-user-auth.md
+#   "# Plan: Add User Auth" -> 2026-01-24_1430__plan__add-user-auth.md
 #
 # Slug algorithm: lowercase -> replace non-alphanumeric with hyphen -> dedupe hyphens -> trim
 #
@@ -19,7 +19,7 @@
 #
 #   echo '{"permission_mode":"plan","tool_name":"Write","tool_input":{"file_path":"/tmp/.claude/plans/test.md"}}' | \
 #     bash copy-plan-to-project.sh
-#   # Expected output: Plan copied to project: .claude/plans/YYYY-MM-DD_HHMM_test-title.md (if file exists)
+#   # Expected output: Plan copied to project: .claude/plans/YYYY-MM-DD_HHMM__plan__test-title.md (if file exists)
 #
 #   echo '{"permission_mode":"default","tool_name":"Write","tool_input":{"file_path":"/tmp/other.md"}}' | ./copy-plan-to-project.sh
 #   # Expected: (empty - not plan mode)
@@ -61,9 +61,9 @@ TIMESTAMP=$(date +%Y-%m-%d_%H%M)
 if [[ -n "$TITLE" ]]; then
     # Slug: lowercase, non-alphanumeric to hyphen, dedupe hyphens, trim edges
     SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-\|-$//g')
-    NEW_FILENAME="${TIMESTAMP}_${SLUG}.md"
+    NEW_FILENAME="${TIMESTAMP}__plan__${SLUG}.md"
 else
-    NEW_FILENAME="${TIMESTAMP}_$(basename "$FILE_PATH")"
+    NEW_FILENAME="${TIMESTAMP}__plan__$(basename "$FILE_PATH")"
 fi
 
 # Copy plan to project with new name
