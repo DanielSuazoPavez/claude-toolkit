@@ -4,9 +4,6 @@
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/block-dangerous-commands.sh"}]}]
 #
-# Environment:
-#   ALLOW_DANGEROUS_COMMANDS=1  - bypass all checks (use with extreme caution)
-#
 # Blocks:
 #   - rm -rf / or rm -rf /* (root deletion)
 #   - rm -rf ~ or rm -rf $HOME (home deletion)
@@ -26,9 +23,6 @@
 #
 #   echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ./temp"}}' | ./block-dangerous-commands.sh
 #   # Expected: (empty - allowed)
-
-# Allowlist: skip if explicitly allowed
-[ -n "$ALLOW_DANGEROUS_COMMANDS" ] && exit 0
 
 INPUT=$(cat)
 

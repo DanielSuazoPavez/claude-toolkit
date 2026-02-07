@@ -4,21 +4,15 @@
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/enforce-uv-run.sh"}]}]
 #
-# Environment:
-#   ALLOW_DIRECT_PYTHON=1  - skip checks (for system python usage)
-#
 # Test cases:
-#   echo '{"tool_name":"Bash","tool_input":{"command":"python script.py"}}' | ./enforce-uv-run.sh
+#   echo '{"tool_name":"Bash","tool_input":{"command":"python script.py"}}' | bash enforce-uv-run.sh
 #   # Expected: {"decision":"block","reason":"Use `uv run python`..."}
 #
-#   echo '{"tool_name":"Bash","tool_input":{"command":"python3.11 script.py"}}' | ./enforce-uv-run.sh
+#   echo '{"tool_name":"Bash","tool_input":{"command":"python3.11 script.py"}}' | bash enforce-uv-run.sh
 #   # Expected: {"decision":"block","reason":"Use `uv run python`..."}
 #
-#   echo '{"tool_name":"Bash","tool_input":{"command":"uv run python script.py"}}' | ./enforce-uv-run.sh
+#   echo '{"tool_name":"Bash","tool_input":{"command":"uv run python script.py"}}' | bash enforce-uv-run.sh
 #   # Expected: (empty - allowed)
-
-# Allowlist: skip if explicitly allowed
-[ -n "$ALLOW_DIRECT_PYTHON" ] && exit 0
 
 INPUT=$(cat)
 

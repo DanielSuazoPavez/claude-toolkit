@@ -50,29 +50,17 @@ Reference for hook triggers, environment variables, and customization options.
 
 Set these in your shell or `.envrc` to customize hook behavior.
 
-### Bypass Controls
-| Variable | Effect |
-|----------|--------|
-| `ALLOW_DIRECT_PYTHON=1` | Bypass enforce-uv-run check |
-| `ALLOW_DIRECT_COMMANDS=1` | Bypass enforce-make-commands check |
-| `ALLOW_DANGEROUS_COMMANDS=1` | Bypass block-dangerous-commands check |
-| `ALLOW_COMMIT_ON_MAIN=1` | Allow git commit on protected branches |
-
 ### Path Configuration
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
 | `CLAUDE_PLANS_DIR` | `.claude/plans` | Plan copies destination |
 
-### Feature Toggles
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `CLAUDE_SKIP_PLAN_COPY` | `0` | Disable plan copying |
-
-### Thresholds & Patterns
+### Thresholds & Configuration
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `JSON_SIZE_THRESHOLD_KB` | `50` | Size threshold for JSON blocking |
+| `PROTECTED_BRANCHES` | `^(main\|master)$` | Regex for protected branch names |
 
 ---
 

@@ -72,11 +72,7 @@
     "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
     "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
     "CLAUDE_PLANS_DIR": "Directory for plan copies (default: .claude/plans)",
-    "ALLOW_DIRECT_PYTHON": "Set to 1 to bypass enforce-uv-run check",
-    "ALLOW_DIRECT_COMMANDS": "Set to 1 to bypass enforce-make-commands check",
-    "CLAUDE_SKIP_PLAN_COPY": "Set to 1 to disable plan copying",
-    "ALLOW_DANGEROUS_COMMANDS": "Set to 1 to bypass block-dangerous-commands check",
     "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
-    "ALLOW_COMMIT_ON_MAIN": "Set to 1 to allow git commit on protected branches"
+    "PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"
   }
 }
