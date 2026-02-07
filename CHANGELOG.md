@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.2] - 2026-02-07 - Hook hardening
+
+### Changed
+- **All hooks**: Removed bypass env vars (`ALLOW_DIRECT_PYTHON`, `ALLOW_DIRECT_COMMANDS`, `ALLOW_DANGEROUS_COMMANDS`, `CLAUDE_SKIP_PLAN_COPY`, `ALLOW_PLAN_ON_MAIN`, `ALLOW_COMMIT_ON_MAIN`) — hooks now enforce unconditionally
+- **enforce-make-commands hook**: Only block bare `pytest` (full suite); targeted runs (`pytest tests/file.py`, `pytest -k "pattern"`) pass through
+- **copy-plan-to-project hook**: Removed `FILE_PATH_OVERRIDE` testing var, fixed stale path comment
+- **enforce-feature-branch hook**: Fixed stale `PROTECTED_BRANCHES` example in comments
+- **settings.json**: Only legitimate config vars remain (`CLAUDE_PLANS_DIR`, `CLAUDE_MEMORIES_DIR`, `JSON_SIZE_THRESHOLD_KB`, `PROTECTED_BRANCHES`)
+- **hooks_config memory**: Stripped all bypass references
+
 ## [1.0.1] - 2026-02-07 - Suggestions box review
 
 ### Changed
