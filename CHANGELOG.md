@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.1] - 2026-02-07 - Template sync and drift validation
+
+### Added
+- **validate-settings-template.sh**: Detects hook drift between settings.json and settings.template.json (command list + format structure)
+- **BACKLOG-standard.md** and **BACKLOG-minimal.md** templates replacing outdated single BACKLOG.md
+- **Makefile template**: `claude-toolkit-validate` target for running validations
+
+### Changed
+- **settings.template.json**: Synced to current nested hook format with all 8 hooks, `_env_config` block, permissions moved to settings.local.json instruction
+- **validate-all.sh**: Now includes settings template drift check
+
+### Removed
+- **BACKLOG.md template**: Replaced by standard and minimal variants
+
 ## [1.1.0] - 2026-02-07 - Resource dependency verification
 
 ### Added

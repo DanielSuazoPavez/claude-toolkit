@@ -1,45 +1,82 @@
 {
   "$schema": "https://api.claude.ai/schemas/settings.json",
   "_comment": "Claude Toolkit - Reference settings.json template",
-  "_instructions": "Copy this to .claude/settings.json and customize for your project",
-
-  "permissions": {
-    "allow": [
-      "Bash(make *)",
-      "Bash(uv run *)",
-      "Bash(mkdir *)",
-      "Bash(mv *)",
-      "Bash(ls *)",
-      "Bash(git *)"
-    ],
-    "deny": []
-  },
+  "_instructions": "Copy this to .claude/settings.json and customize for your project. For permissions, create a separate .claude/settings.local.json (not committed to git).",
 
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": ".claude/hooks/session-start.sh"
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "type": "command",
-        "matcher": "Bash",
-        "command": ".claude/hooks/block-dangerous-commands.sh"
+        "matcher": "EnterPlanMode|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/enforce-feature-branch.sh"
+          }
+        ]
       },
       {
-        "type": "command",
-        "matcher": "EnterPlanMode|Bash",
-        "command": ".claude/hooks/enforce-feature-branch.sh"
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-dangerous-commands.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/enforce-uv-run.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/enforce-make-commands.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/secrets-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/suggest-read-json.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "command",
         "matcher": "Write",
-        "command": ".claude/hooks/copy-plan-to-project.sh"
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/copy-plan-to-project.sh"
+          }
+        ]
       }
     ]
+  },
+  "_env_config": {
+    "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
+    "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
+    "CLAUDE_PLANS_DIR": "Directory for plan copies (default: .claude/plans)",
+    "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
+    "PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"
   }
 }
