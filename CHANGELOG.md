@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0] - 2026-02-07 - Transcript analytics
+
+### Added
+- **`scripts/insights.py`**: Python analytics script for Claude Code transcripts (`~/.claude/projects/`). Parses JSONL session data with streaming (no full load). Subcommands: `overview`, `projects`, `tools`, `skills`, `agents`, `hooks`, `sessions`, `full`. Global flags: `--project`, `--since`, `--json`, `--output`.
+- **`pyproject.toml`**: Minimal project config for `uv run` (stdlib only, no dependencies).
+
 ## [1.3.0] - 2026-02-07 - Documentation skill
 
 ### Added

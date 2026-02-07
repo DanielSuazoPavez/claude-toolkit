@@ -18,11 +18,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[SKILLS]** Build `/insights` skill with accurate analytics (`skill-insights`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Analyze ~/.claude/projects/ transcripts. Distinguish hooks from intentional bash, sub-agents from user sessions, skill calls from manual workflows. Per-project breakdown, time distribution. Fix inaccuracies in official /insights.
-
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
     - **scope**: `agents, skills`
