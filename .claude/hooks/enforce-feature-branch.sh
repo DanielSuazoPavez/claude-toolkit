@@ -3,30 +3,21 @@
 # Event: PreToolUse (EnterPlanMode, Bash)
 # Purpose: Block plan mode and git commits on main/master - create feature branch first
 #
-# Test commands:
-#   Should block EnterPlanMode on main:
-#     cd /tmp && git init test-repo && cd test-repo && git checkout -b main && \
-#     echo '{"tool_name":"EnterPlanMode"}' | /path/to/enforce-feature-branch.sh
+# Settings.json:
+#   "PreToolUse": [{"matcher": "EnterPlanMode|Bash", "hooks": [{"type": "command", "command": ".claude/hooks/enforce-feature-branch.sh"}]}]
 #
-#   Should block git commit on main:
-#     echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' | \
-#     /path/to/enforce-feature-branch.sh
+# Config: PROTECTED_BRANCHES="^(main|master)$" (regex, customizable)
 #
-#   Should allow on feature branch:
-#     cd /tmp/test-repo && git checkout -b feature/test && \
-#     echo '{"tool_name":"EnterPlanMode"}' | /path/to/enforce-feature-branch.sh
+# Test cases:
+#   echo '{"tool_name":"EnterPlanMode"}' | bash enforce-feature-branch.sh
+#   # Expected: {"decision":"block","reason":"..."} (if on main)
 #
-# settings.json:
-#   {
-#     "hooks": {
-#       "PreToolUse": [{
-#         "matcher": "EnterPlanMode|Bash",
-#         "hooks": [{"type": "command", "command": ".claude/hooks/enforce-feature-branch.sh"}]
-#       }]
-#     }
-#   }
+#   echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' | bash enforce-feature-branch.sh
+#   # Expected: {"decision":"block","reason":"..."} (if on main)
 #
-# Config: PROTECTED_BRANCHES="^(main|master|develop)$" (regex)
+#   # On a feature branch:
+#   echo '{"tool_name":"EnterPlanMode"}' | bash enforce-feature-branch.sh
+#   # Expected: (empty - allowed)
 
 set -euo pipefail
 
