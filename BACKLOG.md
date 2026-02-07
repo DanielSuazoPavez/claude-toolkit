@@ -19,9 +19,9 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 ## P0 - Critical
 
 - **[SKILLS]** Create `write-docs` skill (`skill-write-docs`)
-    - **status**: `idea`
+    - **status**: `ready-for-pr`
     - **scope**: `skills`
-    - **notes**: API docs, docstrings, README generation
+    - **notes**: API docs, docstrings, README generation. Two modes: user-docs (markdown) and docstrings. Gap-analysis-first workflow, codebase-explorer soft dependency. Eval: A- (106/120).
 
 - **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`)
     - **status**: `idea`

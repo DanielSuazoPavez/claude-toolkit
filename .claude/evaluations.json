@@ -634,6 +634,29 @@
           "Add brief TOC - at 169 lines with multiple sections, a 5-line navigation table would improve discoverability",
           "Strengthen why for category philosophy - add 1-2 sentences explaining the underlying principle (auto-load budget, context window conservation)"
         ]
+      },
+      "write-docs": {
+        "file_hash": "5323e6b1",
+        "date": "2026-02-07",
+        "grade": "A-",
+        "score": 106,
+        "max": 120,
+        "percentage": 88.3,
+        "dimensions": {
+          "D1": 16,
+          "D2": 14,
+          "D3": 13,
+          "D4": 14,
+          "D5": 14,
+          "D6": 13,
+          "D7": 9,
+          "D8": 13
+        },
+        "top_improvements": [
+          "Add an end-to-end worked example in the main skill showing gap analysis output flowing into actual documentation writing for a concrete scenario",
+          "Strengthen D1 by replacing the basic Verify step with expert heuristics for verification prioritization - which claims to spot-check first based on staleness signals",
+          "Deepen anti-pattern consequences: expand Problem column with specific downstream effects - aspirational docs cause user trust erosion when features don't exist"
+        ]
       }
     }
   },
