@@ -88,7 +88,7 @@ BLOCK
     # Block if on protected branch
     if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
         cat <<BLOCK
-{"decision":"block","reason":"Cannot commit directly to '$BRANCH'.\n\nCreate a feature branch first:\n\n  git checkout -b feature/<short-description>\n\nThen commit your changes there."}
+{"decision":"block","reason":"Cannot commit directly to '$BRANCH'.\n\nCreate a feature branch first:\n\n  git checkout -b feature/<short-description>\n\nThen commit your changes there.\n\nNote: Do not chain git checkout and git commit in a single command — the hook checks the branch at execution time."}
 BLOCK
         exit 0
     fi
