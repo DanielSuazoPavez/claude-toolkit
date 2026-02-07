@@ -8,12 +8,12 @@ Curated Claude Code configuration: skills, agents, hooks, and memory templates f
 # Clone the toolkit
 git clone https://github.com/yourusername/claude-toolkit.git
 
-# Install into your project
+# Sync into your project
 cd /path/to/your/project
-~/claude-toolkit/install.sh
+~/claude-toolkit/bin/claude-toolkit sync
 ```
 
-This copies the `.claude/` directory into your project. Customize as needed.
+This syncs the `.claude/` directory into your project. Only files listed in `.claude/MANIFEST` are copied — dev-only files stay in the toolkit. Customize as needed.
 
 ## CLI Usage
 
