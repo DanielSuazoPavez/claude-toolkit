@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0] - 2026-02-07 - Documentation skill
+
+### Added
+- **`write-docs` skill**: Gap-analysis-first documentation writer with two modes (user-docs, docstrings). Soft dependency on codebase-explorer for project cartography. Includes style detection, verification step, and good/bad examples for both modes. Eval: A- (106/120).
+
+### Changed
+- **BACKLOG.md**: Moved `review-documentation` to Graveyard — write-docs gap analysis already covers doc review. For docs, reading IS the review.
+
 ## [1.2.0] - 2026-02-07 - Explicit sync manifest
 
 ### Added
