@@ -60,12 +60,12 @@ Investigate plan-vs-implementation gaps. File a written report. Let stakeholders
 
 **IMPORTANT**: After completing your review, you MUST write the report to a file:
 
-1. Determine the branch name: `git branch --show-current`
-2. Get today's date: `date +%Y%m%d`
-3. Write your report to: `.claude/reviews/{branch}-implementation-check-{YYYYMMDD}.md`
-   - Example: `.claude/reviews/feature-auth-implementation-check-20260127.md`
+1. Determine the branch name: `git branch --show-current` (replace slashes with dashes)
+2. Get current timestamp: `date +%Y%m%d_%H%M`
+3. Write your report to: `.claude/reviews/{YYYYMMDD}_{HHMM}__implementation-checker__{branch}.md`
+   - Example: `.claude/reviews/20260127_1430__implementation-checker__feature-auth.md`
+   - Double underscores (`__`) separate timestamp, source, and context
    - The Write tool creates directories as needed
-4. If branch name has slashes (e.g., `feature/auth`), replace with dashes
 
 The report should be the full markdown output, not a summary.
 

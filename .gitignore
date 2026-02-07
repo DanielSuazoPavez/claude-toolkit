@@ -15,7 +15,7 @@
 .claude/usage.log
 .claude/plans/
 .claude/reviews/
+.claude/analysis/
+.claude/design/
+.claude/sessions/
 .claude/settings.local.json
-
-docs/plans/*
-docs/sessions/*
