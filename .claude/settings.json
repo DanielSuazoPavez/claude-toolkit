@@ -76,12 +76,7 @@
     "ALLOW_DIRECT_COMMANDS": "Set to 1 to bypass enforce-make-commands check",
     "CLAUDE_SKIP_PLAN_COPY": "Set to 1 to disable plan copying",
     "ALLOW_DANGEROUS_COMMANDS": "Set to 1 to bypass block-dangerous-commands check",
-    "ALLOW_ENV_READ": "Set to 1 to allow reading .env files",
-    "SAFE_ENV_EXTENSIONS": "Comma-separated safe .env extensions (default: example,template,sample)",
-    "ALLOW_JSON_READ": "Set to 1 to allow raw JSON file reads (bypass /read-json suggestion)",
-    "JSON_READ_WARN": "Set to 1 to warn instead of block for JSON files",
     "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
-    "ALLOW_JSON_PATTERNS": "Comma-separated JSON filenames to allow (default: package.json,tsconfig.json,...)",
     "ALLOW_COMMIT_ON_MAIN": "Set to 1 to allow git commit on protected branches"
   }
 }

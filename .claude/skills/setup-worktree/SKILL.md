@@ -1,172 +1,102 @@
 ---
 name: setup-worktree
-description: Reference for git worktrees - setup, usage, and common pitfalls. Use when working on multiple branches simultaneously or setting up parallel agent workflows.
+description: Set up a git worktree with full Claude configuration. Use when working on multiple branches simultaneously or setting up parallel agent workflows. Keywords: worktree, parallel, branch isolation.
+argument-hint: Path to plan file (e.g. .claude/plans/2026-02-04_my-plan.md)
 ---
 
-Reference for git worktrees - setup, usage, and common pitfalls.
+Set up a worktree with full Claude configuration. Worktrees live in `.worktrees/` (gitignored, inside project).
 
-## Layout Decision Tree
+## Plan File
 
-```
-Where should I put worktrees?
-├─ Want everything self-contained? → Option A: Inside project (.worktrees/)
-├─ Working with multiple projects? → Option C: Central ~/worktrees/
-└─ Simple one-off worktree? → Option B: Sibling directory
-```
+`$ARGUMENTS` must contain a path to the plan file to symlink into the worktree. If not provided, ask the user which plan file to use — every worktree needs a plan.
 
-| Layout | Best For | Setup Effort |
-|--------|----------|--------------|
-| Inside project | Most cases, easy cleanup | Add to .gitignore once |
-| Sibling dirs | Quick experiments | None |
-| Central dir | Multi-project workflows | One-time setup |
+## Setup Procedure
 
-## Where to Put Worktrees
-
-### Option A: Inside Project (Recommended)
-
-```
-myproject/
-├── .worktrees/          # gitignored
-│   ├── feature-auth/
-│   └── bugfix-123/
-├── src/
-└── .gitignore           # add: .worktrees/
-```
-
-**Pros:** Self-contained, easy to find, cleanup is `rm -rf .worktrees/`
-**Setup:** Add `.worktrees/` to `.gitignore` before creating worktrees
-
-### Option B: Adjacent (Sibling Directories)
-
-```
-~/projects/
-├── myproject/           # main
-├── myproject-feature/   # worktree
-└── myproject-bugfix/    # worktree
-```
-
-**Pros:** No gitignore needed, clear separation
-**Cons:** Clutters parent directory, harder to see relationships
-
-### Option C: Central Worktrees Directory
-
-```
-~/worktrees/
-├── myproject-feature/
-└── otherproject-fix/
-```
-
-**Pros:** All worktrees in one place
-**Cons:** Divorced from projects, easy to forget about
-
-## Basic Commands
+### 1. Ensure .worktrees/ Is Gitignored
 
 ```bash
-# Create worktree with new branch
-git worktree add .worktrees/feature-x -b feature-x
-
-# Create worktree from existing branch
-git worktree add .worktrees/bugfix-123 bugfix-123
-
-# List worktrees
-git worktree list
-
-# Remove worktree (after merging/done)
-git worktree remove .worktrees/feature-x
-
-# Prune stale worktree references
-git worktree prune
+# Check first — only add if missing
+grep -q '^\.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitignore
 ```
 
-## Handling Untracked Files (Data, Configs, etc.)
-
-Worktrees don't share untracked files. Options:
-
-### Symlinks (Recommended for Large Data)
+### 2. Create the Worktree
 
 ```bash
-# After creating worktree
-cd .worktrees/feature-x
-ln -s ../../data ./data
-ln -s ../../.env ./.env
+# New branch
+git worktree add .worktrees/<name> -b <branch-name>
+
+# Existing branch (omit -b)
+git worktree add .worktrees/<name> <branch-name>
 ```
 
-**Pros:** No duplication, changes reflect everywhere
-**Cons:** Must remember to create symlinks
+### 3. Symlink Claude Resources
 
-### Setup Script
+`.claude/` is typically gitignored (synced via claude-toolkit). Worktrees get **no** `.claude/` content by default. Without this step, Claude instances in the worktree have no agents, hooks, memories, skills, or settings.
 
-Create `scripts/setup-worktree.sh`:
+`CLAUDE.md` at the project root IS tracked and inherited automatically — no action needed for it.
+
 ```bash
-#!/bin/bash
-WORKTREE_PATH=$1
-ln -s "$(pwd)/data" "$WORKTREE_PATH/data"
-ln -s "$(pwd)/.env" "$WORKTREE_PATH/.env"
-# Add more as needed
+WORKTREE=.worktrees/<name>
+MAIN=$(pwd)
+
+mkdir -p "$WORKTREE/.claude/plans"
+
+# Directories
+ln -s "$MAIN/.claude/agents"   "$WORKTREE/.claude/agents"
+ln -s "$MAIN/.claude/hooks"    "$WORKTREE/.claude/hooks"
+ln -s "$MAIN/.claude/memories" "$WORKTREE/.claude/memories"
+ln -s "$MAIN/.claude/skills"   "$WORKTREE/.claude/skills"
+
+# Settings
+ln -s "$MAIN/.claude/settings.json" "$WORKTREE/.claude/settings.json"
+
+# Plan file — verify path exists first
+PLAN="$ARGUMENTS"
+[ -f "$MAIN/$PLAN" ] && ln -s "$MAIN/$PLAN" "$WORKTREE/.claude/plans/$(basename "$PLAN")"
 ```
 
-Usage: `./scripts/setup-worktree.sh .worktrees/feature-x`
+**On retry** (partial setup): `ln -s` fails if the symlink already exists. Use `ln -sf` to overwrite, or remove the `.claude/` directory in the worktree and start fresh.
 
-### Shared External Directory
+### 4. Verify Setup
 
-Keep data outside all worktrees:
+```bash
+# Symlinks resolve correctly
+ls -la "$WORKTREE/.claude/agents" "$WORKTREE/.claude/skills" "$WORKTREE/.claude/settings.json"
+
+# Plan is linked
+ls -la "$WORKTREE/.claude/plans/"
 ```
-~/project-data/myproject/    # shared data
-~/projects/myproject/        # main worktree
-~/projects/myproject/.worktrees/feature-x/
-```
-
-Reference via environment variable or config file.
 
 ## Common Pitfalls
 
-### 1. Forgetting to Gitignore
+### Missing Claude Resources
 
-**Why bad:** Worktree directories contain full source trees. Without gitignore, `git status` shows thousands of "new files" and you risk accidentally committing the entire worktree as nested files.
+Most damaging pitfall. A Claude instance in the worktree operates with zero configuration — no custom agents, no behavioral hooks, no memories, wrong permissions. Always symlink immediately after creating the worktree (step 3).
 
-```bash
-# BEFORE creating worktrees
-echo ".worktrees/" >> .gitignore
-git add .gitignore && git commit -m "Ignore worktrees directory"
-```
+### Worktree Gets Stale
 
-### 2. Worktree Gets Stale
-
-**Why bad:** Your worktree diverges from main. When you eventually merge, you face massive conflicts that could have been small incremental rebases. Worst case: you build on outdated code that's already been refactored.
-
-Worktrees don't auto-update. Periodically:
+Your worktree diverges from main. Periodically:
 ```bash
 cd .worktrees/feature-x
 git fetch origin
-git rebase origin/main  # or merge
+git rebase origin/main
 ```
 
-### 3. Orphaned Worktrees
+### Orphaned Worktrees
 
-**Why bad:** Git maintains internal references to worktrees. If you `rm -rf` a worktree directory without `git worktree remove`, git still thinks it exists. You can't check out that branch elsewhere and `git worktree list` shows stale entries.
+Git maintains internal references. If you `rm -rf` without `git worktree remove`, git still thinks it exists.
 
-After deleting a worktree directory manually:
 ```bash
+# Proper removal
+git worktree remove .worktrees/feature-x
+
+# Clean up after manual deletion
 git worktree prune
 ```
 
-### 4. Dependencies Not Installed
+### Can't Delete Branch
 
-**Why bad:** Tests pass in main worktree but fail in feature worktree. Or worse: tests pass locally because dependencies bleed through from wrong `node_modules`, then fail in CI. Subtle version mismatches cause hours of debugging.
-
-Each worktree needs its own `node_modules`, `.venv`, etc:
-```bash
-cd .worktrees/feature-x
-npm install        # or
-uv sync            # or
-cargo build
-```
-
-### 5. Can't Delete Branch
-
-**Why bad:** Git refuses to delete a branch checked out in any worktree. You'll see "error: Cannot delete branch 'feature-x' checked out at '/path/to/worktree'" with no indication which worktree is blocking it.
-
-If branch is checked out in a worktree, you can't delete it:
+Git refuses to delete a branch checked out in any worktree:
 ```bash
 git worktree remove .worktrees/feature-x
 git branch -d feature-x  # now works
@@ -176,19 +106,9 @@ git branch -d feature-x  # now works
 
 When using multiple Claude agents in parallel:
 
-1. Create worktree per agent task
-2. Each agent works in isolation
+1. Create worktree per agent task (each with its own plan)
+2. Each agent works in isolation with full Claude config
 3. Merge results back to main when done
 4. Clean up worktrees after merge
 
-```bash
-# Setup for parallel work
-git worktree add .worktrees/agent-1-auth -b feature/auth
-git worktree add .worktrees/agent-2-api -b feature/api
-
-# After agents complete
-git worktree remove .worktrees/agent-1-auth
-git worktree remove .worktrees/agent-2-api
-```
-
-**Note:** After setting up a worktree, implementation is typically handled by another Claude instance working in that worktree. This instance won't see uncommitted changes - check `git log` (not just `git status`) to see commits made by other instances.
+**Note:** After setup, implementation is typically handled by another Claude instance working in the worktree. That instance won't see uncommitted changes from other worktrees — check `git log` (not just `git status`) to see commits made by other instances.

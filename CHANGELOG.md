@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.1] - 2026-02-07 - Suggestions box review
+
+### Changed
+- **setup-worktree skill**: Merged `.claude/` symlinking procedure, required plan file argument, removed layout options (always inside project)
+- **secrets-guard hook**: Removed bypass env vars (`ALLOW_ENV_READ`, `SAFE_ENV_EXTENSIONS`), fixed `.env.api.example` pattern, stripped self-documenting bypass hints from block messages
+- **suggest-read-json hook**: Removed bypass env vars (`ALLOW_JSON_READ`, `ALLOW_JSON_PATTERNS`, `JSON_READ_WARN`), hardcoded allowlist, kept size threshold
+- **backlog_schema memory**: Generalized from project-specific to toolkit-wide (P100, kebab-case IDs, minimal format, Current Goal section, tooling reference)
+- **casual_communication_style memory**: Added accumulated session moments to section 8
+- **hooks_config memory**: Removed stale bypass references, updated troubleshooting
+- **settings.json**: Cleaned out removed env var documentation
+
 ## [1.0.0] - 2026-01-28 - Quality-gated release
 
 ### Added
