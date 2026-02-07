@@ -4,24 +4,15 @@
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/enforce-make-commands.sh"}]}]
 #
-# Environment:
-#   ALLOW_DIRECT_COMMANDS=1  - skip all checks (for CI or special cases)
-#
 # Test cases:
-#   echo '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"}}' | ./enforce-make-commands.sh
+#   echo '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"}}' | bash enforce-make-commands.sh
 #   # Expected: {"decision":"block","reason":"Use `make test`..."}
 #
-#   echo '{"tool_name":"Bash","tool_input":{"command":"python -m pytest"}}' | ./enforce-make-commands.sh
+#   echo '{"tool_name":"Bash","tool_input":{"command":"python -m pytest"}}' | bash enforce-make-commands.sh
 #   # Expected: {"decision":"block","reason":"Use `make test`..."}
 #
-#   echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | ./enforce-make-commands.sh
+#   echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | bash enforce-make-commands.sh
 #   # Expected: (empty - allowed)
-#
-#   ALLOW_DIRECT_COMMANDS=1 echo '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' | ./enforce-make-commands.sh
-#   # Expected: (empty - allowed via allowlist)
-
-# Allowlist: skip checks if explicitly allowed (CI, special cases)
-[ -n "$ALLOW_DIRECT_COMMANDS" ] && exit 0
 
 INPUT=$(cat)
 

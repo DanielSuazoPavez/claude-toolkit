@@ -6,7 +6,6 @@
 #
 # Environment:
 #   CLAUDE_PLANS_DIR - target directory (default: .claude/plans)
-#   CLAUDE_SKIP_PLAN_COPY=1 - disable copying (for testing)
 #
 # Triggers on Write in plan mode for files in ~/.claude/plans/
 # Renames files based on plan title using slug generation:
@@ -27,9 +26,6 @@
 #
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/tmp/test.md"}}' | ./copy-plan-to-project.sh
 #   # Expected: (empty - wrong tool)
-
-# Skip if disabled
-[ -n "$CLAUDE_SKIP_PLAN_COPY" ] && exit 0
 
 INPUT=$(cat)
 

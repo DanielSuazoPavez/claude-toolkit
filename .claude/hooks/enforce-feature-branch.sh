@@ -26,8 +26,6 @@
 #     }
 #   }
 #
-# Bypass: ALLOW_PLAN_ON_MAIN=1 (for EnterPlanMode)
-#         ALLOW_COMMIT_ON_MAIN=1 (for git commit)
 # Config: PROTECTED_BRANCHES="^(main|master|develop)$" (regex)
 
 set -euo pipefail
@@ -42,11 +40,6 @@ TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
 
 # Handle EnterPlanMode
 if [[ "$TOOL_NAME" == "EnterPlanMode" ]]; then
-    # Bypass check
-    if [[ "${ALLOW_PLAN_ON_MAIN:-}" == "1" ]]; then
-        exit 0
-    fi
-
     # Check if in a git repo
     if ! git rev-parse --git-dir >/dev/null 2>&1; then
         exit 0  # Not a git repo, allow
@@ -76,11 +69,6 @@ fi
 
 # Handle Bash - check for git commit
 if [[ "$TOOL_NAME" == "Bash" ]]; then
-    # Bypass check
-    if [[ "${ALLOW_COMMIT_ON_MAIN:-}" == "1" ]]; then
-        exit 0
-    fi
-
     # Get command
     COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
 
