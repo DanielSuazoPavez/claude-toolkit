@@ -16,18 +16,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
-## P0 - Critical
-
-- **[SKILLS]** Create `write-docs` skill (`skill-write-docs`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: API docs, docstrings, README generation
-
-- **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Reviews non-code parts: README, docs/, docstrings, comments. Checks completeness, accuracy vs code, consistency, broken links. Does NOT review code logic.
-
 ## P1 - High
 
 - **[SKILLS]** Build `/insights` skill with accurate analytics (`skill-insights`)
@@ -93,3 +81,4 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 - **[AGENTS]** Add metadata block to generated documents (`agent-metadata-block`) — overkill; file names and content start is enough
 - **[TOOLKIT]** Headless agent for suggestions-box processing (`agent-suggestions-processor`) — has its own design doc and folder, not a backlog item
+- **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`) — redundant; write-docs gap analysis already audits docs against code before writing. For docs, reading IS the review.

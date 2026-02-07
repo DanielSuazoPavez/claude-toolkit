@@ -32,6 +32,7 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
+| `write-docs` | beta | Write or update project documentation via gap analysis |
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
 | `setup-worktree` | alpha | Reference for git worktrees - setup, usage, pitfalls |
 | `teardown-worktree` | alpha | Safe worktree closure after agent completion |
