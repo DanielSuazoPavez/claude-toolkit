@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Getting claude-toolkit to a clean, polished state: personal use first, organized and documented. Foundation for syncing across multiple projects, eventually public-ready.
+Iterating on resources through real usage — fixing issues surfaced from project deployments, improving tooling based on actual workflows.
 
 ## Scope Definitions
 

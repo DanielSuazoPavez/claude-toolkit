@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.3] - 2026-02-07 - Suggestions box triage
+
+### Fixed
+- **send command**: Naming collision when sending multiple flat resources (hooks, agents, memories) — now uses filename instead of parent directory
+- **sync --force**: Now bypasses version check when versions are equal or project is newer
+
+### Changed
+- **review-plan skill**: Added color/formatting guidance to output template (blockquotes, horizontal rules, visual emphasis for verdicts)
+- **backlog-query.sh**: Synced from projects/ — added id lookup, summary command, validate command, --path flag, awk display fix
+- **backlog-validate.sh**: New standalone backlog format validator (synced from projects/)
+- **BACKLOG.md**: Moved write-docs skill to P1; added 4 P100 ideas (telegram bridge, headless suggestions processor, metadata blocks, /insights skill)
+
+### Removed
+- 11 processed suggestions-box issue files (2 deferred to separate branches)
+
 ## [1.0.2] - 2026-02-07 - Hook hardening
 
 ### Changed
