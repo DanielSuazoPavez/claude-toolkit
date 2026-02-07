@@ -116,49 +116,57 @@ Verdict decision tree:
 
 ## Output Format
 
+Use color and visual emphasis to make the review scannable at a glance:
+- Verdicts: `APPROVE` in **bold green** (wrap in a blockquote with >), `REVISE` in **bold yellow**, `RETHINK` in **bold red**
+- Severity labels: **Major** in bold, Minor in regular text
+- Use horizontal rules (`---`) to separate major sections
+- Use blockquotes (`>`) for the summary and verdict sections to make them stand out
+
 ```markdown
 # Plan Review
 
-**Plan type:** [Bug fix | Feature | Refactor | Migration | Security | Infrastructure]
-**Calibrated strictness:** [Low | Medium | High | Very High]
+**Plan type:** Bug fix | **Calibrated strictness:** Low
 
-## Summary
-[1-2 sentences: Is this plan ready to execute?]
+---
+
+> **Summary:** [1-2 sentences: Is this plan ready to execute?]
+
+---
 
 ## Checklist
 
 ### Structure
 - [x] Clear goal stated
-- [ ] Steps are atomic - *[issue: step 3 combines multiple changes]*
+- [ ] Steps are atomic — *step 3 combines multiple changes*
 - [x] Files listed
-- [ ] Verification defined - *[missing: no test plan]*
+- [ ] Verification defined — *missing: no test plan*
 
 ### Clarity
 - [x] Requirements are specific
 - [x] Order is logical
-- [ ] Scope boundaries clear - *[unclear: does this include error handling?]*
+- [ ] Scope boundaries clear — *unclear: does this include error handling?*
 
 ### Pragmatism
 - [x] No over-engineering
-- [ ] Scope matches request - *[creep: step 5 adds logging not requested]*
+- [ ] Scope matches request — *creep: step 5 adds logging not requested*
 - [x] No premature optimization
+
+---
 
 ## Issues
 
-### #1: [Issue title]
-**Severity:** Major | Minor
-**Location:** Step X / Section Y
-**Anti-pattern:** [Name from table, if applicable]
+### **#1: [Issue title]**
+**Severity:** **Major** | **Location:** Step X | **Anti-pattern:** The Kitchen Sink
 
 [Description of what's wrong and why it matters]
 
-**Suggestion:** [How to fix it]
+> **Suggestion:** [How to fix it]
+
+---
 
 ## Verdict
 
-**APPROVE** | **REVISE** | **RETHINK**
-
-[1-2 sentences on recommended action]
+> **APPROVE** — [1-2 sentences on recommended action]
 ```
 
 ## Calibration Guidance

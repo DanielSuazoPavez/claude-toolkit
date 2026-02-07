@@ -125,10 +125,19 @@ EOF
         [[ ! -f "$source_path" ]] && error "File not found: $source_path"
 
         # Derive name from path
-        # .claude/skills/draft-pr/SKILL.md -> draft-pr
+        # Skills have subdirectories: .claude/skills/draft-pr/SKILL.md -> draft-pr
+        # Other resources are flat files: .claude/hooks/secrets-guard.sh -> secrets-guard
         local name
-        name=$(basename "$(dirname "$source_path")")
-        [[ "$name" == "." || "$name" == ".claude" ]] && name=$(basename "$source_path" .md)
+        local dirname_base
+        dirname_base=$(basename "$(dirname "$source_path")")
+        if [[ "$dirname_base" == "hooks" || "$dirname_base" == "agents" || "$dirname_base" == "memories" || "$dirname_base" == "." || "$dirname_base" == ".claude" ]]; then
+            # Flat file: use filename without extension
+            name=$(basename "$source_path")
+            name="${name%.*}"
+        else
+            # Subdirectory resource (skills): use parent dir name
+            name="$dirname_base"
+        fi
 
         # Build destination
         local dest_dir="$TOOLKIT_DIR/suggestions-box/$project"
@@ -255,12 +264,12 @@ version_eq() {
 }
 
 # Check version relationship
-if version_eq "$TOOLKIT_VERSION" "$PROJECT_VERSION"; then
+if version_eq "$TOOLKIT_VERSION" "$PROJECT_VERSION" && ! $FORCE; then
     echo -e "${GREEN}Already up to date.${NC}"
     exit 0
 fi
 
-if version_gt "$PROJECT_VERSION" "$TOOLKIT_VERSION"; then
+if version_gt "$PROJECT_VERSION" "$TOOLKIT_VERSION" && ! $FORCE; then
     echo -e "${YELLOW}Warning: project version ($PROJECT_VERSION) is newer than toolkit ($TOOLKIT_VERSION)${NC}"
     exit 0
 fi
