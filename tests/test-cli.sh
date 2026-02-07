@@ -255,6 +255,23 @@ test_sync_version_equal() {
     teardown_test_env
 }
 
+test_sync_version_equal_with_force() {
+    echo ""
+    echo "=== sync: versions equal with --force ==="
+    setup_test_env
+
+    # Set project version same as toolkit
+    echo "1.0.0" > "$TEMP_DIR/project/.claude-toolkit-version"
+
+    run_toolkit sync --force > /dev/null 2>&1 || true
+
+    # --force should sync even when versions match
+    expect_file_exists "skill synced despite same version with --force" \
+        "$TEMP_DIR/project/.claude/skills/test-skill/SKILL.md"
+
+    teardown_test_env
+}
+
 test_sync_version_newer_project() {
     echo ""
     echo "=== sync: project newer than toolkit ==="
@@ -534,6 +551,7 @@ if [ -z "$FILTER" ]; then
     test_sync_help
     test_sync_no_version_file
     test_sync_version_equal
+    test_sync_version_equal_with_force
     test_sync_version_newer_project
     test_sync_dry_run
     test_sync_new_files_force
@@ -558,6 +576,7 @@ else
             test_sync_help
             test_sync_no_version_file
             test_sync_version_equal
+            test_sync_version_equal_with_force
             test_sync_version_newer_project
             test_sync_dry_run
             test_sync_new_files_force
