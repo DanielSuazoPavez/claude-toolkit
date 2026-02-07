@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0] - 2026-02-07 - Resource dependency verification
+
+### Added
+- **verify-resource-deps.sh**: Cross-reference validation for 7 dependency types (settings→hooks, hooks→skills, skills→agents, skills→skills, skills→scripts, memories→memories, memories→skills)
+  - Allowlist for documentation examples (template names, worked examples)
+  - Built-in command filtering (`/clear`, `/commit`, etc. skip skill lookup)
+- **validate-all.sh**: Wrapper running both index and dependency validations
+- **BACKLOG.md**: Added `settings-template-update` and `install-sync-manifest` P1 items
+
+### Changed
+- `make validate` now runs `validate-all.sh` (both checks) instead of only index validation
+
 ## [1.0.3] - 2026-02-07 - Suggestions box triage
 
 ### Fixed
