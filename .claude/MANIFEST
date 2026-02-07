@@ -1,0 +1,65 @@
+# Sync Manifest — controls what claude-toolkit sync copies to projects.
+#
+# Rules:
+#   - One entry per line, paths relative to .claude/
+#   - Directories end with / — includes all files recursively
+#   - Individual files listed by exact path
+#   - Lines starting with # are comments
+#   - Empty lines are ignored
+#   - If a path doesn't exist, it's skipped with a warning to stderr
+#
+# Anything NOT listed here stays in the toolkit only.
+# Projects use .claude-toolkit-ignore for per-project exclusions.
+
+# skills
+skills/analyze-idea/
+skills/brainstorm-idea/
+skills/design-db/
+skills/design-diagram/
+skills/design-docker/
+skills/design-qa/
+skills/design-tests/
+skills/draft-pr/
+skills/list-memories/
+skills/read-json/
+skills/review-changes/
+skills/review-plan/
+skills/setup-worktree/
+skills/snap-back/
+skills/teardown-worktree/
+skills/wrap-up/
+skills/write-handoff/
+
+# agents
+agents/code-debugger.md
+agents/code-reviewer.md
+agents/codebase-explorer.md
+agents/goal-verifier.md
+agents/implementation-checker.md
+agents/pattern-finder.md
+
+# hooks
+hooks/block-dangerous-commands.sh
+hooks/copy-plan-to-project.sh
+hooks/enforce-feature-branch.sh
+hooks/enforce-make-commands.sh
+hooks/enforce-uv-run.sh
+hooks/secrets-guard.sh
+hooks/session-start.sh
+hooks/suggest-read-json.sh
+
+# memories
+memories/essential-conventions-code_style.md
+memories/essential-conventions-memory.md
+memories/essential-preferences-communication_style.md
+memories/relevant-conventions-backlog_schema.md
+memories/relevant-philosophy-reducing_entropy.md
+memories/relevant-reference-hooks_config.md
+memories/relevant-workflow-task_completion.md
+
+# templates
+templates/
+
+# scripts
+scripts/backlog-query.sh
+scripts/backlog-validate.sh

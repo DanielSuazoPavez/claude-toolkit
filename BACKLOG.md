@@ -21,12 +21,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 ## P1 - High
 
 
-- **[TOOLKIT]** Explicit sync manifest for `claude-toolkit sync` (`sync-manifest`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Replace blanket `.claude/` copy with an explicit list of files/dirs to sync. Prevents accidentally pushing dev-only files (evaluations, reviews, plans) to projects.
-
-- **[SKILLS]** Create `write-documentation` skill (`skill-write-docs`)
+- **[SKILLS]** Create `write-docs` skill (`skill-write-docs`)
     - **status**: `idea`
     - **scope**: `skills`
     - **notes**: API docs, docstrings, README generation

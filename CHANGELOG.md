@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.0] - 2026-02-07 - Explicit sync manifest
+
+### Added
+- **`.claude/MANIFEST`**: Opt-in manifest controlling which files sync to projects — replaces find-based scan with hardcoded ignore list
+- **`resolve_manifest()`**: Expands manifest entries (directories and files) into file list
+- **Post-sync checklist**: Shows configuration references and `.claude-toolkit-ignore` guidance after every sync
+
+### Changed
+- **`cmd_sync()`**: Reads manifest instead of scanning all `.claude/` files; hardcoded ignore patterns removed
+- **README.md**: Quick Start now uses `claude-toolkit sync` instead of `install.sh`
+
+### Removed
+- **`install.sh`**: Fully replaced by `claude-toolkit sync`
+- **Hardcoded ignore list**: `plans/`, `usage.log`, `settings.local.json`, `settings.json` no longer needed — manifest excludes by omission
+
 ## [1.1.1] - 2026-02-07 - Template sync and drift validation
 
 ### Added

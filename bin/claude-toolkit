@@ -165,6 +165,44 @@ categorize_file() {
     esac
 }
 
+# === resolve_manifest: Read MANIFEST and expand to file list ===
+# Outputs relative paths (relative to .claude/) one per line
+resolve_manifest() {
+    local manifest="$TOOLKIT_DIR/.claude/MANIFEST"
+    if [[ ! -f "$manifest" ]]; then
+        echo "Error: MANIFEST not found at $manifest" >&2
+        return 1
+    fi
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+
+        # Trim whitespace
+        line="${line## }"
+        line="${line%% }"
+
+        if [[ "$line" == */ ]]; then
+            # Directory entry: expand recursively
+            local dir="$TOOLKIT_DIR/.claude/$line"
+            if [[ -d "$dir" ]]; then
+                while IFS= read -r -d '' f; do
+                    echo "${f#$TOOLKIT_DIR/.claude/}"
+                done < <(find "$dir" -type f -print0 2>/dev/null)
+            else
+                echo "Warning: manifest directory not found: $line" >&2
+            fi
+        else
+            # File entry: verify exists
+            if [[ -f "$TOOLKIT_DIR/.claude/$line" ]]; then
+                echo "$line"
+            else
+                echo "Warning: manifest file not found: $line" >&2
+            fi
+        fi
+    done < "$manifest"
+}
+
 # === cmd_sync: Main sync logic ===
 cmd_sync() {
 
@@ -304,14 +342,8 @@ else
 fi
 echo ""
 
-# Load ignore patterns
+# Load ignore patterns from project's .claude-toolkit-ignore
 declare -a IGNORE_PATTERNS=()
-
-# Built-in ignores (always skip these)
-IGNORE_PATTERNS+=("plans/")
-IGNORE_PATTERNS+=("usage.log")
-IGNORE_PATTERNS+=("settings.local.json")
-IGNORE_PATTERNS+=("settings.json")
 
 # Project-specific ignores
 if [[ -f "$PROJECT_IGNORE_FILE" ]]; then
@@ -364,14 +396,16 @@ for cat in skills agents hooks memories templates scripts other; do
     CATEGORY_UPDATED_FILES[$cat]=""
 done
 
-# Find all files in toolkit .claude directory
-while IFS= read -r -d '' toolkit_file; do
-    local rel_path="${toolkit_file#$TOOLKIT_DIR/.claude/}"
+# Resolve manifest and process files
+while IFS= read -r rel_path; do
+    [[ -z "$rel_path" ]] && continue
+
+    local toolkit_file="$TOOLKIT_DIR/.claude/$rel_path"
     local target_file="$TARGET_DIR/.claude/$rel_path"
     local category
     category=$(categorize_file "$rel_path")
 
-    # Skip if ignored
+    # Skip if ignored by project's .claude-toolkit-ignore
     if is_ignored "$rel_path"; then
         IGNORED_FILES+=("$rel_path")
         continue
@@ -387,7 +421,7 @@ while IFS= read -r -d '' toolkit_file; do
     elif ! diff -q "$toolkit_file" "$target_file" > /dev/null 2>&1; then
         CATEGORY_UPDATED_FILES[$category]+="$rel_path"$'\n'
     fi
-done < <(find "$TOOLKIT_DIR/.claude" -type f -print0 2>/dev/null)
+done < <(resolve_manifest)
 
 # Count total files
 local total_new=0
@@ -526,13 +560,9 @@ if [[ ${#NEW_FILES[@]} -gt 0 ]]; then
     FILES_TO_COPY+=("${NEW_FILES[@]}")
 fi
 
-# Track if templates were synced
-local templates_synced=false
-
 for f in "${CONFLICT_FILES[@]+"${CONFLICT_FILES[@]}"}"; do
     if $FORCE; then
         FILES_TO_COPY+=("$f")
-        [[ "$f" == templates/* ]] && templates_synced=true
         continue
     fi
 
@@ -544,8 +574,7 @@ for f in "${CONFLICT_FILES[@]+"${CONFLICT_FILES[@]}"}"; do
     case $choice in
         o|O)
             FILES_TO_COPY+=("$f")
-            [[ "$f" == templates/* ]] && templates_synced=true
-            ;;
+                ;;
         s|S)
             echo "  Skipping."
             ;;
@@ -557,11 +586,6 @@ for f in "${CONFLICT_FILES[@]+"${CONFLICT_FILES[@]}"}"; do
             echo "  Invalid choice, skipping."
             ;;
     esac
-done
-
-# Check if any new files are templates
-for f in "${NEW_FILES[@]+"${NEW_FILES[@]}"}"; do
-    [[ "$f" == templates/* ]] && templates_synced=true
 done
 
 # Confirm
@@ -593,20 +617,30 @@ for f in "${FILES_TO_COPY[@]}"; do
     echo -e "  ${GREEN}Copied: $f${NC}"
 done
 
+# Ensure .claude-toolkit-ignore exists in target
+if [[ ! -f "$PROJECT_IGNORE_FILE" ]]; then
+    local ignore_template="$TOOLKIT_DIR/.claude/templates/claude-toolkit-ignore.template"
+    if [[ -f "$ignore_template" ]]; then
+        cp "$ignore_template" "$PROJECT_IGNORE_FILE"
+        echo -e "  ${GREEN}Created: .claude-toolkit-ignore (from template)${NC}"
+    fi
+fi
+
 # Update version file
 echo "$TOOLKIT_VERSION" > "$PROJECT_VERSION_FILE"
 echo ""
 echo -e "${GREEN}Synced to version $TOOLKIT_VERSION${NC}"
 
-# Post-sync reminders
-if $templates_synced; then
-    echo ""
-    echo -e "${BLUE}Templates synced. Consider merging into your project:${NC}"
-    echo "  - Makefile.claude-toolkit → merge targets into Makefile"
-    echo "  - gitignore.claude-toolkit → merge lines into .gitignore"
-    echo "  - settings.template.json → reference for .claude/settings.json"
-    echo "  - claude-toolkit-ignore.template → copy to .claude-toolkit-ignore"
-fi
+# Post-sync checklist
+echo ""
+echo -e "${BLUE}Post-sync checklist:${NC}"
+echo "  Check .claude/templates/ for configuration references:"
+echo "    - settings.template.json  → .claude/settings.json"
+echo "    - mcp.template.json       → .mcp.json"
+echo "    - Makefile.claude-toolkit  → Makefile"
+echo "    - gitignore.claude-toolkit → .gitignore"
+echo "  Use .claude-toolkit-ignore to exclude files from future syncs"
+echo "  Run 'make claude-toolkit-validate' to check configuration"
 
 # Check dependencies
 if ! command -v jq &> /dev/null; then
