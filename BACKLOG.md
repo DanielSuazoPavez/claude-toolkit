@@ -1,11 +1,8 @@
 # Project Backlog
 
-## Goal
+## Current Goal
 
-Getting claude-toolkit to a clean, polished state:
-- Personal use first, organized and documented
-- Foundation for syncing across multiple projects
-- Eventually public-ready
+Getting claude-toolkit to a clean, polished state: personal use first, organized and documented. Foundation for syncing across multiple projects, eventually public-ready.
 
 ## Scope Definitions
 
@@ -21,86 +18,67 @@ Getting claude-toolkit to a clean, polished state:
 
 ## P0 - Critical
 
-(None)
-
----
-
 ## P1 - High
 
-- **[SKILLS]** Create `logging-observability` skill
+- **[SKILLS]** Create `logging-observability` skill (`skill-logging`)
     - **status**: `idea`
     - **scope**: `skills`
-    - Structured logging, metrics, tracing setup
-
----
+    - **notes**: Structured logging, metrics, tracing setup
 
 ## P2 - Medium
 
-- **[AGENTS]** Create `test-gap-analyzer` agent
+- **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`)
     - **status**: `idea`
     - **scope**: `agents`
-    - Analyzes existing tests, finds coverage gaps, suggests what to test
-    - Pairs with `design-tests` skill (pytest patterns)
-    - Multi-step: discover test files → analyze source coverage → report gaps
+    - **notes**: Analyzes existing tests, finds coverage gaps, suggests what to test. Pairs with `design-tests` skill. Multi-step: discover test files, analyze source coverage, report gaps.
 
-- **[SKILLS]** Create `review-documentation` skill
+- **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`)
     - **status**: `idea`
     - **scope**: `skills`
-    - Reviews non-code parts: README, docs/, docstrings, comments
-    - Checks completeness, accuracy vs code, consistency, broken links
-    - Does NOT review code logic, just documentation quality
+    - **notes**: Reviews non-code parts: README, docs/, docstrings, comments. Checks completeness, accuracy vs code, consistency, broken links. Does NOT review code logic.
 
-- **[SKILLS]** Create `github-actions` skill
+- **[SKILLS]** Create `github-actions` skill (`skill-gh-actions`)
     - **status**: `idea`
     - **scope**: `skills`
-    - CI/CD pipeline patterns, caching, matrix builds
+    - **notes**: CI/CD pipeline patterns, caching, matrix builds
 
-- **[SKILLS]** Create `write-documentation` skill
+- **[SKILLS]** Create `write-documentation` skill (`skill-write-docs`)
     - **status**: `idea`
     - **scope**: `skills`
-    - API docs, docstrings, README generation
+    - **notes**: API docs, docstrings, README generation
 
-
-- **[TOOLKIT]** Session lessons system
+- **[TOOLKIT]** Session lessons system (`session-lessons`)
     - **status**: `idea`
     - **scope**: `toolkit, skills, memories`
-    - Memory + skill for capturing debugging/investigation insights
-    - Meta-tags: `[T]` transferable vs `[P:project]` project-specific
-    - Centralized collection from projects (similar to suggestions-box)
-    - Reference: bm-sop `experimental-sessions_lessons.md` + `search-session-lessons/`
+    - **notes**: Memory + skill for capturing debugging/investigation insights. Meta-tags: `[T]` transferable vs `[P:project]` project-specific. Reference: bm-sop `experimental-sessions_lessons.md`.
 
----
+## P100 - Nice to Have
 
-## P3 - Low / Nice-to-Have
-
-- **[HOOKS]** Context-aware suggestions via UserPromptSubmit
+- **[HOOKS]** Context-aware suggestions via UserPromptSubmit (`hook-context-suggest`)
     - **status**: `idea`
     - **scope**: `toolkit, hooks`
-    - Analyze user prompt, suggest relevant memories and skills
-    - bash-only implementation (keyword matching)
+    - **notes**: Analyze user prompt, suggest relevant memories and skills. Bash-only implementation (keyword matching).
 
-- **[AGENTS]** Create `aws-architect` agent
+- **[AGENTS]** Create `aws-architect` agent (`agent-aws-architect`)
     - **status**: `idea`
     - **scope**: `agents`
-    - Infra design, cost/tradeoff analysis, online cost lookup
+    - **notes**: Infra design, cost/tradeoff analysis, online cost lookup
 
-- **[AGENTS]** Create `aws-security-auditor` agent
+- **[AGENTS]** Create `aws-security-auditor` agent (`agent-aws-security`)
     - **status**: `idea`
     - **scope**: `agents`
-    - Security review, least-privilege validation
+    - **notes**: Security review, least-privilege validation
 
-- **[SKILLS]** Create `aws-deploy` skill
+- **[SKILLS]** Create `aws-deploy` skill (`skill-aws-deploy`)
     - **status**: `idea`
     - **scope**: `skills`
-    - Service-specific best practices (Lambda, RDS, OpenSearch)
+    - **notes**: Service-specific best practices (Lambda, RDS, OpenSearch)
 
-- **[SKILLS]** Research Polars-specific patterns
+- **[SKILLS]** Research Polars-specific patterns (`skill-polars`)
     - **status**: `idea`
     - **scope**: `skills`
-    - Lazy frames, expressions, optimizations
+    - **notes**: Lazy frames, expressions, optimizations
 
 ---
 
 ## Graveyard
-
-(None yet)

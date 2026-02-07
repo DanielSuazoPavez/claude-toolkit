@@ -4,8 +4,7 @@
 
 **ONLY READ WHEN:**
 - Configuring or troubleshooting hooks behavior
-- Need to bypass a hook temporarily
-- User asks about hook environment variables
+- User asks about hook environment variables or thresholds
 
 Reference for hook triggers, environment variables, and customization options.
 
@@ -57,9 +56,7 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | `ALLOW_DIRECT_PYTHON=1` | Bypass enforce-uv-run check |
 | `ALLOW_DIRECT_COMMANDS=1` | Bypass enforce-make-commands check |
 | `ALLOW_DANGEROUS_COMMANDS=1` | Bypass block-dangerous-commands check |
-| `ALLOW_ENV_READ=1` | Allow reading .env files |
 | `ALLOW_COMMIT_ON_MAIN=1` | Allow git commit on protected branches |
-| `ALLOW_JSON_READ=1` | Bypass /read-json suggestion |
 
 ### Path Configuration
 | Variable | Default | Purpose |
@@ -71,23 +68,20 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CLAUDE_SKIP_PLAN_COPY` | `0` | Disable plan copying |
-| `JSON_READ_WARN` | `0` | Warn instead of block for JSON files |
 
 ### Thresholds & Patterns
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `JSON_SIZE_THRESHOLD_KB` | `50` | Size threshold for JSON blocking |
-| `SAFE_ENV_EXTENSIONS` | `example,template,sample` | Safe .env extensions |
-| `ALLOW_JSON_PATTERNS` | `package.json,tsconfig.json,...` | Always-allowed JSON files |
 
 ---
 
 ## 4. Troubleshooting
 
 **Hook blocking unexpectedly?**
-1. Check the hook's env var bypass (section 3)
-2. Set temporarily: `export ALLOW_<HOOK>=1`
-3. Or add to `.envrc` for persistent override
+1. Check the hook's matcher in `.claude/settings.json`
+2. Review the hook script comments for expected behavior
+3. Some hooks support threshold configuration (e.g., `JSON_SIZE_THRESHOLD_KB`)
 
 **Hook not firing?**
 1. Verify `.claude/settings.json` has the hook configured

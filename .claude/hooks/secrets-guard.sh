@@ -4,13 +4,9 @@
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Read|Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/secrets-guard.sh"}]}]
 #
-# Environment:
-#   ALLOW_ENV_READ=1  - bypass all checks
-#   SAFE_ENV_EXTENSIONS - comma-separated safe extensions (default: example,template,sample)
-#
 # Blocks:
 #   Read tool:
-#     - Files matching .env, .env.*, *.env (except safe extensions)
+#     - Files matching .env, .env.*, *.env (except .example files)
 #   Bash tool:
 #     - cat .env, less .env, head .env, tail .env
 #     - source .env, . .env
@@ -18,20 +14,23 @@
 #     - env, printenv (lists all env vars)
 #
 # Allowlist:
-#   - .env.example, .env.template, .env.sample (configurable via SAFE_ENV_EXTENSIONS)
+#   - Files ending in .example (e.g., .env.example, .env.api.example)
 #
 # Test cases:
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env"}}' | ./secrets-guard.sh
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env"}}' | bash secrets-guard.sh
 #   # Expected: {"decision":"block","reason":"..."}
 #
-#   echo '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}' | ./secrets-guard.sh
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.api"}}' | bash secrets-guard.sh
 #   # Expected: {"decision":"block","reason":"..."}
 #
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.example"}}' | ./secrets-guard.sh
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.example"}}' | bash secrets-guard.sh
 #   # Expected: (empty - allowed)
-
-# Allowlist: skip if explicitly allowed
-[ -n "$ALLOW_ENV_READ" ] && exit 0
+#
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.api.example"}}' | bash secrets-guard.sh
+#   # Expected: (empty - allowed)
+#
+#   echo '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}' | bash secrets-guard.sh
+#   # Expected: {"decision":"block","reason":"..."}
 
 INPUT=$(cat)
 
@@ -44,28 +43,21 @@ block() {
     exit 0
 }
 
-# Configurable safe extensions (default: example,template,sample)
-SAFE_EXTENSIONS="${SAFE_ENV_EXTENSIONS:-example,template,sample}"
-
 # Handle Read tool
 if [ "$TOOL_NAME" = "Read" ]; then
     FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || exit 0
     [ -z "$FILE_PATH" ] && exit 0
 
-    # Get just the filename
     FILENAME=$(basename "$FILE_PATH")
 
-    # Check if filename matches a safe extension pattern
-    IFS=',' read -ra EXTENSIONS <<< "$SAFE_EXTENSIONS"
-    for ext in "${EXTENSIONS[@]}"; do
-        if [[ "$FILENAME" == ".env.$ext" ]]; then
-            exit 0
-        fi
-    done
+    # Allow .example files (.env.example, .env.api.example, etc.)
+    if [[ "$FILENAME" =~ \.example$ ]]; then
+        exit 0
+    fi
 
     # Block .env, .env.*, or *.env files
     if [[ "$FILENAME" = ".env" ]] || [[ "$FILENAME" =~ ^\.env\. ]] || [[ "$FILENAME" =~ \.env$ ]]; then
-        block "BLOCKED: Reading .env file may expose secrets. Use .env.example as a template reference. Set ALLOW_ENV_READ=1 to bypass."
+        block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
     fi
 
     exit 0
@@ -79,29 +71,29 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     # Block commands that read .env files
     # cat/less/head/tail/more .env
     if [[ "$COMMAND" =~ (cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?\.env([[:space:]]|$) ]]; then
-        block "BLOCKED: Reading .env file may expose secrets. Set ALLOW_ENV_READ=1 to bypass."
+        block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
     fi
 
     # source .env or . .env
     if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*\.env([[:space:]]|$) ]]; then
-        block "BLOCKED: Sourcing .env file may expose secrets. Set ALLOW_ENV_READ=1 to bypass."
+        block "BLOCKED: Sourcing .env file may expose secrets. Use the .example version as a reference instead."
     fi
 
     # export $(cat .env) or similar patterns
     if [[ "$COMMAND" =~ export[[:space:]]+.*\$\(.*\.env ]]; then
-        block "BLOCKED: Exporting from .env file may expose secrets. Set ALLOW_ENV_READ=1 to bypass."
+        block "BLOCKED: Exporting from .env file may expose secrets. Use the .example version as a reference instead."
     fi
 
     # Standalone 'env' command that lists all environment variables
     # Block: env, env | grep, env > file
     # Allow: env VAR=val command (sets env for a command, doesn't list vars)
     if [[ "$COMMAND" =~ ^env([[:space:]]*$|[[:space:]]*[\|>]) ]]; then
-        block "BLOCKED: 'env' command exposes all environment variables including secrets. Set ALLOW_ENV_READ=1 to bypass."
+        block "BLOCKED: 'env' command exposes all environment variables including secrets."
     fi
 
     # Block printenv (lists environment variables)
     if [[ "$COMMAND" =~ ^printenv([[:space:]]|$) ]]; then
-        block "BLOCKED: 'printenv' command exposes environment variables including secrets. Set ALLOW_ENV_READ=1 to bypass."
+        block "BLOCKED: 'printenv' command exposes environment variables including secrets."
     fi
 
     exit 0
