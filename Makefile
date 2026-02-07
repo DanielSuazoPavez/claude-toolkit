@@ -6,7 +6,7 @@ help:
 	@echo "  make test-hooks        - Run hook tests only"
 	@echo "  make test-cli          - Run CLI tests only"
 	@echo "  make test-backlog      - Run backlog-query tests only"
-	@echo "  make validate          - Run resource index validation"
+	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make check             - Run everything (tests + validate)"
 
 test: test-hooks test-cli test-backlog
@@ -21,6 +21,6 @@ test-backlog:
 	@bash tests/test-backlog-query.sh
 
 validate:
-	@bash scripts/validate-resources-indexed.sh
+	@bash scripts/validate-all.sh
 
 check: test validate
