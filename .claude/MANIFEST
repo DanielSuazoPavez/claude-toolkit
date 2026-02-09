@@ -29,6 +29,7 @@ skills/snap-back/
 skills/teardown-worktree/
 skills/wrap-up/
 skills/write-handoff/
+skills/write-docs/
 
 # agents
 agents/code-debugger.md
