@@ -15,6 +15,7 @@
 #
 # Allowlist:
 #   - Files ending in .example (e.g., .env.example, .env.api.example)
+#   - Files ending in .template (e.g., .env.template)
 #
 # Test cases:
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.env"}}' | bash secrets-guard.sh
@@ -50,8 +51,8 @@ if [ "$TOOL_NAME" = "Read" ]; then
 
     FILENAME=$(basename "$FILE_PATH")
 
-    # Allow .example files (.env.example, .env.api.example, etc.)
-    if [[ "$FILENAME" =~ \.example$ ]]; then
+    # Allow .example and .template files (.env.example, .env.template, etc.)
+    if [[ "$FILENAME" =~ \.(example|template)$ ]]; then
         exit 0
     fi
 

@@ -211,9 +211,9 @@ test_enforce_make_commands() {
     echo "=== enforce-make-commands.sh ==="
     local hook="enforce-make-commands.sh"
 
-    # Should block
-    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"}}' \
-        "blocks direct pytest"
+    # Should block (bare commands = full suite runs)
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
+        "blocks bare pytest"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"uv run pytest"}}' \
         "blocks uv run pytest"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"pre-commit run"}}' \
@@ -226,6 +226,8 @@ test_enforce_make_commands() {
         "allows make test"
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"make lint"}}' \
         "allows make lint"
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"}}' \
+        "allows targeted pytest"
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
         "allows other commands"
 }
