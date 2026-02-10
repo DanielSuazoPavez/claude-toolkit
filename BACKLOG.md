@@ -25,6 +25,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
         - `aws-security-auditor` agent: Security review, least-privilege IAM validation
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
+    - **drafts**: `.claude/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 - **[SKILLS]** Improve evaluation system — D7 rework, priority tags, cross-resource checks (`skill-eval-improvements`)
     - **status**: `idea`
