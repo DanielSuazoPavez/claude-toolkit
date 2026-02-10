@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.4.2] - 2026-02-10 - Code reviewer agent improvements
+
+### Changed
+- **`code-reviewer` agent**: Added persistent output path (`.claude/reviews/`), mechanic persona voice, calibration example showing same issue at different scales, and "reporter, not decider" handoff principle. Re-evaluated: A (91/100).
+
 ## [1.4.0] - 2026-02-07 - Transcript analytics
 
 ### Added
