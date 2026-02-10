@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.3] - 2026-02-10 - Backlog grooming & new drafts
+
+### Added
+- **Refactor skill draft**: `.claude/drafts/skill-refactor/design-notes.md` — refactoring as a design activity with coupling/cohesion/dependency-direction metrics, structured before/after analysis.
+- **Session lessons draft**: `.claude/drafts/session-lessons/design-notes.md` — prototype design for `[LEARN]` tag capture via Stop hook, two-layer JSON structure (recent + key), jq querying, promotion path.
+
+### Changed
+- **Backlog reprioritized**: Session lessons promoted to P0 (prototype capture mechanism). Refactor skill and design-tests audit mode added to P1. GH Actions skill moved from P2 to P100. Test-gap-analyzer agent absorbed into design-tests audit mode.
+- **Graveyarded 3 items**: `skill-polars` (base knowledge + Context7 sufficient), `skill-logging` (preferences not yet formed), `agent-test-gaps` (behavioral delta too thin).
+
 ## [1.5.2] - 2026-02-10 - AWS toolkit pre-research drafts
 
 ### Added
