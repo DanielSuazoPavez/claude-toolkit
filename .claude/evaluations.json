@@ -994,26 +994,6 @@
         ],
         "file_hash": "0c41ee87"
       },
-      "experimental-preferences-casual_communication_style": {
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 95,
-        "max": 100,
-        "percentage": 95,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 19,
-          "D4": 14,
-          "D5": 19
-        },
-        "top_improvements": [
-          "Consider adding section numbering consistency check (currently 1-7)",
-          "The 'Claudito's Battle Royale' reference is project-specific context that may not transfer",
-          "Could add explicit 'when to exit casual mode' guidance beyond current transitions section"
-        ],
-        "file_hash": "f1a710bf"
-      },
       "relevant-reference-hooks_config": {
         "date": "2026-01-28",
         "grade": "A",

@@ -8,7 +8,7 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `brainstorm-idea` | stable | Turn fuzzy ideas into clear designs through structured dialogue |
 | `analyze-idea` | stable | Research tasks - investigate topics, gather evidence, generate reports |
-| `review-plan` | beta | Review implementation plans against quality criteria |
+| `review-plan` | stable | Review implementation plans against quality criteria |
 | `write-handoff` | stable | Capture context before `/clear` for session continuity |
 | `wrap-up` | stable | Session wrap-up and handoff documentation |
 | `list-memories` | stable | List available memories with Quick Reference summaries |
@@ -19,14 +19,14 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `review-changes` | beta | Fast code review focused on blockers |
 | `design-qa` | alpha | Design test plans, QA strategies, regression suites, bug triage |
-| `design-tests` | alpha | Pytest patterns for fixtures, mocking, organization, test prioritization |
+| `design-tests` | beta | Pytest patterns for fixtures, mocking, organization, test prioritization |
 
 ## Design & Architecture
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `design-db` | alpha | Design database schemas with normalization and indexing guidance |
-| `design-diagram` | alpha | Create diagrams for architecture, flows, and models |
+| `design-db` | beta | Design database schemas with normalization and indexing guidance |
+| `design-diagram` | beta | Create diagrams for architecture, flows, and models |
 
 ## Development Tools
 
@@ -34,8 +34,8 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `write-docs` | beta | Write or update project documentation via gap analysis |
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
-| `setup-worktree` | alpha | Reference for git worktrees - setup, usage, pitfalls |
-| `teardown-worktree` | alpha | Safe worktree closure after agent completion |
+| `setup-worktree` | beta | Reference for git worktrees - setup, usage, pitfalls |
+| `teardown-worktree` | beta | Safe worktree closure after agent completion |
 | `read-json` | stable | Read and analyze JSON files efficiently using jq |
 | `design-docker` | alpha | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
 

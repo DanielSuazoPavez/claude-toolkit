@@ -25,13 +25,13 @@ Always loaded at session start:
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `relevant-philosophy-reducing_entropy` | alpha | Philosophy on reducing codebase entropy |
+| `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |
 
-## Experimental
+## Personal
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `experimental-preferences-casual_communication_style` | stable | Casual conversation mode for meta-discussions |
+| `personal-preferences-casual_communication_style` | stable | Casual conversation mode for meta-discussions |
 
 ## Memory Categories
 
@@ -52,6 +52,11 @@ Always loaded at session start:
 ### `idea` (Temporary)
 - Future implementation ideas
 - **Format**: `idea-{YYYYMMDD}-{context}-{plan_idea}`
+
+### `personal` (Private)
+- Personal preferences and customizations
+- **Format**: `personal-{context}-{descriptive_name}`
+- Not shared to other projects, not evaluated
 
 ### `experimental` (Testing)
 - Trying out new approaches or A/B testing behaviors

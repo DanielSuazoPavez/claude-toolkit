@@ -63,6 +63,7 @@ Memories don't load themselves. Loading is driven by:
 - `relevant-{context}-{name}` - Long-term, may evolve (on-demand)
 - `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific (on-demand)
 - `idea-{YYYYMMDD}-{context}-{idea}` - Future work, needs permission (on-demand)
+- `personal-{context}-{name}` - Private preferences, no eval, no sharing (user on-demand ONLY)
 - `experimental-{context}-{name}` - Testing new approaches (user on-demand ONLY)
 
 ### D2: Quick Reference Section (25 pts) - Required
@@ -107,7 +108,7 @@ Memories don't load themselves. Loading is driven by:
 **Guidelines:**
 - Session start: Only `essential-` that affect every interaction
 - On-demand: `relevant-`, reference docs, detailed guides
-- User on-demand ONLY: `experimental-` (user must explicitly request)
+- User on-demand ONLY: `personal-`, `experimental-` (user must explicitly request)
 - Never auto-load: `idea-` (requires permission)
 
 ### D5: Structure & Formatting (20 pts)

@@ -8,14 +8,14 @@ Automation hooks configured in `settings.json`.
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
 | `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
-| `block-dangerous-commands.sh` | alpha | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `secrets-guard.sh` | alpha | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
-| `suggest-read-json.sh` | alpha | PreToolUse (Read) | Suggests /read-json skill for JSON files |
-| `enforce-uv-run.sh` | alpha | PreToolUse (Bash) | Ensures Python uses `uv run` |
-| `enforce-make-commands.sh` | alpha | PreToolUse (Bash) | Encourages Make targets |
+| `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
+| `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
+| `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
+| `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
 | `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
-**Note**: Alpha hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
+**Note**: Beta hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
 
 ---
 
