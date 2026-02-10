@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0] - 2026-02-10 - Handoff resume prompt & validation script relocation
+
+### Added
+- **`write-handoff` resume prompt**: Handoff template now includes a `## Resume Prompt` section that generates a paste-ready sentence combining the file read with intent and next steps. Next session gets both context and direction in one line.
+
+### Changed
+- **Validation scripts relocated**: Moved `validate-all.sh`, `validate-resources-indexed.sh`, `validate-settings-template.sh`, and `verify-resource-deps.sh` from `scripts/` to `.claude/scripts/`. Co-locates validation with the resources it validates. Updated MANIFEST, Makefile, CLAUDE.md, and template references.
+- **`verify-resource-deps.sh`**: Added allowlist entry for `experimental-conventions-alternative_commit_style` (documentation example in naming conventions).
+- **Backlog reprioritized**: Added P0 tier, promoted eval improvements to P1, added rules exploration and session lessons to P2.
+
+### Removed
+- **`scripts/analyze-usage.sh`**: Superseded by `scripts/insights.py`.
+
 ## [1.4.3] - 2026-02-10 - Resource index updates & personal memory category
 
 ### Added
