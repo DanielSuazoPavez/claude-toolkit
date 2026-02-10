@@ -16,6 +16,14 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
+## P0 - Critical
+
+- **[TOOLKIT]** Session lessons capture — prototype (`session-lessons`)
+    - **status**: `idea`
+    - **scope**: `toolkit, hooks`
+    - **notes**: Flat-file prototype: `Stop` hook captures `[LEARN]` tags from responses → appends to per-project `LEARNED.md` → `session-start.sh` surfaces recent entries. Goal is observing what we get (knowledge vs noise) before deciding on heavier infrastructure. Promotion path: valuable lessons → memories/skills/conventions. Ref: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md`
+    - **drafts**: `.claude/drafts/session-lessons/` — design notes, capture flow, analysis plan
+
 ## P1 - High
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
@@ -36,49 +44,36 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - Make cross-resource integration quality an explicit check when resources reference other resources
     - **plan**: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md` (Evaluation System Observations section)
 
-## P2 - Medium
-
 - **[SKILLS]** Create `refactor` skill (`skill-refactor`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Structured guidance for module restructuring, dependency untangling, migration from X to Y. Impact analysis, step ordering, verification at each stage.
+    - **notes**: Refactoring as a design activity, not just mechanics. Systematic decision guidance via coupling/cohesion/dependency-direction metrics, structured before/after analysis, step ordering with metric validation. Value is consistency — ensuring the model applies deep structural reasoning every time, not just when prompted.
+    - **drafts**: `.claude/drafts/skill-refactor/` — design notes from backlog evaluation session
 
-- **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`)
+- **[SKILLS]** Add audit mode to `design-tests` skill (`skill-design-tests-audit`)
     - **status**: `idea`
-    - **scope**: `agents`
-    - **notes**: Analyzes existing tests, finds coverage gaps, suggests what to test. Pairs with `design-tests` skill. Multi-step: discover test files, analyze source coverage, report gaps.
+    - **scope**: `skills`
+    - **notes**: Add gap-analysis section to existing skill: source-to-test file mapping, applying priority framework as coverage audit, checking existing tests for missing edge cases, structured findings output. Also address eval improvements: trim redundant pytest basics, add async test patterns, prescriptive guidance for high-risk scenarios.
+
+## P2 - Medium
 
 - **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/reviews/exploration/claude-code-rules.md`, https://code.claude.com/docs/en/memory
 
-- **[SKILLS]** Create `github-actions` skill (`skill-gh-actions`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: CI/CD pipeline patterns, caching, matrix builds
-
-- **[TOOLKIT]** Session lessons system (`session-lessons`)
-    - **status**: `idea`
-    - **scope**: `toolkit, skills, memories`
-    - **notes**: Memory + skill for capturing debugging/investigation insights. Meta-tags: `[T]` transferable vs `[P:project]` project-specific. Reference: bm-sop `experimental-sessions_lessons.md`. Learning-capture loop from rohitg00/pro-workflow is a good reference for automation (SQLite + FTS5 + hook-based capture). Ref: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md`
 
 ## P100 - Nice to Have
-
-- **[SKILLS]** Create `logging-observability` skill (`skill-logging`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Structured logging, metrics, tracing setup
 
 - **[HOOKS]** Context-aware suggestions via UserPromptSubmit (`hook-context-suggest`)
     - **status**: `idea`
     - **scope**: `toolkit, hooks`
     - **notes**: Analyze user prompt, suggest relevant memories and skills. Bash-only implementation (keyword matching).
 
-- **[SKILLS]** Research Polars-specific patterns (`skill-polars`)
+- **[SKILLS]** Create `github-actions` skill (`skill-gh-actions`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Lazy frames, expressions, optimizations
+    - **notes**: CI/CD pipeline patterns, caching, matrix builds. Build when encountering real CI/CD need.
 
 - **[TOOLKIT]** Telegram bot bridge to Claude Code (`telegram-bridge`)
     - **status**: `idea`
@@ -92,3 +87,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[AGENTS]** Add metadata block to generated documents (`agent-metadata-block`) — overkill; file names and content start is enough
 - **[TOOLKIT]** Headless agent for suggestions-box processing (`agent-suggestions-processor`) — has its own design doc and folder, not a backlog item
 - **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`) — redundant; write-docs gap analysis already audits docs against code before writing. For docs, reading IS the review.
+- **[SKILLS]** Research Polars-specific patterns (`skill-polars`) — base model knowledge + Context7 MCP provides sufficient coverage; Polars API evolves too fast for a static skill to add value
+- **[SKILLS]** Create `logging-observability` skill (`skill-logging`) — base knowledge sufficient for decision guidance; preferences not yet formed on observability stack beyond structlog
+- **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`) — behavioral delta too thin; gap-analysis workflow absorbed into `design-tests` skill audit mode instead
