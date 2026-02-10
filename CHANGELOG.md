@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2] - 2026-02-10 - AWS toolkit pre-research drafts
+
+### Added
+- **`.claude/drafts/` folder**: Staging area for pre-research before building resources.
+- **AWS toolkit drafts**: Article analysis (12 best practices tiered by agent usefulness), IAM validation tools research (Parliament, Policy Sentry, IAM Policy Autopilot, Access Analyzer), cost estimation tools research (Infracost, AWS Pricing API, Cloud Custodian), and service selection guide placeholder.
+- **Backlog updated**: `aws-toolkit` item now references drafts folder.
+
 ## [1.5.1] - 2026-02-10 - Hook test fixes
 
 ### Fixed
