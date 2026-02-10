@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.6.1] - 2026-02-10 - design-tests audit mode & expert content
+
+### Added
+- **`design-tests` audit mode**: Source-to-test mapping, gap classification using priority framework, missing case detection in existing tests, structured output template.
+- **Mindset framing**: "Tests Are Specifications" — tests as executable behavior contracts.
+- **Async testing section**: Factory cleanup gotcha, sync/async fixture mixing, event loop scope guidance.
+- **High-risk scenarios**: Prescriptive patterns for DB transaction rollback testing, auth/authz checklist (403 not 404), external API failure modes.
+- **Troubleshooting section**: Fixture not found (conftest resolution), import errors at collection, fixture cleanup failures, flaky test diagnosis tree.
+
+### Changed
+- **Trimmed activation knowledge**: Removed redundant pytest basics (fixture scope table, marks table/code, make targets, parametrize syntax) from SKILL.md. Removed Makefile targets, pyproject.toml config, marker registration, simple data fixture from EXAMPLES.md. Expert content density increased.
+- **`design-tests` description**: Added audit trigger keywords (test gaps, test audit, coverage audit).
+
 ## [1.6.0] - 2026-02-10 - Session lessons capture
 
 ### Added

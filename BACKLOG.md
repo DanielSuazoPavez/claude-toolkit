@@ -30,10 +30,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Improve evaluation system — D7 rework, priority tags, cross-resource checks (`skill-eval-improvements`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Three improvements to evaluate-* skills:
-        - Rework D7 (Pattern Recognition) for skills — zero variance (all score 9/10), not differentiating
+    - **notes**: Four improvements to evaluate-* skills:
+        - Rework D7 (Pattern Recognition) for skills — zero variance (all score 9/10), not differentiating. Should weight expert knowledge density over raw line count — a 400-line skill with high expert-delta is better than a 200-line skill with activation padding
         - Add priority tags (`[high]`/`[low]`) to improvement suggestions in evaluations.json
         - Make cross-resource integration quality an explicit check when resources reference other resources
+        - Review keyword inflation in D4 — more trigger keywords increases false-positive routing, should penalize over-broad descriptions
     - **plan**: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md` (Evaluation System Observations section)
 
 - **[SKILLS]** Create `refactor` skill (`skill-refactor`)
@@ -41,11 +42,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: Refactoring as a design activity, not just mechanics. Systematic decision guidance via coupling/cohesion/dependency-direction metrics, structured before/after analysis, step ordering with metric validation. Value is consistency — ensuring the model applies deep structural reasoning every time, not just when prompted.
     - **drafts**: `.claude/drafts/skill-refactor/` — design notes from backlog evaluation session
-
-- **[SKILLS]** Add audit mode to `design-tests` skill (`skill-design-tests-audit`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Add gap-analysis section to existing skill: source-to-test file mapping, applying priority framework as coverage audit, checking existing tests for missing edge cases, structured findings output. Also address eval improvements: trim redundant pytest basics, add async test patterns, prescriptive guidance for high-risk scenarios.
 
 ## P2 - Medium
 
