@@ -1136,23 +1136,23 @@
         ]
       },
       "code-reviewer": {
-        "date": "2026-01-28",
+        "file_hash": "2777c0f4",
+        "date": "2026-02-10",
         "grade": "A",
-        "score": 92,
+        "score": 91,
         "max": 100,
-        "percentage": 92,
+        "percentage": 91,
         "dimensions": {
           "D1": 28,
           "D2": 27,
-          "D3": 23,
+          "D3": 22,
           "D4": 14
         },
         "top_improvements": [
-          "Add a concrete example of calibration in action (e.g., Startup script: check null handling. Do not suggest dependency injection.)",
-          "Clarify real security risks with 1-2 specific examples vs. what to skip",
-          "Consider adding explicit handoff: After review, developer addresses blockers before merge"
-        ],
-        "file_hash": "97460064"
+          "Add explicit post-report handoff guidance: what happens after the report is delivered (blockers block merge, risks are developer discretion, nice-to-haves are optional)",
+          "Thread the mechanic persona more deeply through later sections — Anti-patterns to Avoid and Calibration Questions read as instructions rather than character voice",
+          "Add a second concrete calibration example beyond the input validation one, showing the same structural issue (e.g., error handling) at different scales"
+        ]
       },
       "code-debugger": {
         "file_hash": "e2bb74f6",
