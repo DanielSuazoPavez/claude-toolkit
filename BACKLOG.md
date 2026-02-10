@@ -16,13 +16,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
-## P0 - Critical
-
-- **[HOOKS]** Fix failing hook tests — secrets-guard and enforce-uv-run (`fix-hook-tests`)
-    - **status**: `idea`
-    - **scope**: `hooks, tests`
-    - **notes**: 2 of 45 hook tests fail: `secrets-guard.sh` "allows .env.template" and `enforce-uv-run.sh` "blocks direct pytest". Pre-existing failures, not regressions.
-
 ## P1 - High
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)

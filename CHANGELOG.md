@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1] - 2026-02-10 - Hook test fixes
+
+### Fixed
+- **`secrets-guard.sh`**: Now allows `.env.template` files (alongside `.example`).
+- **`enforce-make-commands` tests**: Updated to match hook behavior — bare `pytest` is blocked but targeted runs like `pytest tests/` are allowed. Added test case for targeted pytest.
+
 ## [1.5.0] - 2026-02-10 - Handoff resume prompt & validation script relocation
 
 ### Added
