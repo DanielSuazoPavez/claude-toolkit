@@ -6,7 +6,7 @@
 #   - Both files use the same nested hook format structure
 #
 # Usage:
-#   bash scripts/validate-settings-template.sh
+#   bash .claude/scripts/validate-settings-template.sh
 #
 # Exit codes:
 #   0 - Template is in sync

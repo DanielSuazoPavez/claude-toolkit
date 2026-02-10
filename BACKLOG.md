@@ -24,7 +24,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **notes**: Current handoff tells user to `read .claude/sessions/...` but just reading the file doesn't convey intent to the next instance. Add a "Resume prompt" section that generates a paste-ready sentence combining the file read with the intent, e.g. `Resume this work: read .claude/sessions/... — continuing [branch], next step is [action]`. Ref: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md`
 
 - **[TOOLKIT]** Move resource validation scripts into `.claude/` and MANIFEST (`toolkit-validation-scripts`)
-    - **status**: `idea`
+    - **status**: `in-progress`
     - **scope**: `toolkit`
     - **notes**: `scripts/validate-resources-indexed.sh` and related validation scripts should live inside `.claude/` and be registered in the MANIFEST. Keeps validation co-located with the resources it validates.
 

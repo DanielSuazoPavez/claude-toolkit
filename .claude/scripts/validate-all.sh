@@ -2,7 +2,7 @@
 # Runs all validation scripts and reports combined pass/fail
 #
 # Usage:
-#   bash scripts/validate-all.sh
+#   bash .claude/scripts/validate-all.sh
 #
 # Exit codes:
 #   0 - All validations passed

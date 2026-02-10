@@ -2,7 +2,7 @@
 # Verifies that cross-references between resources point to things that exist
 #
 # Usage:
-#   bash scripts/verify-resource-deps.sh
+#   bash .claude/scripts/verify-resource-deps.sh
 #
 # Exit codes:
 #   0 - All dependencies valid
@@ -30,6 +30,7 @@ is_allowlisted() {
         */essential-conventions-memory.md:relevant-data_model-migration_context) return 0 ;;
         */essential-conventions-memory.md:branch-20251001-feat_update_data_model-updating_schema_definitions) return 0 ;;
         */essential-conventions-memory.md:idea-20251001-logging-simple_monitoring) return 0 ;;
+        */essential-conventions-memory.md:experimental-conventions-alternative_commit_style) return 0 ;;
         *) return 1 ;;
     esac
 }

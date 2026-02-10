@@ -14,7 +14,7 @@ test:
 .PHONY: claude-toolkit-validate claude-toolkit-sync
 
 claude-toolkit-validate:
-	bash scripts/validate-all.sh
+	bash .claude/scripts/validate-all.sh
 
 claude-toolkit-sync:
 	~/projects/personal/claude-toolkit/bin/claude-toolkit sync .
