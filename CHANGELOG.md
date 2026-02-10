@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0] - 2026-02-10 - Session lessons capture
+
+### Added
+- **`/learn` skill**: Explicit lesson capture with user confirmation — categorizes as correction/pattern/convention/gotcha, writes to `learned.json`.
+- **`capture-lesson.sh` Stop hook**: Detects `[LEARN]` tags in Claude's responses, extracts lessons, blocks to prompt for user confirmation. Loop prevention via `stop_hook_active`.
+- **`session-start.sh` lessons display**: Surfaces key and recent lessons from `learned.json` at session start with counts in acknowledgment prompt.
+- **`learned.json` gitignored**: Per-project lesson storage (JSON, not tracked).
+- **7 hook tests** for `capture-lesson.sh`: loop prevention, tag detection, multi-message handling, edge cases.
+
 ## [1.5.3] - 2026-02-10 - Backlog grooming & new drafts
 
 ### Added

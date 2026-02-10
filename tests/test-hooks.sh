@@ -357,6 +357,53 @@ test_copy_plan_to_project() {
     rm -rf "$temp_dir"
 }
 
+# === CAPTURE LESSON (Stop hook) ===
+test_capture_lesson() {
+    echo ""
+    echo "=== capture-lesson.sh ==="
+    local hook="capture-lesson.sh"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+
+    # Test 1: Loop prevention - stop_hook_active=true should exit silently
+    echo '{"role":"assistant","content":[{"type":"text","text":"[LEARN] correction: test"}]}' > "$temp_dir/transcript.jsonl"
+    expect_allow "$hook" "{\"stop_hook_active\":true,\"transcript_path\":\"$temp_dir/transcript.jsonl\"}" \
+        "allows when stop_hook_active=true (loop prevention)"
+
+    # Test 2: No [LEARN] tag - should exit silently
+    echo '{"role":"assistant","content":[{"type":"text","text":"Just a normal response"}]}' > "$temp_dir/no-learn.jsonl"
+    expect_allow "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/no-learn.jsonl\"}" \
+        "allows when no [LEARN] tag in response"
+
+    # Test 3: [LEARN] tag present - should block
+    echo '{"role":"assistant","content":[{"type":"text","text":"Fixed it. [LEARN] convention: Always use --no-ff for merges"}]}' > "$temp_dir/with-learn.jsonl"
+    expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/with-learn.jsonl\"}" \
+        "blocks when [LEARN] tag found in response"
+
+    # Test 4: Block reason contains the lesson text
+    expect_contains "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/with-learn.jsonl\"}" \
+        "Always use --no-ff for merges" \
+        "block reason contains extracted lesson text"
+
+    # Test 5: Missing transcript path - should exit silently
+    expect_allow "$hook" '{"stop_hook_active":false,"transcript_path":""}' \
+        "allows when transcript_path is empty"
+
+    # Test 6: Nonexistent transcript file - should exit silently
+    expect_allow "$hook" '{"stop_hook_active":false,"transcript_path":"/tmp/nonexistent-file.jsonl"}' \
+        "allows when transcript file does not exist"
+
+    # Test 7: Multiple messages - only checks last assistant
+    echo '{"role":"assistant","content":[{"type":"text","text":"[LEARN] gotcha: old lesson"}]}
+{"role":"user","content":[{"type":"text","text":"ok"}]}
+{"role":"assistant","content":[{"type":"text","text":"Done, no lessons here"}]}' > "$temp_dir/multi.jsonl"
+    expect_allow "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/multi.jsonl\"}" \
+        "allows when [LEARN] is only in earlier messages"
+
+    # Cleanup
+    rm -rf "$temp_dir"
+}
+
 # === RUN TESTS ===
 echo "Running hook tests..."
 echo "Hooks directory: $HOOKS_DIR"
@@ -370,6 +417,7 @@ if [ -z "$FILTER" ]; then
     test_suggest_json_reader
     test_enforce_feature_branch
     test_copy_plan_to_project
+    test_capture_lesson
 else
     # Run specific test
     case "$FILTER" in
@@ -380,6 +428,7 @@ else
         json*|suggest-json*) test_suggest_json_reader ;;
         branch*|feature*|enforce-feature*) test_enforce_feature_branch ;;
         plan*|copy-plan*) test_copy_plan_to_project ;;
+        capture*|lesson*) test_capture_lesson ;;
         *) echo "Unknown hook: $FILTER"; exit 1 ;;
     esac
 fi

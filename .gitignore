@@ -11,6 +11,9 @@
 *.tmp
 *.bak
 
+# Per-project learned lessons (generated, not tracked)
+learned.json
+
 # Claude session artifacts
 .claude/usage.log
 .claude/plans/

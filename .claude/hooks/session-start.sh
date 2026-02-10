@@ -63,14 +63,38 @@ MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^re
 [ -z "$MAIN_BRANCH" ] && MAIN_BRANCH="main"
 echo "Main: $MAIN_BRANCH"
 
+# === LESSONS ===
+LEARNED_FILE="learned.json"
+if [ -f "$LEARNED_FILE" ]; then
+    KEY_LESSONS=$(jq -r '.key[]? | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    RECENT_LESSONS=$(jq -r '.recent[-5:][]? | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
+        echo ""
+        echo "=== LESSONS ==="
+        [ -n "$KEY_LESSONS" ] && echo "Key:" && echo "$KEY_LESSONS"
+        [ -n "$RECENT_LESSONS" ] && echo "Recent:" && echo "$RECENT_LESSONS"
+        echo ""
+    fi
+fi
+
 # === MEMORY GUIDANCE ===
 echo ""
 echo "If the user's request relates to a non-essential memory topic, use /list-memories to check Quick Reference summaries, then read relevant memories before proceeding."
 
 # === ACKNOWLEDGMENT ===
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
+LESSON_COUNT=0
+if [ -f "$LEARNED_FILE" ]; then
+    KEY_COUNT=$(jq -r '.key | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+    RECENT_COUNT=$(jq -r '.recent | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+    LESSON_COUNT=$((KEY_COUNT + RECENT_COUNT))
+fi
 echo ""
 echo "=== SESSION START ==="
-echo "$ESSENTIAL_COUNT essential memories loaded. Acknowledge briefly, mentioning the count."
+if [ "$LESSON_COUNT" -gt 0 ]; then
+    echo "$ESSENTIAL_COUNT essential memories loaded, $LESSON_COUNT lessons noted. Acknowledge briefly, mentioning both counts."
+else
+    echo "$ESSENTIAL_COUNT essential memories loaded. Acknowledge briefly, mentioning the count."
+fi
 
 exit 0

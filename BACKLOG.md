@@ -16,14 +16,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
-## P0 - Critical
-
-- **[TOOLKIT]** Session lessons capture — prototype (`session-lessons`)
-    - **status**: `idea`
-    - **scope**: `toolkit, hooks`
-    - **notes**: Flat-file prototype: `Stop` hook captures `[LEARN]` tags from responses → appends to per-project `LEARNED.md` → `session-start.sh` surfaces recent entries. Goal is observing what we get (knowledge vs noise) before deciding on heavier infrastructure. Promotion path: valuable lessons → memories/skills/conventions. Ref: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md`
-    - **drafts**: `.claude/drafts/session-lessons/` — design notes, capture flow, analysis plan
-
 ## P1 - High
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)

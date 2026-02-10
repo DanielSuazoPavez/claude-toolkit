@@ -13,6 +13,7 @@ Automation hooks configured in `settings.json`.
 | `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
+| `capture-lesson.sh` | alpha | Stop | Detects [LEARN] tags and prompts for lesson capture |
 | `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
 **Note**: Beta hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
@@ -90,6 +91,19 @@ Encourages using Make targets over raw commands.
 - Warns when common commands could use Make targets
 - Suggests: Check `make help` for available targets
 
+### capture-lesson.sh
+
+**Trigger**: Stop
+
+Detects `[LEARN]` tags in Claude's responses and blocks to prompt for lesson capture.
+
+- Checks `stop_hook_active` first to prevent infinite loops
+- Reads last assistant message from transcript JSONL
+- Extracts `[LEARN] category: lesson text` patterns
+- Blocks with extracted lessons, instructing Claude to present for user confirmation
+- Silent on no match (exit 0, no stdout)
+- Approved lessons written to `learned.json` via `/learn` skill process
+
 ### copy-plan-to-project.sh
 
 **Trigger**: PostToolUse (Write)
@@ -106,6 +120,13 @@ Hooks are configured in `settings.json`:
 ```json
 {
   "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {"type": "command", "command": "bash .claude/hooks/capture-lesson.sh"}
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "EnterPlanMode",
@@ -151,6 +172,7 @@ Hooks are configured in `settings.json`:
 | `SessionStart` | Session begins | Loading context, setup |
 | `PreToolUse` | Before tool execution | Validation, blocking |
 | `PostToolUse` | After tool execution | Cleanup, side effects |
+| `Stop` | Agent finishes responding | Transcript analysis, follow-up prompts |
 
 ### Hook Environment
 
