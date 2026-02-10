@@ -64,3 +64,7 @@ templates/
 # scripts
 scripts/backlog-query.sh
 scripts/backlog-validate.sh
+scripts/validate-all.sh
+scripts/validate-resources-indexed.sh
+scripts/validate-settings-template.sh
+scripts/verify-resource-deps.sh

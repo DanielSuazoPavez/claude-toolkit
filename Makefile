@@ -21,6 +21,6 @@ test-backlog:
 	@bash tests/test-backlog-query.sh
 
 validate:
-	@bash scripts/validate-all.sh
+	@bash .claude/scripts/validate-all.sh
 
 check: test validate

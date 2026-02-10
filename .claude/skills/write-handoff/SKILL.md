@@ -80,7 +80,12 @@ Create `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md` with th
 
 ## Context Notes
 [Any important context that wouldn't be obvious from files alone]
+
+## Resume Prompt
+Read [path] — this is a handoff from a previous session. Resume the work described there: [1-sentence summary of next steps].
 ```
+
+The **Resume Prompt** section is a paste-ready sentence for the next session. It combines the file read with intent so the next instance knows *why* it's reading the file and *what to do*. Keep it to one sentence after the file path.
 
 ### 3. Guidelines
 
@@ -94,13 +99,13 @@ Create `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md` with th
 
 1. Create directory if needed: `mkdir -p .claude/sessions`
 2. Write the file to `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
-3. Report with copy-paste ready path for new session:
+3. Report with the resume prompt from the continuation file:
 
 ```
 Wrote continuation file.
 
 To resume in a new session, paste:
-read .claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md
+[Resume Prompt from the file — the full sentence including the read command and intent]
 ```
 
 ## Anti-Patterns
@@ -198,5 +203,6 @@ Before outputting "Wrote continuation file", verify:
 - [ ] **Next steps actionable?** Specific files and line numbers, not vague
 - [ ] **Blockers noted?** Anything that prevents immediate resumption
 - [ ] **File path correct?** `.claude/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
+- [ ] **Resume prompt actionable?** Combines file read + intent + next action in one sentence
 
 If any check fails, fix the continuation file before announcing completion.

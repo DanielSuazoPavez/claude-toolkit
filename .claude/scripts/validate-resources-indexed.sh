@@ -2,7 +2,7 @@
 # Validates that all resources are properly indexed in their respective index files
 #
 # Usage:
-#   bash scripts/validate-resources-indexed.sh
+#   bash .claude/scripts/validate-resources-indexed.sh
 #
 # Exit codes:
 #   0 - All resources properly indexed
