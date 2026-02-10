@@ -1,17 +1,15 @@
 # Testing Patterns - Concrete Examples
 
-Reference implementations for common testing scenarios.
+Reference implementations for non-obvious testing scenarios.
 
 ## Table of Contents
 
 1. [conftest.py Structure](#conftestpy-structure)
 2. [Health Checks for Graceful Skipping](#health-checks-for-graceful-skipping)
 3. [Real vs Mock Client Fixtures](#real-vs-mock-client-fixtures)
-4. [Sample Data Fixtures](#sample-data-fixtures)
+4. [Factory Fixtures](#factory-fixtures)
 5. [Test Class Organization](#test-class-organization)
-6. [Makefile Targets](#makefile-targets)
-7. [pyproject.toml Configuration](#pyprojecttoml-configuration)
-8. [Anti-Pattern Code Examples](#anti-pattern-code-examples)
+6. [Anti-Pattern Code Examples](#anti-pattern-code-examples)
 
 ---
 
@@ -26,19 +24,10 @@ import pytest
 from unittest.mock import MagicMock
 
 
-def pytest_configure(config):
-    """Register custom markers."""
-    config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "integration: marks integration tests")
-    config.addinivalue_line("markers", "slow: marks tests as slow (>1s)")
-    config.addinivalue_line("markers", "external: requires external services")
-
-
 # Health check helpers
 def is_database_available() -> bool:
     """Check if database is accessible."""
     try:
-        # Replace with your connection logic
         from myapp.db import get_connection
         conn = get_connection()
         conn.execute("SELECT 1")
@@ -183,23 +172,9 @@ def test_real_connection(real_client):
 
 ---
 
-## Sample Data Fixtures
+## Factory Fixtures
 
-### Simple Data Fixture
-
-```python
-@pytest.fixture
-def sample_user():
-    """Standard test user."""
-    return {
-        "id": 1,
-        "name": "Test User",
-        "email": "test@example.com",
-        "active": True,
-    }
-```
-
-### Factory Fixture
+### Factory with Auto-incrementing IDs
 
 ```python
 @pytest.fixture
@@ -230,7 +205,7 @@ def test_inactive_users(make_user):
     assert len({u["id"] for u in users}) == 3  # Unique IDs
 ```
 
-### Complex Nested Data
+### Composing Factories for Nested Data
 
 ```python
 @pytest.fixture
@@ -292,59 +267,6 @@ class TestUserRepository:
         retrieved = repo.get(created["id"])
 
         assert retrieved["email"] == "new@example.com"
-```
-
----
-
-## Makefile Targets
-
-```makefile
-.PHONY: test test-unit test-integration test-cov test-fast lint check
-
-test:                    ## Run all tests
-	uv run pytest tests/ -v
-
-test-unit:               ## Run unit tests only
-	uv run pytest tests/ -v -m unit
-
-test-integration:        ## Run integration tests only
-	uv run pytest tests/ -v -m integration
-
-test-fast:               ## Run fast tests (skip slow and integration)
-	uv run pytest tests/ -v -m "not slow and not integration"
-
-test-cov:                ## Run tests with coverage
-	uv run pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=html
-
-test-watch:              ## Run tests in watch mode
-	uv run ptw -- tests/ -v
-
-lint:                    ## Run linting
-	uv run pre-commit run --all-files
-
-check: lint test-unit    ## Run lint + unit tests (CI fast check)
-```
-
----
-
-## pyproject.toml Configuration
-
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --tb=short"
-markers = [
-    "unit: marks tests as unit tests (no external dependencies)",
-    "integration: marks tests as integration tests (require running services)",
-    "slow: marks tests as slow (>1s)",
-    "external: requires external services (APIs, etc.)",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-cov>=4.0",
-]
 ```
 
 ---

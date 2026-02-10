@@ -245,26 +245,26 @@
         ]
       },
       "design-tests": {
-        "file_hash": "61876f0e",
-        "date": "2026-01-28",
+        "file_hash": "e4f6a803",
+        "date": "2026-02-10",
         "grade": "A-",
-        "score": 105,
+        "score": 104,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 86.7,
         "dimensions": {
           "D1": 17,
           "D2": 13,
           "D3": 13,
           "D4": 14,
-          "D5": 13,
-          "D6": 12,
-          "D7": 9,
+          "D5": 12,
+          "D6": 13,
+          "D7": 8,
           "D8": 14
         },
         "top_improvements": [
-          "Trim redundant pytest basics to increase knowledge delta score",
-          "Add edge case guidance for fixture cleanup failures and async test patterns",
-          "Strengthen freedom calibration with more prescriptive guidance for high-risk scenarios like database transactions"
+          "Reduce SKILL.md from 393 to ~250 lines by moving High-Risk Scenarios code examples and Troubleshooting decision trees into resources/, keeping only key principles and brief summaries in the main skill",
+          "Add flaky tests and test debugging to description keywords since the troubleshooting section is substantial and these are common invocation triggers",
+          "Strengthen anti-pattern consequences with downstream impact beyond breaks on refactor — add CI pipeline impact, developer avoidance patterns, and trust erosion"
         ]
       },
       "draft-pr": {
