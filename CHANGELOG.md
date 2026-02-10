@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.3] - 2026-02-10 - Resource index updates & personal memory category
+
+### Added
+- **`personal` memory category**: Private preferences — not shared, not evaluated. Updated memory conventions, evaluate-memory skill, evaluate-batch skill, and verify-resource-deps script.
+
+### Changed
+- **Resource status promotions**: goal-verifier → stable, codebase-explorer → beta, secrets-guard → stable, remaining alpha hooks → beta, review-plan → stable, design-tests/db/diagram/worktrees → beta, reducing_entropy → stable.
+- **code-reviewer index**: Updated tools to include Write.
+- **`experimental-preferences-casual_communication_style`**: Renamed to `personal-` category, removed from evaluations.json.
+
 ## [1.4.2] - 2026-02-10 - Code reviewer agent improvements
 
 ### Changed

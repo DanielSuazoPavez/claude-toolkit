@@ -37,11 +37,17 @@ Guidelines for naming and structuring memory files, including categories, format
 - **Format:** `idea-{YYYYMMDD}-{context}-{plan_idea}`
 - **Example:** `idea-20251001-logging-simple_monitoring`
 
+### `personal` (Private)
+- **Principle:** For personal preferences and customizations. Not shared to other projects, not evaluated.
+- **Load pattern:** User on-demand ONLY - never auto-load or proactively read. User must explicitly request.
+- **Format:** `personal-{context}-{descriptive_name}`
+- **Example:** `personal-preferences-casual_communication_style`
+
 ### `experimental` (Testing)
 - **Principle:** For trying out new approaches, alternative configurations, or A/B testing different behaviors. May be promoted to `relevant` or `essential` if proven useful, or deleted if not.
 - **Load pattern:** User on-demand ONLY - never auto-load or proactively read. User must explicitly request.
 - **Format:** `experimental-{context}-{descriptive_name}`
-- **Example:** `experimental-preferences-casual_communication_style`
+- **Example:** `experimental-conventions-alternative_commit_style`
 
 ---
 

@@ -263,7 +263,7 @@ if [ -d "$MEMORIES_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP '`\K(?:essential|relevant|branch|idea|experimental)-[a-z][-a-z_]*(?=`)' "$memfile")
+        done < <(grep -oP '`\K(?:essential|relevant|branch|idea|personal|experimental)-[a-z][-a-z_]*(?=`)' "$memfile")
 
     done < <(find "$MEMORIES_DIR" -name "*.md")
 

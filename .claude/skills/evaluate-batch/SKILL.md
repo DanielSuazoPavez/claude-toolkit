@@ -62,6 +62,7 @@ agents:   .claude/agents/*.md
 
 ### 2. Filter
 
+- **Always exclude** `personal-` memories — personal memories are not evaluated
 - Read `.claude/evaluations.json`
 - Unless `re-evaluate=true`, only include resources that are:
   - **Unevaluated**: Not in `{type}.resources`
