@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.2] - 2026-02-11 - Add learn skill to manifest
+
+### Fixed
+- **MANIFEST**: Added missing `skills/learn/` entry so `/learn` skill syncs to projects.
+
 ## [1.6.1] - 2026-02-10 - design-tests audit mode & expert content
 
 ### Added
