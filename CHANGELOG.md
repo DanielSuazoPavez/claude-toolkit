@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.3] - 2026-02-11 - Fix list-memories extraction
+
+### Fixed
+- **`/list-memories` skill**: Quick Reference extraction leaked into code block examples in `essential-conventions-memory`. Switched from `sed` to `awk` with early exit.
+
 ## [1.6.2] - 2026-02-11 - Add learn skill to manifest
 
 ### Fixed

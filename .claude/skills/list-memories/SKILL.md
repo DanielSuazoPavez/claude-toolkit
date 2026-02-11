@@ -15,7 +15,7 @@ Run this command to extract only Quick Reference sections:
 ```bash
 for f in .claude/memories/*.md; do
   echo "### $(basename "$f" .md)"
-  sed -n '/^## .*Quick Reference/,/^## /{/^## .*Quick Reference/d;/^## /d;p}' "$f" 2>/dev/null
+  awk '/^## .*Quick Reference/{found=1; next} found && /^## /{exit} found' "$f" 2>/dev/null
   echo "---"
 done
 ```
