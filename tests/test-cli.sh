@@ -66,6 +66,14 @@ setup_test_env() {
     echo "# Test Memory" > "$TEMP_DIR/toolkit/.claude/memories/test-memory.md"
     echo "# Test Agent" > "$TEMP_DIR/toolkit/.claude/agents/test-agent.md"
 
+    # Create MANIFEST
+    cat > "$TEMP_DIR/toolkit/.claude/MANIFEST" << 'MANIFEST_EOF'
+skills/test-skill/
+hooks/test-hook.sh
+memories/test-memory.md
+agents/test-agent.md
+MANIFEST_EOF
+
     # Symlink the actual CLI script (so it can find VERSION relative to itself)
     # Instead, we'll use TOOLKIT_DIR override
     cp "$CLI_SCRIPT" "$TEMP_DIR/toolkit/bin/claude-toolkit"

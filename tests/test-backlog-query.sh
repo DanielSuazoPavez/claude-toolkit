@@ -319,7 +319,7 @@ test_blocked_unblocked() {
     expect_count "finds 1 blocked task" "1" blocked
 
     expect_output "unblocked shows planned without depends" "Critical test task" unblocked
-    expect_count "finds 1 unblocked task" "1" unblocked
+    expect_count "finds 2 unblocked tasks" "2" unblocked
 
     teardown_test_env
 }

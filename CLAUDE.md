@@ -39,7 +39,7 @@ Summary and status of all resources:
 
 ## When You're Done
 
-- Run `.claude/scripts/validate-resources-indexed.sh` to check all resources are indexed
+- Run `make check` to run all tests and validations
 - Verify skill/agent changes work with real tests
 
 ## See Also
