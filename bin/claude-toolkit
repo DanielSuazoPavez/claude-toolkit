@@ -10,7 +10,7 @@ set -euo pipefail
 #
 # Run 'claude-toolkit <command> --help' for command-specific help.
 
-TOOLKIT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+TOOLKIT_DIR="${TOOLKIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 # Colors
 RED='\033[0;31m'
