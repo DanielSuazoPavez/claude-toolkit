@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.5] - 2026-02-11 - Fix sync CLI tests & settings template
+
+### Fixed
+- **`claude-toolkit sync`**: Respect `TOOLKIT_DIR` env var override for testability.
+- **CLI tests**: Added MANIFEST to mock toolkit so sync tests resolve files correctly. Fixed 10 failing sync tests.
+- **Backlog tests**: Fixed unblocked count expectation (`idea` tasks without dependencies are also unblocked).
+- **Settings template**: Added missing `capture-lesson.sh` Stop hook.
+
+### Changed
+- **CLAUDE.md**: Reference `make check` instead of individual validation script.
+
 ## [1.6.4] - 2026-02-11 - Makefile improvements
 
 ### Added
