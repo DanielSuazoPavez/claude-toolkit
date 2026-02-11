@@ -10,7 +10,7 @@ Evaluate skill design quality against best practices.
 ## Contents
 
 1. [Core Philosophy](#core-philosophy) - Knowledge delta formula
-2. [Evaluation Dimensions](#evaluation-dimensions-120-points) - 8 scoring criteria
+2. [Evaluation Dimensions](#evaluation-dimensions-120-points) - 8 dimensions (D4 revised, D7 replaced)
 3. [Scoring Calibration](#scoring-calibration) - Score-to-criteria mapping
 4. [Grading Scale](#grading-scale) - Grade thresholds
 5. [JSON Output Format](#json-output-format) - Result schema
@@ -46,8 +46,8 @@ Does it transfer expert thinking AND domain-specific workflows?
 ### D3: Anti-Pattern Quality (15 pts)
 Are anti-patterns specific with reasoning, not vague warnings?
 
-### D4: Specification Compliance (15 pts)
-Is the description clear about WHAT, WHEN, and KEYWORDS for triggering?
+### D4: Specification Compliance (10 pts)
+Is the description clear about WHAT and WHEN? Keywords should be precise — penalize over-broad trigger lists that cause false-positive routing.
 
 ### D5: Progressive Disclosure (15 pts)
 - Metadata: Always in memory
@@ -71,13 +71,13 @@ When skill has companion files, also check:
 - Creative tasks → High freedom (principles)
 - Fragile operations → Low freedom (exact scripts)
 
-### D7: Pattern Recognition (10 pts)
-Does it follow established patterns?
-- Mindset (~50 lines)
-- Navigation (~30 lines)
-- Philosophy (~150 lines)
-- Process (~200 lines)
-- Tool (~300 lines)
+### D7: Integration Quality (15 pts)
+Does it work well within the resource ecosystem?
+- **Reference accuracy** — points to resources that exist and are current
+- **Duplication avoidance** — defers to other resources instead of restating their content
+- **Handoff clarity** — clean boundaries when delegating to agents, skills, or memories
+- **Ecosystem awareness** — knows what's available and connects to it
+- **Terminology consistency** — uses same terms as connected resources
 
 ### D8: Practical Usability (15 pts)
 Decision trees, working examples, error handling, edge cases?
@@ -102,6 +102,16 @@ Decision trees, working examples, error handling, edge cases?
 | 10-12 | Named anti-patterns with some reasoning |
 | 6-9 | Vague warnings ("avoid bad practices") |
 | 0-5 | No anti-patterns section |
+
+### D7 (Integration Quality) - 15 pts
+
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Seamless integration — correct references, no duplication, clean handoffs, full ecosystem awareness |
+| 10-12 | References exist and are correct, minor duplication or missed connections |
+| 6-9 | Some broken/outdated references, restates content from other resources |
+| 3-5 | Island — mostly ignores the ecosystem |
+| 0-2 | No references, duplicates freely, contradicts connected resources |
 
 ## Edge Cases
 
@@ -149,7 +159,7 @@ Decision trees, working examples, error handling, edge cases?
     "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>,
     "D5": <score>, "D6": <score>, "D7": <score>, "D8": <score>
   },
-  "top_improvements": ["...", "...", "..."]
+  "top_improvements": ["[high] ...", "[low] ...", "[low] ..."]
 }
 ```
 
@@ -180,7 +190,7 @@ Using a separate agent ensures objective assessment without influence from prior
 2. Analyze structure: frontmatter, line count, pattern
 3. Score each dimension with evidence
 4. Calculate total, assign grade
-5. Generate report with JSON output including file_hash and top 3 improvements
+5. Generate report with JSON output including file_hash and top 3 improvements (tag each with `[high]` or `[low]` priority)
 6. Update `.claude/evaluations.json` using jq:
    ```bash
    jq --argjson result '<JSON>' '.skills.resources["<name>"] = $result' .claude/evaluations.json > tmp && mv tmp .claude/evaluations.json
@@ -190,7 +200,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 **Skill:** `git-workflow` (hypothetical)
 
-**Before (D - 62/120):**
+**Before (F - 45/120):**
 ```markdown
 # Git Workflow
 Use branches for features. Commit often. Write good messages.
@@ -201,13 +211,13 @@ Use branches for features. Commit often. Write good messages.
 | D1 | 6/20 | Pure basics - Claude knows branching and commits |
 | D2 | 5/15 | No mindset transfer, just commands |
 | D3 | 0/15 | No anti-patterns section |
-| D4 | 8/15 | Vague description, no keywords |
+| D4 | 5/10 | Vague description, no keywords |
 | D5 | 12/15 | Short (good), but too sparse |
 | D6 | 10/15 | Neither rigid nor principled - just vague |
-| D7 | 7/10 | Doesn't match any pattern well |
+| D7 | 3/15 | No references to other resources, island skill |
 | D8 | 4/15 | No decision trees, no examples |
 
-**After (A - 112/120):**
+**After (A- - 109/120):**
 ```markdown
 # Git Workflow
 ## Branch Naming Decision Tree
@@ -227,10 +237,10 @@ Use branches for features. Commit often. Write good messages.
 | D1 | 18/20 | Team-specific naming conventions, sizing heuristics |
 | D2 | 14/15 | Transfers "think in atomic units" mindset |
 | D3 | 14/15 | Specific anti-patterns with reasoning and fixes |
-| D4 | 13/15 | Clear triggers, could add keywords |
+| D4 | 9/10 | Clear triggers, precise keywords |
 | D5 | 14/15 | ~150 lines, well-structured |
 | D6 | 13/15 | Appropriate freedom for git (medium risk) |
-| D7 | 9/10 | Matches Process pattern |
+| D7 | 13/15 | References commit conventions memory, defers to branch workflow |
 | D8 | 14/15 | Decision tree, tables, concrete examples |
 
 ## The Meta-Question

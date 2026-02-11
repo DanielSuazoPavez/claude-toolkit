@@ -27,15 +27,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `.claude/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
-- **[SKILLS]** Improve evaluation system — D7 rework, priority tags, cross-resource checks (`skill-eval-improvements`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Four improvements to evaluate-* skills:
-        - Rework D7 (Pattern Recognition) for skills — zero variance (all score 9/10), not differentiating. Should weight expert knowledge density over raw line count — a 400-line skill with high expert-delta is better than a 200-line skill with activation padding
-        - Add priority tags (`[high]`/`[low]`) to improvement suggestions in evaluations.json
-        - Make cross-resource integration quality an explicit check when resources reference other resources
-        - Review keyword inflation in D4 — more trigger keywords increases false-positive routing, should penalize over-broad descriptions
-    - **plan**: `.claude/reviews/exploration/rohitg00_pro-workflow/summary.md` (Evaluation System Observations section)
 
 - **[SKILLS]** Create `refactor` skill (`skill-refactor`)
     - **status**: `idea`
@@ -44,6 +35,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **drafts**: `.claude/drafts/skill-refactor/` — design notes from backlog evaluation session
 
 ## P2 - Medium
+
+- **[TOOLKIT]** Sync MANIFEST to projects and scope validation to synced resources (`toolkit-scoped-validation`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Sync MANIFEST to target projects so `validate-all.sh` can scope checks to only synced resources. Extra files (not in MANIFEST) should warn, not error. Enables projects to run validation without false positives from missing toolkit-only resources.
 
 - **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
     - **status**: `idea`

@@ -17,7 +17,7 @@
       },
       "D4": {
         "name": "Specification Compliance",
-        "max": 15
+        "max": 10
       },
       "D5": {
         "name": "Progressive Disclosure",
@@ -28,8 +28,8 @@
         "max": 15
       },
       "D7": {
-        "name": "Pattern Recognition",
-        "max": 10
+        "name": "Integration Quality",
+        "max": 15
       },
       "D8": {
         "name": "Practical Usability",

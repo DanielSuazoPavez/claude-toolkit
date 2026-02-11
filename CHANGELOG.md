@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.0] - 2026-02-11 - Evaluation system improvements
+
+### Changed
+- **`/evaluate-skill` D7**: Replaced Pattern Recognition (10 pts) with Integration Quality (15 pts) — measures reference accuracy, duplication avoidance, handoff clarity, ecosystem awareness, terminology consistency.
+- **`/evaluate-skill` D4**: Reduced Specification Compliance from 15 to 10 pts. Tighter criteria penalizing keyword inflation and over-broad trigger lists.
+- **`/evaluate-skill` improvements**: Tagged with `[high]`/`[low]` priority for triage.
+- **`/write-skill`**: Quality gate now references D7 Integration Quality. Fixed example description that leaked workflow steps.
+- **`evaluations.json`**: Updated dimension metadata (D4 max, D7 name and max). Existing resource scores are stale until re-evaluated.
+
 ## [1.6.5] - 2026-02-11 - Fix sync CLI tests & settings template
 
 ### Fixed

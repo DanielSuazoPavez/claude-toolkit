@@ -140,6 +140,7 @@ Before outputting the skill, evaluate it with `/evaluate-skill`:
 - **Target: B (90+) or better**
 - If score is below B, iterate on the weakest dimensions
 - Common fixes: add anti-patterns table, add decision tree, remove tutorial content
+- **D7 (Integration Quality)**: Check that references point to real resources, defer to existing content instead of restating it, and connect to related skills/agents/memories
 
 ## Naming Convention
 
@@ -160,7 +161,7 @@ Without a skill, Claude writes changelog updates inconsistently:
 ```yaml
 ---
 name: wrap-up
-description: Use when finishing work on a feature branch. Updates changelog, bumps version, commits changes.
+description: Use when finishing work on a feature branch. Keywords: finish feature, complete branch, ready to merge, finalize branch, wrap up.
 ---
 ```
 
