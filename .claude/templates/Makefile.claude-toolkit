@@ -2,7 +2,15 @@
 # Merge these targets into your project's Makefile
 
 # Lint and format (Python example - adjust for your stack)
-.PHONY: lint format test
+.PHONY: help lint format test
+
+help:
+	@echo "Available targets:"
+	@echo "  make help                      - Show this help"
+	@echo "  make lint                      - Run linters"
+	@echo "  make test                      - Run tests"
+	@echo "  make claude-toolkit-validate   - Run Claude toolkit validations"
+	@echo "  make claude-toolkit-sync       - Sync Claude toolkit to project"
 
 lint:
 	pre-commit run --all-files

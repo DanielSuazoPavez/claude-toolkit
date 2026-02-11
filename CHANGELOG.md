@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.4] - 2026-02-11 - Makefile improvements
+
+### Added
+- **`make backlog`**: New target to run backlog query script.
+- **Makefile template**: Added `help` target listing all available targets.
+
 ## [1.6.3] - 2026-02-11 - Fix list-memories extraction
 
 ### Fixed
