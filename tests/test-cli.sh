@@ -420,6 +420,120 @@ test_sync_updates_version() {
     teardown_test_env
 }
 
+test_sync_copies_manifest() {
+    echo ""
+    echo "=== sync: copies MANIFEST to target ==="
+    setup_test_env
+
+    run_toolkit sync --force > /dev/null 2>&1 || true
+
+    expect_file_exists "MANIFEST copied to target" "$TEMP_DIR/project/.claude/MANIFEST"
+    expect_file_content "MANIFEST contains skill entry" \
+        "$TEMP_DIR/project/.claude/MANIFEST" \
+        "skills/test-skill/"
+
+    teardown_test_env
+}
+
+test_validate_indexed_manifest_mode() {
+    echo ""
+    echo "=== validate-resources-indexed: MANIFEST mode ==="
+    setup_test_env
+
+    # Sync to create target project with MANIFEST
+    run_toolkit sync --force > /dev/null 2>&1 || true
+
+    # Copy validation scripts from real toolkit (they need to exist in target)
+    local real_scripts="$SCRIPT_DIR/../.claude/scripts"
+    mkdir -p "$TEMP_DIR/project/.claude/scripts"
+    cp "$real_scripts/validate-resources-indexed.sh" "$TEMP_DIR/project/.claude/scripts/"
+    cp "$real_scripts/verify-resource-deps.sh" "$TEMP_DIR/project/.claude/scripts/"
+
+    # Add an extra skill NOT in MANIFEST (simulates local project resource)
+    mkdir -p "$TEMP_DIR/project/.claude/skills/local-skill"
+    echo "# Local Skill" > "$TEMP_DIR/project/.claude/skills/local-skill/SKILL.md"
+
+    # Run validation in target project — should pass (exit 0) even with extra file
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output exit_code
+    output=$(cd "$TEMP_DIR/project" && CLAUDE_DIR=.claude bash .claude/scripts/validate-resources-indexed.sh 2>&1) && exit_code=0 || exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        echo -e "  ${GREEN}PASS${NC}: validation passes with extra files in MANIFEST mode"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        echo -e "  ${RED}FAIL${NC}: validation passes with extra files in MANIFEST mode"
+        echo "    Expected: exit 0 (warnings, not errors)"
+        echo "    Got: exit $exit_code"
+        echo "    Output: $output"
+    fi
+
+    # Verify no errors about unindexed resources (no index files in target)
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if echo "$output" | grep -q "no index files in target project"; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        echo -e "  ${GREEN}PASS${NC}: skips index checks when no index files (expected for target)"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        echo -e "  ${RED}FAIL${NC}: skips index checks when no index files (expected for target)"
+        echo "    Output: $output"
+    fi
+
+    # Verify MANIFEST mode indicator
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if echo "$output" | grep -q "MANIFEST mode"; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        echo -e "  ${GREEN}PASS${NC}: shows MANIFEST mode indicator"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        echo -e "  ${RED}FAIL${NC}: shows MANIFEST mode indicator"
+        echo "    Output: $output"
+    fi
+
+    teardown_test_env
+}
+
+test_validate_deps_manifest_mode() {
+    echo ""
+    echo "=== verify-resource-deps: MANIFEST mode ==="
+    setup_test_env
+
+    # Sync to create target project with MANIFEST
+    run_toolkit sync --force > /dev/null 2>&1 || true
+
+    # Copy validation scripts from real toolkit (they need to exist in target)
+    local real_scripts="$SCRIPT_DIR/../.claude/scripts"
+    mkdir -p "$TEMP_DIR/project/.claude/scripts"
+    cp "$real_scripts/validate-resources-indexed.sh" "$TEMP_DIR/project/.claude/scripts/"
+    cp "$real_scripts/verify-resource-deps.sh" "$TEMP_DIR/project/.claude/scripts/"
+
+    # Create a skill that references an agent not in MANIFEST
+    mkdir -p "$TEMP_DIR/project/.claude/skills/test-skill"
+    cat > "$TEMP_DIR/project/.claude/skills/test-skill/SKILL.md" << 'EOF'
+# Test Skill
+Uses `non-existent-agent` agent for processing.
+EOF
+
+    # Run deps validation — should pass (warnings, not errors) for non-MANIFEST refs
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output exit_code
+    output=$(cd "$TEMP_DIR/project" && CLAUDE_DIR=.claude bash .claude/scripts/verify-resource-deps.sh 2>&1) && exit_code=0 || exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        echo -e "  ${GREEN}PASS${NC}: deps validation passes in MANIFEST mode with non-MANIFEST refs"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        echo -e "  ${RED}FAIL${NC}: deps validation passes in MANIFEST mode with non-MANIFEST refs"
+        echo "    Expected: exit 0"
+        echo "    Got: exit $exit_code"
+        echo "    Output: $output"
+    fi
+
+    teardown_test_env
+}
+
 # === SEND COMMAND TESTS ===
 
 test_send_help() {
@@ -567,6 +681,9 @@ if [ -z "$FILTER" ]; then
     test_sync_only_filter
     test_sync_ignore_patterns
     test_sync_updates_version
+    test_sync_copies_manifest
+    test_validate_indexed_manifest_mode
+    test_validate_deps_manifest_mode
 
     # Send tests
     test_send_help
@@ -592,6 +709,9 @@ else
             test_sync_only_filter
             test_sync_ignore_patterns
             test_sync_updates_version
+            test_sync_copies_manifest
+            test_validate_indexed_manifest_mode
+            test_validate_deps_manifest_mode
             ;;
         send)
             test_send_help

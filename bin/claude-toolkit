@@ -626,6 +626,13 @@ if [[ ! -f "$PROJECT_IGNORE_FILE" ]]; then
     fi
 fi
 
+# Copy MANIFEST (infrastructure file, not listed in MANIFEST itself)
+local manifest_src="$TOOLKIT_DIR/.claude/MANIFEST"
+if [[ -f "$manifest_src" ]]; then
+    cp "$manifest_src" "$TARGET_DIR/.claude/MANIFEST"
+    echo -e "  ${GREEN}Copied: MANIFEST${NC}"
+fi
+
 # Update version file
 echo "$TOOLKIT_VERSION" > "$PROJECT_VERSION_FILE"
 echo ""
