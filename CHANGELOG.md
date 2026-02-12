@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.0] - 2026-02-12 - Sync MANIFEST to projects, scoped validation
+
+### Added
+- **`claude-toolkit sync`**: Copies MANIFEST to target projects as infrastructure file (alongside `.claude-toolkit-version`).
+- **`validate-resources-indexed.sh`**: MANIFEST mode — when MANIFEST exists without index files (target projects), scopes validation to synced resources only. Extra disk files produce warnings, not errors.
+- **`verify-resource-deps.sh`**: MANIFEST mode — only checks dependencies for MANIFEST-listed resources. Cross-references to non-MANIFEST resources warn instead of failing.
+- **CLI tests**: 4 new tests covering MANIFEST sync and scoped validation behavior.
+
+### Fixed
+- **`verify-resource-deps.sh`**: False positive for "agents/memories" prose pattern in `write-skill/SKILL.md` (added to allowlist).
+
 ## [1.7.0] - 2026-02-11 - Evaluation system improvements
 
 ### Changed
