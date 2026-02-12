@@ -36,11 +36,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P2 - Medium
 
-- **[TOOLKIT]** Sync MANIFEST to projects and scope validation to synced resources (`toolkit-scoped-validation`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Sync MANIFEST to target projects so `validate-all.sh` can scope checks to only synced resources. Extra files (not in MANIFEST) should warn, not error. Enables projects to run validation without false positives from missing toolkit-only resources.
-
 - **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
     - **status**: `idea`
     - **scope**: `toolkit`
