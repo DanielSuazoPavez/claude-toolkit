@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.0] - 2026-02-12 - Refactor skill
+
+### Added
+- **`/refactor` skill**: Structural refactoring analysis with four-lens reasoning (coupling, cohesion, dependency direction, API surface). Triage-first classification (cosmetic/structural/architectural) prevents over-analysis. Two entry modes: triage and targeted. Language-agnostic, saves analysis to `.claude/analysis/`.
+
 ## [1.8.0] - 2026-02-12 - Sync MANIFEST to projects, scoped validation
 
 ### Added
