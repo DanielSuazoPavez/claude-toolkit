@@ -18,6 +18,7 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
+| `refactor` | alpha | Structural refactoring analysis |
 | `review-changes` | beta | Fast code review focused on blockers |
 | `design-qa` | alpha | Design test plans, QA strategies, regression suites, bug triage |
 | `design-tests` | beta | Pytest patterns for fixtures, mocking, organization, test prioritization |

@@ -657,6 +657,29 @@
           "Strengthen D1 by replacing the basic Verify step with expert heuristics for verification prioritization - which claims to spot-check first based on staleness signals",
           "Deepen anti-pattern consequences: expand Problem column with specific downstream effects - aspirational docs cause user trust erosion when features don't exist"
         ]
+      },
+      "refactor": {
+        "file_hash": "eb964d76",
+        "date": "2026-02-13",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 13,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] Add more non-obvious heuristics to the four lenses — e.g., when fan-in is high but acceptable, threshold signals for too many importers",
+          "[low] Add a brief edge case section — what to do when target doesnt exist, scope too broad, or multiple pain points compete",
+          "[low] Make the measurement step slightly more prescriptive with example tool commands for gathering import maps across common languages"
+        ]
       }
     }
   },
