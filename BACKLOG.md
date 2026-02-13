@@ -28,11 +28,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **drafts**: `.claude/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 
-- **[SKILLS]** Create `refactor` skill (`skill-refactor`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Refactoring as a design activity, not just mechanics. Systematic decision guidance via coupling/cohesion/dependency-direction metrics, structured before/after analysis, step ordering with metric validation. Value is consistency — ensuring the model applies deep structural reasoning every time, not just when prompted.
-    - **drafts**: `.claude/drafts/skill-refactor/` — design notes from backlog evaluation session
 
 ## P2 - Medium
 
@@ -48,6 +43,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `toolkit, hooks`
     - **notes**: Analyze user prompt, suggest relevant memories and skills. Bash-only implementation (keyword matching).
+
+- **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Add `resources/EXAMPLES.md` with: (1) one worked example per lens (coupling, API surface — dependency direction and cohesion already exist inline), (2) a full end-to-end Python example showing triage → measure → four-lens → document flow on a real codebase. Gate on real usage: only build when the skill passes alpha from use in actual projects.
 
 - **[SKILLS]** Create `github-actions` skill (`skill-gh-actions`)
     - **status**: `idea`
