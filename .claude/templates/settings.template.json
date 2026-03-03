@@ -1,5 +1,5 @@
 {
-  "$schema": "https://api.claude.ai/schemas/settings.json",
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "_comment": "Claude Toolkit - Reference settings.json template",
   "_instructions": "Copy this to .claude/settings.json and customize for your project. For permissions, create a separate .claude/settings.local.json (not committed to git).",
 
