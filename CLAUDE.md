@@ -7,7 +7,7 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 ## Quick Start
 
 ```bash
-./install.sh /path/to/project  # Install into a project
+claude-toolkit sync /path/to/project  # Sync config into a project
 ```
 
 ## Key Principles
