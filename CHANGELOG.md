@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.2] - 2026-03-08 - Review-plan severity calibration
+
+### Changed
+- **review-plan skill**: Severity levels from Major/Minor to High/Medium/Low with explicit definitions and criteria.
+- **review-plan skill**: Verdict now mechanically derived from issue list — issues set a floor, approach assessment can only raise.
+- **review-plan skill**: New "Wishful Delegation" anti-pattern for plans that offload cognitive load to the implementing agent.
+- **review-plan skill**: Anti-patterns table includes default severity column; output format includes issue summary table with verdict floor trace.
+- **Evaluation**: review-plan scored A- (105/120, 87.5%).
+
 ## [1.12.1] - 2026-03-08 - Timestamped output for codebase-explorer
 
 ### Fixed

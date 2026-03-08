@@ -38,7 +38,7 @@ Goal statement check:
 ├─ States the problem being solved? → Good
 ├─ States the desired end state? → Good
 ├─ Just says "implement X"? → Needs: why and what success looks like
-└─ Missing entirely? → Major issue
+└─ Missing entirely? → High
 ```
 
 ### Are steps atomic enough?
@@ -69,56 +69,76 @@ Verification check:
 ├─ "Run tests" with specific test file/command? → Good
 ├─ Just "run tests"? → Acceptable for small changes
 ├─ Manual verification steps for UI/UX? → Required if applicable
-├─ No verification at all? → Major issue for non-trivial plans
+├─ No verification at all? → High for non-trivial plans
 └─ For data changes: before/after comparison method? → Required
 ```
 
 ## Step 3: Check for Anti-Patterns
 
-| Anti-Pattern | Signal | Example | Fix |
-|--------------|--------|---------|-----|
-| **The Vague Step** | "Handle", "Set up", "Implement" with no specifics | "Handle edge cases" | List the specific edge cases |
-| **Hidden Dependency** | Step N assumes Step M but doesn't say so | "Update config" listed after "Deploy" | Reorder or make explicit |
-| **The Kitchen Sink** | Step combines 3+ distinct operations | "Refactor auth, add logging, update tests" | Split into separate steps |
-| **The Wishful Step** | Assumes something works without verification | "This should just work" | Add verification |
-| **Scope Creep** | Steps not traceable to original request | "While we're here, let's also..." | Remove or get explicit approval |
-| **Over-Engineering** | Abstractions for single use case | "Create generic handler for future..." | YAGNI - solve current problem only |
-| **Missing Rollback** | No recovery path for risky operations | Database schema change with no down migration | Add rollback step |
-| **The Optimistic Plan** | Only happy path, no error handling | "Call API and process response" | Add: "If API fails..." |
+| Anti-Pattern | Signal | Default Severity | Fix |
+|--------------|--------|-----------------|-----|
+| **The Vague Step** | "Handle", "Set up", "Implement" with no specifics | Medium | List the specific edge cases |
+| **Hidden Dependency** | Step N assumes Step M but doesn't say so | High | Reorder or make explicit |
+| **The Kitchen Sink** | Step combines 3+ distinct operations | Medium | Split into separate steps |
+| **The Wishful Step** | Assumes something works without verification | Medium | Add verification |
+| **Wishful Delegation** | Expects the implementing agent to figure out gaps | High | Make implicit knowledge explicit in the plan |
+| **Scope Creep** | Steps not traceable to original request | Low | Remove or get explicit approval |
+| **Over-Engineering** | Abstractions for single use case | Medium | YAGNI - solve current problem only |
+| **Missing Rollback** | No recovery path for risky operations | High | Add rollback step |
+| **The Optimistic Plan** | Only happy path, no error handling | Medium | Add: "If API fails..." |
 
-## Step 4: Determine Verdict
+**Wishful Delegation** — Plans are instructions for an agent. Every step must be self-contained. If a step requires context not written in the plan (e.g., "update the tests accordingly", "handle edge cases", "adjust as needed"), the implementing agent will either guess wrong or skip it. The plan should carry the full cognitive load, not the executor.
+
+## Step 4: Rate Issues and Determine Verdict
+
+### Issue Severity Definitions
+
+| Severity | Criteria | Examples |
+|----------|----------|----------|
+| **High** | Would cause incorrect implementation, data loss, or security risk if not fixed before execution | Missing rollback for migration; hidden dependency between steps; wishful delegation of critical logic |
+| **Medium** | Would degrade plan quality or increase implementation risk, but unlikely to cause outright failure | Vague step that could be misinterpreted; kitchen sink step; missing verification for non-trivial change |
+| **Low** | Cosmetic or minor improvement; implementation would likely succeed without fixing | Scope creep on a low-risk addition; step ordering preference; minor naming clarity |
+
+**Severity calibration rule:** Consider the implementing agent's perspective. If an issue would force the agent to make assumptions or decisions not covered by the plan, raise severity by one level. The plan is the *only* context the executor has.
+
+### Verdict Rules
+
+The verdict is derived from the issue list. Issues set a **floor** — the approach assessment can raise the verdict (make it stricter) but never lower it below what the issues demand.
 
 ```
-Verdict decision tree:
+Verdict floor (from issues):
 │
-├─ Are there fundamental approach problems?
-│   ├─ Wrong abstraction level? → RETHINK
-│   ├─ Solving wrong problem? → RETHINK
-│   ├─ Missing critical consideration (security, data loss)? → RETHINK
-│   └─ Over-engineered for the task? → RETHINK
+├─ Any High severity issue? → Floor is REVISE
+│   └─ 3+ High severity issues? → Floor is RETHINK
 │
-├─ Are there specific fixable issues?
-│   ├─ Vague steps that need specifics? → REVISE
-│   ├─ Missing verification? → REVISE
-│   ├─ Order/dependency problems? → REVISE
-│   └─ Scope creep that should be removed? → REVISE
+├─ 2+ Medium severity issues? → Floor is REVISE
+│   └─ Only 1 Medium, rest Low? → Floor is APPROVE
 │
-└─ Is intent clear and approach sound?
-    ├─ Minor gaps but implementation path is obvious? → APPROVE
-    └─ No issues found? → APPROVE
+└─ Only Low severity issues? → Floor is APPROVE
 ```
+
+```
+Approach assessment (can only raise, never lower):
+│
+├─ Wrong abstraction level? → Raise to RETHINK
+├─ Solving wrong problem? → Raise to RETHINK
+├─ Missing critical consideration (security, data loss)? → Raise to RETHINK
+└─ Over-engineered for the task? → Raise to RETHINK
+```
+
+**Self-check before finalizing verdict:** Re-read each issue. Does its severity match the definitions above? A verdict of APPROVE with any High issue, or RETHINK with only Low issues, signals a calibration error — fix the severities or the verdict.
 
 | Verdict | Criteria | Action |
 |---------|----------|--------|
-| **APPROVE** | Sound approach, intent clear, any gaps are minor | Proceed with implementation |
-| **REVISE** | Good approach but specific issues need fixing | List exact changes needed |
-| **RETHINK** | Fundamental problems with approach | Explain what's wrong and why |
+| **APPROVE** | Only Low issues (or 1 Medium). Approach is sound. | Proceed with implementation |
+| **REVISE** | High issues or multiple Medium issues, but approach is correct | List exact changes needed in the plan |
+| **RETHINK** | 3+ High issues, or fundamental approach problems | Explain what's wrong and suggest alternative approach |
 
 ## Output Format
 
 Use color and visual emphasis to make the review scannable at a glance:
 - Verdicts: `APPROVE` in **bold green** (wrap in a blockquote with >), `REVISE` in **bold yellow**, `RETHINK` in **bold red**
-- Severity labels: **Major** in bold, Minor in regular text
+- Severity labels: **High** in bold red, **Medium** in bold yellow, Low in regular text
 - Use horizontal rules (`---`) to separate major sections
 - Use blockquotes (`>`) for the summary and verdict sections to make them stand out
 
@@ -137,18 +157,18 @@ Use color and visual emphasis to make the review scannable at a glance:
 
 ### Structure
 - [x] Clear goal stated
-- [ ] Steps are atomic — *step 3 combines multiple changes*
+- [ ] Steps are atomic — *step 3 combines multiple changes* → **Medium**
 - [x] Files listed
-- [ ] Verification defined — *missing: no test plan*
+- [ ] Verification defined — *missing: no test plan* → **Medium**
 
 ### Clarity
 - [x] Requirements are specific
 - [x] Order is logical
-- [ ] Scope boundaries clear — *unclear: does this include error handling?*
+- [ ] Scope boundaries clear — *unclear: does this include error handling?* → **Medium**
 
 ### Pragmatism
 - [x] No over-engineering
-- [ ] Scope matches request — *creep: step 5 adds logging not requested*
+- [ ] Scope matches request — *creep: step 5 adds logging not requested* → Low
 - [x] No premature optimization
 
 ---
@@ -156,17 +176,29 @@ Use color and visual emphasis to make the review scannable at a glance:
 ## Issues
 
 ### **#1: [Issue title]**
-**Severity:** **Major** | **Location:** Step X | **Anti-pattern:** The Kitchen Sink
+**Severity:** **High** | **Location:** Step X | **Anti-pattern:** Hidden Dependency
 
-[Description of what's wrong and why it matters]
+[Description of what's wrong and why it matters. From the implementing agent's perspective: what would go wrong if they followed this plan as-is?]
 
-> **Suggestion:** [How to fix it]
+> **Suggestion:** [Specific change to the plan — not "consider adding", but "add step 3a: ..."]
+
+---
+
+## Issue Summary
+
+| Severity | Count |
+|----------|-------|
+| **High** | 0 |
+| **Medium** | 3 |
+| Low | 1 |
+
+**Verdict floor from issues:** REVISE (2+ Medium)
 
 ---
 
 ## Verdict
 
-> **APPROVE** — [1-2 sentences on recommended action]
+> **REVISE** — [1-2 sentences. Reference the issue count that drove this verdict.]
 ```
 
 ## Calibration Guidance
