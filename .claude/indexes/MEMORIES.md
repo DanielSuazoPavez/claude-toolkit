@@ -66,7 +66,7 @@ Always loaded at session start:
 
 ## Creating Memories
 
-Use `/write-memory` to create properly formatted memories, or manually:
+Use `/create-memory` to create properly formatted memories, or manually:
 
 1. Create file in `.claude/memories/`
 2. Follow naming convention for category

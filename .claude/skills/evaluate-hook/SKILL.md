@@ -21,7 +21,7 @@ Evaluate hook quality against hook-specific best practices.
 
 Hooks must be reliable (they guard critical operations), testable (stdin/stdout), and fail gracefully.
 
-## Evaluation Dimensions (100 points)
+## Evaluation Dimensions (115 points)
 
 ### D1: Correctness (25 pts) - Most Critical
 
@@ -87,15 +87,33 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 | 4-8 | Unclear what it does or how to configure |
 | 0-3 | No documentation |
 
+### D6: Integration Quality (15 pts)
+Does it work well within the resource ecosystem?
+
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Seamless integration — correct references, no conflicts, follows conventions |
+| 10-12 | References exist and are correct, minor overlap or missed connections |
+| 6-9 | Some conflicts with other hooks, doesn't follow toolkit patterns |
+| 3-5 | Island — mostly ignores the ecosystem |
+| 0-2 | Conflicts with other hooks, contradicts conventions |
+
+**Check:**
+- **Reference accuracy** — points to settings patterns and hook APIs that exist
+- **Non-interference** — doesn't conflict with other hooks on same event
+- **Ecosystem awareness** — knows what other hooks exist and avoids overlap
+- **Convention alignment** — follows toolkit hook patterns (naming, output format)
+- **Terminology consistency** — uses same terms as hook documentation
+
 ## Grading Scale
 
 | Grade | Score | Description |
 |-------|-------|-------------|
-| A | 90+ | Production-ready |
-| B | 75-89 | Good, minor improvements needed |
-| C | 60-74 | Functional but notable gaps |
-| D | 40-59 | Significant issues |
-| F | <40 | Not safe to deploy |
+| A | 103+ | Production-ready |
+| B | 86-102 | Good, minor improvements needed |
+| C | 69-85 | Functional but notable gaps |
+| D | 46-68 | Significant issues |
+| F | <46 | Not safe to deploy |
 
 ## JSON Output Format
 
@@ -105,10 +123,10 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
   "date": "YYYY-MM-DD",
   "grade": "A/B/C/D/F",
   "score": <total>,
-  "max": 100,
+  "max": 115,
   "percentage": <score/max * 100>,
   "dimensions": {
-    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>, "D6": <score>
   },
   "top_improvements": ["...", "...", "..."]
 }

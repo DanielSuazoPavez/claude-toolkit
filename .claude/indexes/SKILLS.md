@@ -45,10 +45,10 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `write-skill` | stable | Create new skills using test-driven documentation |
-| `write-agent` | stable | Create new agents for specialized tasks |
-| `write-memory` | stable | Create new memory files following conventions |
-| `write-hook` | stable | Create new hooks for Claude Code |
+| `create-skill` | stable | Create new skills using test-driven documentation |
+| `create-agent` | stable | Create new agents for specialized tasks |
+| `create-memory` | stable | Create new memory files following conventions |
+| `create-hook` | stable | Create new hooks for Claude Code |
 | `evaluate-skill` | stable | Evaluate skill design quality against specifications |
 | `evaluate-agent` | stable | Evaluate agent prompt quality and design |
 | `evaluate-hook` | stable | Evaluate hook quality before deployment |

@@ -7,14 +7,14 @@ Guidelines for naming resources in Claude Toolkit.
 **Core Principles:**
 
 1. **Pattern per resource type** - Each resource type has one naming pattern
-2. **Verb-first for actions** - Skills start with verbs for natural invocation (`/write-agent`)
+2. **Verb-first for actions** - Skills start with verbs for natural invocation (`/create-agent`)
 3. **Role-based for actors** - Agents end with their role (`code-reviewer`)
 4. **Alphabetical clustering** - Related resources group together (all `evaluate-*` skills adjacent)
 5. **Lowercase kebab-case** - Universal format across all resources
 
 | Resource | Pattern | Example |
 |----------|---------|---------|
-| Skills | `verb-noun` | `write-agent`, `evaluate-skill` |
+| Skills | `verb-noun` | `create-agent`, `evaluate-skill` |
 | Agents | `context-role` | `code-reviewer`, `goal-verifier` |
 | Memories | `category-context-name` | `essential-workflow-task_completion` |
 | Hooks | `functionality-context-detail` | `enforce-feature-branch` |
@@ -29,7 +29,8 @@ Guidelines for naming resources in Claude Toolkit.
 
 | Verb | When to use | Examples |
 |------|-------------|----------|
-| `write-*` | Creating new files/resources | `write-agent`, `write-skill`, `write-hook`, `write-memory`, `write-handoff` |
+| `create-*` | Creating new toolkit resources | `create-agent`, `create-skill`, `create-hook`, `create-memory` |
+| `write-*` | Writing artifacts/documents | `write-handoff`, `write-docs` |
 | `evaluate-*` | Assessing quality against criteria | `evaluate-agent`, `evaluate-skill`, `evaluate-hook`, `evaluate-memory` |
 | `review-*` | Reviewing work (code, plans, changes) | `review-plan`, `review-changes` |
 | `design-*` | Architecting systems or artifacts | `design-db`, `design-docker`, `design-diagram`, `design-qa` |
@@ -41,7 +42,8 @@ Guidelines for naming resources in Claude Toolkit.
 
 ### Choosing the Right Verb
 
-- **Creating something new?** → `write-*`
+- **Creating a toolkit resource?** → `create-*`
+- **Writing an artifact/document?** → `write-*`
 - **Checking quality?** → `evaluate-*`
 - **Looking at existing work?** → `review-*`
 - **Planning architecture?** → `design-*`
@@ -50,7 +52,7 @@ Guidelines for naming resources in Claude Toolkit.
 ### Noun Selection
 
 - Use the resource/target being acted upon
-- Singular when acting on one thing (`write-agent`, not `write-agents`)
+- Singular when acting on one thing (`create-agent`, not `create-agents`)
 - Plural only when the action is inherently about multiple items (`list-memories`)
 
 ---

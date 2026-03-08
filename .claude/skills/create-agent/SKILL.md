@@ -1,5 +1,5 @@
 ---
-name: write-agent
+name: create-agent
 description: Create new agents for specialized tasks. Use when adding behavioral specialists to `.claude/agents/`. Keywords: agent creation, new agent, behavioral specialist, subagent, Task tool, spawned agent.
 ---
 
@@ -56,8 +56,8 @@ tools: Read, Grep, Glob  # minimal set
 ### 3. Apply Quality Gate
 
 Run `/evaluate-agent` on the result:
-- **Target: B (75+)**
-- Key dimensions: D1 (Focus), D2 (Output), D3 (Persona)
+- **Target: 85%**
+- If below target, iterate on the weakest dimensions
 
 ## Structure Template
 

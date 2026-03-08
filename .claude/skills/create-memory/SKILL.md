@@ -1,5 +1,5 @@
 ---
-name: write-memory
+name: create-memory
 description: Create a new memory file following project conventions. Use when user asks to save/write/create a memory. Keywords: remember this, save context, create memory, persist information.
 ---
 
@@ -135,6 +135,12 @@ Before writing the memory file, verify:
 - [ ] **Filename format?** `{category}-{context}-{descriptive_name}.md` with underscores
 - [ ] **No duplicate?** Check `.claude/memories/` for existing coverage
 - [ ] **Under 300 lines?** Split if larger
+
+### Quality Gate
+
+Run `/evaluate-memory` on the result:
+- **Target: 85%**
+- If below target, iterate on the weakest dimensions
 
 ## Common Mistakes: Worked Example
 

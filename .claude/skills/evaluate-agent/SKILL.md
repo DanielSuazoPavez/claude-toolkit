@@ -21,7 +21,7 @@ Value = behavioral delta. Agents shift *how* Claude thinks and acts, not just wh
 | Loads | On-demand | Persistent during task |
 | Value | What to know | How to think/act |
 
-## Evaluation Dimensions (100 points)
+## Evaluation Dimensions (115 points)
 
 ### D1: Right-sized Focus (30 pts) - Most Critical
 Does the agent do ONE thing at the right intensity?
@@ -81,18 +81,36 @@ Is the tool set an exact fit for the stated purpose?
 Red flags: Edit tools on read-only reviewer, no Bash on a test runner
 Green flags: Tools match stated purpose, no unnecessary capabilities
 
+### D5: Integration Quality (15 pts)
+Does it work well within the resource ecosystem?
+
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Seamless integration — correct references, no duplication, clean handoffs |
+| 10-12 | References exist and are correct, minor duplication or missed connections |
+| 6-9 | Some broken/outdated references, restates content from other resources |
+| 3-5 | Island — mostly ignores the ecosystem |
+| 0-2 | No references, duplicates freely, contradicts connected resources |
+
+**Check:**
+- **Reference accuracy** — points to skills, memories, and agents that exist
+- **Duplication avoidance** — defers to existing skills/agents instead of reimplementing
+- **Handoff clarity** — clean boundaries with skills that invoke it or agents it complements
+- **Ecosystem awareness** — knows what tools and resources are available
+- **Terminology consistency** — uses same terms as connected resources
+
 ## Grading Scale
 
 | Grade | Score | Description |
 |-------|-------|-------------|
-| A | 90+ | Exemplary - use as reference |
-| A- | 85-89 | Excellent - minor polish |
-| B+ | 80-84 | Solid - small improvements |
-| B | 75-79 | Good - clear path forward |
-| B- | 70-74 | Functional - needs attention |
-| C | 60-69 | Needs work - notable gaps |
-| D | 50-59 | Significant issues |
-| F | <50 | Needs redesign |
+| A | 103+ | Exemplary - use as reference |
+| A- | 98-102 | Excellent - minor polish |
+| B+ | 92-97 | Solid - small improvements |
+| B | 86-91 | Good - clear path forward |
+| B- | 80-85 | Functional - needs attention |
+| C | 69-79 | Needs work - notable gaps |
+| D | 57-68 | Significant issues |
+| F | <57 | Needs redesign |
 
 ## Common Failures
 
@@ -130,10 +148,10 @@ Green flags: Tools match stated purpose, no unnecessary capabilities
   "date": "YYYY-MM-DD",
   "grade": "A/A-/B+/B/B-/C/D/F",
   "score": <total>,
-  "max": 100,
+  "max": 115,
   "percentage": <score/max * 100>,
   "dimensions": {
-    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>
   },
   "top_improvements": ["...", "...", "..."]
 }
