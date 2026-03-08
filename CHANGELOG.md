@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.14.1] - 2026-03-08 - Dangerous command evasion detection
+
+### Fixed
+- **block-dangerous-commands hook**: Add normalization to detect dangerous commands hidden via `$(...)`, backticks, `eval`, `bash -c`, and `sh -c` wrappers — 5 bypass vectors closed.
+- **verify-resource-deps**: Skip non-local commands (`npx`, `node`, etc.) in hook command validation — fixes false positive on statusline command.
+
+### Added
+- **block-dangerous-commands tests**: 11 new test cases covering command chaining and evasion patterns.
+
 ## [1.14.0] - 2026-03-08 - Statusline as recommended default
 
 ### Added
