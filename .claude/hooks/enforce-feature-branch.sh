@@ -42,7 +42,7 @@ if [[ "$TOOL_NAME" == "EnterPlanMode" ]]; then
     # Handle detached HEAD
     if [[ -z "$BRANCH" ]]; then
         cat <<'BLOCK'
-{"decision":"block","reason":"You're in detached HEAD state. Create a feature branch first:\n\n  git checkout -b feature/<short-description>"}
+{"decision":"block","reason":"You're in detached HEAD state. Create a feature branch first:\n\n  git checkout -b feat/<short-description>"}
 BLOCK
         exit 0
     fi
@@ -50,7 +50,7 @@ BLOCK
     # Block if on protected branch
     if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
         cat <<BLOCK
-{"decision":"block","reason":"Create a feature branch first.\n\nYou're on '$BRANCH' (protected). Before entering plan mode:\n\n  git checkout -b feature/<short-description>\n\nBranch prefixes: feature/, fix/, refactor/, docs/, chore/"}
+{"decision":"block","reason":"Create a feature branch first.\n\nYou're on '$BRANCH' (protected). Before entering plan mode:\n\n  git checkout -b feat/<short-description>\n\nBranch prefixes: feat/, fix/, refactor/, docs/, chore/"}
 BLOCK
         exit 0
     fi
@@ -80,7 +80,7 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
     # Handle detached HEAD
     if [[ -z "$BRANCH" ]]; then
         cat <<'BLOCK'
-{"decision":"block","reason":"You're in detached HEAD state. Create a feature branch before committing:\n\n  git checkout -b feature/<short-description>"}
+{"decision":"block","reason":"You're in detached HEAD state. Create a feature branch before committing:\n\n  git checkout -b feat/<short-description>"}
 BLOCK
         exit 0
     fi
@@ -88,7 +88,7 @@ BLOCK
     # Block if on protected branch
     if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
         cat <<BLOCK
-{"decision":"block","reason":"Cannot commit directly to '$BRANCH'.\n\nCreate a feature branch first:\n\n  git checkout -b feature/<short-description>\n\nThen commit your changes there.\n\nNote: Do not chain git checkout and git commit in a single command — the hook checks the branch at execution time."}
+{"decision":"block","reason":"Cannot commit directly to '$BRANCH'.\n\nCreate a feature branch first:\n\n  git checkout -b feat/<short-description>\n\nThen commit your changes there.\n\nNote: Do not chain git checkout and git commit in a single command — the hook checks the branch at execution time."}
 BLOCK
         exit 0
     fi

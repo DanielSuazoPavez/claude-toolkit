@@ -18,7 +18,7 @@
 
 | Prefix | Use Case | Example |
 |--------|----------|---------|
-| `feature/` | New functionality | `feature/user-auth` |
+| `feat/` | New functionality | `feat/user-auth` |
 | `fix/` | Bug fixes | `fix/login-redirect` |
 | `refactor/` | Code improvements | `refactor/api-client` |
 | `docs/` | Documentation only | `docs/api-reference` |
@@ -31,14 +31,14 @@
 ```bash
 # Start: create branch from up-to-date main
 git checkout main && git pull origin main
-git checkout -b feature/short-description
+git checkout -b feat/short-description
 
 # During: commit frequently, push to backup
-git push -u origin feature/short-description
+git push -u origin feat/short-description
 
 # Finish: merge with --no-ff, delete branch
-git checkout main && git merge --no-ff feature/short-description
-git branch -d feature/short-description
+git checkout main && git merge --no-ff feat/short-description
+git branch -d feat/short-description
 ```
 
 ---
@@ -70,7 +70,7 @@ When uncertain: "Should I create a feature branch for this work?"
 For multiple branches simultaneously, use git worktrees:
 
 ```bash
-git worktree add .worktrees/feature-name -b feature/name
+git worktree add .worktrees/feature-name -b feat/name
 ```
 
 See `/setup-worktree` skill for details.

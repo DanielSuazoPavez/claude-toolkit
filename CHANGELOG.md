@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.3] - 2026-03-08 - Rename feature/ to feat/ branch prefix
+
+### Changed
+- **enforce-feature-branch hook**: Suggests `feat/` instead of `feature/` in all block messages.
+- **Branch development memory**: Updated naming table, workflow examples, and worktree examples to use `feat/`.
+
 ## [1.19.2] - 2026-03-08 - Remove capture-lesson hook
 
 ### Removed
