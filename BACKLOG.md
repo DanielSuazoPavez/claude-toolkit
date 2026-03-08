@@ -18,16 +18,34 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P0 - Critical
 
+- **[SKILLS]** Shift examples to copy-and-modify templates in create-* skills (`skill-templates-as-starting-points`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to create-skill, create-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
+
+- **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could add automatic file-aware instruction activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
+
+- **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
+
 ## P1 - High
-
-
-
-## P2 - Medium
 
 - **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: Clear "this is what it does, this is what it doesn't do" document. Skills are explicit user invocations, not contextual auto-triggers. Hooks are for consistent enforcement. Agents are for parallelizable subtasks. Memories are for cross-session context. Distinguish from Anthropic's skill-creator approach (marketplace/discovery model) — our model is personal toolkit with known resources invoked by name. Informed by trigger testing experiment (branch `feature/skill-trigger-testing`).
+
+- **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
+## P2 - Medium
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
@@ -38,32 +56,22 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
-- **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
-
-- **[SKILLS]** Shift examples to copy-and-modify templates in write-* skills (`skill-templates-as-starting-points`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to create-skill, create-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
-
-- **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
-
-- **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
+- **[AGENTS]** Create dedicated `security-reviewer` agent (`agent-security-reviewer`)
+    - **status**: `idea`
+    - **scope**: `agents`
+    - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
 ## P3 - Low
+
+- **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Add `resources/EXAMPLES.md` with: (1) one worked example per lens (coupling, API surface — dependency direction and cohesion already exist inline), (2) a full end-to-end Python example showing triage → measure → four-lens → document flow on a real codebase. Gate on real usage: only build when the skill passes alpha from use in actual projects.
 
 - **[SKILLS]** Audit evaluate-* rubrics for non-discriminating dimensions (`skill-eval-self-critique`)
     - **status**: `idea`
@@ -72,27 +80,16 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P100 - Nice to Have
 
+- **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[HOOKS]** Context-aware suggestions via UserPromptSubmit (`hook-context-suggest`)
     - **status**: `idea`
     - **scope**: `toolkit, hooks`
     - **notes**: Analyze user prompt, suggest relevant memories and skills. Bash-only implementation (keyword matching).
 
-- **[AGENTS]** Create dedicated `security-reviewer` agent (`agent-security-reviewer`)
-    - **status**: `idea`
-    - **scope**: `agents`
-    - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
-
-- **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
-
-
-- **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Add `resources/EXAMPLES.md` with: (1) one worked example per lens (coupling, API surface — dependency direction and cohesion already exist inline), (2) a full end-to-end Python example showing triage → measure → four-lens → document flow on a real codebase. Gate on real usage: only build when the skill passes alpha from use in actual projects.
 
 - **[TOOLKIT]** CI discovery pattern for quality pipelines (`ci-discovery-pattern`)
     - **status**: `idea`
@@ -113,16 +110,3 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: Use claude-agent-sdk (Python) to connect Telegram bot to local Claude Code. Async handler, tool permissions via PermissionRequest hook, session management per user. Weekend project scope.
-
----
-
-## Graveyard
-
-- **[AGENTS]** Add metadata block to generated documents (`agent-metadata-block`) — overkill; file names and content start is enough
-- **[TOOLKIT]** Headless agent for suggestions-box processing (`agent-suggestions-processor`) — has its own design doc and folder, not a backlog item
-- **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`) — redundant; write-docs gap analysis already audits docs against code before writing. For docs, reading IS the review.
-- **[SKILLS]** Research Polars-specific patterns (`skill-polars`) — base model knowledge + Context7 MCP provides sufficient coverage; Polars API evolves too fast for a static skill to add value
-- **[SKILLS]** Create `logging-observability` skill (`skill-logging`) — base knowledge sufficient for decision guidance; preferences not yet formed on observability stack beyond structlog
-- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`) — skill auto-triggering is unreliable for tasks Claude can do with built-in tools; only skills with unique domain knowledge (like `learn`) trigger consistently. If consistent triggering matters, use a hook instead.
-- **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`) — behavioral delta too thin; gap-analysis workflow absorbed into `design-tests` skill audit mode instead
-- **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`) — YAGNI; no skills bundle scripts yet, add convention when the pattern is first needed

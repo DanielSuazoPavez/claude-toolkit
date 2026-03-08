@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.22.1] - 2026-03-08 - Backlog triage and reprioritization
+
+### Changed
+- **backlog**: Promoted 3 tasks to P0 (skill-templates-as-starting-points, toolkit-rules, skill-command-type-evaluation) and 2 to P1 (toolkit-identity-doc, skill-learn-quality-gate)
+- **backlog**: Updated `skill-templates-as-starting-points` to reference create-* skills (formerly write-*)
+- **backlog**: Cleaned up `toolkit-rules` notes — removed incorrect claim about conditional memory loading
+- **learned.json**: Strengthened lesson on verifying claims before stating them as fact
+
 ## [1.22.0] - 2026-03-08 - Skill integration and design-qa improvements
 
 ### Added
