@@ -3,6 +3,7 @@
   "_comment": "Claude Toolkit - Reference settings.json template",
   "_instructions": "Copy this to .claude/settings.json and customize for your project. For permissions, create a separate .claude/settings.local.json (not committed to git).",
 
+  "enableAllProjectMcpServers": false,
   "hooks": {
     "SessionStart": [
       {
@@ -38,6 +39,15 @@
           {
             "type": "command",
             "command": ".claude/hooks/enforce-make-commands.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-config-edits.sh"
           }
         ]
       },

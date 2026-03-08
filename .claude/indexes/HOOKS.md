@@ -9,7 +9,8 @@ Automation hooks configured in `settings.json`.
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
 | `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
 | `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files and exposing secrets |
+| `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
+| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
 | `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
@@ -56,11 +57,27 @@ Blocks destructive bash commands that could damage the system.
 
 **Trigger**: PreToolUse (Read|Bash)
 
-Prevents accidental exposure of secrets from .env files.
+Prevents accidental exposure of secrets from .env files and credential files.
 
 - Blocks Read: `.env`, `.env.*` (except `.env.example`, `.env.template`, `.env.sample`)
+- Blocks Read: SSH private keys (`~/.ssh/id_*`, not `.pub`), SSH config, GPG dir
+- Blocks Read: Cloud creds (`~/.aws/credentials`, `~/.aws/config`), CLI tokens (`~/.config/gh/hosts.yml`, `~/.docker/config.json`, `~/.kube/config`)
+- Blocks Read: Package manager tokens (`~/.npmrc`, `~/.pypirc`, `~/.gem/credentials`)
 - Blocks Bash: `cat .env`, `source .env`, `export $(cat .env)`, `env`
+- Blocks Bash: `cat`/`less`/`head`/`tail` of credential files, `gpg --export-secret-keys`
+- Allows: `~/.ssh/known_hosts`, `~/.ssh/authorized_keys` (read), `*.pub` files
 - Bypass: Set `ALLOW_ENV_READ=1`
+
+### block-config-edits.sh
+
+**Trigger**: PreToolUse (Write|Edit|Bash)
+
+Blocks writes to shell config and SSH files to prevent persistent environment poisoning.
+
+- Blocks Write/Edit: `~/.bashrc`, `~/.bash_profile`, `~/.bash_login`, `~/.profile`, `~/.zshrc`, `~/.zprofile`, `~/.zshenv`, `~/.zlogin`
+- Blocks Write/Edit: `~/.ssh/authorized_keys`, `~/.ssh/config`, `~/.gitconfig`
+- Blocks Bash: redirect/append (`>`, `>>`) to above paths, `sed -i`, `mv` to above paths, `tee -a`
+- Allows: read-only commands (`grep ~/.bashrc`), project-level files (`/project/.bashrc`)
 
 ### suggest-read-json.sh
 
