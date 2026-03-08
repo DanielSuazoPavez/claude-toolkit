@@ -40,7 +40,6 @@ Blocks entering plan mode while on main/master branch.
 
 - Blocks: `EnterPlanMode` when on `main` or `master`
 - Message: Suggests creating feature branch with prefix options
-- Bypass: Set `ALLOW_PLAN_ON_MAIN=1`
 
 Why: Non-trivial work (worthy of plan mode) should happen on feature branches.
 
@@ -51,7 +50,6 @@ Why: Non-trivial work (worthy of plan mode) should happen on feature branches.
 Blocks destructive bash commands that could damage the system.
 
 - Blocks: `rm -rf /`, `rm -rf ~`, fork bombs, `mkfs`, `dd` to disks, `chmod -R 777 /`
-- Bypass: Set `ALLOW_DANGEROUS_COMMANDS=1`
 
 ### secrets-guard.sh
 
@@ -66,7 +64,6 @@ Prevents accidental exposure of secrets from .env files and credential files.
 - Blocks Bash: `cat .env`, `source .env`, `export $(cat .env)`, `env`
 - Blocks Bash: `cat`/`less`/`head`/`tail` of credential files, `gpg --export-secret-keys`
 - Allows: `~/.ssh/known_hosts`, `~/.ssh/authorized_keys` (read), `*.pub` files
-- Bypass: Set `ALLOW_ENV_READ=1`
 
 ### block-config-edits.sh
 
@@ -87,7 +84,6 @@ Suggests using `/read-json` skill for JSON files.
 
 - Blocks: Any `.json` file read
 - Reason: JSON files can be large; `/read-json` uses jq for efficient querying
-- Bypass: Set `ALLOW_JSON_READ=1`
 
 ### enforce-uv-run.sh
 

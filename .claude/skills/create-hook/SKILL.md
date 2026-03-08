@@ -149,6 +149,7 @@ Order matters: `block-dangerous.sh` runs first, then `allow-make-commands.sh` ca
 | **No early exit** | Processes irrelevant tools | Check `tool_name` first, exit 0 if no match |
 | **Hardcoded paths** | Breaks on other machines | Use `$HOME`, relative paths, or env vars |
 | **Wrong hook order** | Allowlist blocked by earlier hook | Order: blockers first, allowlists after |
+| **Env var bypass** | Defeats the hook's purpose; user can just run the command directly if needed | Don't add `ALLOW_*` env var overrides |
 
 ## Troubleshooting
 

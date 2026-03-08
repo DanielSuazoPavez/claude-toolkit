@@ -714,23 +714,24 @@
     },
     "resources": {
       "secrets-guard": {
-        "file_hash": "df41ddb4",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 91,
-        "max": 100,
-        "percentage": 91,
+        "file_hash": "e0a4781b",
+        "date": "2026-03-08",
+        "grade": "B",
+        "score": 101,
+        "max": 115,
+        "percentage": 87.8,
         "dimensions": {
-          "D1": 21,
-          "D2": 19,
-          "D3": 19,
+          "D1": 22,
+          "D2": 16,
+          "D3": 20,
           "D4": 17,
-          "D5": 15
+          "D5": 13,
+          "D6": 13
         },
         "top_improvements": [
-          "Strengthen Bash regex patterns to catch paths with quotes or absolute paths (e.g., cat \"/path/.env\")",
-          "Add detection for edge cases: sudo env, bash -c env, and .env.local variants in Bash patterns",
-          "Consider extracting bash dangerous patterns into a configurable array for easier maintenance"
+          "Fix HOOKS.md .env.sample allowlist mention that is not implemented in the hook (only .example and .template are)",
+          "Add documented test cases in header comment with copy-pasteable block/allow examples",
+          "Harden Bash regex patterns against bypass vectors: sudo env, cat < .env, grep of credential files"
         ]
       },
       "enforce-make-commands": {
@@ -871,6 +872,27 @@
           "Add a size-based test case (e.g., file > threshold) to documented test cases",
           "Make wildcard regex conversion more robust (escape additional special regex chars like +, ?, etc.)",
           "Add fallback handling if both stat commands fail (currently defaults to 0, allowing the file)"
+        ]
+      },
+      "block-config-edits": {
+        "file_hash": "351ac757",
+        "date": "2026-03-08",
+        "grade": "B",
+        "score": 99,
+        "max": 115,
+        "percentage": 86.1,
+        "dimensions": {
+          "D1": 21,
+          "D2": 16,
+          "D3": 18,
+          "D4": 18,
+          "D5": 13,
+          "D6": 13
+        },
+        "top_improvements": [
+          "Add single-redirect (>) and cp detection to Bash handler -- echo x > ~/.bashrc and cp payload ~/.bashrc both bypass the hook",
+          "Add bypass environment variable (ALLOW_CONFIG_EDIT=1) for legitimate config editing, matching ecosystem pattern from secrets-guard.sh",
+          "Add inline test commands in header comments and expand test-hooks.sh coverage for sed -i, mv, resolved absolute paths, and quoted-string false positives"
         ]
       }
     }

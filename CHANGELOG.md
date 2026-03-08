@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.17.1] - 2026-03-08 - Hook evaluation and anti-pattern fix
+
+### Fixed
+- **HOOKS.md**: Removed 4 stale `Bypass:` env var references that no hook implements.
+- **evaluations.json**: Fresh evaluations for secrets-guard (B, 101/115) and block-config-edits (B, 99/115) on updated 6-dimension rubric.
+
+### Added
+- **evaluate-hook skill**: Added "env var bypass" anti-pattern (D3: -5) — defeats hook purpose; user can just run the command directly if needed.
+- **create-hook skill**: Added "env var bypass" anti-pattern with same reasoning.
+
 ## [1.17.0] - 2026-03-08 - Security settings audit
 
 ### Added
