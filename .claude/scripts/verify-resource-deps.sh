@@ -137,6 +137,11 @@ if [ -f "$SETTINGS" ]; then
     while IFS= read -r cmd; do
         # Strip "bash " prefix if present
         path="${cmd#bash }"
+        # Skip non-local commands (npx, node, etc.) — only validate local file paths
+        if [[ "$path" =~ ^(npx|node|python|sh|zsh) ]]; then
+            count=$((count + 1))
+            continue
+        fi
         if [ ! -f "$path" ]; then
             echo -e "${RED}Broken hook command: $cmd → $path not found${NC}"
             ERRORS=$((ERRORS + 1))
