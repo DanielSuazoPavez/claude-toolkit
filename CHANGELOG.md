@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.9.3] - 2026-03-08 - Triage suggestions box
+
+### Added
+- **`personal-context-user` memory**: Personal context (cats, board games, Chilean game scene) accepted from claude-meta suggestions.
+- **Suggestions box issue handling**: Updated `suggestions-box/CLAUDE.md` with `_issue.txt` triage workflow into BACKLOG.
+- **Suggestions box reference**: Added section to root `CLAUDE.md`.
+- **Install step**: Symlink to `~/.local/bin` in README Quick Start.
+
+### Changed
+- **BACKLOG.md**: 2 new P0 items (`skill-create-conventions`, `toolkit-auto-detect-project`), 3 new P1 items (`skill-review-plan-steps`, `skill-refactor-shared-patterns`, promoted `skill-review-plan-calibration`), 1 new P2 item (`skill-command-type-evaluation` combining command-style classification + activation knowledge scoring). Removed `skill-rename-create` (absorbed into P0).
+- **MEMORIES index**: Added `personal-context-user`.
+- **Casual communication style memory**: Cross-linked to `personal-context-user`.
+
+### Removed
+- **Suggestions box**: Cleared 5 resource files (1 accepted, 1 duplicate deleted, 3 moved to data_engineering by user) and 8 issue files (triaged into backlog).
+
 ## [1.9.2] - 2026-03-08 - Reorganize .claude folder
 
 ### Changed
