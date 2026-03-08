@@ -25,7 +25,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
         - `aws-security-auditor` agent: Security review, least-privilege IAM validation
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
-    - **drafts**: `.claude/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
+    - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 
 
@@ -39,7 +39,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in write-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
+    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in write-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
 
 - **[SKILLS]** Rename `write-{resource}` skills to `create-{resource}` (`skill-rename-create`)
     - **status**: `idea`
@@ -49,72 +49,72 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
+    - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
 - **[SKILLS]** Shift examples to copy-and-modify templates in write-* skills (`skill-templates-as-starting-points`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to write-skill, write-agent, and any skill producing structured output. Ref: `.claude/reviews/exploration/anthropics_skills/summary.md`.
+    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to write-skill, write-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
 
 - **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
+    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
 
 - **[HOOKS]** Anti-rationalization Stop hook (`hook-anti-rationalization`)
     - **status**: `idea`
     - **scope**: `hooks`
-    - **notes**: Prompt-type Stop hook that catches premature victory declarations — cop-out phrases like "pre-existing issues," "out of scope," "too many issues," "I'll leave this for a follow-up." Fires at the exact decision point, unlike CLAUDE.md instructions that fade under context pressure. Could use Haiku review (ToB approach) or lighter pattern-match. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Prompt-type Stop hook that catches premature victory declarations — cop-out phrases like "pre-existing issues," "out of scope," "too many issues," "I'll leave this for a follow-up." Fires at the exact decision point, unlike CLAUDE.md instructions that fade under context pressure. Could use Haiku review (ToB approach) or lighter pattern-match. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[SKILLS]** Turn budget awareness convention for multi-step skills (`skill-turn-budget-awareness`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in write-skill guidance. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in write-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 
 - **[HOOKS]** Improve block-dangerous-commands chaining detection (`hook-dangerous-commands-chaining`)
     - **status**: `idea`
     - **scope**: `hooks`
-    - **notes**: Current hook only checks for dangerous targets (`/`, `~`, `.`) but doesn't detect command chaining — `; rm -rf /`, `&& rm -rf /`, `| rm` bypass detection. Add chaining-aware regex (`;`, `&&`, `||`, `|` before `rm`). ToB's approach blocks ALL `rm -rf` and suggests `trash` — we prefer target-specific blocking but need the chaining coverage. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Current hook only checks for dangerous targets (`/`, `~`, `.`) but doesn't detect command chaining — `; rm -rf /`, `&& rm -rf /`, `| rm` bypass detection. Add chaining-aware regex (`;`, `&&`, `||`, `|` before `rm`). ToB's approach blocks ALL `rm -rf` and suggests `trash` — we prefer target-specific blocking but need the chaining coverage. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[TOOLKIT]** Add statusline to repo as recommended default (`toolkit-statusline`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: Currently using `@owloops/claude-powerline` at user level only. Add to repo's settings.json and template as a recommended default. Powerline already covers context usage, cost, git info, model, session duration — no custom script needed. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Currently using `@owloops/claude-powerline` at user level only. Add to repo's settings.json and template as a recommended default. Powerline already covers context usage, cost, git info, model, session duration — no custom script needed. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 
 - **[TOOLKIT]** Audit settings against ToB security patterns (`security-settings-audit`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: We have no `permissions.deny` or `enableAllProjectMcpServers: false`. ToB's settings include deny list for SSH keys, cloud creds (AWS/Azure/GH/Docker/K8s), package tokens (npm/pypi/gem), shell config edits, and MCP auto-enable protection. Not all apply (crypto wallets are ToB-specific), but SSH keys, cloud creds, and MCP flag are universally relevant. Review and adopt what fits. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: We have no `permissions.deny` or `enableAllProjectMcpServers: false`. ToB's settings include deny list for SSH keys, cloud creds (AWS/Azure/GH/Docker/K8s), package tokens (npm/pypi/gem), shell config edits, and MCP auto-enable protection. Not all apply (crypto wallets are ToB-specific), but SSH keys, cloud creds, and MCP flag are universally relevant. Review and adopt what fits. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 
 - **[SKILLS]** Add rationalization tables to write-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in write-skill's RED phase. Ref: `.claude/reviews/exploration/obra_superpowers/summary.md`.
+    - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in write-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 - **[AGENTS]** Add "3+ failed fixes = stop" escalation to code-debugger (`agent-debugger-escalation`)
     - **status**: `idea`
     - **scope**: `agents`
-    - **notes**: If three sequential fixes each reveal a new problem in a different place, stop and escalate — signals architectural issue, not a series of bugs. obra/superpowers systematic-debugging uses this as a guardrail. Our code-debugger has no explicit escalation trigger. Ref: `.claude/reviews/exploration/obra_superpowers/summary.md`.
+    - **notes**: If three sequential fixes each reveal a new problem in a different place, stop and escalate — signals architectural issue, not a series of bugs. obra/superpowers systematic-debugging uses this as a guardrail. Our code-debugger has no explicit escalation trigger. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 - **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/reviews/exploration/obra_superpowers/summary.md`.
+    - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 ## P100 - Nice to Have
 
 - **[TOOLKIT]** Cherry-pick CLAUDE.md template conventions from ToB (`claude-md-template-conventions`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: Easy wins from ToB's CLAUDE.md template: `trash` over `rm`, explicit philosophy principles ("replace don't deprecate", "finish the job"), zero warnings policy. Low effort, clear value. Review which conventions align with what we already do informally and make them explicit. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Easy wins from ToB's CLAUDE.md template: `trash` over `rm`, explicit philosophy principles ("replace don't deprecate", "finish the job"), zero warnings policy. Low effort, clear value. Review which conventions align with what we already do informally and make them explicit. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[HOOKS]** Context-aware suggestions via UserPromptSubmit (`hook-context-suggest`)
     - **status**: `idea`
@@ -124,17 +124,17 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[AGENTS]** Create dedicated `security-reviewer` agent (`agent-security-reviewer`)
     - **status**: `idea`
     - **scope**: `agents`
-    - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+    - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
 
 - **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
 
 - **[SKILLS]** Add eval self-critique step to evaluate-* skills (`skill-eval-self-critique`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: After scoring, ask "would any of my rubric dimensions pass for a wrong output too?" Catches non-discriminating dimensions. Anthropic's grader does this — flags assertions that create false confidence. Light addition to evaluation protocol. Ref: `.claude/reviews/exploration/anthropics_skills/summary.md`.
+    - **notes**: After scoring, ask "would any of my rubric dimensions pass for a wrong output too?" Catches non-discriminating dimensions. Anthropic's grader does this — flags assertions that create false confidence. Light addition to evaluation protocol. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
 
 - **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`)
     - **status**: `idea`
@@ -149,12 +149,12 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[TOOLKIT]** CI discovery pattern for quality pipelines (`ci-discovery-pattern`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: Read `.github/workflows/` to discover actual CI checks instead of hardcoding language-specific commands. Applicable to simplify skill or a future CI-aware review flow. Avoids the common problem of running different checks locally than CI runs. Ref: `.claude/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Read `.github/workflows/` to discover actual CI checks instead of hardcoding language-specific commands. Applicable to simplify skill or a future CI-aware review flow. Avoids the common problem of running different checks locally than CI runs. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[SKILLS]** MCP server development skill (`skill-mcp-developer`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Skill for scaffolding/developing MCP servers. Real technical specifics: JSON-RPC 2.0, TypeScript/Python SDK patterns, Zod/Pydantic schemas, transport mechanisms. VoltAgent's mcp-developer agent had good domain coverage buried under template noise — use as starting reference. Ref: `.claude/reviews/exploration/voltagent_awesome-claude-code-subagents/summary.md`.
+    - **notes**: Skill for scaffolding/developing MCP servers. Real technical specifics: JSON-RPC 2.0, TypeScript/Python SDK patterns, Zod/Pydantic schemas, transport mechanisms. VoltAgent's mcp-developer agent had good domain coverage buried under template noise — use as starting reference. Ref: `.claude/output/reviews/exploration/voltagent_awesome-claude-code-subagents/summary.md`.
 
 - **[SKILLS]** Create `github-actions` skill (`skill-gh-actions`)
     - **status**: `idea`

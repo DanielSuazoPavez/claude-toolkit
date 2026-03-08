@@ -165,7 +165,7 @@ Stop and reconsider if:
 | **Tool Hoarder** | Every tool listed | Match tools to actual needs |
 | **No Persona** | "You are a helpful assistant" | Specific role with perspective |
 | **Missing Boundaries** | No "What I Don't Do" | Always include explicit limits |
-| **Overlapping Scope** | Conflicts with existing agent | Check `.claude/AGENTS.md` first |
+| **Overlapping Scope** | Conflicts with existing agent | Check `.claude/indexes/AGENTS.md` first |
 
 ## Worked Example: Creating a Focused Agent
 

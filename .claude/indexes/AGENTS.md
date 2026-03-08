@@ -6,7 +6,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-explorer` | beta | Explores codebase and writes structured analysis to `.claude/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
+| `codebase-explorer` | beta | Explores codebase and writes structured analysis to `.claude/output/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
 | `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality
@@ -20,8 +20,8 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `goal-verifier` | stable | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `.claude/reviews/`. | Read, Bash, Grep, Glob, Write |
-| `implementation-checker` | stable | Compares implementation to planning docs, writes report to `.claude/reviews/` | Read, Grep, Glob, Write |
+| `goal-verifier` | stable | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `.claude/output/reviews/`. | Read, Bash, Grep, Glob, Write |
+| `implementation-checker` | stable | Compares implementation to planning docs, writes report to `.claude/output/reviews/` | Read, Grep, Glob, Write |
 
 ## Usage
 

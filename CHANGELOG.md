@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.2] - 2026-03-08 - Reorganize .claude folder
+
+### Changed
+- **`.claude/` structure**: Moved resource indexes (AGENTS.md, HOOKS.md, MEMORIES.md, SKILLS.md, evaluations.json) to `indexes/` subfolder. Moved generated artifacts (analysis, design, drafts, reviews) to `output/` subfolder. Deleted stale session handoff files.
+- **Path references**: Updated 25 files (3 scripts, 12 skills, 5 agents, CLAUDE.md, AGENTS.md index, .gitignore, BACKLOG.md) to use new paths.
+
 ## [1.9.1] - 2026-03-08 - External repo research
 
 ### Added

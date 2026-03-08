@@ -34,7 +34,7 @@ If there are uncommitted changes:
 
 ```
 Task tool: subagent_type=implementation-checker
-Prompt: "Review implementation in this worktree against the plan. Write report to .claude/reviews/"
+Prompt: "Review implementation in this worktree against the plan. Write report to .claude/output/reviews/"
 Working directory: <worktree_path>
 ```
 
@@ -68,7 +68,7 @@ Skip gracefully if not configured. Report failures.
 ```
 
 **GREEN path:**
-1. **Copy report FIRST** (before any removal): `cp <worktree>/.claude/reviews/<branch>-implementation-check-<YYYYMMDD>.md .claude/reviews/`
+1. **Copy report FIRST** (before any removal): `cp <worktree>/.claude/output/reviews/<branch>-implementation-check-<YYYYMMDD>.md .claude/output/reviews/`
 2. Remove worktree: `git worktree remove <worktree_path>`
 3. Checkout branch: `git checkout <branch_name>`
 4. Inform user: "On branch `<branch>` for manual review. Merge when ready: `git merge --no-ff <branch>`"

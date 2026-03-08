@@ -15,9 +15,9 @@ Create new skills using test-driven documentation. No skill without a failing te
 
 ### Pre-check: Existing Evaluations
 
-When refining an existing skill, first check `.claude/evaluations.json`:
+When refining an existing skill, first check `.claude/indexes/evaluations.json`:
 ```bash
-jq '.skills.resources["<skill-name>"].top_improvements' .claude/evaluations.json
+jq '.skills.resources["<skill-name>"].top_improvements' .claude/indexes/evaluations.json
 ```
 Address documented improvements before inventing new ones.
 

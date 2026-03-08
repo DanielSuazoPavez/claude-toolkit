@@ -24,18 +24,20 @@ claude-toolkit sync /path/to/project  # Sync config into a project
 ├── skills/     # User-invocable skills (/skill-name)
 ├── agents/     # Specialized task agents
 ├── hooks/      # Automation hooks
-└── memories/   # Memory templates
+├── memories/   # Memory templates
+├── indexes/    # Resource indexes and evaluation scores
+└── output/     # Generated artifacts (analysis, reviews, sessions, etc.)
 ```
 
 ## Resource Indexes
 
 Summary and status of all resources:
 
-- `.claude/SKILLS.md` - All skills with status and descriptions
-- `.claude/AGENTS.md` - All agents with status, descriptions, and tools
-- `.claude/HOOKS.md` - All hooks with triggers and configuration
-- `.claude/MEMORIES.md` - All memories with categories and purposes
-- `.claude/evaluations.json` - Quality scores, grades, and improvement suggestions
+- `.claude/indexes/SKILLS.md` - All skills with status and descriptions
+- `.claude/indexes/AGENTS.md` - All agents with status, descriptions, and tools
+- `.claude/indexes/HOOKS.md` - All hooks with triggers and configuration
+- `.claude/indexes/MEMORIES.md` - All memories with categories and purposes
+- `.claude/indexes/evaluations.json` - Quality scores, grades, and improvement suggestions
 
 ## When You're Done
 

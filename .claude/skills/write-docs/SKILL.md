@@ -35,7 +35,7 @@ If unclear, default to **user-docs**.
 
 ### 1. Check for Codebase Explorer Report
 
-Look for `.claude/reviews/codebase/` (ARCHITECTURE.md, STACK.md, STRUCTURE.md).
+Look for `.claude/output/reviews/codebase/` (ARCHITECTURE.md, STACK.md, STRUCTURE.md).
 
 ```
 Report exists?

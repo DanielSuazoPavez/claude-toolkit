@@ -17,8 +17,8 @@ learned.json
 # Claude session artifacts
 .claude/usage.log
 .claude/plans/
-.claude/reviews/
-.claude/analysis/
-.claude/design/
-.claude/sessions/
+.claude/output/reviews/
+.claude/output/analysis/
+.claude/output/design/
+.claude/output/sessions/
 .claude/settings.local.json

@@ -30,7 +30,7 @@ declare -a MANIFEST_ENTRIES=()
 # MANIFEST mode: only activate when MANIFEST exists but index files don't.
 # The toolkit has both MANIFEST and index files (SKILLS.md etc.) — use full disk mode there.
 # Target projects have MANIFEST but no index files — use MANIFEST mode there.
-if [ -f "$MANIFEST_FILE" ] && [ ! -f "$CLAUDE_DIR/SKILLS.md" ]; then
+if [ -f "$MANIFEST_FILE" ] && [ ! -f "$CLAUDE_DIR/indexes/SKILLS.md" ]; then
     MANIFEST_MODE=true
     while IFS= read -r line || [ -n "$line" ]; do
         [[ -z "$line" || "$line" =~ ^# ]] && continue
