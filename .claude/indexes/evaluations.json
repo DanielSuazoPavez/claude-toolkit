@@ -268,26 +268,26 @@
         ]
       },
       "evaluate-agent": {
-        "file_hash": "a52c3aac",
-        "date": "2026-01-28",
+        "file_hash": "a2adf7fb",
+        "date": "2026-03-08",
         "grade": "A-",
-        "score": 106,
+        "score": 104,
         "max": 120,
-        "percentage": 88.3,
+        "percentage": 86.7,
         "dimensions": {
           "D1": 17,
           "D2": 13,
-          "D3": 14,
-          "D4": 13,
-          "D5": 13,
-          "D6": 14,
-          "D7": 9,
+          "D3": 13,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 12,
           "D8": 13
         },
         "top_improvements": [
-          "Add explicit TOC at top for navigation since file is 232 lines",
-          "Make D1 calibration criteria more specific (define 'laser-focused' vs 'mostly appropriate' with examples)",
-          "Add error handling guidance for malformed agent files or missing frontmatter"
+          "[low] Add evaluation process anti-patterns — include warnings about common evaluator mistakes (anchoring to prior scores, dimension cross-contamination, leniency bias for well-formatted but shallow agents)",
+          "[low] Reference /evaluate-batch in the Related line — the batch evaluation skill orchestrates this one and the connection improves ecosystem discoverability",
+          "[low] Add dimension conflict guidance — when D1 is strong but D2 is weak (or vice versa), provide guidance on whether to weight one dimension more heavily"
         ]
       },
       "evaluate-hook": {
@@ -613,26 +613,26 @@
         ]
       },
       "create-agent": {
-        "file_hash": "56c25857",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 108,
+        "file_hash": "a3e4d2a9",
+        "date": "2026-03-08",
+        "grade": "A-",
+        "score": 105,
         "max": 120,
-        "percentage": 90,
+        "percentage": 87.5,
         "dimensions": {
           "D1": 17,
           "D2": 14,
           "D3": 14,
-          "D4": 13,
-          "D5": 14,
+          "D4": 9,
+          "D5": 12,
           "D6": 13,
-          "D7": 9,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "Strengthen Tool Selection Guide with edge cases (when to add WebFetch, WebSearch for research-heavy agents)",
-          "Add TOC at top for navigation in 210-line file",
-          "Consider adding a second worked example showing agent refinement after failing /evaluate-agent"
+          "[low] Trim Example 2 (lines 246-297) — the full before/after with dimension scores is 50 lines; condensing to ~30 lines by removing verbose code blocks would tighten progressive disclosure",
+          "[low] Add cross-reference to relevant memories (e.g., reducing_entropy philosophy) that inform agent design decisions, strengthening ecosystem integration",
+          "[low] Expand anti-pattern Problem column with downstream consequences (e.g., The Generalist leads to scope conflicts and unpredictable output quality)"
         ]
       },
       "create-hook": {
