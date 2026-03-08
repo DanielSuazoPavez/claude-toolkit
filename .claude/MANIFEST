@@ -42,6 +42,7 @@ agents/implementation-checker.md
 agents/pattern-finder.md
 
 # hooks
+hooks/block-config-edits.sh
 hooks/block-dangerous-commands.sh
 hooks/anti-rationalization.sh
 hooks/capture-lesson.sh
