@@ -20,11 +20,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[SKILLS]** Calibrate `review-plan` issue levels to align with verdict (`skill-review-plan-calibration`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Issue severity levels (high/medium/low) should correlate with the final verdict. A plan with only low-severity issues shouldn't get a negative verdict, and vice versa. Review scoring/verdict logic for consistency.
-
 - **[SKILLS]** `review-plan` step granularity and post-verification flow (`skill-review-plan-steps`)
     - **status**: `idea`
     - **scope**: `skills`
