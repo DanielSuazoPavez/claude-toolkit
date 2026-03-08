@@ -1,0 +1,45 @@
+{
+  "skill": "analyze-idea",
+  "queries": [
+    {
+      "query": "investigate how test coverage looks across the project and identify the biggest gaps",
+      "should_trigger": true,
+      "notes": "coverage gap analysis — core use case"
+    },
+    {
+      "query": "is it feasible to migrate from REST to GraphQL given our current architecture?",
+      "should_trigger": true,
+      "notes": "feasibility analysis"
+    },
+    {
+      "query": "audit the codebase for places where we're over-engineering or adding unnecessary abstractions",
+      "should_trigger": true,
+      "notes": "codebase audit with specific focus"
+    },
+    {
+      "query": "research how other projects handle database connection pooling and what patterns we could adopt",
+      "should_trigger": true,
+      "notes": "research task with evidence gathering"
+    },
+    {
+      "query": "I have a fuzzy idea about adding real-time notifications but I'm not sure what shape it should take",
+      "should_trigger": false,
+      "notes": "unclear requirements, exploration phase — should trigger brainstorm-idea"
+    },
+    {
+      "query": "refactor the auth module to reduce coupling with the database layer",
+      "should_trigger": false,
+      "notes": "concrete refactoring task, not analysis"
+    },
+    {
+      "query": "write tests for the payment processing module",
+      "should_trigger": false,
+      "notes": "implementation task, not investigation"
+    },
+    {
+      "query": "what does the UserService class do?",
+      "should_trigger": false,
+      "notes": "simple code reading question, not an analysis/report task"
+    }
+  ]
+}

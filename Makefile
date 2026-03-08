@@ -1,4 +1,4 @@
-.PHONY: test test-hooks test-cli test-backlog validate check backlog help
+.PHONY: test test-hooks test-cli test-backlog test-triggers validate check backlog help
 
 help:
 	@echo "Available targets:"
@@ -6,6 +6,7 @@ help:
 	@echo "  make test-hooks        - Run hook tests only"
 	@echo "  make test-cli          - Run CLI tests only"
 	@echo "  make test-backlog      - Run backlog-query tests only"
+	@echo "  make test-triggers     - Run skill trigger tests (slow, uses claude -p)"
 	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
@@ -20,6 +21,9 @@ test-cli:
 
 test-backlog:
 	@bash tests/test-backlog-query.sh
+
+test-triggers:
+	@bash tests/test-skill-triggers.sh
 
 backlog:
 	@bash .claude/scripts/backlog-query.sh
