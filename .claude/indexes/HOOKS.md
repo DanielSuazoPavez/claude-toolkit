@@ -14,6 +14,7 @@ Automation hooks configured in `settings.json`.
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
 | `capture-lesson.sh` | alpha | Stop | Detects [LEARN] tags and prompts for lesson capture |
+| `anti-rationalization.sh` | alpha | Stop | Detects rationalization / cop-out phrases and nudges Claude to reconsider |
 | `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
 **Note**: Beta hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
@@ -104,6 +105,18 @@ Detects `[LEARN]` tags in Claude's responses and blocks to prompt for lesson cap
 - Silent on no match (exit 0, no stdout)
 - Approved lessons written to `learned.json` via `/learn` skill process
 
+### anti-rationalization.sh
+
+**Trigger**: Stop
+
+Detects cop-out phrases in Claude's responses that signal premature victory or rationalized deferral.
+
+- Checks `stop_hook_active` first to prevent infinite loops
+- Reads last assistant message from transcript JSONL
+- Matches against cop-out patterns: scope deflection, deferral, blame shifting, overwhelm, explicit refusal
+- Blocks with constructive nudge including matched phrase
+- Silent on no match (exit 0, no stdout)
+
 ### copy-plan-to-project.sh
 
 **Trigger**: PostToolUse (Write)
@@ -123,7 +136,8 @@ Hooks are configured in `settings.json`:
     "Stop": [
       {
         "hooks": [
-          {"type": "command", "command": "bash .claude/hooks/capture-lesson.sh"}
+          {"type": "command", "command": "bash .claude/hooks/capture-lesson.sh"},
+          {"type": "command", "command": "bash .claude/hooks/anti-rationalization.sh"}
         ]
       }
     ],
