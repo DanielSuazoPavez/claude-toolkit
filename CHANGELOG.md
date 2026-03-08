@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.13.0] - 2026-03-08 - Review-plan step granularity and post-approval flow
+
+### Added
+- **review-plan skill**: "After Approval" section — skill now appends post-implementation steps to the plan: commit per step, `goal-verifier` verification, `/wrap-up`.
+
+### Changed
+- **review-plan skill**: Step atomicity check renamed to "commit-sized" — each plan step should be independently committable.
+- **Evaluation**: review-plan scored A- (106/120, 88.3%).
+
 ## [1.12.3] - 2026-03-08 - Goal-verifier severity alignment
 
 ### Changed

@@ -406,26 +406,26 @@
         ]
       },
       "review-plan": {
-        "file_hash": "1b0ee4bd",
+        "file_hash": "1a95dc95",
         "date": "2026-03-08",
         "grade": "A-",
-        "score": 105,
+        "score": 106,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 88.3,
         "dimensions": {
           "D1": 17,
           "D2": 14,
           "D3": 14,
-          "D4": 8,
-          "D5": 14,
+          "D4": 9,
+          "D5": 13,
           "D6": 14,
-          "D7": 10,
+          "D7": 11,
           "D8": 14
         },
         "top_improvements": [
-          "[high] Add cross-references to related ecosystem resources: /review-changes for post-approval code review, implementation-checker agent for post-implementation verification, and /write-handoff if plan spans sessions",
-          "[low] Expand description keywords to include additional trigger phrases: validate plan, critique plan, sanity check plan",
-          "[low] Add brief reasoning column (Why Bad) to anti-patterns like The Vague Step and Hidden Dependency to strengthen downstream consequence awareness"
+          "[high] Add cross-references to /review-changes for post-approval code review and relevant memories for plan review context — current ecosystem integration is limited to After Approval section",
+          "[low] Add a Table of Contents at the top for easier navigation of the 232-line document",
+          "[low] Trim the output format template (~60 lines) by removing the inline example comments, keeping only the structural skeleton"
         ]
       },
       "setup-worktree": {

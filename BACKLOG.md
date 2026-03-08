@@ -20,12 +20,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[SKILLS]** `review-plan` step granularity and post-verification flow (`skill-review-plan-steps`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Steps should be "commit-able amount of work" and include "commit after each step". Post-verification steps should suggest `/wrap-up` skill and launching a `goal-verifier` agent to review the changes, asking the user. Ref: suggestions-box/opensearch-dashboard issue.
-
-
 - **[HOOKS]** Improve block-dangerous-commands chaining detection (`hook-dangerous-commands-chaining`)
     - **status**: `idea`
     - **scope**: `hooks`
