@@ -30,10 +30,15 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in create-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
-- **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
+- **[SKILLS]** Add eval self-critique step to evaluate-* skills (`skill-eval-self-critique`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: After scoring, ask "would any of my rubric dimensions pass for a wrong output too?" Catches non-discriminating dimensions. Anthropic's grader does this — flags assertions that create false confidence. Light addition to evaluation protocol. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
+
+- **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
+    - **notes**: Scripts should be run with `--help` first, not read as source. Protects context window. We already add `--help` to scripts — make the convention explicit in create-skill guidance and toolkit conventions. Ref: anthropics/skills webapp-testing pattern.
 
 ## P2 - Medium
 
@@ -66,6 +71,10 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `toolkit`
     - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
+- **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 ## P100 - Nice to Have
 
@@ -85,15 +94,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
 
-- **[SKILLS]** Add eval self-critique step to evaluate-* skills (`skill-eval-self-critique`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: After scoring, ask "would any of my rubric dimensions pass for a wrong output too?" Catches non-discriminating dimensions. Anthropic's grader does this — flags assertions that create false confidence. Light addition to evaluation protocol. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
-
-- **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Scripts should be run with `--help` first, not read as source. Protects context window. We already add `--help` to scripts — make the convention explicit in create-skill guidance and toolkit conventions. Ref: anthropics/skills webapp-testing pattern.
 
 - **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
     - **status**: `idea`
