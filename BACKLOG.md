@@ -30,10 +30,29 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: Steps should be "commit-able amount of work" and include "commit after each step". Post-verification steps should suggest `/wrap-up` skill and launching a `goal-verifier` agent to review the changes, asking the user. Ref: suggestions-box/opensearch-dashboard issue.
 
-- **[SKILLS]** Analyze `refactor` skill gap — shared pattern extraction (`skill-refactor-shared-patterns`)
+
+- **[HOOKS]** Improve block-dangerous-commands chaining detection (`hook-dangerous-commands-chaining`)
+    - **status**: `idea`
+    - **scope**: `hooks`
+    - **notes**: Current hook only checks for dangerous targets (`/`, `~`, `.`) but doesn't detect command chaining — `; rm -rf /`, `&& rm -rf /`, `| rm` bypass detection. Add chaining-aware regex (`;`, `&&`, `||`, `|` before `rm`). ToB's approach blocks ALL `rm -rf` and suggests `trash` — we prefer target-specific blocking but need the chaining coverage. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+
+- **[TOOLKIT]** Add statusline to repo as recommended default (`toolkit-statusline`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Currently using `@owloops/claude-powerline` at user level only. Add to repo's settings.json and template as a recommended default. Powerline already covers context usage, cost, git info, model, session duration — no custom script needed. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+
+- **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Gap in detecting common patterns across modules that should be moved to a shared source. The refactor skill should evaluate whether duplicated or similar logic across files warrants extraction into a shared module/utility. Ref: suggestions-box/opensearch-dashboard issue.
+    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in create-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
+
+
+## P2 - Medium
+
+- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
@@ -44,24 +63,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
-
-
-## P2 - Medium
-
-- **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in create-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
-
 - **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
     - **status**: `idea`
     - **scope**: `skills`
     - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
 
-- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
 - **[SKILLS]** Shift examples to copy-and-modify templates in write-* skills (`skill-templates-as-starting-points`)
     - **status**: `idea`
@@ -83,18 +89,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in create-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
-
-- **[HOOKS]** Improve block-dangerous-commands chaining detection (`hook-dangerous-commands-chaining`)
-    - **status**: `idea`
-    - **scope**: `hooks`
-    - **notes**: Current hook only checks for dangerous targets (`/`, `~`, `.`) but doesn't detect command chaining — `; rm -rf /`, `&& rm -rf /`, `| rm` bypass detection. Add chaining-aware regex (`;`, `&&`, `||`, `|` before `rm`). ToB's approach blocks ALL `rm -rf` and suggests `trash` — we prefer target-specific blocking but need the chaining coverage. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
-- **[TOOLKIT]** Add statusline to repo as recommended default (`toolkit-statusline`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Currently using `@owloops/claude-powerline` at user level only. Add to repo's settings.json and template as a recommended default. Powerline already covers context usage, cost, git info, model, session duration — no custom script needed. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
-
 - **[TOOLKIT]** Audit settings against ToB security patterns (`security-settings-audit`)
     - **status**: `idea`
     - **scope**: `toolkit`
@@ -104,7 +98,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 
 - **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`

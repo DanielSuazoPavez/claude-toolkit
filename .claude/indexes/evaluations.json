@@ -567,12 +567,12 @@
         ]
       },
       "refactor": {
-        "file_hash": "eb964d76",
-        "date": "2026-02-13",
-        "grade": "A-",
-        "score": 107,
+        "file_hash": "82d04ff0",
+        "date": "2026-03-08",
+        "grade": "A",
+        "score": 108,
         "max": 120,
-        "percentage": 89.2,
+        "percentage": 90,
         "dimensions": {
           "D1": 17,
           "D2": 14,
@@ -581,12 +581,12 @@
           "D5": 14,
           "D6": 13,
           "D7": 13,
-          "D8": 13
+          "D8": 14
         },
         "top_improvements": [
-          "[low] Add more non-obvious heuristics to the four lenses — e.g., when fan-in is high but acceptable, threshold signals for too many importers",
-          "[low] Add a brief edge case section — what to do when target doesnt exist, scope too broad, or multiple pain points compete",
-          "[low] Make the measurement step slightly more prescriptive with example tool commands for gathering import maps across common languages"
+          "[low] Add a brief cosmetic-triage example showing the abbreviated output format",
+          "[low] Output format template updated: four lenses → five lenses (fixed)",
+          "[low] Consider referencing relevant memories for project conventions"
         ]
       },
       "create-skill": {
