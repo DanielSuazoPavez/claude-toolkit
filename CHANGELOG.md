@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.15.0] - 2026-03-08 - Reviewer agent failure-trigger guidance
+
+### Added
+- **evaluate-agent skill**: Reviewer/verifier edge case — D2 must define explicit rejection criteria; anti-pattern detection for rubber-stamp risk.
+- **create-agent skill**: Reviewer/verifier edge case section with required elements (default stance, pass/fail states, automatic fail triggers) and checklist item.
+- **create-agent skill**: Second worked example showing iteration after `/evaluate-agent` failure (D→B+).
+- **Both skills**: Table of contents and cross-references to `/evaluate-skill`, `/create-skill`, and each other.
+
+### Fixed
+- **evaluate-agent skill**: Example scoring corrected from /100 to /115 scale.
+
+### Evaluations
+- **evaluate-agent**: A- (104/120, 86.7%)
+- **create-agent**: A- (105/120, 87.5%)
+
 ## [1.14.1] - 2026-03-08 - Dangerous command evasion detection
 
 ### Fixed

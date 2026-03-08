@@ -20,63 +20,20 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
+- **[HOOKS]** Anti-rationalization Stop hook (`hook-anti-rationalization`)
     - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in create-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
-
-
-## P2 - Medium
+    - **scope**: `hooks`
+    - **notes**: Prompt-type Stop hook that catches premature victory declarations — cop-out phrases like "pre-existing issues," "out of scope," "too many issues," "I'll leave this for a follow-up." Fires at the exact decision point, unlike CLAUDE.md instructions that fade under context pressure. Could use Haiku review (ToB approach) or lighter pattern-match. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
     - **status**: `idea`
     - **scope**: `skills`
     - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
-- **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
-    - **status**: `idea`
-    - **scope**: `agents, skills`
-    - **notes**: Base model struggles with real-world IAM policies and service-specific config. Three sub-items:
-        - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
-        - `aws-security-auditor` agent: Security review, least-privilege IAM validation
-        - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
-    - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
-
-- **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
-
-
-- **[SKILLS]** Shift examples to copy-and-modify templates in write-* skills (`skill-templates-as-starting-points`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to create-skill, create-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
-
-- **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
-
-- **[HOOKS]** Anti-rationalization Stop hook (`hook-anti-rationalization`)
-    - **status**: `idea`
-    - **scope**: `hooks`
-    - **notes**: Prompt-type Stop hook that catches premature victory declarations — cop-out phrases like "pre-existing issues," "out of scope," "too many issues," "I'll leave this for a follow-up." Fires at the exact decision point, unlike CLAUDE.md instructions that fade under context pressure. Could use Haiku review (ToB approach) or lighter pattern-match. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
-- **[SKILLS]** Turn budget awareness convention for multi-step skills (`skill-turn-budget-awareness`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in create-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[TOOLKIT]** Audit settings against ToB security patterns (`security-settings-audit`)
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: We have no `permissions.deny` or `enableAllProjectMcpServers: false`. ToB's settings include deny list for SSH keys, cloud creds (AWS/Azure/GH/Docker/K8s), package tokens (npm/pypi/gem), shell config edits, and MCP auto-enable protection. Not all apply (crypto wallets are ToB-specific), but SSH keys, cloud creds, and MCP flag are universally relevant. Review and adopt what fits. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
-- **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`
@@ -92,6 +49,44 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
+
+## P2 - Medium
+
+- **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
+    - **status**: `idea`
+    - **scope**: `agents, skills`
+    - **notes**: Base model struggles with real-world IAM policies and service-specific config. Three sub-items:
+        - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
+        - `aws-security-auditor` agent: Security review, least-privilege IAM validation
+        - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
+    - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
+
+- **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
+
+- **[SKILLS]** Shift examples to copy-and-modify templates in write-* skills (`skill-templates-as-starting-points`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to create-skill, create-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
+
+- **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
+
+
+- **[SKILLS]** Turn budget awareness convention for multi-step skills (`skill-turn-budget-awareness`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in create-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+
+- **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+
 
 ## P100 - Nice to Have
 

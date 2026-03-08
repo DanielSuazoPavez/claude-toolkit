@@ -5,6 +5,20 @@ description: Create new agents for specialized tasks. Use when adding behavioral
 
 Use when adding a new agent to `.claude/agents/`.
 
+## Contents
+
+1. [When to Use](#when-to-use) - Triggers for agent creation
+2. [Agent vs Skill Decision](#agent-vs-skill-decision) - Decision tree
+3. [Process](#process) - Define, write, evaluate
+4. [Structure Template](#structure-template) - Frontmatter and sections
+5. [Tool Selection Guide](#tool-selection-guide) - Tools by purpose
+6. [First-Attempt Checklist](#first-attempt-checklist) - Pre-evaluation gate
+7. [Edge Cases](#edge-cases) - Overlap, personas, reviewers, abandonment
+8. [Anti-Patterns](#anti-patterns) - Named failures
+9. [Worked Examples](#worked-examples) - Creation and iteration
+
+**Related:** `/evaluate-agent` (quality gate — run after creating), `/create-skill` (when a skill fits better than an agent)
+
 ## When to Use
 
 - Adding a specialized agent for a recurring task type
@@ -121,6 +135,7 @@ Before running `/evaluate-agent`, verify:
 - [ ] Output Format has a template?
 - [ ] Tool set is minimal for the task?
 - [ ] Description includes "Use when [trigger]"?
+- [ ] If reviewer/verifier: explicit rejection criteria defined? (when to say NO)
 
 ## Edge Cases
 
@@ -148,6 +163,31 @@ These weak personas signal an unfocused agent:
 | "assists with" | Passive, no ownership | "verifies", "catalogs", "enforces" |
 | No "who [constraint]" | Missing perspective | Add behavioral modifier |
 
+### Reviewer/Verifier Agents
+
+Agents that evaluate, check, or validate work need explicit rejection criteria to prevent rubber-stamping.
+
+**Required for reviewer-type agents:**
+- Default stance (skeptical until proven otherwise)
+- Explicit pass/fail/partial output states
+- Automatic fail triggers (conditions that always result in rejection)
+
+**Example from migration-reviewer:**
+```
+## Verdict
+
+- **SAFE**: All checks pass, rollback verified
+- **UNSAFE**: Any automatic fail trigger hit
+- **CONDITIONAL**: Minor issues, safe with noted changes
+
+## Automatic Fails
+- Missing rollback step
+- Unguarded DROP/TRUNCATE on populated table
+- No-lock strategy for index on large table
+```
+
+**Reference agents:** goal-verifier (PASS/FAIL/PARTIAL), code-reviewer (PASS/BLOCKERS/RISKS), implementation-checker (GREEN/YELLOW/RED)
+
 ### When to Abandon an Agent Idea
 
 Stop and reconsider if:
@@ -167,7 +207,9 @@ Stop and reconsider if:
 | **Missing Boundaries** | No "What I Don't Do" | Always include explicit limits |
 | **Overlapping Scope** | Conflicts with existing agent | Check `.claude/indexes/AGENTS.md` first |
 
-## Worked Example: Creating a Focused Agent
+## Worked Examples
+
+### Example 1: Creating a Focused Agent
 
 **Request:** "Create an agent that helps with database work"
 
@@ -200,6 +242,59 @@ You are a skeptical DBA who assumes every migration will break production until 
 ```
 
 **Evaluation:** Run `/evaluate-agent migration-reviewer` → Target B (75+)
+
+### Example 2: Iterating After Evaluation Failure
+
+**First attempt:** `deploy-checker.md` scores D (62/115)
+
+```markdown
+---
+name: deploy-checker
+description: Checks deployments.
+tools: Read, Write, Edit, Bash, Grep, Glob
+---
+You are a helpful assistant that checks if deployments are ready.
+Provide thorough feedback on deployment readiness.
+```
+
+**Evaluation feedback:**
+- D1: 8/30 — "checks deployments" is too broad
+- D2: 12/30 — No output format, no pass/fail criteria
+- D3: 7/25 — Generic "helpful assistant"
+- D4: 5/15 — Every tool, only needs read access
+
+**Iteration — fix weakest dimensions first (D1, D2):**
+
+```markdown
+---
+name: deploy-checker
+description: Validates deployment checklists before production release. Use when reviewing a deploy PR.
+tools: Read, Grep, Glob
+---
+
+You are a cautious release engineer who blocks deploys until every checklist item has evidence.
+
+## Focus
+- Verify each deploy checklist item has supporting evidence (test results, approval, config)
+- Flag missing or stale evidence
+
+## What I Don't Do
+- Write deploy scripts (that's the developer)
+- Monitor post-deploy health (that's observability)
+- Approve deploys (that's the tech lead)
+
+## Verdict
+- **READY**: All checklist items have current evidence
+- **NOT READY**: Any automatic fail trigger hit
+- **CONDITIONAL**: Minor gaps, safe with noted actions
+
+## Automatic Fails
+- Missing test evidence for changed services
+- No rollback plan documented
+- Config changes without environment validation
+```
+
+**Re-evaluation:** B+ (95/115) — D1: 26, D2: 26, D3: 22, D4: 14, D5: 7
 
 ## Reference
 

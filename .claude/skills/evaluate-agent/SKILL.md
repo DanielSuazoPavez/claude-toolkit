@@ -7,6 +7,20 @@ description: Evaluate agent design quality against behavioral effectiveness. Use
 
 Evaluate agent design quality against behavioral effectiveness.
 
+## Contents
+
+1. [Core Philosophy](#core-philosophy) - Behavioral delta formula
+2. [Evaluation Dimensions](#evaluation-dimensions-115-points) - 5 dimensions
+3. [Grading Scale](#grading-scale) - Grade thresholds
+4. [Common Failures](#common-failures) - Named failure patterns
+5. [Anti-Pattern Detection](#anti-pattern-detection) - Textual signals
+6. [Edge Cases](#edge-cases) - Type-specific adjustments
+7. [JSON Output Format](#json-output-format) - Result schema
+8. [Invocation](#invocation) - How to run evaluations
+9. [Example Evaluation](#example-evaluation) - Before/After
+
+**Related:** `/evaluate-skill` (knowledge delta rubric for skills), `/create-agent` (agent creation workflow that feeds into this evaluator)
+
 ## Core Philosophy
 
 **The Formula:** `Good Agent = Specialized Mindset − Claude's Default Approach`
@@ -130,6 +144,7 @@ Does it work well within the resource ecosystem?
 | No output format section | Unclear handoff (D2) |
 | "You are an assistant that..." | Weak persona (D3) |
 | Tools: Read, Write, Edit, Bash, Grep, Glob | Tool hoarding (D4) |
+| Reviewer with no rejection criteria | Rubber-stamp risk (D2) |
 
 ## Edge Cases
 
@@ -139,6 +154,7 @@ Does it work well within the resource ecosystem?
 | **Multi-step orchestrator** | Allow broader scope in D1 if stages are clearly defined |
 | **Read-only analyzer** | D4: no Edit/Write tools; penalize if present |
 | **Interactive agent** | D2: output may be conversational, not templated |
+| **Reviewer/verifier** | D2: must define explicit rejection criteria (when to say NO, automatic fail triggers); penalize if pass/fail logic is absent |
 
 ## JSON Output Format
 
@@ -192,7 +208,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 ## Example Evaluation
 
-**Before (D - 52/100):**
+**Before (D - 52/115):**
 ```markdown
 ---
 name: code-helper
@@ -206,8 +222,9 @@ Provide thorough and comprehensive feedback.
 - D2: 10/30 - No output format, just "feedback"
 - D3: 7/25 - Generic assistant, no persona
 - D4: 5/15 - Every tool, no justification
+- D5: 3/15 - No references, island agent
 
-**After (A- - 88/100):**
+**After (A- - 98/115):**
 ```markdown
 ---
 name: test-coverage-analyzer
@@ -241,6 +258,7 @@ Find code paths without test coverage. Don't review test quality or suggest impl
 - D2: 27/30 - Clear template, actionable gaps
 - D3: 20/25 - Good persona, could strengthen voice
 - D4: 13/15 - Appropriate read-only tools
+- D5: 10/15 - References test-reviewer, could connect more
 
 ## The Meta-Question
 
