@@ -117,10 +117,10 @@ Should I keep digging?
    - Metrics/data where relevant
 
 5. **Save report**:
-   - Path: `.claude/analysis/{YYYYMMDD}_{HHMM}__analyze-idea__{topic}.md`
+   - Path: `.claude/output/analysis/{YYYYMMDD}_{HHMM}__analyze-idea__{topic}.md`
    - Use a slugified version of the topic for filename (lowercase, hyphens)
    - Double underscores (`__`) separate timestamp, source, and context
-   - Example: `.claude/analysis/20260121_1430__analyze-idea__test-coverage-gaps.md`
+   - Example: `.claude/output/analysis/20260121_1430__analyze-idea__test-coverage-gaps.md`
 
 6. **Output to console**:
    - Show the full report content

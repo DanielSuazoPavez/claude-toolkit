@@ -110,8 +110,8 @@ This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The f
 
 1. Determine the branch name: `git branch --show-current` (replace slashes with dashes)
 2. Get current timestamp: `date +%Y%m%d_%H%M`
-3. Write your report to: `.claude/reviews/{YYYYMMDD}_{HHMM}__goal-verifier__{branch}.md`
-   - Example: `.claude/reviews/20260127_1430__goal-verifier__feature-auth.md`
+3. Write your report to: `.claude/output/reviews/{YYYYMMDD}_{HHMM}__goal-verifier__{branch}.md`
+   - Example: `.claude/output/reviews/20260127_1430__goal-verifier__feature-auth.md`
    - Double underscores (`__`) separate timestamp, source, and context
 4. The Write tool creates directories as needed
 

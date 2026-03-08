@@ -33,7 +33,7 @@ declare -a MANIFEST_MEMORIES=()
 # MANIFEST mode: only activate when MANIFEST exists but index files don't.
 # The toolkit has both MANIFEST and index files (SKILLS.md etc.) — use full disk mode there.
 # Target projects have MANIFEST but no index files — use MANIFEST mode there.
-if [ -f "$MANIFEST_FILE" ] && [ ! -f "$CLAUDE_DIR/SKILLS.md" ]; then
+if [ -f "$MANIFEST_FILE" ] && [ ! -f "$CLAUDE_DIR/indexes/SKILLS.md" ]; then
     MANIFEST_MODE=true
     while IFS= read -r line || [ -n "$line" ]; do
         # Skip empty lines and comments
@@ -86,7 +86,7 @@ echo ""
 
 # === SKILLS ===
 echo "=== Skills ==="
-SKILLS_INDEX="$CLAUDE_DIR/SKILLS.md"
+SKILLS_INDEX="$CLAUDE_DIR/indexes/SKILLS.md"
 SKILLS_DIR="$CLAUDE_DIR/skills"
 
 if [ -f "$SKILLS_INDEX" ] && [ -d "$SKILLS_DIR" ]; then
@@ -147,7 +147,7 @@ echo ""
 
 # === AGENTS ===
 echo "=== Agents ==="
-AGENTS_INDEX="$CLAUDE_DIR/AGENTS.md"
+AGENTS_INDEX="$CLAUDE_DIR/indexes/AGENTS.md"
 AGENTS_DIR="$CLAUDE_DIR/agents"
 
 if [ -f "$AGENTS_INDEX" ] && [ -d "$AGENTS_DIR" ]; then
@@ -193,7 +193,7 @@ echo ""
 
 # === HOOKS ===
 echo "=== Hooks ==="
-HOOKS_INDEX="$CLAUDE_DIR/HOOKS.md"
+HOOKS_INDEX="$CLAUDE_DIR/indexes/HOOKS.md"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 
 if [ -f "$HOOKS_INDEX" ] && [ -d "$HOOKS_DIR" ]; then
@@ -239,7 +239,7 @@ echo ""
 
 # === MEMORIES ===
 echo "=== Memories ==="
-MEMORIES_INDEX="$CLAUDE_DIR/MEMORIES.md"
+MEMORIES_INDEX="$CLAUDE_DIR/indexes/MEMORIES.md"
 MEMORIES_DIR="$CLAUDE_DIR/memories"
 
 if [ -f "$MEMORIES_INDEX" ] && [ -d "$MEMORIES_DIR" ]; then

@@ -63,7 +63,7 @@ agents:   .claude/agents/*.md
 ### 2. Filter
 
 - **Always exclude** `personal-` memories — personal memories are not evaluated
-- Read `.claude/evaluations.json`
+- Read `.claude/indexes/evaluations.json`
 - Unless `re-evaluate=true`, only include resources that are:
   - **Unevaluated**: Not in `{type}.resources`
   - **Stale**: `file_hash` doesn't match current file (`md5sum <file> | cut -c1-8`)
@@ -107,7 +107,7 @@ Type mapping:
 Wait for batch agents to complete. Parse JSON from each response.
 
 **3c. Write batch to evaluations.json immediately:**
-Add each result to `.claude/evaluations.json` under `{type}.resources.{name}`:
+Add each result to `.claude/indexes/evaluations.json` under `{type}.resources.{name}`:
 
 ```json
 {
@@ -144,7 +144,7 @@ After all batches complete:
 | name-2   | A-    | 89/100 |
 ...
 
-Added N evaluations to .claude/evaluations.json
+Added N evaluations to .claude/indexes/evaluations.json
 ```
 
 ## When to Use Each Parameter
@@ -237,7 +237,7 @@ Re-run → Filter finds only 5 remaining → single batch needed
 | secrets-guard | A-    | 89/100  |
 | session-start | A     | 93/100  |
 
-Added 2 evaluations to .claude/evaluations.json
+Added 2 evaluations to .claude/indexes/evaluations.json
 ```
 
 ## Anti-Patterns
