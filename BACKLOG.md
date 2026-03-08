@@ -18,16 +18,16 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P0 - Critical
 
-- **[SKILLS]** Apply rationalization tables to discipline-enforcing skills (`skill-rationalization-tables-apply`)
-    - **status**: `planned`
-    - **scope**: `skills`
-    - **notes**: Apply the rationalization table technique (added in create-skill) to existing discipline-enforcing skills: `design-tests` (TDD enforcement, has anti-pattern table but no rationalization table), `refactor` (scope discipline, has anti-pattern table but no rationalization table), `design-qa` (thoroughness enforcement, implicit via risk matrix, needs explicit table), `review-changes` (review discipline, implicit via decision tree, needs explicit table). Run baseline testing for each skill to capture verbatim rationalizations.
-
 ## P1 - High
 
 
 
 ## P2 - Medium
+
+- **[SKILLS]** Improve toolkit integration for discipline-enforcing skills (`skill-integration-gaps`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: All 4 discipline skills score low on D7 (Integration Quality) — they operate as islands with no cross-references. Add ecosystem connections: `design-tests` ↔ `design-qa` (sibling skills), both → `code-reviewer` agent. `review-changes` → `/draft-pr` (post-review handoff), `code-reviewer` agent. `refactor` → `/review-changes`, `code-reviewer` agent. Add relevant memory references where applicable.
 
 - **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
     - **status**: `idea`
