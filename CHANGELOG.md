@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.19.4] - 2026-03-08 - Backlog triage
+
+### Added
+- **P3 - Low priority tier**: New priority level between P2 (Medium) and P100 (Nice to Have) for maintenance and refinement tasks. Updated backlog schema memory.
+
+### Changed
+- **`skill-eval-self-critique`**: Moved P1 → P3, reframed from runtime eval step to one-time rubric audit.
+
+### Removed
+- **`convention-scripts-black-boxes`**: Graveyarded — YAGNI, no skills bundle scripts yet.
+
 ## [1.19.3] - 2026-03-08 - Rename feature/ to feat/ branch prefix
 
 ### Changed
