@@ -32,6 +32,7 @@ Always loaded at session start:
 | Memory | Status | Purpose |
 |--------|--------|---------|
 | `personal-preferences-casual_communication_style` | stable | Casual conversation mode for meta-discussions |
+| `personal-context-user` | stable | Personal context (cats, board games, Chilean game scene, misc preferences) |
 
 ## Memory Categories
 

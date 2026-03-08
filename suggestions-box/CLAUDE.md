@@ -16,15 +16,24 @@ Inbox for resources sent from other projects via `claude-toolkit send`.
    - Generally useful patterns → accept for toolkit
 5. Present findings and recommendations to the user for decision
 
-## File Naming Convention
+## File Types
 
-Files arrive as: `<name>-<TYPE>.md` (e.g., `draft-pr-SKILL.md`)
+### Resources
+Files arrive as: `<name>-<TYPE>.md` (e.g., `draft-pr-SKILL.md`). Evaluate quality, consider scope (project-specific vs toolkit-worthy), present recommendations.
+
+### Issues
+Files arrive as: `<timestamp>_issue.txt` — feedback, bug reports, or improvement requests from other projects. Triage into the BACKLOG.md (or reject if not actionable).
 
 Organized by source project in subdirectories when `--project` is specified.
 
 ## After Review (with user approval)
 
-- **Accept (new)**: Move to appropriate `.claude/` location, update index
+### Resources
+- **Accept (new)**: Move to appropriate `.claude/` location, update index and MANIFEST
 - **Accept (modification)**: Merge changes into existing resource
 - **Modify**: Edit first, then accept
+- **Reject**: Delete
+
+### Issues
+- **Accept**: Add to BACKLOG.md, delete the issue file
 - **Reject**: Delete
