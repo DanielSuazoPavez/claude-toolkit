@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.1] - 2026-03-08 - External repo research
+
+### Added
+- **Curated resources catalog** (`.claude/curated-resources.md`): Reference list of quality external skills worth studying (frontend design, creative direction, workflow).
+- **Claude Code rules draft** (`.claude/drafts/claude-code-rules.md`): Research on `.claude/rules/` path-scoped instructions.
+- **Suggestions-box content**: Research artifacts for claude-meta, data_engineering, and opensearch-dashboard projects.
+
+### Changed
+- **BACKLOG.md**: 14 new items from exploration of 5 external repos (anthropics/skills, trailofbits, obra/superpowers, affaan-m/ECC, voltagent).
+- **CLAUDE.md**: Fixed Quick Start to use `claude-toolkit sync`.
+- **Settings template**: Minor fix.
+
 ## [1.9.0] - 2026-02-12 - Refactor skill
 
 ### Added
