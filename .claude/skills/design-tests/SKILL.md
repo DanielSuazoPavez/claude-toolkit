@@ -402,3 +402,9 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | "TDD will slow me down" | TDD is faster than debugging. The test you skip now is the bug you debug later. |
 | "This is glue code, doesn't need tests" | Glue fails silently. Integration bugs are the hardest to find. |
 | "Need to explore the API first" | Fine. Throw away the exploration code, then start with TDD. |
+
+## See Also
+
+- `/design-qa` — Sister skill for test strategy and planning. Use design-qa for risk-based test prioritization, design-tests for pytest patterns and implementation.
+- `code-reviewer` agent — May flag missing tests or over-testing during code review.
+- `/refactor` — If test structure needs updating after module reorganization.

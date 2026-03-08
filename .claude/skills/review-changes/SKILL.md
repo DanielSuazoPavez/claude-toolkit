@@ -162,3 +162,9 @@ Ship it
 
 [Brief positive note about the change]
 ```
+
+## See Also
+
+- `/draft-pr` — Natural next step after review passes. Use review-changes to verify approach, draft-pr to write the PR description.
+- `code-reviewer` agent — For deeper structural analysis on complex changes. Use the skill for quick review, the agent for thorough investigation.
+- `/refactor` — If review reveals coupling or structural issues worth analyzing before merging.

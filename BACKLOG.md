@@ -25,8 +25,9 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 ## P2 - Medium
 
 - **[SKILLS]** Improve toolkit integration for discipline-enforcing skills (`skill-integration-gaps`)
-    - **status**: `idea`
+    - **status**: `in-progress`
     - **scope**: `skills`
+    - **branch**: `feat/skill-integration-see-also`
     - **notes**: All 4 discipline skills score low on D7 (Integration Quality) — they operate as islands with no cross-references. Add ecosystem connections: `design-tests` ↔ `design-qa` (sibling skills), both → `code-reviewer` agent. `review-changes` → `/draft-pr` (post-review handoff), `code-reviewer` agent. `refactor` → `/review-changes`, `code-reviewer` agent. Add relevant memory references where applicable.
 
 - **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)

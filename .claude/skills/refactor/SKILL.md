@@ -202,3 +202,11 @@ Cohesion issue at helpers.py
 | "The code works fine, why analyze it?" | Working code can still have hidden coupling. Refactoring prevents future bugs, not current ones. |
 | "I can see the problem, skip the other lenses" | Each lens catches different issues. Skipping lenses means missing the coupling you can't see from one angle. |
 | "This is just moving code around, no need for a document" | The document IS the deliverable. Without it, the analysis lives in your head and dies with this session. |
+
+## See Also
+
+- `/analyze-idea` — Research feasibility before committing to a refactoring direction.
+- `/brainstorm-idea` — Explore design space for architectural-level issues.
+- `code-reviewer` agent — Complementary pre-refactoring analysis.
+- `/review-changes` — Verify the refactoring after implementation.
+- `/design-tests` — Update test structure to match new module layout.

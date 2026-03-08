@@ -195,3 +195,9 @@ When you have hours, not days:
 | Test Case | Preconditions, steps, expected result, priority |
 | Bug Report | Steps to reproduce, expected vs actual, environment |
 | Regression Suite | Tiered (smoke/targeted/full), pass/fail criteria |
+
+## See Also
+
+- `/design-tests` — Sister skill for pytest implementation. Use design-qa for test strategy and planning, design-tests for writing the actual test code.
+- `code-reviewer` agent — Complements QA with code-level review; may identify test coverage gaps.
+- `code-debugger` agent — For systematic bug investigation after QA identifies failures.
