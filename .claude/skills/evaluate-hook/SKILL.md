@@ -177,6 +177,7 @@ Using a separate agent ensures objective assessment without influence from prior
 | **Hardcoded paths** | Breaks on other machines | D4: -10 |
 | **No allowlist** | Blocks legitimate work | D3: -8 |
 | **Untestable** | Can't verify behavior | D2: -15 |
+| **Env var bypass** | Defeats the hook's purpose; user can just run the command directly if needed | D3: -5 |
 
 ## Edge Cases
 
