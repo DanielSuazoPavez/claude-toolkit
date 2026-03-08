@@ -26,11 +26,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in create-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
-- **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Scripts should be run with `--help` first, not read as source. Protects context window. We already add `--help` to scripts — make the convention explicit in create-skill guidance and toolkit conventions. Ref: anthropics/skills webapp-testing pattern.
-
 ## P2 - Medium
 
 - **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
@@ -134,3 +129,4 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Create `logging-observability` skill (`skill-logging`) — base knowledge sufficient for decision guidance; preferences not yet formed on observability stack beyond structlog
 - **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`) — skill auto-triggering is unreliable for tasks Claude can do with built-in tools; only skills with unique domain knowledge (like `learn`) trigger consistently. If consistent triggering matters, use a hook instead.
 - **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`) — behavioral delta too thin; gap-analysis workflow absorbed into `design-tests` skill audit mode instead
+- **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`) — YAGNI; no skills bundle scripts yet, add convention when the pattern is first needed
