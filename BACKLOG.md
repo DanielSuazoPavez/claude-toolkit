@@ -30,15 +30,15 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in create-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
-- **[AGENTS]** Add "3+ failed fixes = stop" escalation to code-debugger (`agent-debugger-escalation`)
-    - **status**: `idea`
-    - **scope**: `agents`
-    - **notes**: If three sequential fixes each reveal a new problem in a different place, stop and escalate — signals architectural issue, not a series of bugs. obra/superpowers systematic-debugging uses this as a guardrail. Our code-debugger has no explicit escalation trigger. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
-
 - **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
+
+- **[TOOLKIT]** Cherry-pick CLAUDE.md template conventions from ToB (`claude-md-template-conventions`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Easy wins from ToB's CLAUDE.md template: `trash` over `rm`, explicit philosophy principles ("replace don't deprecate", "finish the job"), zero warnings policy. Low effort, clear value. Review which conventions align with what we already do informally and make them explicit. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 ## P2 - Medium
 
@@ -66,12 +66,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `toolkit`
     - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could replace some conditional memory loading with automatic file-aware activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
 
-
-- **[SKILLS]** Turn budget awareness convention for multi-step skills (`skill-turn-budget-awareness`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in create-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
     - **status**: `idea`
     - **scope**: `toolkit`
@@ -80,10 +74,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P100 - Nice to Have
 
-- **[TOOLKIT]** Cherry-pick CLAUDE.md template conventions from ToB (`claude-md-template-conventions`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Easy wins from ToB's CLAUDE.md template: `trash` over `rm`, explicit philosophy principles ("replace don't deprecate", "finish the job"), zero warnings policy. Low effort, clear value. Review which conventions align with what we already do informally and make them explicit. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 - **[HOOKS]** Context-aware suggestions via UserPromptSubmit (`hook-context-suggest`)
     - **status**: `idea`
