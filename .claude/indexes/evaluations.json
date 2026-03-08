@@ -199,26 +199,26 @@
         ]
       },
       "design-qa": {
-        "file_hash": "abc55a61",
+        "file_hash": "c781c88a",
         "date": "2026-03-08",
         "grade": "B+",
-        "score": 98,
+        "score": 101,
         "max": 120,
-        "percentage": 81.7,
+        "percentage": 84.2,
         "dimensions": {
-          "D1": 14,
-          "D2": 12,
-          "D3": 13,
+          "D1": 17,
+          "D2": 13,
+          "D3": 11,
           "D4": 8,
-          "D5": 13,
+          "D5": 14,
           "D6": 12,
-          "D7": 14,
-          "D8": 12
+          "D7": 13,
+          "D8": 13
         },
         "top_improvements": [
-          "[high] Strengthen knowledge delta — replace standard QA content (risk matrix, basic bug report structure) with more expert-only heuristics like cross-team QA coordination patterns or test debt management.",
-          "[high] Add a decision tree for initial triage: given a request, which artifact to produce (test plan vs test cases vs regression suite vs bug triage workflow).",
-          "[low] Narrow keywords — remove over-broad triggers like \"quality assurance\" and \"manual testing\" that could cause false-positive routing."
+          "[high] D3: Strengthen anti-patterns with more non-obvious entries — current set (happy path only, vague steps) is well-known; add expert-level anti-patterns like testing implementation details instead of behavior, or over-mocking hiding integration bugs",
+          "[high] D8: Add a complete worked example showing a real test plan output — the skill teaches how to think but never shows a finished artifact",
+          "[low] D1: Trim activation-level content (acceptance criteria validation section) and replace with more expert heuristics like defect clustering analysis or risk-based test selection algorithms"
         ]
       },
       "design-tests": {

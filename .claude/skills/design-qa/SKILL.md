@@ -1,6 +1,6 @@
 ---
 name: design-qa
-description: Design test plans, QA strategies, regression suites, and bug triage workflows. Use when requests mention "test plan", "QA strategy", "regression testing", "test coverage", "bug report", "quality assurance", "manual testing", "acceptance criteria", or "release testing".
+description: Design test plans, QA strategies, regression suites, and bug triage workflows. Use when requests mention "test plan", "QA strategy", "regression testing", "test coverage", "bug report", "acceptance criteria", or "release testing".
 disable-model-invocation: true
 ---
 
@@ -17,25 +17,31 @@ write test cases for user authentication
 design a regression suite for the payments module
 ```
 
+## Artifact Selection
+
+| User needs... | Produce | Key sections |
+|---------------|---------|--------------|
+| Strategy before a release | **Test Plan** | Scope, risk matrix, schedule, entry/exit criteria |
+| Specific scenarios to execute | **Test Cases** | Preconditions, steps, expected/actual, priority |
+| Repeatable post-deploy checks | **Regression Suite** | Tiered (smoke/targeted/full), automation candidates |
+| Bug documentation | **Bug Report** | Repro steps, environment, severity, triage recommendation |
+| Validate story completeness | **Acceptance Criteria Review** | Testability audit, gap list, suggested additions |
+
+When unclear, start with the test plan — it surfaces scope and risk before committing to specifics.
+
 ## Expert QA Mindset
 
 **Think like a saboteur**: Your job is to break the system before users do.
 
-### Risk-Based Testing
-Focus effort where failures hurt most:
-1. **Money paths** - Payment, billing, refunds
-2. **Data integrity** - User data, transactions
-3. **Security boundaries** - Auth, permissions
-4. **High-traffic flows** - Login, search, checkout
+### Test Debt Signals
 
-### Test Prioritization
+Push back on shipping without tests when you see these:
+- **Changelog churn**: Same module appears in 3+ recent bug fixes — it's accumulating debt faster than you're paying it down
+- **Tribal knowledge gates**: Only one person knows how to test a feature manually — that's unwritten test coverage with a bus factor of 1
+- **"It worked on my machine" frequency**: >2 occurrences/sprint means environment-dependent behavior isn't covered
+- **Regression recidivism**: A bug you fixed last month is back — the fix wasn't verified with a regression test
 
-| Impact | Likelihood | Priority |
-|--------|------------|----------|
-| High | High | P0 - Test first |
-| High | Low | P1 - Test thoroughly |
-| Low | High | P2 - Test basic paths |
-| Low | Low | P3 - Test if time permits |
+**Debt accumulation rate**: Each shipped feature without tests adds ~1.5x its original test effort as future debt (context loss, behavior drift, integration surface growth). Three consecutive untest sprints typically means a dedicated test-writing sprint is cheaper than continued ad-hoc fixing.
 
 ## Expert Heuristics
 
@@ -93,19 +99,19 @@ Focus effort where failures hurt most:
 
 **When to quarantine**: If fix takes >2 hours and it's blocking CI, quarantine with ticket. Review quarantine weekly.
 
-### Writing Effective Bug Reports
+### Bug Report Triage Heuristics
 
 **Title formula**: `[Area] Specific symptom + trigger condition`
 - Bad: "Login broken"
 - Good: "[Login] OTP verification fails when phone number has leading zeros"
 
-**Minimum viable bug report**:
-1. **Steps to reproduce** (numbered, specific actions)
-2. **Expected result** (what should happen)
-3. **Actual result** (what happens instead)
-4. **Environment** (browser, OS, user role, data state)
+**Prioritizing a bug backlog** — when everything is "high priority":
+1. **Group by area first** — 5 bugs in checkout > 5 bugs across 5 modules (systemic vs scattered)
+2. **Check report velocity** — 3 reports/week on the same area means it's getting worse, not stable
+3. **Close-as-wontfix when**: workaround exists AND <5 users affected AND fix requires architectural change. Document the workaround in the ticket.
+4. **Duplicate bugs signal systemic issues** — 4 "login is slow" reports aren't 4 bugs, they're 1 performance investigation
 
-**Bonus for faster fixes**: screenshot/video, console errors, network trace, account credentials used.
+**When a bug report is actually a feature request**: If expected behavior was never specified and the current behavior is internally consistent, it's a requirements gap. Route to product, not engineering.
 
 ### Acceptance Criteria Validation
 
