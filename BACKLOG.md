@@ -20,10 +20,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
 - **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`
@@ -41,6 +37,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **notes**: Scripts should be run with `--help` first, not read as source. Protects context window. We already add `--help` to scripts — make the convention explicit in create-skill guidance and toolkit conventions. Ref: anthropics/skills webapp-testing pattern.
 
 ## P2 - Medium
+
+- **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Clear "this is what it does, this is what it doesn't do" document. Skills are explicit user invocations, not contextual auto-triggers. Hooks are for consistent enforcement. Agents are for parallelizable subtasks. Memories are for cross-session context. Distinguish from Anthropic's skill-creator approach (marketplace/discovery model) — our model is personal toolkit with known resources invoked by name. Informed by trigger testing experiment (branch `feature/skill-trigger-testing`).
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
@@ -129,4 +130,5 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`) — redundant; write-docs gap analysis already audits docs against code before writing. For docs, reading IS the review.
 - **[SKILLS]** Research Polars-specific patterns (`skill-polars`) — base model knowledge + Context7 MCP provides sufficient coverage; Polars API evolves too fast for a static skill to add value
 - **[SKILLS]** Create `logging-observability` skill (`skill-logging`) — base knowledge sufficient for decision guidance; preferences not yet formed on observability stack beyond structlog
+- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`) — skill auto-triggering is unreliable for tasks Claude can do with built-in tools; only skills with unique domain knowledge (like `learn`) trigger consistently. If consistent triggering matters, use a hook instead.
 - **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`) — behavioral delta too thin; gap-analysis workflow absorbed into `design-tests` skill audit mode instead

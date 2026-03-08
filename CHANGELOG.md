@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.19.1] - 2026-03-08 - Learned.json consolidation
+
+### Changed
+- **learned.json**: Moved from project root to `.claude/learned.json` for consistency with other Claude artifacts. Updated all references in hooks, skills, and indexes.
+
+### Added
+- **Backlog**: `toolkit-identity-doc` (P2) — document what claude-toolkit is and isn't, informed by trigger testing experiment.
+- **Lesson**: Skill auto-triggering via descriptions is unreliable for tasks Claude can do with built-in tools — use hooks for consistent enforcement, skills for explicit `/skill-name` invocations.
+
+### Removed
+- **Trigger testing infrastructure**: `test-trigger.sh`, eval-triggers.json files, test runner, `make test-triggers` target. Experiment concluded — moved backlog item to graveyard with findings.
+
 ## [1.19.0] - 2026-03-08 - CLAUDE.md base template
 
 ### Added

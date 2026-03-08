@@ -88,5 +88,5 @@ done <<< "$LESSONS"
 # Block and hand control back to Claude for user confirmation
 jq -n --arg lessons "$FORMATTED" '{
     decision: "block",
-    reason: ("Detected lesson(s) in your response:\n" + $lessons + "\nPresent each lesson to the user for confirmation. For approved lessons, write to learned.json using the /learn skill process (initialize file if needed, append to recent array with date, category, text, branch).")
+    reason: ("Detected lesson(s) in your response:\n" + $lessons + "\nPresent each lesson to the user for confirmation. For approved lessons, write to .claude/learned.json using the /learn skill process (initialize file if needed, append to recent array with date, category, text, branch).")
 }'

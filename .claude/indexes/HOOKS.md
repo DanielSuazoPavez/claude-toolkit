@@ -116,7 +116,7 @@ Detects `[LEARN]` tags in Claude's responses and blocks to prompt for lesson cap
 - Extracts `[LEARN] category: lesson text` patterns
 - Blocks with extracted lessons, instructing Claude to present for user confirmation
 - Silent on no match (exit 0, no stdout)
-- Approved lessons written to `learned.json` via `/learn` skill process
+- Approved lessons written to `.claude/learned.json` via `/learn` skill process
 
 ### anti-rationalization.sh
 

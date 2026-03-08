@@ -12,7 +12,7 @@
 *.bak
 
 # Per-project learned lessons (generated, not tracked)
-learned.json
+.claude/learned.json
 
 # Claude session artifacts
 .claude/usage.log
@@ -21,4 +21,5 @@ learned.json
 .claude/output/analysis/
 .claude/output/design/
 .claude/output/sessions/
+
 .claude/settings.local.json
