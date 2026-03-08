@@ -1,0 +1,1 @@
+analyze refactor skill, look for gap in 'detect common patterns to evaluate moving out to a shared source'

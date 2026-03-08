@@ -1,0 +1,1 @@
+review-plan update recommendations: steps should be 'commit-able amount of work' and include 'commit after each step'. steps after verification might include 'use /wrap-up skill' and 'launch a goal-verifier agent to review the changes', asking the user
