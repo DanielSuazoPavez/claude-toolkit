@@ -20,10 +20,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
 - **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`
@@ -134,4 +130,5 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Create `review-documentation` skill (`skill-review-docs`) — redundant; write-docs gap analysis already audits docs against code before writing. For docs, reading IS the review.
 - **[SKILLS]** Research Polars-specific patterns (`skill-polars`) — base model knowledge + Context7 MCP provides sufficient coverage; Polars API evolves too fast for a static skill to add value
 - **[SKILLS]** Create `logging-observability` skill (`skill-logging`) — base knowledge sufficient for decision guidance; preferences not yet formed on observability stack beyond structlog
+- **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`) — skill auto-triggering is unreliable for tasks Claude can do with built-in tools; only skills with unique domain knowledge (like `learn`) trigger consistently. If consistent triggering matters, use a hook instead.
 - **[AGENTS]** Create `test-gap-analyzer` agent (`agent-test-gaps`) — behavioral delta too thin; gap-analysis workflow absorbed into `design-tests` skill audit mode instead
