@@ -23,10 +23,10 @@ Capture a lesson from the current session to avoid repeating mistakes in future 
 
 1. **Identify the lesson** — what was wrong, what's the correct behavior?
 2. **Pick category**: `correction` | `pattern` | `convention` | `gotcha`
-3. **Check for duplicates** — read `learned.json` if it exists, skip if already captured
+3. **Check for duplicates** — read `.claude/learned.json` if it exists, skip if already captured
 4. **Format as one-line actionable rule** — specific, not vague
 5. **Present to user** for approval, modification, or rejection
-6. **On approval**, write to `learned.json` via jq
+6. **On approval**, write to `.claude/learned.json` via jq
 
 ### Formatting the Proposal
 
@@ -40,12 +40,12 @@ Proposed lesson:
 Save this lesson? (approve / modify / reject)
 ```
 
-### Writing to learned.json
+### Writing to .claude/learned.json
 
 Initialize if missing:
 
 ```bash
-[ ! -f learned.json ] && echo '{"recent":[],"key":[]}' > learned.json
+[ ! -f .claude/learned.json ] && echo '{"recent":[],"key":[]}' > .claude/learned.json
 ```
 
 Append to `recent` array:
@@ -57,7 +57,7 @@ jq --arg date "$(date +%Y-%m-%d)" \
    --arg branch "$(git branch --show-current 2>/dev/null || echo 'unknown')" \
    --arg project "$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")" \
    '.recent += [{"date": $date, "category": $cat, "text": $text, "branch": $branch, "project": $project}]' \
-   learned.json > learned.json.tmp && mv learned.json.tmp learned.json
+   .claude/learned.json > .claude/learned.json.tmp && mv .claude/learned.json.tmp .claude/learned.json
 ```
 
 ## Lesson Quality Heuristic
@@ -70,7 +70,7 @@ jq --arg date "$(date +%Y-%m-%d)" \
 |---------|---------|-----|
 | Lesson inflation | Saving trivial corrections | Only save lessons that apply to future sessions |
 | Vague lessons | "Be more careful with imports" | Specific: "Use absolute imports in the `api/` package" |
-| Duplicates | Same lesson saved twice | Check `learned.json` before proposing |
+| Duplicates | Same lesson saved twice | Check `.claude/learned.json` before proposing |
 | Category confusion | Everything is `correction` | Match category to what happened |
 
 ## Categories

@@ -64,7 +64,7 @@ MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^re
 echo "Main: $MAIN_BRANCH"
 
 # === LESSONS ===
-LEARNED_FILE="learned.json"
+LEARNED_FILE=".claude/learned.json"
 if [ -f "$LEARNED_FILE" ]; then
     KEY_LESSONS=$(jq -r '.key[]? | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
     RECENT_LESSONS=$(jq -r '.recent[-5:][]? | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)

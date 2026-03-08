@@ -42,6 +42,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P2 - Medium
 
+- **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Clear "this is what it does, this is what it doesn't do" document. Skills are explicit user invocations, not contextual auto-triggers. Hooks are for consistent enforcement. Agents are for parallelizable subtasks. Memories are for cross-session context. Distinguish from Anthropic's skill-creator approach (marketplace/discovery model) — our model is personal toolkit with known resources invoked by name. Informed by trigger testing experiment (branch `feature/skill-trigger-testing`).
+
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
     - **scope**: `agents, skills`
