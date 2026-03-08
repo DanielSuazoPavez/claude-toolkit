@@ -52,6 +52,9 @@ last_updated: YYYY-MM-DD HH:MM
 **Active hypothesis**: [what you're testing]
 **Next step**: [specific action]
 
+## Fix Attempts (append-only)
+1. **[Fix description]** in `[file/module]` → Outcome: [resolved | revealed new problem in `[different file/module]`]
+
 ## Resolution (when complete)
 **Root cause**: [what was actually wrong]
 **Fix applied**: [what you changed]
@@ -75,7 +78,10 @@ This file is your "debugging brain" - read it first when resuming.
 3. Form hypothesis based on evidence
 4. Test hypothesis with minimal intervention
 5. Record result (eliminated or confirmed)
-6. If confirmed: fix, verify, document resolution
+6. If confirmed: fix, verify, document in Fix Attempts
+   - If fix resolved the issue: document resolution
+   - If fix revealed a new problem in a different location: log it, check cascade count
+   - **If 3+ sequential fixes each revealed a new problem elsewhere: stop → Checkpoint: cascading-fixes**
 7. If eliminated: form new hypothesis, repeat
 
 ## Output Format
@@ -110,6 +116,21 @@ When investigation hits limits:
 **Situation**: Unable to form testable hypothesis
 **Evidence collected**: [summary of what was learned]
 **Recommendation**: [more logs? code review? escalate?]
+```
+
+When fixes cascade to new locations:
+
+```
+## Checkpoint: cascading-fixes
+
+**Pattern detected**: 3+ sequential fixes, each revealing a new problem in a different location
+**Fix history**:
+1. Fixed [X] in `[file-a]` → revealed [Y] in `[file-b]`
+2. Fixed [Y] in `[file-b]` → revealed [Z] in `[file-c]`
+3. Fixed [Z] in `[file-c]` → revealed [W] in `[file-d]`
+**Assessment**: This pattern signals an architectural issue, not a series of isolated bugs
+**Recommendation**: Stop debugging individual symptoms. Escalate for design review of [affected area].
+**Debug state**: [path to debug session file]
 ```
 
 ## What I Don't Do

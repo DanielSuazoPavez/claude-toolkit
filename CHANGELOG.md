@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.18.0] - 2026-03-08 - Code-debugger escalation guardrail
+
+### Added
+- **code-debugger agent**: Cascading-fixes escalation guardrail — detects whack-a-mole debugging pattern (fix A reveals B in different file, fix B reveals C) and stops after 3+ sequential cascading fixes. New `Fix Attempts` append-only section in debug state template, cascade check in execution flow step 6, and `Checkpoint: cascading-fixes` output format.
+
 ## [1.17.1] - 2026-03-08 - Hook evaluation and anti-pattern fix
 
 ### Fixed

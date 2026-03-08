@@ -1193,22 +1193,23 @@
         ]
       },
       "code-debugger": {
-        "file_hash": "e2bb74f6",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 90,
-        "max": 100,
-        "percentage": 90,
+        "file_hash": "04eaf827",
+        "date": "2026-03-08",
+        "grade": "B+",
+        "score": 97,
+        "max": 115,
+        "percentage": 84.3,
         "dimensions": {
-          "D1": 26,
+          "D1": 25,
           "D2": 28,
-          "D3": 22,
-          "D4": 14
+          "D3": 21,
+          "D4": 14,
+          "D5": 9
         },
         "top_improvements": [
-          "Fix first/second person voice inconsistency (line 8 uses I but other sections use you)",
-          "Add calibration guidance for when to use this agent vs simpler approaches",
-          "Consider a read-only variant for investigation without modification"
+          "Add cross-references to complementary resources: /design-qa for bug triage, code-reviewer for related code issues, and name the escalation target in cascading-fixes checkpoint instead of generic \"escalate for design review\"",
+          "Fix first/second person voice inconsistency (line 8: \"You are a code debugger... I follow evidence\") and thread the investigator persona more consistently through later reference sections (Investigation Techniques, Common Root Causes) where voice fades to neutral",
+          "Trim activation knowledge: Common Root Causes Checklist and Git Bisect Guide are standard knowledge Claude already has — condense to behavioral triggers (\"check these categories when stuck\") rather than listing the categories themselves"
         ]
       },
       "codebase-explorer": {
