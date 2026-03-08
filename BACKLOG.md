@@ -20,11 +20,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[HOOKS]** Improve block-dangerous-commands chaining detection (`hook-dangerous-commands-chaining`)
-    - **status**: `idea`
-    - **scope**: `hooks`
-    - **notes**: Current hook only checks for dangerous targets (`/`, `~`, `.`) but doesn't detect command chaining — `; rm -rf /`, `&& rm -rf /`, `| rm` bypass detection. Add chaining-aware regex (`;`, `&&`, `||`, `|` before `rm`). ToB's approach blocks ALL `rm -rf` and suggests `trash` — we prefer target-specific blocking but need the chaining coverage. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
     - **status**: `idea`
     - **scope**: `skills`
