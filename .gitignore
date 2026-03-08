@@ -21,4 +21,5 @@ learned.json
 .claude/output/analysis/
 .claude/output/design/
 .claude/output/sessions/
+.claude/output/trigger-tests/
 .claude/settings.local.json
