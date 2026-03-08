@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.12.1] - 2026-03-08 - Timestamped output for codebase-explorer
+
+### Fixed
+- **codebase-explorer agent**: Output now writes to timestamped directory (`{YYYYMMDD}_{HHMM}__codebase-explorer/`) instead of flat `codebase/` folder that overwrote on reruns.
+
 ## [1.12.0] - 2026-03-08 - Shared-patterns lens for refactor skill
 
 ### Added
