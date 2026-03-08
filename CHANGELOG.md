@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.12.0] - 2026-03-08 - Shared-patterns lens for refactor skill
+
+### Added
+- **Refactor skill 5th lens**: "Shared Patterns" — detects cross-module duplication warranting extraction, with guards against premature abstraction (3+ occurrences threshold).
+- **Worked example**: ES query date-range parsing duplicated across route handlers.
+- **Anti-pattern**: "Premature extraction" added to refactor skill anti-patterns table.
+
+### Changed
+- **BACKLOG.md**: Reprioritized items — promoted `hook-dangerous-commands-chaining`, `toolkit-statusline`, `skill-agent-failure-triggers` to P1; moved `aws-toolkit`, `skill-description-trigger-testing` to P2.
+- **Evaluation**: Refactor skill scored A (108/120, 90%).
+
 ## [1.11.0] - 2026-03-08 - Standardize resource-creation conventions
 
 ### Changed

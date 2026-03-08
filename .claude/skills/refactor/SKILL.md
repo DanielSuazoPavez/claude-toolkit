@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: Structural refactoring analysis. Use when requests mention "refactor", "restructure", "split module", "dependency tangle", "coupling", "cohesion", or "circular imports".
+description: Structural refactoring analysis. Use when requests mention "refactor", "restructure", "split module", "dependency tangle", "coupling", "cohesion", "circular imports", "duplicated code", or "shared patterns".
 argument-hint: Target file/module/directory, or a specific pain point
 ---
 
@@ -12,6 +12,7 @@ Analyze structural refactoring decisions. Produces a saved analysis document —
 - When a module feels wrong but you can't articulate why
 - When imports are tangled or responsibilities are unclear
 - When you suspect dependency direction is inverted
+- When similar logic appears across multiple modules (shared pattern extraction)
 
 ## When NOT to Use
 
@@ -28,7 +29,7 @@ Scans the target (file, module, or directory), classifies severity, recommends w
 
 ### Targeted Mode: `/refactor <specific pain point>`
 
-Skips global triage, drills into the stated problem through the four lenses. Use when you already know where it hurts.
+Skips global triage, drills into the stated problem through the five lenses. Use when you already know where it hurts.
 
 **Distinguishing the two:** If `$ARGUMENTS` names a file/module/directory path, use triage mode. If it describes a problem ("circular imports in the auth module", "utils.py does too many things"), use targeted mode.
 
@@ -55,7 +56,7 @@ Gather concrete data as scaffolding for reasoning. No dogmatic thresholds.
 - **Public exports**: What does the module expose? (e.g., `__init__.py` / `__all__` in Python, `index.ts` barrel exports in TS) — curated or "everything"?
 - **File sizes**: As cohesion signals, not hard limits. A 1000-line cohesive module beats 5 fragmented files with tangled imports.
 
-### Step 3: Four-Lens Reasoning (Core)
+### Step 3: Five-Lens Reasoning (Core)
 
 Apply each lens. Skip what's clean, report only what's relevant. Use `file:line` references.
 
@@ -81,6 +82,13 @@ Apply each lens. Skip what's clean, report only what's relevant. Use `file:line`
 - Public functions that are only used internally?
 - Could the surface shrink after refactoring?
 
+**5. Shared Patterns** — "Are modules doing the same thing separately?"
+- Similar logic repeated across files = extraction candidate
+- Same data transformation written differently in multiple places
+- Parallel structures (same shape, different domain) that could share a base
+- **Threshold**: 3+ occurrences, or 2 with high complexity. Two simple similar blocks is NOT a signal — premature abstraction adds coupling and indirection for no gain
+- If in doubt, leave the duplication. Wrong abstractions are harder to undo than duplicated code
+
 ### Step 4: Write Analysis Document
 
 Save to: `.claude/output/analysis/{YYYYMMDD}_{HHMM}__refactor__{target}.md`
@@ -95,6 +103,20 @@ Show the full analysis to the user. Note the saved file path. Do NOT proceed to 
 - **Before**: Use `/analyze-idea` when you need to research feasibility or gather evidence before committing to a refactoring direction. Use the `code-reviewer` agent for complementary pre-refactoring analysis.
 - **During triage**: If architectural-level issues surface, escalate to `/brainstorm-idea` to explore the design space before writing the analysis.
 - **After**: Use `/review-changes` to verify the refactoring, `/design-tests` if test structure needs updating to match the new module layout.
+
+## Example: Shared Patterns Lens
+
+Three API route handlers each parse query params, validate date ranges, and build an Elasticsearch query:
+
+```
+Shared Pattern issue across routes/logs.py:15, routes/metrics.py:22, routes/alerts.py:31
+├─ Each handler independently: parses date range from query params, validates start < end, builds ES date filter
+├─ Logic is structurally identical but written slightly differently each time
+├─ Changes to date handling require updating 3 files — and they've already drifted
+└─ 3 occurrences with moderate complexity = extraction candidate
+```
+
+**Verdict:** Extract `parse_date_range()` and `build_date_filter()` to a shared query utilities module. The handlers become consumers of a single implementation.
 
 ## Example: Dependency Direction Lens
 
@@ -143,7 +165,7 @@ Cohesion issue at helpers.py
 - File sizes with cohesion notes
 
 ## Problems
-{Specific issues through the four lenses, with file:line references}
+{Specific issues through the five lenses, with file:line references}
 
 ## Target Structure
 - Proposed changes with rationale
@@ -169,3 +191,4 @@ Cohesion issue at helpers.py
 | **Execution planning** | Detailed step-by-step implementation plan | Brief outline only — planning happens later |
 | **Missing measurement** | Pure opinion without checking imports/exports | Run the light measurements before reasoning |
 | **Over-measurement** | Counting metrics that don't change decisions | Import map + circulars + exports + sizes. That's it. |
+| **Premature extraction** | "Two functions look similar, extract a shared helper" | Wait for 3+ occurrences or 2 with high complexity. Three similar lines is better than a premature abstraction |
