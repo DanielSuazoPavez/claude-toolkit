@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.16.0] - 2026-03-08 - Anti-rationalization stop hook
+
+### Added
+- **anti-rationalization hook**: Stop hook that detects cop-out phrases (scope deflection, deferral, blame shifting, overwhelm, explicit refusal) and blocks with a constructive nudge to reconsider.
+- **anti-rationalization tests**: 10 test cases covering loop prevention, all cop-out categories, matched phrase in block reason, and multi-message transcript handling.
+
 ## [1.15.0] - 2026-03-08 - Reviewer agent failure-trigger guidance
 
 ### Added

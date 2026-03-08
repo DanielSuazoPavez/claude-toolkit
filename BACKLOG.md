@@ -20,11 +20,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P1 - High
 
-- **[HOOKS]** Anti-rationalization Stop hook (`hook-anti-rationalization`)
-    - **status**: `idea`
-    - **scope**: `hooks`
-    - **notes**: Prompt-type Stop hook that catches premature victory declarations — cop-out phrases like "pre-existing issues," "out of scope," "too many issues," "I'll leave this for a follow-up." Fires at the exact decision point, unlike CLAUDE.md instructions that fade under context pressure. Could use Haiku review (ToB approach) or lighter pattern-match. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
     - **status**: `idea`
     - **scope**: `skills`
