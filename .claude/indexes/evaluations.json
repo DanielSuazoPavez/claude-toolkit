@@ -199,49 +199,49 @@
         ]
       },
       "design-qa": {
-        "file_hash": "e96a74af",
+        "file_hash": "c781c88a",
         "date": "2026-03-08",
-        "grade": "B",
-        "score": 91,
+        "grade": "B+",
+        "score": 101,
         "max": 120,
-        "percentage": 75.8,
+        "percentage": 84.2,
         "dimensions": {
-          "D1": 14,
+          "D1": 17,
           "D2": 13,
-          "D3": 12,
+          "D3": 11,
           "D4": 8,
           "D5": 14,
-          "D6": 13,
-          "D7": 5,
-          "D8": 12
+          "D6": 12,
+          "D7": 13,
+          "D8": 13
         },
         "top_improvements": [
-          "[high] Add ecosystem references — cross-reference /design-tests for pytest-specific patterns, code-reviewer/code-debugger agents for handoffs, and relevant memories. Current score: D7=5/15, island skill with zero connections.",
-          "[high] Replace activation knowledge in bug report section (lines 96-108) with expert judgment content — severity assessment heuristics, triage prioritization under ambiguity, when to merge vs split bug reports.",
-          "[low] Add a decision tree for test type selection (unit vs integration vs E2E vs manual) based on risk/cost/speed tradeoffs — fills the biggest D8 gap."
+          "[high] D3: Strengthen anti-patterns with more non-obvious entries — current set (happy path only, vague steps) is well-known; add expert-level anti-patterns like testing implementation details instead of behavior, or over-mocking hiding integration bugs",
+          "[high] D8: Add a complete worked example showing a real test plan output — the skill teaches how to think but never shows a finished artifact",
+          "[low] D1: Trim activation-level content (acceptance criteria validation section) and replace with more expert heuristics like defect clustering analysis or risk-based test selection algorithms"
         ]
       },
       "design-tests": {
-        "file_hash": "ddd62936",
+        "file_hash": "74dfb5ba",
         "date": "2026-03-08",
         "grade": "B+",
-        "score": 99,
+        "score": 101,
         "max": 120,
-        "percentage": 82.5,
+        "percentage": 84.2,
         "dimensions": {
           "D1": 16,
-          "D2": 14,
+          "D2": 13,
           "D3": 13,
-          "D4": 8,
+          "D4": 7,
           "D5": 12,
           "D6": 13,
-          "D7": 9,
+          "D7": 13,
           "D8": 14
         },
         "top_improvements": [
-          "[high] Move High-Risk Scenarios code examples (~75 lines) and Troubleshooting decision trees (~50 lines) into resources/ to bring SKILL.md closer to 250 lines — the main file is 404 lines with code-heavy sections that belong in reference material",
-          "[high] Add cross-references to design-qa (sibling QA strategy skill), code-reviewer agent, and relevant memories — currently the skill is an island with no ecosystem connections beyond its own resources/EXAMPLES.md",
-          "[low] Add flaky tests and test debugging to description keywords since the troubleshooting section is substantial and these are common invocation triggers"
+          "[high] D4: Narrow the description trigger — 'Use when writing or reviewing tests' is too broad; specify Python/pytest context to avoid false-positive routing for non-Python projects",
+          "[low] D1: The 'Tests Are Specifications' mindset section and some mocking basics are activation knowledge Claude already has; trim to 1-2 sentences each to increase knowledge density",
+          "[low] D5: Move inline code examples from High-Risk Scenarios section to EXAMPLES.md to keep SKILL.md further below the 500-line target"
         ]
       },
       "draft-pr": {
@@ -383,26 +383,26 @@
         ]
       },
       "review-changes": {
-        "file_hash": "78262769",
+        "file_hash": "da65d765",
         "date": "2026-03-08",
         "grade": "A-",
-        "score": 104,
+        "score": 102,
         "max": 120,
-        "percentage": 86.7,
+        "percentage": 85.0,
         "dimensions": {
-          "D1": 17,
-          "D2": 14,
+          "D1": 16,
+          "D2": 13,
           "D3": 13,
           "D4": 9,
-          "D5": 15,
-          "D6": 14,
-          "D7": 9,
-          "D8": 13
+          "D5": 14,
+          "D6": 13,
+          "D7": 12,
+          "D8": 12
         },
         "top_improvements": [
-          "[high] Add cross-references to /draft-pr (natural post-review handoff), code-reviewer agent (potential overlap/delegation), and relevant memories to improve ecosystem integration",
-          "[low] Add a worked example showing the decision tree applied to a real scenario — e.g., tracing missing validation to find it handled at the API boundary",
-          "[low] Add edge case guidance for very large diffs (>500 lines) or multi-feature PRs that need different review strategies"
+          "[low] Add a worked example of an actual review finding to boost D8 — showing how a real issue is traced through context discovery and the decision tree",
+          "[low] Fix code-reviewer agent reference path format in See Also for consistency with ecosystem conventions",
+          "[low] Phase 2 (Architectural Fit) could include more expert-level heuristics beyond standard layer/duplication checks"
         ]
       },
       "review-plan": {
@@ -567,12 +567,12 @@
         ]
       },
       "refactor": {
-        "file_hash": "8f1657d6",
+        "file_hash": "7d04fe6f",
         "date": "2026-03-08",
         "grade": "A",
-        "score": 108,
+        "score": 109,
         "max": 120,
-        "percentage": 90,
+        "percentage": 90.8,
         "dimensions": {
           "D1": 17,
           "D2": 14,
@@ -580,13 +580,13 @@
           "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 13,
+          "D7": 14,
           "D8": 14
         },
         "top_improvements": [
-          "[low] Add a brief cosmetic-triage example showing the abbreviated output format",
-          "[low] Consider referencing relevant memories for project conventions when analyzing cohesion and dependency direction",
-          "[low] Add specific measurement commands (e.g., grep patterns for circular import detection) to reduce freedom in the measurement step"
+          "[low] D1: Some lenses (coupling, cohesion) cover concepts partially derivable from first principles — could add more non-obvious heuristics or thresholds specific to particular ecosystems",
+          "[low] D6: Could differentiate freedom levels more explicitly per lens — e.g., shared patterns lens needs stricter thresholds than cohesion lens",
+          "[low] D1: The Measure step could include one more expert-only signal beyond imports/sizes (e.g., change frequency from git log as a coupling proxy)"
         ]
       },
       "create-skill": {

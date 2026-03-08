@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.22.0] - 2026-03-08 - Skill integration and design-qa improvements
+
+### Added
+- **See Also sections**: Added cross-references to all 4 discipline-enforcing skills (design-qa, review-changes, design-tests, refactor) connecting them to sibling skills, agents, and workflow handoffs. D7 scores improved across all 4.
+- **design-qa**: Artifact selection decision table for triage (test plan vs test cases vs regression suite vs bug report vs acceptance criteria review).
+- **design-qa**: Test debt signals heuristic replacing standard risk matrix — changelog churn, tribal knowledge gates, regression recidivism, debt accumulation rate formula.
+- **design-qa**: Bug triage heuristics replacing basic bug report template — backlog prioritization, close-as-wontfix criteria, duplicate-as-signal pattern.
+
+### Changed
+- **design-qa**: Narrowed description keywords — removed over-broad "quality assurance" and "manual testing" triggers.
+
 ## [1.21.0] - 2026-03-08 - Apply rationalization tables to discipline skills
 
 ### Added
