@@ -560,16 +560,21 @@ test_send_missing_type() {
     teardown_test_env
 }
 
-test_send_missing_project() {
+test_send_auto_detect_project() {
     echo ""
-    echo "=== send: missing --project ==="
+    echo "=== send: auto-detect project ==="
     setup_test_env
 
     # Create a source file
-    echo "# Skill" > "$TEMP_DIR/project/skill.md"
+    mkdir -p "$TEMP_DIR/project/.claude/skills/my-skill"
+    echo "# My Skill" > "$TEMP_DIR/project/.claude/skills/my-skill/SKILL.md"
 
-    expect_output "errors when --project missing" "--project required" \
-        send "$TEMP_DIR/project/skill.md" --type skill
+    # run_toolkit runs from $TEMP_DIR/project, so project name = "project"
+    expect_output "auto-detects project name" "Auto-detected project:" \
+        send "$TEMP_DIR/project/.claude/skills/my-skill/SKILL.md" --type skill
+
+    expect_file_exists "creates file in auto-detected project dir" \
+        "$TEMP_DIR/toolkit/suggestions-box/project/my-skill-SKILL.md"
 
     teardown_test_env
 }
@@ -688,7 +693,7 @@ if [ -z "$FILTER" ]; then
     # Send tests
     test_send_help
     test_send_missing_type
-    test_send_missing_project
+    test_send_auto_detect_project
     test_send_invalid_type
     test_send_file_not_found
     test_send_happy_path
@@ -716,7 +721,7 @@ else
         send)
             test_send_help
             test_send_missing_type
-            test_send_missing_project
+            test_send_auto_detect_project
             test_send_invalid_type
             test_send_file_not_found
             test_send_happy_path
