@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.19.0] - 2026-03-08 - CLAUDE.md base template
+
+### Added
+- **CLAUDE.md template**: Base skeleton for synced projects with conventions (replace don't deprecate, finish the job, zero warnings, trash-put over rm), git workflow, and toolkit resource references.
+- **Post-sync checklist**: Now lists `CLAUDE.md.template → CLAUDE.md` as a configuration reference.
+
 ## [1.18.0] - 2026-03-08 - Code-debugger escalation guardrail
 
 ### Added

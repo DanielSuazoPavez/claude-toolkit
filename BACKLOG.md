@@ -35,11 +35,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `toolkit`
     - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
-- **[TOOLKIT]** Cherry-pick CLAUDE.md template conventions from ToB (`claude-md-template-conventions`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Easy wins from ToB's CLAUDE.md template: `trash` over `rm`, explicit philosophy principles ("replace don't deprecate", "finish the job"), zero warnings policy. Low effort, clear value. Review which conventions align with what we already do informally and make them explicit. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 ## P2 - Medium
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
