@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0] - 2026-03-08 - Statusline as recommended default
+
+### Added
+- **statusline**: `@owloops/claude-powerline` statusline in `settings.json` and settings template as recommended default.
+- **powerline config**: Nord-themed powerline config (`claude-powerline.json`) at project level and in templates for synced projects.
+- **post-sync checklist**: Reminds users to copy `claude-powerline.json` to `.claude/claude-powerline.json`.
+
 ## [1.13.0] - 2026-03-08 - Review-plan step granularity and post-approval flow
 
 ### Added

@@ -25,11 +25,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `hooks`
     - **notes**: Current hook only checks for dangerous targets (`/`, `~`, `.`) but doesn't detect command chaining — `; rm -rf /`, `&& rm -rf /`, `| rm` bypass detection. Add chaining-aware regex (`;`, `&&`, `||`, `|` before `rm`). ToB's approach blocks ALL `rm -rf` and suggests `trash` — we prefer target-specific blocking but need the chaining coverage. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
-- **[TOOLKIT]** Add statusline to repo as recommended default (`toolkit-statusline`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Currently using `@owloops/claude-powerline` at user level only. Add to repo's settings.json and template as a recommended default. Powerline already covers context usage, cost, git info, model, session duration — no custom script needed. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
     - **status**: `idea`
     - **scope**: `skills`
