@@ -1,1 +1,0 @@
-Auto-detect --project flag from current working directory. Could use git repo name (basename of git root), or directory name, or a .claude-toolkit-project marker file. Only require explicit --project when ambiguous or outside a known project. Reduces friction on the most common send workflow.

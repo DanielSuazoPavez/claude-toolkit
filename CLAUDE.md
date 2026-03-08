@@ -44,6 +44,10 @@ Summary and status of all resources:
 - Run `make check` to run all tests and validations
 - Verify skill/agent changes work with real tests
 
+## Suggestions Box
+
+`suggestions-box/` — inbox for resources and issues sent from other projects via `claude-toolkit send`. Organized by source project. Triage with "check suggestions" — see `suggestions-box/CLAUDE.md` for the full workflow.
+
 ## See Also
 
 - `README.md` - Full documentation

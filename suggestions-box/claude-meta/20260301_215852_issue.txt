@@ -1,9 +1,0 @@
-Batch of observations from reviewing write-* and evaluate-* skills:
-
-1. NAMING: Consider renaming resource-creation skills from write-* to create-* (create-skill, create-agent, create-hook, create-memory). This frees write-* for content-producing skills (write-docs, write-handoff) where the verb actually means 'author content.' Lifecycle becomes: create → evaluate → iterate.
-
-2. QUALITY GATE CONSISTENCY: write-skill targets B (90+), write-agent targets B (75+), write-hook and write-memory don't specify a target. Consider standardizing — all create-* skills should specify a minimum grade threshold.
-
-3. EVALUATOR ISOLATION: The 'launch a subagent for fresh evaluation' block is copy-pasted across all 4 evaluators. Could use context: fork in frontmatter instead, letting Claude Code handle isolation at infrastructure level. Removes duplicated invocation sections.
-
-4. D7 INTEGRATION QUALITY: Only evaluate-skill has this dimension. If cross-resource references matter enough to dictate evaluate-batch ordering, consider adding integration checking to evaluate-agent and evaluate-memory too.

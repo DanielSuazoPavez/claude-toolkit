@@ -16,7 +16,34 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
+## P0 - Critical
+
+- **[SKILLS]** Standardize resource-creation skill conventions (`skill-create-conventions`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Batch of consistency issues across write-*/evaluate-* skills: (1) Rename write-* → create-* (already tracked in P2 `skill-rename-create` — promote here). (2) Standardize quality gate targets — write-skill targets B (90+), write-agent targets B (75+), write-hook and write-memory don't specify. (3) Extract duplicated "launch subagent for fresh evaluation" block across all 4 evaluators. (4) Add D7 Integration Quality to evaluate-agent and evaluate-memory (currently only in evaluate-skill). Ref: suggestions-box/claude-meta issue.
+
+- **[TOOLKIT]** Auto-detect --project flag from cwd (`toolkit-auto-detect-project`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: `claude-toolkit send` should infer the project name from git repo name (basename of git root), directory name, or a `.claude-toolkit-project` marker file. Only require explicit `--project` when ambiguous or outside a known project. Reduces friction on the most common send workflow. Ref: suggestions-box/claude-meta issue.
+
 ## P1 - High
+
+- **[SKILLS]** Calibrate `review-plan` issue levels to align with verdict (`skill-review-plan-calibration`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Issue severity levels (high/medium/low) should correlate with the final verdict. A plan with only low-severity issues shouldn't get a negative verdict, and vice versa. Review scoring/verdict logic for consistency.
+
+- **[SKILLS]** `review-plan` step granularity and post-verification flow (`skill-review-plan-steps`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Steps should be "commit-able amount of work" and include "commit after each step". Post-verification steps should suggest `/wrap-up` skill and launching a `goal-verifier` agent to review the changes, asking the user. Ref: suggestions-box/opensearch-dashboard issue.
+
+- **[SKILLS]** Analyze `refactor` skill gap — shared pattern extraction (`skill-refactor-shared-patterns`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Gap in detecting common patterns across modules that should be moved to a shared source. The refactor skill should evaluate whether duplicated or similar logic across files warrants extraction into a shared module/utility. Ref: suggestions-box/opensearch-dashboard issue.
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
@@ -31,20 +58,15 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P2 - Medium
 
-- **[SKILLS]** Calibrate `review-plan` issue levels to align with verdict (`skill-review-plan-calibration`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Issue severity levels (high/medium/low) should correlate with the final verdict. A plan with only low-severity issues shouldn't get a negative verdict, and vice versa. Review scoring/verdict logic for consistency.
-
 - **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
     - **status**: `idea`
     - **scope**: `skills`
     - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in write-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
 
-- **[SKILLS]** Rename `write-{resource}` skills to `create-{resource}` (`skill-rename-create`)
+- **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: `write-agent`, `write-skill`, `write-memory`, `write-hook` share the `write-` prefix with `write-docs` and `write-handoff`, but they're different categories — resource creators vs output producers. Rename to `create-agent`, `create-skill`, `create-memory`, `create-hook` to separate the patterns. Update SKILLS.md index, MANIFEST, and any cross-references.
+    - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
 
 - **[SKILLS]** Basic description trigger testing for skills (`skill-description-trigger-testing`)
     - **status**: `idea`
