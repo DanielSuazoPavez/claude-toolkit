@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.21.0] - 2026-03-08 - Apply rationalization tables to discipline skills
+
+### Added
+- **design-tests**: 6-entry rationalization table — TDD enforcement counters (too simple, tests after, manual testing, speed, glue code, exploration).
+- **refactor**: 5-entry rationalization table — scope discipline counters (skip triage, skip measurement, code works fine, skip lenses, no document needed).
+- **design-qa**: 5-entry rationalization table — QA thoroughness counters (unlikely edge cases, code looks correct, catch in prod, minor change, no time).
+- **review-changes**: 5-entry rationalization table — review discipline counters (too small, looks straightforward, trust author, flag everything, missing context).
+- **Backlog**: P2 task `skill-integration-gaps` for improving cross-references across all 4 discipline skills (D7 gap found during evaluation).
+
 ## [1.20.0] - 2026-03-08 - Rationalization tables for discipline skills
 
 ### Added

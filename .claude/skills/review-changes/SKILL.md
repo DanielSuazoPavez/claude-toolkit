@@ -97,6 +97,16 @@ Is this issue...
 | **Missing Context** | Reviewing without understanding the goal | Read PR description, check related code first |
 | **Scope Creep** | "While you're here, also fix Y" | Review what's in the PR, not what's not |
 
+## Rationalizations
+
+| Rationalization | Counter |
+|-----------------|---------|
+| "This change is too small to review carefully" | Small changes cause big bugs. Trace the data flow regardless of diff size. |
+| "The code looks straightforward" | Straightforward code can still have wrong assumptions. Check intent matches implementation. |
+| "I trust the author" | Review the code, not the author. Trust doesn't catch edge cases. |
+| "I should flag everything I notice" | Use the decision tree. Style/preference → don't flag. Only flag what's wrong, not what's different. |
+| "I don't understand the context, so I can't review properly" | Read PR description and check related code first. Missing context is a reviewer mistake, not a blocker. |
+
 ## Output Format
 
 ```markdown

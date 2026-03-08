@@ -192,3 +192,13 @@ Cohesion issue at helpers.py
 | **Missing measurement** | Pure opinion without checking imports/exports | Run the light measurements before reasoning |
 | **Over-measurement** | Counting metrics that don't change decisions | Import map + circulars + exports + sizes. That's it. |
 | **Premature extraction** | "Two functions look similar, extract a shared helper" | Wait for 3+ occurrences or 2 with high complexity. Three similar lines is better than a premature abstraction |
+
+## Rationalizations
+
+| Rationalization | Counter |
+|-----------------|---------|
+| "This clearly needs refactoring, skip triage" | Triage takes 30 seconds. Skipping it means solving the wrong problem. |
+| "I already know what to do, skip measurement" | Run the light measurements. Intuition misses circular imports and hidden coupling. |
+| "The code works fine, why analyze it?" | Working code can still have hidden coupling. Refactoring prevents future bugs, not current ones. |
+| "I can see the problem, skip the other lenses" | Each lens catches different issues. Skipping lenses means missing the coupling you can't see from one angle. |
+| "This is just moving code around, no need for a document" | The document IS the deliverable. Without it, the analysis lives in your head and dies with this session. |
