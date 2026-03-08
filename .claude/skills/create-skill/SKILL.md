@@ -26,7 +26,20 @@ Address documented improvements before inventing new ones.
 Before writing a new skill:
 1. Run the scenario without the skill
 2. Document what goes wrong (missed steps, wrong approach, etc.)
-3. This is your "failing test" - the gap the skill must fill
+
+**For discipline-enforcing skills** (where the failure mode is arguing out of the process, not forgetting it):
+
+3. Document **rationalizations**: what excuses does the agent make for skipping the process?
+4. Build a rationalization table — pair each excuse with a concrete counter:
+
+| Rationalization | Counter |
+|-----------------|---------|
+| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
+| "I'll do it after" | After = never. Do it now or it won't happen. |
+
+Capture verbatim excuses from baseline testing. Every rationalization the agent makes goes in the table. Include the table in the skill itself — it forecloses loopholes before the agent can exploit them.
+
+5. This is your "failing test" - the gap the skill must fill
 
 ### GREEN: Write Minimal Skill
 
@@ -209,3 +222,16 @@ With skill active, Claude consistently:
 | **Kitchen Sink** | 800-line skill covering everything | Focus on one gap, cross-reference others |
 | **Workflow in Description** | Claude executes from description, misses nuances in body | Description = triggers only, not steps |
 | **Tutorial Content** | Explains what Claude already knows | Only include expert knowledge delta |
+
+## Rationalization Tables vs Anti-Pattern Tables
+
+Anti-pattern tables (3 columns: Pattern | Problem | Fix) capture **structural mistakes** — wrong output format, wrong scope. Rationalization tables (2 columns: Rationalization | Counter) capture **excuses for skipping the process** — correct reasoning, wrong conclusion. Use both when building discipline-enforcing skills.
+
+Example rationalization table (from TDD domain):
+
+| Rationalization | Counter |
+|-----------------|---------|
+| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
+| "Test hard = design unclear" | Listen to the test. Hard to test = hard to use. |
+| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
+| "Existing code has no tests" | You're improving it. Add tests for what you touch. |

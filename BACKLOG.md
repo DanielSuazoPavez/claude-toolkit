@@ -18,13 +18,14 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P0 - Critical
 
+- **[SKILLS]** Apply rationalization tables to discipline-enforcing skills (`skill-rationalization-tables-apply`)
+    - **status**: `planned`
+    - **scope**: `skills`
+    - **notes**: Apply the rationalization table technique (added in create-skill) to existing discipline-enforcing skills: `design-tests` (TDD enforcement, has anti-pattern table but no rationalization table), `refactor` (scope discipline, has anti-pattern table but no rationalization table), `design-qa` (thoroughness enforcement, implicit via risk matrix, needs explicit table), `review-changes` (review discipline, implicit via decision tree, needs explicit table). Run baseline testing for each skill to capture verbatim rationalizations.
+
 ## P1 - High
 
 
-- **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in create-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 ## P2 - Medium
 

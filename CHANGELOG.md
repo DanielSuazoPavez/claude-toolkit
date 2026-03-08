@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0] - 2026-03-08 - Rationalization tables for discipline skills
+
+### Added
+- **create-skill RED phase**: Guidance for discipline-enforcing skills — capture verbatim agent rationalizations during baseline testing and build counter-tables (Rationalization | Counter). Distinguishes procedural skills (forgot step X) from discipline skills (argued out of process).
+- **Rationalization vs anti-pattern tables**: New section explaining the distinction with a 4-entry TDD example table.
+- **P0 backlog task**: Apply rationalization tables to 4 existing discipline-enforcing skills (design-tests, refactor, design-qa, review-changes).
+
 ## [1.19.4] - 2026-03-08 - Backlog triage
 
 ### Added
