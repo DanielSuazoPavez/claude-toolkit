@@ -82,6 +82,10 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y @owloops/claude-powerline@latest --style=powerline"
+  },
   "_env_config": {
     "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
     "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
