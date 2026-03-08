@@ -475,7 +475,7 @@ test_anti_rationalization() {
         "blocks overwhelm (too complex to fix)"
 
     # Test 8: Explicit refusal
-    printf '{"role":"assistant","content":[{"type":"text","text":"I\\u0027ll skip this for now."}]}' > "$temp_dir/refusal.jsonl"
+    echo '{"role":"assistant","content":[{"type":"text","text":"I\u0027ll skip this for now."}]}' > "$temp_dir/refusal.jsonl"
     expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/refusal.jsonl\"}" \
         "blocks explicit refusal (I'll skip this)"
 
