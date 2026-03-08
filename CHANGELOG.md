@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.10.0] - 2026-03-08 - Auto-detect project in send
+
+### Changed
+- **`claude-toolkit send`**: `--project` flag is now optional — auto-detects project name from git repo basename (or directory name as fallback). Explicit `--project` still works as override.
+
 ## [1.9.3] - 2026-03-08 - Triage suggestions box
 
 ### Added

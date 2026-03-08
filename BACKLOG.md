@@ -23,10 +23,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: Batch of consistency issues across write-*/evaluate-* skills: (1) Rename write-* → create-* (already tracked in P2 `skill-rename-create` — promote here). (2) Standardize quality gate targets — write-skill targets B (90+), write-agent targets B (75+), write-hook and write-memory don't specify. (3) Extract duplicated "launch subagent for fresh evaluation" block across all 4 evaluators. (4) Add D7 Integration Quality to evaluate-agent and evaluate-memory (currently only in evaluate-skill). Ref: suggestions-box/claude-meta issue.
 
-- **[TOOLKIT]** Auto-detect --project flag from cwd (`toolkit-auto-detect-project`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: `claude-toolkit send` should infer the project name from git repo name (basename of git root), directory name, or a `.claude-toolkit-project` marker file. Only require explicit `--project` when ambiguous or outside a known project. Reduces friction on the most common send workflow. Ref: suggestions-box/claude-meta issue.
 
 ## P1 - High
 

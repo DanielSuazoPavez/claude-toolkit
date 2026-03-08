@@ -12,6 +12,16 @@ set -euo pipefail
 
 TOOLKIT_DIR="${TOOLKIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 
+# Detect project name from cwd: git repo name > directory name
+detect_project_name() {
+    local git_root
+    if git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
+        basename "$git_root"
+    else
+        basename "$PWD"
+    fi
+}
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -47,7 +57,7 @@ EXAMPLES:
     claude-toolkit sync --dry-run                # Preview changes
     claude-toolkit sync --only skills,hooks      # Sync only specific categories
 
-    claude-toolkit send .claude/skills/my-skill/SKILL.md --type skill --project myapp
+    claude-toolkit send .claude/skills/my-skill/SKILL.md --type skill   # auto-detects project
 
 Run 'claude-toolkit <command> --help' for command-specific help.
 EOF
@@ -68,22 +78,22 @@ cmd_send() {
 claude-toolkit send - Send a resource or issue to suggestions-box
 
 USAGE:
-    claude-toolkit send <path> --type <type> --project <name>
-    claude-toolkit send --issue "<description>" --project <name>
+    claude-toolkit send <path> --type <type> [--project <name>]
+    claude-toolkit send --issue "<description>" [--project <name>]
 
 ARGUMENTS:
     <path>              Path to the resource file (or issue text with --issue)
 
 OPTIONS:
     --type <type>       Resource type: skill, agent, hook, memory
-    --project <name>    Project name for organizing in suggestions-box
+    --project <name>    Project name (default: auto-detected from git repo or directory name)
     --issue             Send an issue/bug report instead of a file
     -h, --help          Show this help message
 
 EXAMPLES:
+    claude-toolkit send .claude/skills/draft-pr/SKILL.md --type skill
     claude-toolkit send .claude/skills/draft-pr/SKILL.md --type skill --project myapp
-    claude-toolkit send .claude/agents/custom-agent.md --type agent --project myapp
-    claude-toolkit send --issue "bug with hook X not detecting scripts" --project myapp
+    claude-toolkit send --issue "bug with hook X not detecting scripts"
 EOF
                 return 0
                 ;;
@@ -101,8 +111,11 @@ EOF
         esac
     done
 
-    # Validate required args
-    [[ -z "$project" ]] && error "--project required"
+    # Auto-detect project if not specified
+    if [[ -z "$project" ]]; then
+        project=$(detect_project_name)
+        echo -e "${CYAN}Auto-detected project:${NC} $project"
+    fi
 
     if $is_issue; then
         # Issue mode: source_path is the issue text
