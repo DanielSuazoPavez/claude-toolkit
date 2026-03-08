@@ -432,6 +432,70 @@ test_capture_lesson() {
     rm -rf "$temp_dir"
 }
 
+# === ANTI-RATIONALIZATION (Stop hook) ===
+test_anti_rationalization() {
+    echo ""
+    echo "=== anti-rationalization.sh ==="
+    local hook="anti-rationalization.sh"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+
+    # Test 1: Loop prevention - stop_hook_active=true should exit silently
+    echo '{"role":"assistant","content":[{"type":"text","text":"This is out of scope."}]}' > "$temp_dir/transcript.jsonl"
+    expect_allow "$hook" "{\"stop_hook_active\":true,\"transcript_path\":\"$temp_dir/transcript.jsonl\"}" \
+        "allows when stop_hook_active=true (loop prevention)"
+
+    # Test 2: Missing transcript path - should exit silently
+    expect_allow "$hook" '{"stop_hook_active":false,"transcript_path":""}' \
+        "allows when transcript_path is empty"
+
+    # Test 3: Clean response - no cop-out phrases
+    echo '{"role":"assistant","content":[{"type":"text","text":"Fixed the bug by updating the parser."}]}' > "$temp_dir/clean.jsonl"
+    expect_allow "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/clean.jsonl\"}" \
+        "allows clean response with no cop-out phrases"
+
+    # Test 4: Scope deflection
+    echo '{"role":"assistant","content":[{"type":"text","text":"This is out of scope for this change."}]}' > "$temp_dir/scope.jsonl"
+    expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/scope.jsonl\"}" \
+        "blocks scope deflection (out of scope)"
+
+    # Test 5: Deferral
+    echo '{"role":"assistant","content":[{"type":"text","text":"I'\''ll leave this for a follow-up PR."}]}' > "$temp_dir/deferral.jsonl"
+    expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/deferral.jsonl\"}" \
+        "blocks deferral (leave this for a follow-up)"
+
+    # Test 6: Blame shifting
+    echo '{"role":"assistant","content":[{"type":"text","text":"This is a pre-existing issue in the codebase."}]}' > "$temp_dir/blame.jsonl"
+    expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/blame.jsonl\"}" \
+        "blocks blame shifting (pre-existing issue)"
+
+    # Test 7: Overwhelm
+    echo '{"role":"assistant","content":[{"type":"text","text":"This is too complex to fix in this PR."}]}' > "$temp_dir/overwhelm.jsonl"
+    expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/overwhelm.jsonl\"}" \
+        "blocks overwhelm (too complex to fix)"
+
+    # Test 8: Explicit refusal
+    echo '{"role":"assistant","content":[{"type":"text","text":"I\u0027ll skip this for now."}]}' > "$temp_dir/refusal.jsonl"
+    expect_block "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/refusal.jsonl\"}" \
+        "blocks explicit refusal (I'll skip this)"
+
+    # Test 9: Block reason contains matched phrase
+    echo '{"role":"assistant","content":[{"type":"text","text":"This is out of scope for this change."}]}' > "$temp_dir/reason.jsonl"
+    expect_contains "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/reason.jsonl\"}" \
+        "out of scope" \
+        "block reason contains matched phrase"
+
+    # Test 10: Multiple messages — only checks last assistant
+    echo '{"role":"assistant","content":[{"type":"text","text":"This is out of scope."}]}
+{"role":"user","content":[{"type":"text","text":"ok"}]}
+{"role":"assistant","content":[{"type":"text","text":"Done, all changes applied successfully."}]}' > "$temp_dir/multi.jsonl"
+    expect_allow "$hook" "{\"stop_hook_active\":false,\"transcript_path\":\"$temp_dir/multi.jsonl\"}" \
+        "allows when cop-out is only in earlier messages"
+
+    # Cleanup
+    rm -rf "$temp_dir"
+}
+
 # === RUN TESTS ===
 echo "Running hook tests..."
 echo "Hooks directory: $HOOKS_DIR"
@@ -446,6 +510,7 @@ if [ -z "$FILTER" ]; then
     test_enforce_feature_branch
     test_copy_plan_to_project
     test_capture_lesson
+    test_anti_rationalization
 else
     # Run specific test
     case "$FILTER" in
@@ -457,6 +522,7 @@ else
         branch*|feature*|enforce-feature*) test_enforce_feature_branch ;;
         plan*|copy-plan*) test_copy_plan_to_project ;;
         capture*|lesson*) test_capture_lesson ;;
+        anti-rational*|rationalization*) test_anti_rationalization ;;
         *) echo "Unknown hook: $FILTER"; exit 1 ;;
     esac
 fi

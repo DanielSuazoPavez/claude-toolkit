@@ -43,6 +43,7 @@ agents/pattern-finder.md
 
 # hooks
 hooks/block-dangerous-commands.sh
+hooks/anti-rationalization.sh
 hooks/capture-lesson.sh
 hooks/copy-plan-to-project.sh
 hooks/enforce-feature-branch.sh
