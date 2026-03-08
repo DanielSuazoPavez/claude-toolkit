@@ -199,6 +199,32 @@ test_secrets_guard() {
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"printenv"}}' \
         "blocks printenv"
 
+    # Should block Read - credential files
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_rsa\"}}" \
+        "blocks reading SSH private key (id_rsa)"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_ed25519\"}}" \
+        "blocks reading SSH private key (id_ed25519)"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/config\"}}" \
+        "blocks reading SSH config"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.aws/credentials\"}}" \
+        "blocks reading AWS credentials"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.config/gh/hosts.yml\"}}" \
+        "blocks reading GitHub CLI tokens"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.docker/config.json\"}}" \
+        "blocks reading Docker config"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.kube/config\"}}" \
+        "blocks reading kubeconfig"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.npmrc\"}}" \
+        "blocks reading .npmrc"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.pypirc\"}}" \
+        "blocks reading .pypirc"
+
+    # Should block Bash - credential file reads
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat ~/.ssh/id_rsa"}}' \
+        "blocks cat ~/.ssh/id_rsa"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat ~/.aws/credentials"}}' \
+        "blocks cat ~/.aws/credentials"
+
     # Should allow
     expect_allow "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.example"}}' \
         "allows .env.example"
@@ -208,6 +234,43 @@ test_secrets_guard() {
         "allows non-.env files"
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"env VAR=value command"}}' \
         "allows env with assignment (not listing)"
+    expect_allow "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/known_hosts\"}}" \
+        "allows reading known_hosts"
+    expect_allow "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/ssh/config"}}' \
+        "allows reading non-home ssh/config"
+}
+
+# === BLOCK CONFIG EDITS ===
+test_block_config_edits() {
+    echo ""
+    echo "=== block-config-edits.sh ==="
+    local hook="block-config-edits.sh"
+
+    # Should block Write
+    expect_block "$hook" "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.bashrc\",\"content\":\"test\"}}" \
+        "blocks writing ~/.bashrc"
+    expect_block "$hook" "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.zshrc\",\"content\":\"test\"}}" \
+        "blocks writing ~/.zshrc"
+    expect_block "$hook" "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/authorized_keys\",\"content\":\"test\"}}" \
+        "blocks writing ~/.ssh/authorized_keys"
+    expect_block "$hook" "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.gitconfig\",\"content\":\"test\"}}" \
+        "blocks writing ~/.gitconfig"
+
+    # Should block Edit
+    expect_block "$hook" "{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"$HOME/.bashrc\",\"old_string\":\"a\",\"new_string\":\"b\"}}" \
+        "blocks editing ~/.bashrc"
+
+    # Should block Bash write commands
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo \"export FOO=bar\" >> ~/.bashrc"}}' \
+        "blocks appending to ~/.bashrc"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"tee -a ~/.zshrc"}}' \
+        "blocks tee -a to ~/.zshrc"
+
+    # Should allow
+    expect_allow "$hook" '{"tool_name":"Write","tool_input":{"file_path":"/project/.bashrc","content":"test"}}' \
+        "allows writing project-level .bashrc"
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo hello"}}' \
+        "allows normal bash commands"
 }
 
 # === ENFORCE UV RUN ===
@@ -504,6 +567,7 @@ echo "Hooks directory: $HOOKS_DIR"
 if [ -z "$FILTER" ]; then
     test_block_dangerous_commands
     test_secrets_guard
+    test_block_config_edits
     test_enforce_uv_run
     test_enforce_make_commands
     test_suggest_json_reader
@@ -516,6 +580,7 @@ else
     case "$FILTER" in
         block-dangerous*|dangerous*) test_block_dangerous_commands ;;
         secrets*) test_secrets_guard ;;
+        config*|block-config*) test_block_config_edits ;;
         uv*|enforce-uv*) test_enforce_uv_run ;;
         make*|enforce-make*) test_enforce_make_commands ;;
         json*|suggest-json*) test_suggest_json_reader ;;
