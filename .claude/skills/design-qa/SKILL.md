@@ -158,6 +158,16 @@ When you have hours, not days:
 | Happy Path Only | Misses real failures | Boundaries, empty states, errors |
 | Generic Bug Title | "Login broken" | "[Login] OTP fails with leading zeros" |
 
+## Rationalizations
+
+| Rationalization | Counter |
+|-----------------|---------|
+| "These edge cases are unlikely" | Unlikely × high-impact = P1. Check the risk matrix. |
+| "The code looks correct, no need to test" | Code review finds logic errors. Testing finds integration errors. Different coverage. |
+| "We'll catch it in production" | Production bugs cost 10x. Test environment exists for a reason. |
+| "Just a minor UI change, skip regression" | Minor changes break unexpected paths. Smoke test at minimum. |
+| "We don't have time to test everything" | That's what prioritization is for. P0 paths get 100%, P3 gets skipped with documented risk. |
+
 ## Release Readiness
 
 ### Entry Criteria (start testing)

@@ -391,3 +391,14 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | **Parametrize different logic** | Cryptic names, painful debugging | Separate tests for different behaviors |
 | **100% coverage goal** | Diminishing returns past 80% | Cover critical paths and edge cases |
 | **Testing only happy path** | Misses rollback bugs, auth bypasses, API failures | See [High-Risk Scenarios](#high-risk-scenarios) |
+
+## Rationalizations
+
+| Rationalization | Counter |
+|-----------------|---------|
+| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
+| "I'll write tests after" | Tests-after ask "what does this do?" Tests-first ask "what should this do?" Different questions, different quality. |
+| "I already manually tested it" | Ad-hoc ≠ systematic. No record, can't re-run, misses edge cases. |
+| "TDD will slow me down" | TDD is faster than debugging. The test you skip now is the bug you debug later. |
+| "This is glue code, doesn't need tests" | Glue fails silently. Integration bugs are the hardest to find. |
+| "Need to explore the API first" | Fine. Throw away the exploration code, then start with TDD. |
