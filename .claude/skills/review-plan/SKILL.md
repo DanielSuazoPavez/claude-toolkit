@@ -41,11 +41,14 @@ Goal statement check:
 └─ Missing entirely? → High
 ```
 
-### Are steps atomic enough?
+### Are steps commit-sized?
+
+Each step should be a commit-able unit of work — small enough to verify, large enough to be meaningful. The implementing agent should commit after completing each step.
 
 ```
-Atomicity check for each step:
-├─ Can be verified in <5 minutes? → Atomic
+Step granularity check:
+├─ Could you commit this step alone and the code still works? → Good
+├─ Can be verified in <5 minutes? → Good
 ├─ Touches >3 files? → Probably split
 ├─ Contains "and", "also", "then"? → Definitely split
 ├─ Uses vague verbs (handle, set up, implement)? → Needs specifics
@@ -157,7 +160,7 @@ Use color and visual emphasis to make the review scannable at a glance:
 
 ### Structure
 - [x] Clear goal stated
-- [ ] Steps are atomic — *step 3 combines multiple changes* → **Medium**
+- [ ] Steps are commit-sized — *step 3 combines multiple changes* → **Medium**
 - [x] Files listed
 - [ ] Verification defined — *missing: no test plan* → **Medium**
 
@@ -219,3 +222,11 @@ Use color and visual emphasis to make the review scannable at a glance:
 - Missing verification for non-trivial changes
 - Hidden dependencies between steps
 - Security implications not addressed
+
+## After Approval
+
+When the verdict is **APPROVE**, append these steps to the plan if they're not already present:
+
+1. **Commit after each step** — each step in the plan should produce a commit. If the plan doesn't mention this, add it.
+2. **Post-implementation verification** — add a final step: "Launch `goal-verifier` agent to confirm the feature works (L1→L2→L3 verification)."
+3. **Wrap up** — add a closing step: "Run `/wrap-up` to update changelog, bump version, and finalize the branch."
