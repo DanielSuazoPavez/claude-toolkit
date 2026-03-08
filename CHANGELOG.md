@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.3] - 2026-03-08 - Goal-verifier severity alignment
+
+### Changed
+- **goal-verifier agent**: Gap severity from Critical/Major/Minor to High/Medium/Low for consistency across resources.
+- **goal-verifier agent**: New "What You Verify" section — explicitly states it works on the working tree (committed + uncommitted changes).
+- **goal-verifier agent**: Verification depth calibration tree — match scrutiny to risk level, with explicit "when to stop" rule.
+- **goal-verifier agent**: Skeptic persona threaded through procedural sections; cross-references to `code-reviewer` and `implementation-checker`.
+- **Evaluation**: goal-verifier scored A (103/115, 89.6%).
+
 ## [1.12.2] - 2026-03-08 - Review-plan severity calibration
 
 ### Changed
