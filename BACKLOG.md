@@ -18,12 +18,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P0 - Critical
 
-- **[SKILLS]** Standardize resource-creation skill conventions (`skill-create-conventions`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Batch of consistency issues across create-*/evaluate-* skills: (1) Rename write-* → create-* (already tracked in P2 `skill-rename-create` — promote here). (2) Standardize quality gate targets — create-skill targets B (90+), create-agent targets B (75+), create-hook and create-memory don't specify. (3) Extract duplicated "launch subagent for fresh evaluation" block across all 4 evaluators. (4) Add D7 Integration Quality to evaluate-agent and evaluate-memory (currently only in evaluate-skill). Ref: suggestions-box/claude-meta issue.
-
-
 ## P1 - High
 
 - **[SKILLS]** Calibrate `review-plan` issue levels to align with verdict (`skill-review-plan-calibration`)

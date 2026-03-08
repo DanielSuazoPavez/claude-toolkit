@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.11.0] - 2026-03-08 - Standardize resource-creation conventions
+
+### Changed
+- **Rename write-* → create-***: `write-skill`, `write-agent`, `write-hook`, `write-memory` renamed to `create-skill`, `create-agent`, `create-hook`, `create-memory`. `write-handoff` and `write-docs` unchanged (they write artifacts, not toolkit resources).
+- **Quality gate standardized to 85%**: All four create-* skills now target 85% on evaluation. Previously create-skill targeted B (90+), create-agent targeted B (75+), create-hook and create-memory had no quality gate.
+- **Integration Quality dimension**: Added D5 (15 pts) to evaluate-agent, D6 (15 pts) to evaluate-hook, D6 (15 pts) to evaluate-memory — checking reference accuracy, duplication avoidance, ecosystem awareness. All three rescaled to /115 with proportional grade boundaries.
+- **Cross-references updated**: indexes, README, naming-conventions, BACKLOG, verify-resource-deps allowlist, evaluations.json all updated to use create-* names.
+- **Naming conventions**: Split `write-*` verb into `create-*` (toolkit resources) and `write-*` (artifacts/documents).
+
 ## [1.10.0] - 2026-03-08 - Auto-detect project in send
 
 ### Changed
