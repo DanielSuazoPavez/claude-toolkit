@@ -14,7 +14,6 @@ Automation hooks configured in `settings.json`.
 | `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
 | `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
 | `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
-| `capture-lesson.sh` | alpha | Stop | Detects [LEARN] tags and prompts for lesson capture |
 | `anti-rationalization.sh` | alpha | Stop | Detects rationalization / cop-out phrases and nudges Claude to reconsider |
 | `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
@@ -105,19 +104,6 @@ Encourages using Make targets over raw commands.
 - Warns when common commands could use Make targets
 - Suggests: Check `make help` for available targets
 
-### capture-lesson.sh
-
-**Trigger**: Stop
-
-Detects `[LEARN]` tags in Claude's responses and blocks to prompt for lesson capture.
-
-- Checks `stop_hook_active` first to prevent infinite loops
-- Reads last assistant message from transcript JSONL
-- Extracts `[LEARN] category: lesson text` patterns
-- Blocks with extracted lessons, instructing Claude to present for user confirmation
-- Silent on no match (exit 0, no stdout)
-- Approved lessons written to `.claude/learned.json` via `/learn` skill process
-
 ### anti-rationalization.sh
 
 **Trigger**: Stop
@@ -149,8 +135,7 @@ Hooks are configured in `settings.json`:
     "Stop": [
       {
         "hooks": [
-          {"type": "command", "command": "bash .claude/hooks/capture-lesson.sh"},
-          {"type": "command", "command": "bash .claude/hooks/anti-rationalization.sh"}
+{"type": "command", "command": "bash .claude/hooks/anti-rationalization.sh"}
         ]
       }
     ],

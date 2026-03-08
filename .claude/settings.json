@@ -70,11 +70,7 @@
     "Stop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/capture-lesson.sh"
-          },
-          {
+{
             "type": "command",
             "command": "bash .claude/hooks/anti-rationalization.sh"
           }

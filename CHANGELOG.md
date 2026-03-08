@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.19.2] - 2026-03-08 - Remove capture-lesson hook
+
+### Removed
+- **`capture-lesson.sh` Stop hook**: Failed experiment — hook expected Claude to emit `[LEARN]` tags spontaneously, but no instruction triggered this. Lesson capture is handled by the `/learn` skill via explicit user invocation.
+
 ## [1.19.1] - 2026-03-08 - Learned.json consolidation
 
 ### Changed
