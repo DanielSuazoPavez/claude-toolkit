@@ -1,5 +1,5 @@
 ---
-name: write-skill
+name: create-skill
 description: Use when adding a new skill, improving an unreliable skill, or extracting a repeatable pattern. Keywords: create skill, new skill, skill template, SKILL.md.
 ---
 
@@ -123,7 +123,7 @@ Contains:
 
 ### Example
 
-`write-hook` demonstrates this pattern:
+`create-hook` demonstrates this pattern:
 - `SKILL.md` (100 lines): Process + triggers
 - `HOOKS_API.md` (400 lines): Complete API reference
 
@@ -137,14 +137,14 @@ Run the original failing scenario with the skill active:
 ### Quality Gate
 
 Before outputting the skill, evaluate it with `/evaluate-skill`:
-- **Target: B (90+) or better**
-- If score is below B, iterate on the weakest dimensions
+- **Target: 85%**
+- If below target, iterate on the weakest dimensions
 - Common fixes: add anti-patterns table, add decision tree, remove tutorial content
 - **D7 (Integration Quality)**: Check that references point to real resources, defer to existing content instead of restating it, and connect to related skills/agents/memories
 
 ## Naming Convention
 
-Use `verb-noun` format: `write-skill`, `review-changes`, `brainstorm-idea`
+Use `verb-noun` format: `create-skill`, `review-changes`, `brainstorm-idea`
 
 See `docs/naming-conventions.md` for the full naming guide.
 

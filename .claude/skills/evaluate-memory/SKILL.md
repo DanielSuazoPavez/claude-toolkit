@@ -11,7 +11,7 @@ Evaluate memory quality against memory-specific conventions and best practices.
 
 - Reviewing a memory file before committing
 - Auditing existing memories for quality
-- After using `/write-memory` to validate output
+- After using `/create-memory` to validate output
 
 ## Core Philosophy
 
@@ -45,9 +45,9 @@ Memories don't load themselves. Loading is driven by:
 | **Loading** | Session start or user requests | Invoked via `/skill-name` |
 | **Content** | Guidelines, patterns, project state | Step-by-step instructions |
 | **Lifecycle** | Evolves with project | Stable once written |
-| **Examples** | Code style, architecture, branch context | `/commit`, `/review-pr`, `/write-skill` |
+| **Examples** | Code style, architecture, branch context | `/commit`, `/review-pr`, `/create-skill` |
 
-## Evaluation Dimensions (100 points)
+## Evaluation Dimensions (115 points)
 
 ### D1: Category & Naming (20 pts) - Most Critical
 
@@ -120,15 +120,33 @@ Memories don't load themselves. Loading is driven by:
 | 7-12 | Wall of text or poor organization |
 | 0-6 | Unreadable or inconsistent formatting |
 
+### D6: Integration Quality (15 pts)
+Does it work well within the resource ecosystem?
+
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Seamless integration — correct cross-references, no duplication, clean connections |
+| 10-12 | References exist and are correct, minor duplication or missed connections |
+| 6-9 | Some broken cross-references, restates content from other memories |
+| 3-5 | Island — mostly ignores the ecosystem |
+| 0-2 | No references, duplicates freely, contradicts connected memories |
+
+**Check:**
+- **Reference accuracy** — cross-references point to memories, skills, and agents that exist
+- **Duplication avoidance** — doesn't restate content from other memories
+- **Cross-linking** — connects to related memories via See Also or inline references
+- **Ecosystem awareness** — knows what other memories cover similar topics
+- **Terminology consistency** — uses same terms as connected memories
+
 ## Grading Scale
 
 | Grade | Score | Description |
 |-------|-------|-------------|
-| A | 90+ | Exemplary - use as template |
-| B | 75-89 | Good - minor improvements needed |
-| C | 60-74 | Functional but notable gaps |
-| D | 40-59 | Significant issues |
-| F | <40 | Needs rewrite |
+| A | 103+ | Exemplary - use as template |
+| B | 86-102 | Good - minor improvements needed |
+| C | 69-85 | Functional but notable gaps |
+| D | 46-68 | Significant issues |
+| F | <46 | Needs rewrite |
 
 ## Edge Cases
 
@@ -171,10 +189,10 @@ Is the memory > 300 lines?
   "date": "YYYY-MM-DD",
   "grade": "A/B/C/D/F",
   "score": <total>,
-  "max": 100,
+  "max": 115,
   "percentage": <score/max * 100>,
   "dimensions": {
-    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>
+    "D1": <score>, "D2": <score>, "D3": <score>, "D4": <score>, "D5": <score>, "D6": <score>
   },
   "top_improvements": ["...", "...", "..."]
 }

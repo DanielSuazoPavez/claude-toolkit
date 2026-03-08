@@ -1,5 +1,5 @@
 ---
-name: write-hook
+name: create-hook
 description: Create new hooks for Claude Code. Use when adding safety, automation, or notification hooks. Keywords: PreToolUse, PostToolUse, block commands, hook script, settings.json hooks.
 ---
 
@@ -74,6 +74,12 @@ echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | ./hook.sh
   }
 }
 ```
+
+### 5. Quality Gate
+
+Run `/evaluate-hook` on the result:
+- **Target: 85%**
+- If below target, iterate on the weakest dimensions
 
 ## Best Patterns
 

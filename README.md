@@ -71,7 +71,7 @@ Both externalize knowledge, but serve different purposes:
 
 A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 
-**Example:** `/write-memory` is a skill (procedure for creating memories). `essential-conventions-memory.md` is a memory (naming conventions to follow).
+**Example:** `/create-memory` is a skill (procedure for creating memories). `essential-conventions-memory.md` is a memory (naming conventions to follow).
 
 ## What's Included
 
@@ -102,11 +102,11 @@ User-invocable skills activated with `/skill-name`:
 | `snap-back` | Reset tone when Claude drifts into sycophancy |
 | `teardown-worktree` | Safe worktree closure after agent completion |
 | `wrap-up` | Finish feature branch - changelog, version bump, commit |
-| `write-agent` | Create new agents for specialized tasks |
+| `create-agent` | Create new agents for specialized tasks |
+| `create-hook` | Create new hooks for Claude Code |
+| `create-memory` | Create new memory files following conventions |
+| `create-skill` | Create new skills using test-driven documentation |
 | `write-handoff` | Capture context before `/clear` for session continuity |
-| `write-hook` | Create new hooks for Claude Code |
-| `write-memory` | Create new memory files following conventions |
-| `write-skill` | Create new skills using test-driven documentation |
 
 ### Agents (6)
 
@@ -182,7 +182,7 @@ Customize permissions and hooks for your workflow.
 
 ### Adding Memories
 
-1. Use `/write-memory` to create properly formatted memories
+1. Use `/create-memory` to create properly formatted memories
 2. Follow naming conventions in `essential-conventions-memory.md`
 
 ## Related Projects

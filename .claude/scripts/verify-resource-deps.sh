@@ -98,14 +98,14 @@ is_allowlisted() {
     local source="$1"
     local ref="$2"
     case "${source}:${ref}" in
-        */write-agent/SKILL.md:migration-reviewer) return 0 ;;
-        */write-agent/SKILL.md:query-optimizer) return 0 ;;
+        */create-agent/SKILL.md:migration-reviewer) return 0 ;;
+        */create-agent/SKILL.md:query-optimizer) return 0 ;;
         */essential-conventions-memory.md:relevant-data_model-migration_context) return 0 ;;
         */essential-conventions-memory.md:branch-20251001-feat_update_data_model-updating_schema_definitions) return 0 ;;
         */essential-conventions-memory.md:idea-20251001-logging-simple_monitoring) return 0 ;;
         */essential-conventions-memory.md:experimental-conventions-alternative_commit_style) return 0 ;;
         # "skills/agents/memories" in prose — not a real agents/ path reference
-        */write-skill/SKILL.md:memories) return 0 ;;
+        */create-skill/SKILL.md:memories) return 0 ;;
         *) return 1 ;;
     esac
 }

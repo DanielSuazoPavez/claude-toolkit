@@ -21,7 +21,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Standardize resource-creation skill conventions (`skill-create-conventions`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Batch of consistency issues across write-*/evaluate-* skills: (1) Rename write-* → create-* (already tracked in P2 `skill-rename-create` — promote here). (2) Standardize quality gate targets — write-skill targets B (90+), write-agent targets B (75+), write-hook and write-memory don't specify. (3) Extract duplicated "launch subagent for fresh evaluation" block across all 4 evaluators. (4) Add D7 Integration Quality to evaluate-agent and evaluate-memory (currently only in evaluate-skill). Ref: suggestions-box/claude-meta issue.
+    - **notes**: Batch of consistency issues across create-*/evaluate-* skills: (1) Rename write-* → create-* (already tracked in P2 `skill-rename-create` — promote here). (2) Standardize quality gate targets — create-skill targets B (90+), create-agent targets B (75+), create-hook and create-memory don't specify. (3) Extract duplicated "launch subagent for fresh evaluation" block across all 4 evaluators. (4) Add D7 Integration Quality to evaluate-agent and evaluate-memory (currently only in evaluate-skill). Ref: suggestions-box/claude-meta issue.
 
 
 ## P1 - High
@@ -57,7 +57,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Add failure-trigger guidance for reviewer agents (`skill-agent-failure-triggers`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in write-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
+    - **notes**: Reviewer/verifier agents should define explicit rejection criteria ("when to say NO"). Add as edge case note in evaluate-agent and checklist item in create-agent for reviewer-type agents. Not a new dimension — refinement to existing system. Ref: `.claude/output/reviews/exploration/msitarzewski_agency-agents/summary.md` (testing-reality-checker pattern).
 
 - **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
     - **status**: `idea`
@@ -72,7 +72,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Shift examples to copy-and-modify templates in write-* skills (`skill-templates-as-starting-points`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to write-skill, write-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
+    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to create-skill, create-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
 
 - **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
     - **status**: `idea`
@@ -87,7 +87,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[SKILLS]** Turn budget awareness convention for multi-step skills (`skill-turn-budget-awareness`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in write-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
+    - **notes**: Skills that spawn multiple agents or run multi-phase workflows should handle budget limits gracefully: "At 75% budget, stop new work. At 90%, emit partial results." Add as convention in create-skill guidance. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 
 - **[HOOKS]** Improve block-dangerous-commands chaining detection (`hook-dangerous-commands-chaining`)
@@ -112,10 +112,10 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **notes**: We already use haiku/sonnet/opus within Claude's family for resource evaluation, but not external models in main workflows. ToB's `/review-pr` launches Claude + Codex + Gemini in parallel for review consensus. Evaluate feasibility with existing Gemini account — could extend code-reviewer or simplify with a second-opinion pass from a different model family. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
 
 
-- **[SKILLS]** Add rationalization tables to write-skill guidance (`skill-rationalization-tables`)
+- **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in write-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
+    - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in create-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 - **[AGENTS]** Add "3+ failed fixes = stop" escalation to code-debugger (`agent-debugger-escalation`)
     - **status**: `idea`
@@ -157,7 +157,7 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 - **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: Scripts should be run with `--help` first, not read as source. Protects context window. We already add `--help` to scripts — make the convention explicit in write-skill guidance and toolkit conventions. Ref: anthropics/skills webapp-testing pattern.
+    - **notes**: Scripts should be run with `--help` first, not read as source. Protects context window. We already add `--help` to scripts — make the convention explicit in create-skill guidance and toolkit conventions. Ref: anthropics/skills webapp-testing pattern.
 
 - **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
     - **status**: `idea`
