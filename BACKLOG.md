@@ -25,11 +25,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: Smoke-test whether skill descriptions cause correct activation on natural language prompts. Not the full anthropics optimization loop (train/test split, 5 iterations) — just a basic "does this trigger when it should?" check. Could be a step in evaluate-skill or a standalone script. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md` (skill-creator deep dive).
 
-- **[TOOLKIT]** Audit settings against ToB security patterns (`security-settings-audit`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: We have no `permissions.deny` or `enableAllProjectMcpServers: false`. ToB's settings include deny list for SSH keys, cloud creds (AWS/Azure/GH/Docker/K8s), package tokens (npm/pypi/gem), shell config edits, and MCP auto-enable protection. Not all apply (crypto wallets are ToB-specific), but SSH keys, cloud creds, and MCP flag are universally relevant. Review and adopt what fits. Ref: `.claude/output/reviews/exploration/trailofbits_claude-code-config/summary.md`.
-
 - **[SKILLS]** Add rationalization tables to create-skill guidance (`skill-rationalization-tables`)
     - **status**: `idea`
     - **scope**: `skills`

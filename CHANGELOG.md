@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.0] - 2026-03-08 - Security settings audit
+
+### Added
+- **secrets-guard hook**: Extended to block credential file reads — SSH private keys, AWS credentials, GPG directory, Docker/Kubernetes config, GitHub CLI tokens, and package manager tokens (npm, PyPI, RubyGems). Allows public keys and known_hosts.
+- **block-config-edits hook**: New hook preventing writes to shell config files (~/.bashrc, ~/.zshrc, etc.), SSH authorized_keys/config, and ~/.gitconfig. Blocks Write, Edit, and Bash tools (redirect, tee, sed -i, mv).
+- **enableAllProjectMcpServers: false**: Added to settings to prevent auto-enabling MCP servers from untrusted repos.
+- **Tests**: 17 new test cases for credential file and config edit blocking (96 total hook tests).
+
 ## [1.16.0] - 2026-03-08 - Anti-rationalization stop hook
 
 ### Added
