@@ -29,6 +29,7 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 ## P0 - Critical
 ## P1 - High
 ## P2 - Medium
+## P3 - Low
 ## P100 - Nice to Have
 
 ---
@@ -104,6 +105,7 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 | P0 | Blocking production or critical workflows |
 | P1 | High business value, active development |
 | P2 | Important but not urgent, clear scope |
+| P3 | Low priority, maintenance or refinement tasks |
 | P100 | Nice-to-have, future improvements |
 | Graveyard | Abandoned or superseded (with reason) |
 

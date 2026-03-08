@@ -26,11 +26,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `skills`
     - **notes**: When creating discipline-enforcing skills, build a rationalization table from baseline testing: run scenario without skill, document what excuses the agent makes, write explicit counters. obra/superpowers does this systematically (TDD skill has 9 entries). We do red-green-refactor but don't explicitly document rationalizations as a technique. Add as a recommended step in create-skill's RED phase. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
-- **[SKILLS]** Add eval self-critique step to evaluate-* skills (`skill-eval-self-critique`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: After scoring, ask "would any of my rubric dimensions pass for a wrong output too?" Catches non-discriminating dimensions. Anthropic's grader does this — flags assertions that create false confidence. Light addition to evaluation protocol. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
-
 - **[TOOLKIT]** Document "invoke, don't read" convention for bundled scripts (`convention-scripts-black-boxes`)
     - **status**: `idea`
     - **scope**: `toolkit`
@@ -76,6 +71,13 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `toolkit`
     - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
+
+## P3 - Low
+
+- **[SKILLS]** Audit evaluate-* rubrics for non-discriminating dimensions (`skill-eval-self-critique`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: One-time audit: check if any rubric dimensions in evaluate-* skills would score high for both good and bad resources (non-discriminating). Fix weak dimensions. Not a runtime step — a maintenance task. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
 
 ## P100 - Nice to Have
 
