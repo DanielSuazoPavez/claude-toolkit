@@ -121,6 +121,16 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `toolkit, hooks`
     - **notes**: Analyze user prompt, suggest relevant memories and skills. Bash-only implementation (keyword matching).
 
+- **[AGENTS]** Create dedicated `security-reviewer` agent (`agent-security-reviewer`)
+    - **status**: `idea`
+    - **scope**: `agents`
+    - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
+- **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
 - **[SKILLS]** Add eval self-critique step to evaluate-* skills (`skill-eval-self-critique`)
     - **status**: `idea`
     - **scope**: `skills`
