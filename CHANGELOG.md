@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0] - 2026-03-09 - Full resource re-evaluation baseline
+
+### Changed
+- **skills**: Re-evaluated all 27 skills (excluding evaluate-skill) across 5 groups with current rubrics
+- **skills**: `design-db` — restructured from 330 to 190 lines, removed tutorial content, added migration safety checklist
+- **skills**: `design-diagram` — added worked example (e-commerce order system), tightened description keywords, added reasoning to type-selection table
+- **skills**: `design-docker` — added cross-references to design-db and design-tests
+- **skills**: `design-qa` — sharpened qa/tests boundary, added cross-references
+- **skills**: `design-tests` — added fixture scope pollution and conftest anti-patterns, narrowed keywords, sharpened rationalizations
+- **skills**: `draft-pr` — restructured from flat checklist to progressive disclosure with supporting file
+- **skills**: `create-hook` — moved HOOKS_API.md to resources/ for proper progressive disclosure
+- **skills**: `snap-back` — deduplicated by referencing communication_style memory
+- **skills**: `evaluate-batch` — added cross-references and workflow improvements
+- **skills**: `list-memories`, `read-json` — structural improvements and keyword refinements
+- **evaluations**: Full baseline reset — all resource scores current against latest rubrics
+- **backlog**: Completed P0 evaluations-refresh task (skills, agents, hooks, memories all done)
+
 ## [1.25.5] - 2026-03-09 - Memory See Also, rubric fix, and re-evaluation
 
 ### Changed
