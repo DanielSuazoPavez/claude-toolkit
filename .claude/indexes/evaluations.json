@@ -960,45 +960,45 @@
         ]
       },
       "essential-conventions-memory": {
-        "file_hash": "c575a162",
+        "file_hash": "c224b39e",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 99,
+        "grade": "A",
+        "score": 105,
         "max": 115,
-        "percentage": 86.1,
+        "percentage": 91.3,
         "dimensions": {
           "D1": 19,
-          "D2": 20,
-          "D3": 18,
-          "D4": 12,
-          "D5": 18,
-          "D6": 12
+          "D2": 22,
+          "D3": 17,
+          "D4": 14,
+          "D5": 19,
+          "D6": 14
         },
         "top_improvements": [
-          "[med] Align Quick Reference pattern with its own conventions — currently uses a custom MANDATORY format that does not match any of the three patterns defined in section 3; use the Purpose/Read at orientation pattern or the MANDATORY conversational pattern from section 3 special cases (D2: +2-3)",
-          "[med] Add a summary comparison table of all categories (category | lifetime | load pattern | format) before the detailed subsections in section 2 for faster scanning (D5: +1-2)",
-          "[low] Expand See Also to include /evaluate-memory (which depends on this memory for D1/D2 scoring) and add a dedicated See Also section at the end rather than only in Quick Reference (D6: +2-3)"
+          "[low] Reduce content overlap with /create-memory skill — the category table and subsection details are partially duplicated in the skill; consider whether the skill can reference this memory more and inline less (D3: +1-2)",
+          "[low] Use the ONLY READ WHEN convention pattern in Quick Reference instead of MANDATORY to match section 3 own guidelines for convention memories, or explicitly document MANDATORY as a valid pattern for essential auto-loaded memories (D2: +1-2)",
+          "[low] Make filename more descriptive — essential-conventions-memory_naming would clarify scope vs the current ambiguous essential-conventions-memory (D1: +1)"
         ]
       },
       "essential-preferences-communication_style": {
         "file_hash": "0afefdee",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 99,
+        "grade": "A",
+        "score": 110,
         "max": 115,
-        "percentage": 86.1,
+        "percentage": 95.7,
         "dimensions": {
-          "D1": 19,
+          "D1": 20,
           "D2": 23,
-          "D3": 14,
+          "D3": 19,
           "D4": 15,
-          "D5": 18,
-          "D6": 10
+          "D5": 19,
+          "D6": 14
         },
         "top_improvements": [
-          "[high] Deduplicate content shared with /snap-back skill — anti-patterns table, pushback handling table, The Test blockquote, politeness table, and not-sycophancy list are nearly verbatim in both; designate this memory as source of truth and have snap-back cross-reference it, or vice versa (D3: +4, D6: +2)",
-          "[low] Add cross-reference to essential-toolkit-identity in See Also for ecosystem connectivity among sibling essential memories (D6: +1-2)",
-          "[low] Restructure section 5 (Key Principle) — separate the bold principle statement from the clarification list into a table or clearer visual structure for faster scanning (D5: +1-2)"
+          "[low] Tighten section 2 scope — move tool-usage and verification-focused subsections to a separate relevant-workflow memory or rename section to Working & Communication Patterns to match content (D3: +1)",
+          "[low] Add cross-reference to essential-toolkit-identity in See Also for sibling essential-memory connectivity (D6: +1)",
+          "[low] Add subheading in section 5 to visually separate the key principle statement from the not-sycophancy clarification list (D5: +1)"
         ]
       },
       "relevant-workflow-task_completion": {
