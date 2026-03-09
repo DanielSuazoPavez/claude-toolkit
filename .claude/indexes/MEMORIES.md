@@ -11,6 +11,7 @@ Always loaded at session start:
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
 | `essential-conventions-memory` | stable | Memory naming conventions and categories |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
+| `essential-toolkit-identity` | stable | What the toolkit is, resource roles, decision checklist |
 
 ## Relevant Memories
 
