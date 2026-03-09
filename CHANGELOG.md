@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.25.0] - 2026-03-08 - Toolkit identity document
+
+### Added
+- **memory**: `essential-toolkit-identity.md` — what the toolkit is, resource roles, decision checklist, how we differ from marketplace approaches
+- **README**: Design Philosophy section linking to identity document
+
 ## [1.24.1] - 2026-03-08 - Rules evaluation and backlog cleanup
 
 ### Changed

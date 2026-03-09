@@ -1086,6 +1086,27 @@
           "Evaluate if this should be promoted to essential- given its foundational nature"
         ],
         "file_hash": "c4c8bffb"
+      },
+      "essential-toolkit-identity": {
+        "file_hash": "d80f1d83",
+        "date": "2026-03-08",
+        "grade": "A",
+        "score": 107,
+        "max": 115,
+        "percentage": 93.0,
+        "dimensions": {
+          "D1": 19,
+          "D2": 23,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 14
+        },
+        "top_improvements": [
+          "Align Quick Reference with a standard pattern (orientation Purpose/Read at/Not a reference doc) rather than the custom MANDATORY format",
+          "Add inline cross-reference to relevant-philosophy-reducing_entropy in Section 4 (Does This Belong?) where curation philosophy overlaps",
+          "Verify .claude/output/reviews/exploration/ path reference in Section 4 remains valid or replace with a more stable reference"
+        ]
       }
     }
   },
