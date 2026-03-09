@@ -86,13 +86,15 @@ Memories don't load themselves. Loading is driven by:
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Single concern, all content actionable, no sentences restated from CLAUDE.md or other memories |
-| 13-17 | Single concern but some content is informational-only (context without guidance) or ≤2 sentences overlap with another memory |
-| 7-12 | Covers 2+ unrelated concerns, or ≥1 paragraph duplicated from CLAUDE.md/other memories |
+| 18-20 | Single concern, all content actionable, no duplication with other synced resources |
+| 13-17 | Single concern but some content is informational-only (context without guidance) or ≤2 sentences overlap with another synced resource |
+| 7-12 | Covers 2+ unrelated concerns, or ≥1 paragraph duplicated from another synced resource |
 | 0-6 | No clear focus, or bulk content copy-pasted from other sources |
 
+**Scope of duplication checks:** Only flag duplication between **synced resources** — other memories, skills, and agents. Do NOT flag overlap with toolkit-internal files (indexes, project CLAUDE.md, HOOKS.md) since memories are the portable artifacts that get synced to other projects. A memory may legitimately contain the same information as an index file — the memory is the source of truth.
+
 **Check:**
-- Does it overlap with CLAUDE.md or other memories? (grep key phrases)
+- Does it overlap with other memories, skills, or agents? (grep key phrases)
 - Is each section actionable — does it change behavior, or just inform?
 - Would splitting by concern improve clarity?
 
@@ -133,7 +135,7 @@ Does it work well within the resource ecosystem?
 
 **Check:**
 - **Reference accuracy** — cross-references point to memories, skills, and agents that exist
-- **Duplication avoidance** — doesn't restate content from other memories
+- **Duplication avoidance** — doesn't restate content from other synced resources (memories, skills, agents). Overlap with toolkit-internal files (indexes, CLAUDE.md) is acceptable
 - **Cross-linking** — connects to related memories via See Also or inline references
 - **Ecosystem awareness** — knows what other memories cover similar topics
 - **Terminology consistency** — uses same terms as connected memories
@@ -177,7 +179,7 @@ Is the memory > 300 lines?
 | **Missing Quick Reference** | No load guidance | Add as section 1 with correct pattern for memory type | D2: -20 |
 | **Wrong category** | essential for temporary info | Match prefix to content lifetime (essential=permanent, branch=temporary) | D1: -15 |
 | **No date on branch/idea** | Can't track freshness | Add YYYYMMDD after prefix | D1: -10 |
-| **Overlaps CLAUDE.md** | Duplication, drift risk | Delete duplicated content, add cross-reference instead | D3: -10 |
+| **Overlaps other synced resources** | Duplication, drift risk | Delete duplicated content, add cross-reference instead | D3: -10 |
 | **Always loads, rarely needed** | Context bloat | Downgrade from essential- to relevant- | D4: -10 |
 | **Wall of text** | Unscannable | Break prose into tables, lists, or code blocks | D5: -10 |
 | **Memory that should be a skill** | Procedures masquerading as context | Extract step-by-step content into a skill, keep only guidelines in memory | D3: -10 |

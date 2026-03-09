@@ -2,16 +2,22 @@
 
 ## 1. Quick Reference
 
-**ONLY READ WHEN:**
-- Creating a new memory file
-- Unsure about memory naming or categorization
-- User explicitly asks about memory organization
+**MANDATORY:** Read at session start — defines memory naming, categories, and Quick Reference patterns.
 
-Guidelines for naming and structuring memory files, including categories, formats, and Quick Reference patterns.
+**See also:** `/create-memory` skill, `/evaluate-memory` for quality audits, `essential-toolkit-identity` for resource roles
 
 ---
 
 ## 2. Memory Categories
+
+| Category | Lifetime | Load Pattern | Format |
+|----------|----------|-------------|--------|
+| `essential` | Permanent | Auto-loaded at session start | `essential-{context}-{name}` |
+| `relevant` | Long-term | On-demand | `relevant-{context}-{name}` |
+| `branch` | Temporary | On-demand (branch work) | `branch-{YYYYMMDD}-{branch}-{context}` |
+| `idea` | Temporary | User permission required | `idea-{YYYYMMDD}-{context}-{idea}` |
+| `personal` | Private | User on-demand ONLY | `personal-{context}-{name}` |
+| `experimental` | Testing | User on-demand ONLY | `experimental-{context}-{name}` |
 
 ### `essential` (Permanent)
 - **Principle:** For core, stable project information that is fundamental to development, such as architecture, style guides, or key workflows.

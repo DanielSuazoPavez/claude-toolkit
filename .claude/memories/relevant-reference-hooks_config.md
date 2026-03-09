@@ -8,6 +8,8 @@
 
 Reference for hook triggers, environment variables, and customization options.
 
+**See also:** `/create-hook` skill, `relevant-workflow-branch_development` for enforce-feature-branch hook context
+
 ---
 
 ## 2. Active Hooks by Trigger
@@ -24,10 +26,15 @@ Reference for hook triggers, environment variables, and customization options.
 | `enforce-uv-run.sh` | Suggests `uv run` instead of direct `python` |
 | `enforce-make-commands.sh` | Suggests `make` targets instead of raw commands |
 
+### PreToolUse (Write|Edit|Bash)
+| Hook | Purpose |
+|------|---------|
+| `block-config-edits.sh` | Blocks writes to shell config, SSH, and git config files |
+
 ### PreToolUse (Read|Bash)
 | Hook | Purpose |
 |------|---------|
-| `secrets-guard.sh` | Blocks reading .env files with secrets |
+| `secrets-guard.sh` | Blocks reading .env files and credential files |
 
 ### PreToolUse (Read)
 | Hook | Purpose |

@@ -9,6 +9,8 @@
 
 Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadata fields, and status values.
 
+**See also:** `/wrap-up` skill for backlog updates, `relevant-workflow-task_completion` for completion checklist
+
 ---
 
 ## 2. Section Hierarchy

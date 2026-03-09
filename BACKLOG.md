@@ -22,7 +22,7 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
     - **status**: `in-progress`
     - **scope**: `skills, agents, hooks, memories`
     - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release.
-    - **progress**: Agents done (1.25.3). Hooks done (1.25.4). Remaining: skills, memories.
+    - **progress**: Agents done (1.25.3). Hooks done (1.25.4). Memories done (1.25.5). Remaining: skills.
 
 ## P1 - High
 
@@ -56,6 +56,8 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
     - **status**: `idea`
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
+## P3 - Low
 
 ## P100 - Nice to Have
 

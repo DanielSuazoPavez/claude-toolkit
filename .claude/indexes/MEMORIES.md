@@ -37,33 +37,7 @@ Always loaded at session start:
 
 ## Memory Categories
 
-### `essential` (Permanent)
-- Core, stable project information
-- **Format**: `essential-{context}-{descriptive_name}`
-- Loaded automatically at session start
-
-### `relevant` (Long-term)
-- Important context that may evolve
-- **Format**: `relevant-{context}-{descriptive_name}`
-
-### `branch` (Temporary)
-- Work-in-progress context for a feature branch
-- **Format**: `branch-{YYYYMMDD}-{branch_name}-{context}`
-- Delete after branch is merged
-
-### `idea` (Temporary)
-- Future implementation ideas
-- **Format**: `idea-{YYYYMMDD}-{context}-{plan_idea}`
-
-### `personal` (Private)
-- Personal preferences and customizations
-- **Format**: `personal-{context}-{descriptive_name}`
-- Not shared to other projects, not evaluated
-
-### `experimental` (Testing)
-- Trying out new approaches or A/B testing behaviors
-- **Format**: `experimental-{context}-{descriptive_name}`
-- May be promoted to `relevant`/`essential` or deleted
+See `essential-conventions-memory` for full category definitions, naming conventions, and Quick Reference patterns.
 
 ## Creating Memories
 
