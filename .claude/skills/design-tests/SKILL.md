@@ -1,7 +1,7 @@
 ---
 name: design-tests
 type: knowledge
-description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "test organization", "test gaps", "test audit", or "coverage audit".
+description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "pytest structure", "missing tests", "test audit", or "coverage audit".
 ---
 
 # Test Design Guide
@@ -378,17 +378,19 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | **Parametrize different logic** | Cryptic names, painful debugging | Separate tests for different behaviors |
 | **100% coverage goal** | Diminishing returns past 80% | Cover critical paths and edge cases |
 | **Testing only happy path** | Misses rollback bugs, auth bypasses, API failures | See [High-Risk Scenarios](#high-risk-scenarios) |
+| **Fixture scope pollution** | `session`/`module` fixture mutated by one test, breaks others non-deterministically | Use `function` scope for mutable state; reserve broader scopes for read-only or connection fixtures |
+| **conftest.py at wrong level** | Fixtures in root conftest shared everywhere — tests implicitly depend on unrelated setup | Put fixtures in the narrowest conftest that covers their consumers; root conftest only for truly global fixtures (DB connection, app factory) |
 
 ## Rationalizations
 
 | Rationalization | Counter |
 |-----------------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll write tests after" | Tests-after ask "what does this do?" Tests-first ask "what should this do?" Different questions, different quality. |
-| "I already manually tested it" | Ad-hoc ≠ systematic. No record, can't re-run, misses edge cases. |
-| "TDD will slow me down" | TDD is faster than debugging. The test you skip now is the bug you debug later. |
-| "This is glue code, doesn't need tests" | Glue fails silently. Integration bugs are the hardest to find. |
-| "Need to explore the API first" | Fine. Throw away the exploration code, then start with TDD. |
+| "Too simple to need tests" | Simple code breaks at boundaries. The test takes 30 seconds — the debugging takes 30 minutes. |
+| "I'll add tests after the implementation" | You won't. And tests-after verify what you wrote, not what you intended. Write the test first. |
+| "I already verified it works" | You verified the happy path once. Tests verify edge cases every time, automatically. |
+| "This is just glue code" | Glue fails silently — wrong argument order, missing await, swapped parameters. Integration bugs are the hardest to trace. |
+| "The function is too hard to test" | Hard to test = hard to use. The test is telling you the interface needs work. Listen to it. |
+| "Existing code has no tests" | You're touching it now. Add tests for what you change — don't inherit the debt. |
 
 ## See Also
 
