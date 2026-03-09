@@ -26,6 +26,8 @@ See `HOOKS_API.md` for all 13 events.
 
 ### 2. Write the Hook
 
+Use the script below as the LITERAL STARTING POINT. Copy it, then modify the tool name check, pattern matching, and block reason for your use case.
+
 Bash script structure:
 
 ```bash
@@ -63,6 +65,8 @@ echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | ./hook.sh
 ```
 
 ### 4. Configure in settings.json
+
+Use this configuration as the LITERAL STARTING POINT. Modify the event, matcher, and command path.
 
 ```json
 {
