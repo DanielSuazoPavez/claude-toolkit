@@ -189,15 +189,27 @@ test_secrets_guard() {
     expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/staging.env"}}' \
         "blocks reading staging.env (*.env pattern)"
 
-    # Should block Bash
+    # Should block Bash - .env and .env.* variants
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}' \
         "blocks cat .env"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env.local"}}' \
+        "blocks cat .env.local"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env.production"}}' \
+        "blocks cat .env.production"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"source .env"}}' \
         "blocks source .env"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"source .env.local"}}' \
+        "blocks source .env.local"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep"}}' \
         "blocks env command"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"printenv"}}' \
         "blocks printenv"
+
+    # Should allow Bash - .env.example/.env.template
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env.example"}}' \
+        "allows cat .env.example"
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"source .env.template"}}' \
+        "allows source .env.template"
 
     # Should block Read - credential files
     expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_rsa\"}}" \
@@ -279,13 +291,23 @@ test_enforce_uv_run() {
     echo "=== enforce-uv-run.sh ==="
     local hook="enforce-uv-run.sh"
 
-    # Should block
+    # Should block - direct calls
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"python script.py"}}' \
         "blocks direct python"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"python3 script.py"}}' \
         "blocks direct python3"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"python3.11 script.py"}}' \
         "blocks direct python3.11"
+
+    # Should block - chained/compound commands
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cd /app && python script.py"}}' \
+        "blocks chained (&&) python"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cd /app; python script.py"}}' \
+        "blocks chained (;) python"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cd /app || python script.py"}}' \
+        "blocks chained (||) python"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"VAR=1 python script.py"}}' \
+        "blocks env-prefixed python"
 
     # Should allow
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"uv run python script.py"}}' \

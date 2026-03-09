@@ -718,171 +718,171 @@
     },
     "resources": {
       "secrets-guard": {
-        "file_hash": "e0a4781b",
+        "file_hash": "66eb45b9",
         "date": "2026-03-09",
         "grade": "B",
-        "score": 91,
+        "score": 100,
         "max": 115,
-        "percentage": 79.1,
+        "percentage": 87.0,
         "dimensions": {
-          "D1": 21,
-          "D2": 15,
-          "D3": 16,
-          "D4": 14,
-          "D5": 12,
+          "D1": 22,
+          "D2": 18,
+          "D3": 17,
+          "D4": 16,
+          "D5": 14,
           "D6": 13
         },
         "top_improvements": [
-          "Deduplicate credential paths between Read/Bash sections into a shared array to reduce 4-place edits when extending",
-          "Add documented test cases in header comments (echo pipe examples for block and allow scenarios, like block-dangerous-commands.sh does)",
-          "Catch .env.* variants (e.g. .env.production) in the Bash section regex and add .sample to the allowlist to match HOOKS.md documentation"
+          "Refactor Bash credential-file checks (lines 161-198) from individual inline regex+if blocks into a BLOCKED_BASH_PATHS array with a loop, matching the pattern already used for Read tool BLOCKED_PATHS (D4)",
+          "Anchor env/printenv checks to handle mid-command positions (e.g., cd /tmp && env) by scanning for word boundaries rather than start-of-string (D1)",
+          "Add stderr logging (>&2 echo) when blocking actions to enable auditing and debugging in production (D3)"
         ]
       },
       "enforce-make-commands": {
         "file_hash": "37d69a11",
+        "date": "2026-03-09",
+        "grade": "A",
+        "score": 105,
+        "max": 115,
+        "percentage": 91.3,
+        "dimensions": {
+          "D1": 23,
+          "D2": 19,
+          "D3": 17,
+          "D4": 19,
+          "D5": 14,
+          "D6": 13
+        },
+        "top_improvements": [
+          "Anchor the `uv run (ruff|pre-commit)` pattern with ^ to prevent false positives on commands that contain the string mid-command (e.g., echo statements)",
+          "Add documented test cases in the header for linting, docker, and uv sync patterns -- currently only pytest cases are documented",
+          "Add stderr logging on blocks (e.g., >&2 echo) to aid debugging in production"
+        ]
+      },
+      "enforce-uv-run": {
+        "file_hash": "9d062d20",
         "date": "2026-03-09",
         "grade": "B",
         "score": 98,
         "max": 115,
         "percentage": 85.2,
         "dimensions": {
-          "D1": 22,
+          "D1": 20,
           "D2": 19,
-          "D3": 16,
-          "D4": 17,
-          "D5": 12,
-          "D6": 12
+          "D3": 17,
+          "D4": 16,
+          "D5": 13,
+          "D6": 13
         },
         "top_improvements": [
-          "Add explicit allowlist mechanism (env var or array) for project-specific safe exceptions instead of relying solely on pattern scoping",
-          "Resolve overlap with enforce-uv-run: document the interaction or consolidate guidance so users don't get conflicting block messages",
-          "Add configurable safety level (block vs warn mode) via env var or constant"
-        ]
-      },
-      "enforce-uv-run": {
-        "file_hash": "8617e25c",
-        "date": "2026-03-09",
-        "grade": "C",
-        "score": 85,
-        "max": 115,
-        "percentage": 73.9,
-        "dimensions": {
-          "D1": 18,
-          "D2": 17,
-          "D3": 14,
-          "D4": 14,
-          "D5": 12,
-          "D6": 10
-        },
-        "top_improvements": [
-          "Implement blocking for pip/pip3/pytest/ruff/mypy as documented in HOOKS.md, or update HOOKS.md to reflect actual scope -- the spec/implementation gap costs D1 and D6 points",
-          "Add a PATTERNS array (like enforce-make-commands.sh) instead of inline regex to make extension easier and support allowlisting safe exceptions (D3/D4)",
-          "Add allowlist mechanism for safe python invocations (e.g., python -c one-liners, python -m json.tool) to reduce false positives (D3)"
+          "Add pipe `|` as a separator in PYTHON_RE alongside `&&`, `;`, `||` -- commands like `echo test | python script.py` bypass the hook because single pipe is not matched (D1)",
+          "Adopt the PATTERNS array approach (like enforce-make-commands.sh) for extensibility -- currently a single pattern; adding pip/pipx blocking would require duplicating logic (D4)",
+          "Add stderr logging on blocks (>&2 echo) for auditing and debugging in production (D3)"
         ]
       },
       "copy-plan-to-project": {
         "file_hash": "e1d8be53",
         "date": "2026-03-09",
         "grade": "B",
-        "score": 100,
+        "score": 102,
         "max": 115,
-        "percentage": 86.96,
+        "percentage": 88.7,
         "dimensions": {
           "D1": 23,
           "D2": 17,
-          "D3": 17,
-          "D4": 17,
+          "D3": 18,
+          "D4": 18,
           "D5": 14,
           "D6": 12
         },
         "top_improvements": [
-          "Add test cases for edge cases: missing plan title (fallback slug), cp failure, and mkdir failure",
-          "Fix GNU sed portability: replace `s/^-\\|-$//g` alternation with two separate sed expressions for macOS compatibility",
-          "Enrich HOOKS.md description to mention slug generation, env var configuration, and the timestamp naming convention"
+          "Fix GNU sed portability: replace s/^-\\|-$//g alternation with two separate sed expressions (s/^-//; s/-$//) for macOS compatibility -- D3/D4",
+          "Enrich HOOKS.md entry to document slug generation algorithm, CLAUDE_PLANS_DIR env var, and timestamp-based naming convention -- D6",
+          "Add test cases for edge cases in header comments: empty title (fallback slug), special characters in title, and cp failure scenarios -- D2"
         ]
       },
       "enforce-feature-branch": {
         "file_hash": "8f7a84b2",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 93,
+        "grade": "A",
+        "score": 104,
         "max": 115,
-        "percentage": 80.9,
+        "percentage": 90.43,
         "dimensions": {
-          "D1": 22,
-          "D2": 17,
-          "D3": 15,
-          "D4": 15,
-          "D5": 13,
-          "D6": 11
+          "D1": 23,
+          "D2": 18,
+          "D3": 18,
+          "D4": 17,
+          "D5": 14,
+          "D6": 14
         },
         "top_improvements": [
-          "Extract branch-checking logic (git repo check, get branch, detached HEAD, protected check) into a shared function to eliminate duplication between EnterPlanMode and Bash handlers -- D4 +3",
-          "Add an allowlist or bypass mechanism for legitimate direct-to-main operations (e.g., hotfix commits) and add stderr logging for blocked actions -- D3 +3",
-          "Update HOOKS.md index to reflect both EnterPlanMode and Bash matchers and document the git commit blocking behavior -- D6 +2"
+          "Extract branch-checking logic (git repo check, get branch, detached HEAD check, protected branch check) into a shared function to eliminate duplication between EnterPlanMode and Bash handlers -- D4 +2",
+          "Move the git commit grep pattern into a named variable (e.g., GIT_COMMIT_PATTERN) for consistency with the PROTECTED_BRANCHES variable pattern -- D4 +1",
+          "Add stderr logging (>&2) when blocking actions so administrators can audit hook activity in CI/debug scenarios -- D3 +2"
         ]
       },
       "session-start": {
         "file_hash": "dcd76469",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 99,
+        "grade": "A",
+        "score": 104,
         "max": 115,
-        "percentage": 86.09,
+        "percentage": 90.4,
         "dimensions": {
-          "D1": 22,
+          "D1": 23,
           "D2": 19,
-          "D3": 16,
-          "D4": 16,
+          "D3": 18,
+          "D4": 17,
           "D5": 14,
-          "D6": 12
+          "D6": 13
         },
         "top_improvements": [
-          "Replace the fragile ls | xargs | basename | sed | grep pipeline (line 53) with a for-loop and parameter expansion for robustness and clarity (D1/D4)",
-          "Add stderr logging (e.g., >&2 echo) for diagnostic cases like jq not found, permission errors, or malformed learned.json to aid debugging (D3)",
-          "Update HOOKS.md description to cover all sections the hook actually outputs (lessons, guidance, main branch) not just essential memories and git branch (D6)"
+          "[low] Extract LEARNED_FILE path into a configurable env var (e.g. CLAUDE_LEARNED_FILE) for consistency with CLAUDE_MEMORIES_DIR -- D4",
+          "[low] Replace ls/xargs/sed/grep pipeline (line 53) with a cleaner glob-based for-loop approach for listing non-essential memories -- D4",
+          "[low] Add stderr logging (e.g. >&2 echo to /tmp/session-start.log) when errors are suppressed, to aid debugging -- D3"
         ]
       },
       "block-dangerous-commands": {
         "file_hash": "68e6c9f4",
         "date": "2026-03-09",
-        "grade": "C",
-        "score": 90,
+        "grade": "B",
+        "score": 100,
         "max": 115,
-        "percentage": 78.3,
+        "percentage": 86.96,
         "dimensions": {
-          "D1": 20,
-          "D2": 17,
-          "D3": 14,
-          "D4": 14,
-          "D5": 13,
+          "D1": 22,
+          "D2": 19,
+          "D3": 17,
+          "D4": 16,
+          "D5": 14,
           "D6": 12
         },
         "top_improvements": [
-          "[high] Fix false positives from aggressive normalization -- stripping quotes globally means string arguments like echo with dangerous-looking text trigger the hook (demonstrated live: the hook blocked a jq command containing pattern text in a JSON string)",
-          "[high] Catch separated short flags (rm -r -f /) and long-form flags (rm --recursive --force /); current regex only matches adjacent -rf/-fr",
-          "[med] Extract dangerous patterns into a configurable array and deduplicate the rm -rf/-fr regex repeated 3 times across root/home/cwd checks"
+          "[med] Extract dangerous patterns into arrays/variables for extensibility -- inline patterns in if-blocks make adding new rules harder than necessary; compare to block-config-edits.sh BLOCKED_CONFIGS array (D4)",
+          "[med] Add stderr logging for blocked commands to enable auditing -- currently no way to track what was blocked and when (D3)",
+          "[low] Consolidate -rf/-fr flag ordering duplication into a single regex or helper function -- the dual regex is repeated 3 times across root/home/cwd checks (D4)"
         ]
       },
       "suggest-read-json": {
         "file_hash": "9ddab805",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 97,
+        "grade": "A",
+        "score": 107,
         "max": 115,
-        "percentage": 84.3,
+        "percentage": 93,
         "dimensions": {
-          "D1": 21,
-          "D2": 17,
-          "D3": 16,
-          "D4": 16,
-          "D5": 14,
+          "D1": 23,
+          "D2": 20,
+          "D3": 17,
+          "D4": 19,
+          "D5": 15,
           "D6": 13
         },
         "top_improvements": [
-          "Handle non-existent files gracefully -- allow the read instead of blocking, since the file size cannot be determined (D1/D3)",
-          "Convert ALLOWED_FILES from comma-separated string to a bash array and unify with the *.config.json regex into a single allowlist mechanism (D4)",
-          "Add stderr logging when blocking (e.g., >&2 echo \"suggest-read-json: blocked $FILE_PATH\") for debugging false positives (D3)"
+          "Handle non-existent files more gracefully -- allow Read to fail naturally instead of blocking with a /read-json suggestion for files that don't exist",
+          "Expand the allowlist to include more common small JSON config files (renovate.json, biome.json, .babelrc.json, deno.json) or consider an allowlist pattern for dotfile JSON (.*rc.json)",
+          "Add failure logging (stderr) when jq parsing fails, so issues are diagnosable without silent pass-through"
         ]
       },
       "block-config-edits": {
@@ -893,17 +893,17 @@
         "max": 115,
         "percentage": 77.4,
         "dimensions": {
-          "D1": 19,
+          "D1": 20,
           "D2": 14,
           "D3": 16,
-          "D4": 16,
+          "D4": 15,
           "D5": 11,
           "D6": 13
         },
         "top_improvements": [
-          "Add single-redirect (>) and cp detection to Bash handler -- echo x > ~/.bashrc and cp payload ~/.bashrc both bypass the hook, losing D1 points",
-          "Unify BLOCKED_CONFIGS array and Bash CONFIGS regex into a single source of truth -- currently two independent lists that can drift, costing D4 points",
-          "Add documented test cases in header comments (block and allow examples) matching the pattern in block-dangerous-commands.sh -- currently no inline test commands"
+          "[med] Fix Bash regex false positives and missing single-redirect -- APPEND_RE's greedy `>>.*HOME_CONFIG` matches jq/heredoc commands containing config paths in string literals (confirmed live: hook blocked a jq command writing evaluations.json because the JSON payload contained .bashrc), and single `>` redirect is not caught at all (D1/D3)",
+          "[low] Unify BLOCKED_CONFIGS array and Bash CONFIGS regex into a single source of truth -- currently two independent lists that can drift when adding new config files (D4)",
+          "[low] Add documented test cases in header comments (block and allow examples) matching the pattern in block-dangerous-commands.sh -- currently no inline test commands (D2/D5)"
         ]
       }
     }

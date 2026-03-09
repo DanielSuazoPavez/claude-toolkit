@@ -24,6 +24,25 @@
 #   - Files ending in .example (e.g., .env.example, .env.api.example)
 #   - Files ending in .template (e.g., .env.template)
 #   - SSH public keys (*.pub), known_hosts, authorized_keys
+#
+# Test cases:
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/app/.env"}}' | bash secrets-guard.sh
+#   # Expected: {"decision":"block","reason":"BLOCKED: Reading .env file..."}
+#
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/app/.env.local"}}' | bash secrets-guard.sh
+#   # Expected: {"decision":"block","reason":"BLOCKED: Reading .env file..."}
+#
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"/app/.env.example"}}' | bash secrets-guard.sh
+#   # Expected: (empty - allowed)
+#
+#   echo '{"tool_name":"Read","tool_input":{"file_path":"~/.aws/credentials"}}' | bash secrets-guard.sh
+#   # Expected: {"decision":"block","reason":"BLOCKED: Reading AWS credentials..."}
+#
+#   echo '{"tool_name":"Bash","tool_input":{"command":"cat .env.local"}}' | bash secrets-guard.sh
+#   # Expected: {"decision":"block","reason":"BLOCKED: Reading .env file..."}
+#
+#   echo '{"tool_name":"Bash","tool_input":{"command":"cat .env.example"}}' | bash secrets-guard.sh
+#   # Expected: (empty - allowed)
 
 INPUT=$(cat)
 
@@ -59,50 +78,33 @@ if [ "$TOOL_NAME" = "Read" ]; then
         NORM_PATH="$HOME/${NORM_PATH#\~/}"
     fi
 
+    # Blocked credential paths: "pattern:::message"
+    # Patterns use bash glob syntax matched against $NORM_PATH
+    BLOCKED_PATHS=(
+        "$HOME/.ssh/config:::Reading SSH config may expose hostnames, key paths, and proxy settings"
+        "$HOME/.gnupg/:::Reading GPG directory may expose private keys and trust data"
+        "$HOME/.aws/credentials:::Reading AWS credentials may expose access keys and secrets"
+        "$HOME/.aws/config:::Reading AWS config may expose access keys and secrets"
+        "$HOME/.config/gh/hosts.yml:::Reading GitHub CLI config may expose authentication tokens"
+        "$HOME/.docker/config.json:::Reading Docker config may expose registry authentication tokens"
+        "$HOME/.kube/config:::Reading kubeconfig may expose cluster credentials and tokens"
+        "$HOME/.npmrc:::Reading .npmrc may expose npm authentication tokens"
+        "$HOME/.pypirc:::Reading .pypirc may expose PyPI authentication tokens"
+        "$HOME/.gem/credentials:::Reading gem credentials may expose RubyGems API keys"
+    )
+
+    for entry in "${BLOCKED_PATHS[@]}"; do
+        pattern="${entry%%:::*}"
+        message="${entry##*:::}"
+        # Exact match or prefix match (for directory patterns ending in /)
+        if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && "$NORM_PATH" == "$pattern"* ]]; then
+            block "BLOCKED: $message."
+        fi
+    done
+
     # SSH private keys (allow .pub files)
     if [[ "$NORM_PATH" == "$HOME/.ssh/id_"* ]] && [[ "$NORM_PATH" != *".pub" ]]; then
         block "BLOCKED: Reading SSH private key. Private keys should never be exposed to AI tools."
-    fi
-
-    # SSH config
-    if [[ "$NORM_PATH" == "$HOME/.ssh/config" ]]; then
-        block "BLOCKED: Reading SSH config may expose hostnames, key paths, and proxy settings."
-    fi
-
-    # GPG directory
-    if [[ "$NORM_PATH" == "$HOME/.gnupg/"* ]]; then
-        block "BLOCKED: Reading GPG directory may expose private keys and trust data."
-    fi
-
-    # AWS credentials
-    if [[ "$NORM_PATH" == "$HOME/.aws/credentials" ]] || [[ "$NORM_PATH" == "$HOME/.aws/config" ]]; then
-        block "BLOCKED: Reading AWS credentials/config may expose access keys and secrets."
-    fi
-
-    # GitHub CLI tokens
-    if [[ "$NORM_PATH" == "$HOME/.config/gh/hosts.yml" ]]; then
-        block "BLOCKED: Reading GitHub CLI config may expose authentication tokens."
-    fi
-
-    # Docker registry auth
-    if [[ "$NORM_PATH" == "$HOME/.docker/config.json" ]]; then
-        block "BLOCKED: Reading Docker config may expose registry authentication tokens."
-    fi
-
-    # Kubernetes credentials
-    if [[ "$NORM_PATH" == "$HOME/.kube/config" ]]; then
-        block "BLOCKED: Reading kubeconfig may expose cluster credentials and tokens."
-    fi
-
-    # Package manager tokens
-    if [[ "$NORM_PATH" == "$HOME/.npmrc" ]]; then
-        block "BLOCKED: Reading .npmrc may expose npm authentication tokens."
-    fi
-    if [[ "$NORM_PATH" == "$HOME/.pypirc" ]]; then
-        block "BLOCKED: Reading .pypirc may expose PyPI authentication tokens."
-    fi
-    if [[ "$NORM_PATH" == "$HOME/.gem/credentials" ]]; then
-        block "BLOCKED: Reading gem credentials may expose RubyGems API keys."
     fi
 
     exit 0
@@ -113,20 +115,33 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
     [ -z "$COMMAND" ] && exit 0
 
-    # Block commands that read .env files
-    # cat/less/head/tail/more .env
-    if [[ "$COMMAND" =~ (cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?\.env([[:space:]]|$) ]]; then
-        block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+    # Block commands that read .env files (.env, .env.local, .env.production, etc.)
+    # Allow: .env.example, .env.template
+    ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'
+    ENV_ALLOW_RE='\.(example|template)$'
+
+    # cat/less/head/tail/more .env*
+    if [[ "$COMMAND" =~ (cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?${ENV_FILE_RE}([[:space:]]|$) ]]; then
+        MATCHED="${BASH_REMATCH[0]}"
+        if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
+            block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+        fi
     fi
 
-    # source .env or . .env
-    if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*\.env([[:space:]]|$) ]]; then
-        block "BLOCKED: Sourcing .env file may expose secrets. Use the .example version as a reference instead."
+    # source .env* or . .env*
+    if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*${ENV_FILE_RE}([[:space:]]|$) ]]; then
+        MATCHED="${BASH_REMATCH[0]}"
+        if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
+            block "BLOCKED: Sourcing .env file may expose secrets. Use the .example version as a reference instead."
+        fi
     fi
 
-    # export $(cat .env) or similar patterns
-    if [[ "$COMMAND" =~ export[[:space:]]+.*\$\(.*\.env ]]; then
-        block "BLOCKED: Exporting from .env file may expose secrets. Use the .example version as a reference instead."
+    # export $(cat .env*) or similar patterns
+    if [[ "$COMMAND" =~ export[[:space:]]+.*\$\(.*${ENV_FILE_RE} ]]; then
+        MATCHED="${BASH_REMATCH[0]}"
+        if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
+            block "BLOCKED: Exporting from .env file may expose secrets. Use the .example version as a reference instead."
+        fi
     fi
 
     # Standalone 'env' command that lists all environment variables
