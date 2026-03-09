@@ -3,12 +3,26 @@
 ## [Unreleased]
 
 ### Added
-- **backlog**: Starter pack design — shared subset for coworker onboarding (6 skills, 5 hooks, 3 agents, 2 memories, 3 templates). Design doc: `.claude/output/design/starter-pack.md`
-- **backlog**: Auto-publish starter pack to separate repo via GitHub Action (`toolkit-starter-pack-publish`)
-- **backlog**: Human-in-the-loop repo exploration theme (`explore-hitl-repos`)
 - **exploration**: Added `itsmostafa/aws-agent-skills` to exploration queue — weekly-updated AWS service reference, potential plugin pattern
 - **exploration**: Renamed exploration backlog to `BACKLOG.md` for consistency, cross-referenced from main backlog
 - **exploration**: Reviewed `CloudSecurityPartners/skills` — security audit skill for vetting plugins. Useful patterns: tool risk matrix, hook severity escalation. Cross-referenced from `agent-security-reviewer` backlog item
+
+## [2.1.0] - 2026-03-09 - Raiz distribution and dist/ restructure
+
+### Added
+- **dist**: Raiz publish script (`.claude/dist/raiz/publish.sh`) — builds scoped subset for coworkers (6 skills, 3 agents, 5 hooks, 2 memories, 3 templates)
+- **dist**: Cross-reference trimming — strips "See also:" and bullet refs to excluded resources
+- **dist**: Settings template trimming — filters to raiz-only hooks, removes statusLine
+- **dist**: Raiz CLAUDE.md.template with note about potential unresolved resource references
+- **ci**: GitHub Action (`.github/workflows/publish-raiz.yml`) — auto-publishes to `claude-toolkit-raiz` on push to main
+- **tests**: `test-raiz-publish.sh` — 50 tests covering file list, cross-ref trimming, settings trimming
+
+### Changed
+- **dist**: Moved MANIFEST and templates/ into `.claude/dist/base/` — clears `.claude/` root for resource directories only
+- **cli**: `target_path()` strips `dist/base/` prefix so target projects still receive templates at `.claude/templates/`
+- **cli**: `categorize_file()` handles `dist/*/templates/*` paths
+- **cli**: MANIFEST sourced from `.claude/dist/base/MANIFEST`
+- **validators**: `validate-settings-template.sh` checks both `dist/base/` and `templates/` locations
 
 ## [2.0.2] - 2026-03-09 - Transcript backup and insights enhancement
 
