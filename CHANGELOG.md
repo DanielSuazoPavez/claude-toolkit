@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.25.4] - 2026-03-09 - Hook evaluations, accuracy fixes, and improvements
+
+### Changed
+- **hooks**: Fixed HOOKS.md inaccuracies for 5 hooks (enforce-feature-branch, enforce-uv-run, suggest-read-json, session-start, enforce-make-commands)
+- **hooks**: Removed anti-rationalization hook from HOOKS.md and evaluations (deactivated)
+- **hooks**: `secrets-guard` — Bash regex now catches `.env.*` variants; refactored Read credentials to array-driven loop
+- **hooks**: `enforce-uv-run` — fixed chained-command bypass (`cd /app && python`) by matching after chain operators
+- **evaluate-hook**: Updated D3/D4 rubric — removed allowlist/safety-level rewards that penalized strict blocking hooks
+- **evaluations**: Re-evaluated all 9 hooks with updated rubric (4 A-grade, 5 B-grade)
+- **tests**: Added 11 new hook tests (secrets-guard `.env.*` variants, enforce-uv-run compound commands)
+
 ## [1.25.3] - 2026-03-09 - Agent See Also sections and re-evaluation
 
 ### Changed
