@@ -172,16 +172,28 @@ categorize_file() {
         agents/*) echo "agents" ;;
         hooks/*) echo "hooks" ;;
         memories/*) echo "memories" ;;
-        templates/*) echo "templates" ;;
+        templates/*|dist/*/templates/*) echo "templates" ;;
         scripts/*) echo "scripts" ;;
         *) echo "other" ;;
     esac
 }
 
+# === target_path: Map manifest path to target project path ===
+# Strips dist/<variant>/ prefix so files land at the right place in target projects.
+# e.g. dist/base/templates/foo → templates/foo
+target_path() {
+    local path="$1"
+    if [[ "$path" == dist/*/templates/* ]]; then
+        echo "${path#dist/*/}"
+    else
+        echo "$path"
+    fi
+}
+
 # === resolve_manifest: Read MANIFEST and expand to file list ===
 # Outputs relative paths (relative to .claude/) one per line
 resolve_manifest() {
-    local manifest="$TOOLKIT_DIR/.claude/MANIFEST"
+    local manifest="$TOOLKIT_DIR/.claude/dist/base/MANIFEST"
     if [[ ! -f "$manifest" ]]; then
         echo "Error: MANIFEST not found at $manifest" >&2
         return 1
@@ -414,12 +426,14 @@ while IFS= read -r rel_path; do
     [[ -z "$rel_path" ]] && continue
 
     local toolkit_file="$TOOLKIT_DIR/.claude/$rel_path"
-    local target_file="$TARGET_DIR/.claude/$rel_path"
+    local tgt_path
+    tgt_path=$(target_path "$rel_path")
+    local target_file="$TARGET_DIR/.claude/$tgt_path"
     local category
     category=$(categorize_file "$rel_path")
 
-    # Skip if ignored by project's .claude-toolkit-ignore
-    if is_ignored "$rel_path"; then
+    # Skip if ignored by project's .claude-toolkit-ignore (match against target path)
+    if is_ignored "$tgt_path"; then
         IGNORED_FILES+=("$rel_path")
         continue
     fi
@@ -458,13 +472,13 @@ for cat in skills agents hooks memories templates scripts other; do
 
         if [[ -n "$new_files" ]]; then
             while IFS= read -r f; do
-                [[ -n "$f" ]] && echo -e "    ${GREEN}+ $f${NC} (new)"
+                [[ -n "$f" ]] && echo -e "    ${GREEN}+ $(target_path "$f")${NC} (new)"
             done <<< "$new_files"
         fi
 
         if [[ -n "$updated_files" ]]; then
             while IFS= read -r f; do
-                [[ -n "$f" ]] && echo -e "    ${YELLOW}~ $f${NC} (updated)"
+                [[ -n "$f" ]] && echo -e "    ${YELLOW}~ $(target_path "$f")${NC} (updated)"
             done <<< "$updated_files"
         fi
     fi
@@ -621,18 +635,20 @@ fi
 echo ""
 for f in "${FILES_TO_COPY[@]}"; do
     local source_file="$TOOLKIT_DIR/.claude/$f"
-    local target_file="$TARGET_DIR/.claude/$f"
+    local tgt_path
+    tgt_path=$(target_path "$f")
+    local target_file="$TARGET_DIR/.claude/$tgt_path"
 
     # Create parent directory if needed
     mkdir -p "$(dirname "$target_file")"
 
     cp "$source_file" "$target_file"
-    echo -e "  ${GREEN}Copied: $f${NC}"
+    echo -e "  ${GREEN}Copied: $tgt_path${NC}"
 done
 
 # Ensure .claude-toolkit-ignore exists in target
 if [[ ! -f "$PROJECT_IGNORE_FILE" ]]; then
-    local ignore_template="$TOOLKIT_DIR/.claude/templates/claude-toolkit-ignore.template"
+    local ignore_template="$TOOLKIT_DIR/.claude/dist/base/templates/claude-toolkit-ignore.template"
     if [[ -f "$ignore_template" ]]; then
         cp "$ignore_template" "$PROJECT_IGNORE_FILE"
         echo -e "  ${GREEN}Created: .claude-toolkit-ignore (from template)${NC}"
@@ -640,7 +656,7 @@ if [[ ! -f "$PROJECT_IGNORE_FILE" ]]; then
 fi
 
 # Copy MANIFEST (infrastructure file, not listed in MANIFEST itself)
-local manifest_src="$TOOLKIT_DIR/.claude/MANIFEST"
+local manifest_src="$TOOLKIT_DIR/.claude/dist/base/MANIFEST"
 if [[ -f "$manifest_src" ]]; then
     cp "$manifest_src" "$TARGET_DIR/.claude/MANIFEST"
     echo -e "  ${GREEN}Copied: MANIFEST${NC}"

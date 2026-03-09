@@ -67,7 +67,8 @@ setup_test_env() {
     echo "# Test Agent" > "$TEMP_DIR/toolkit/.claude/agents/test-agent.md"
 
     # Create MANIFEST
-    cat > "$TEMP_DIR/toolkit/.claude/MANIFEST" << 'MANIFEST_EOF'
+    mkdir -p "$TEMP_DIR/toolkit/.claude/dist/base"
+    cat > "$TEMP_DIR/toolkit/.claude/dist/base/MANIFEST" << 'MANIFEST_EOF'
 skills/test-skill/
 hooks/test-hook.sh
 memories/test-memory.md
