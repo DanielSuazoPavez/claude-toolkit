@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Iterating on resources through real usage — fixing issues surfaced from project deployments, improving tooling based on actual workflows.
+Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluation baseline.
 
 ## Scope Definitions
 
@@ -16,14 +16,20 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
-## P1 - High
+## P0 - Critical
 
-- **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
+- **[SKILLS]** Audit evaluate-* rubrics for non-discriminating dimensions (`skill-eval-self-critique`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+    - **notes**: One-time audit: check if any rubric dimensions in evaluate-* skills would score high for both good and bad resources (non-discriminating). Fix weak dimensions. Not a runtime step — a maintenance task. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`. Must complete before `evaluations-refresh`.
 
-## P2 - Medium
+- **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
+    - **status**: `idea`
+    - **scope**: `skills, agents, hooks, memories`
+    - **depends-on**: `skill-eval-self-critique`
+    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release.
+
+## P1 - High
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
@@ -34,6 +40,18 @@ Iterating on resources through real usage — fixing issues surfaced from projec
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
+## P2 - Medium
+
+- **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Add `resources/EXAMPLES.md` with: (1) one worked example per lens (coupling, API surface — dependency direction and cohesion already exist inline), (2) a full end-to-end Python example showing triage → measure → four-lens → document flow on a real codebase. Gate on real usage: only build when the skill passes alpha from use in actual projects.
+
+- **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
 - **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
     - **status**: `idea`
     - **scope**: `toolkit`
@@ -43,23 +61,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
-
-- **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
-    - **status**: `idea`
-    - **scope**: `skills, agents, hooks, memories`
-    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation.
-
-## P3 - Low
-
-- **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Add `resources/EXAMPLES.md` with: (1) one worked example per lens (coupling, API surface — dependency direction and cohesion already exist inline), (2) a full end-to-end Python example showing triage → measure → four-lens → document flow on a real codebase. Gate on real usage: only build when the skill passes alpha from use in actual projects.
-
-- **[SKILLS]** Audit evaluate-* rubrics for non-discriminating dimensions (`skill-eval-self-critique`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: One-time audit: check if any rubric dimensions in evaluate-* skills would score high for both good and bad resources (non-discriminating). Fix weak dimensions. Not a runtime step — a maintenance task. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
 
 ## P100 - Nice to Have
 

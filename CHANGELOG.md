@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.1] - 2026-03-08 - Backlog reprioritization for v2
+
+### Changed
+- **backlog**: Updated current goal to v2 release preparation
+- **backlog**: `skill-eval-self-critique` and `evaluations-refresh` promoted to P0 as v2 gate
+- **backlog**: `aws-toolkit` promoted to P1, `skill-refactor-examples` to P2 first place
+- **backlog**: `skill-learn-quality-gate` moved to P2, P3 dissolved
+
 ## [1.25.0] - 2026-03-08 - Toolkit identity document
 
 ### Added
