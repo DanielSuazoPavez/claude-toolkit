@@ -4,19 +4,16 @@
 
 **MANDATORY:** Read at session start - affects all code written.
 
-Core philosophy: pragmatism, simplicity, leverage existing systems.
+- Functions over classes (classes only when state is needed)
+- Leverage existing systems before writing new code
+- Env vars for config, not custom credential classes
+- Minimal interfaces — only essential parameters
 
 **See also:** `relevant-workflow-task_completion` for completion checklist, `relevant-philosophy-reducing_entropy` for code minimalism
 
 ---
 
-## 2. Core Philosophy
-
-Deliver the simplest, most direct solution. Avoid over-engineering and unnecessary complexity.
-
----
-
-## 3. Design Principles
+## 2. Design Principles
 
 **Leverage Existing Systems First**
 - Check for existing patterns, functions, or library capabilities before writing new code
@@ -36,24 +33,15 @@ Deliver the simplest, most direct solution. Avoid over-engineering and unnecessa
 
 ---
 
-## 4. Implementation Guidelines
+## 3. Project Conventions
 
-**Follow Existing Style**
-- Adhere to formatting/naming patterns in the codebase
-- Look at similar existing code for patterns
+**Python Tooling**
+- `uv` for dependency management, not pip
+- `make` targets over raw tool invocations (`make test`, not `pytest`)
+- Ruff for linting and formatting (not black/isort separately)
+- `pathlib` over `os.path`
 
-**Ensure Type Safety**
-- Use type hints for all function signatures
-- Verify with static analysis tools
-
-**Write Focused Code**
-- Keep functions small, single-responsibility
-- Handle exceptions gracefully
-
-**Document with Purpose**
-- Clear docstrings for public APIs
-- Concise comments for complex logic only
-
-**Be Idiomatic**
+**Code Habits**
+- Follow existing formatting/naming patterns in the codebase
+- Type hints for all function signatures
 - Use language built-ins and standard patterns before custom implementations
-- Prefer library-native operations over manual loops
