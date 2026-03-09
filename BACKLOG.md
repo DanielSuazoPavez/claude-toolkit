@@ -21,8 +21,13 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
 - **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
     - **status**: `in-progress`
     - **scope**: `skills, agents, hooks, memories`
-    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release.
+    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release. Skills evaluated in groups, iterating within each group if needed before moving on. All skills except evaluate-skill (27 total).
     - **progress**: Agents done (1.25.3). Hooks done (1.25.4). Memories done (1.25.5). Remaining: skills.
+        - [ ] Group 1 — create-*: create-agent, create-hook, create-memory, create-skill
+        - [ ] Group 2 — evaluate-*: evaluate-agent, evaluate-batch, evaluate-hook, evaluate-memory
+        - [ ] Group 3: brainstorm-idea, analyze-idea, wrap-up, write-handoff, review-plan
+        - [ ] Group 4: setup-worktree, teardown-worktree, review-changes, refactor, snap-back, list-memories, read-json, draft-pr, write-docs
+        - [ ] Group 5 — design-*: design-db, design-diagram, design-docker, design-qa, design-tests
 
 ## P1 - High
 
@@ -56,6 +61,11 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
     - **status**: `idea`
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
+- **[TOOLKIT]** Standardize evaluation output to percentages (`evaluation-percentage-normalization`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: evaluate-skill uses /120 max, evaluate-agent uses /115 max — different scales confuse agents running evaluations. Standardize all evaluation outputs to percentages so 85% means the same thing everywhere. Affects: evaluate-skill rubric, evaluate-agent rubric, evaluations.json schema, evaluate-batch prompts.
 
 ## P3 - Low
 

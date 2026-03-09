@@ -25,9 +25,11 @@ Is this information stable for 6+ months?
     ├─ Yes → `branch-` (include date)
     └─ No → Is it a future implementation idea?
         ├─ Yes → `idea-` (needs explicit permission note)
-        └─ No → Is it testing a new approach or A/B testing?
-            ├─ Yes → `experimental-` (user on-demand only)
-            └─ No → Consider if a memory is needed at all
+        └─ No → Is it personal preferences/customizations?
+            ├─ Yes → `personal-` (user on-demand only, never auto-load)
+            └─ No → Is it testing a new approach or A/B testing?
+                ├─ Yes → `experimental-` (user on-demand only)
+                └─ No → Consider if a memory is needed at all
 ```
 
 ### Quick Category Reference
@@ -39,6 +41,8 @@ Is this information stable for 6+ months?
 | `branch-` | Days/weeks | On-demand | WIP context for feature-x |
 | `idea-` | Until decided | User permission | Future refactoring plans |
 | `experimental-` | Until proven | User on-demand ONLY | A/B testing behaviors |
+
+**See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `docs/naming-conventions.md`, `.claude/indexes/MEMORIES.md`
 
 ## Instructions
 
@@ -133,7 +137,7 @@ Before writing the memory file, verify:
 - [ ] **Category correct?** Matches stability timeline (essential=permanent, relevant=months, branch=days)
 - [ ] **Quick Reference exists?** Has `**ONLY READ WHEN:**` bullets
 - [ ] **Filename format?** `{category}-{context}-{descriptive_name}.md` with underscores
-- [ ] **No duplicate?** Check `.claude/memories/` for existing coverage
+- [ ] **No duplicate?** Run `/list-memories` or check `.claude/indexes/MEMORIES.md` for existing coverage
 - [ ] **Under 300 lines?** Split if larger
 
 ### Quality Gate

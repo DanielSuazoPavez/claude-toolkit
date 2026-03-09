@@ -594,54 +594,81 @@
         ]
       },
       "create-skill": {
-        "file_hash": "34cf5cc7",
-        "date": "2026-03-08",
+        "file_hash": "af8ec1f9",
+        "date": "2026-03-09",
+        "type": "knowledge",
         "grade": "A-",
         "score": 105,
         "max": 120,
         "percentage": 87.5,
         "dimensions": {
-          "D1": 17,
-          "D2": 14,
-          "D3": 14,
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
           "D4": 9,
-          "D5": 13,
+          "D5": 14,
+          "D6": 13,
+          "D7": 14,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] Trim Token Efficiency section — targets are useful but compression techniques are mostly activation knowledge Claude already knows (D1)",
+          "[low] Add a brief note on common pitfalls for reference/lookup type skills in Anti-Patterns table (D3)",
+          "[low] Consider referencing relevant memories that skill authors should be aware of when creating skills (D7)"
+        ]
+      },
+      "create-agent": {
+        "file_hash": "bdcb64bc",
+        "date": "2026-03-09",
+        "type": "knowledge",
+        "grade": "A-",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 13,
+          "D4": 9,
+          "D5": 14,
           "D6": 13,
           "D7": 11,
           "D8": 14
         },
         "top_improvements": [
-          "[high] D7: Add See Also section referencing sibling creation skills (/create-agent, /create-memory, /create-hook) and fix inaccurate create-hook line count claim (says 100 lines, actually 165)",
-          "[low] D5: Add Table of Contents to SKILL.md — at 206 lines with 10+ sections, navigation would benefit from a TOC",
-          "[low] D2: Expand REFACTOR phase (currently 2 lines) with specific iteration techniques for tightening language and closing loopholes"
-        ]
-      },
-      "create-agent": {
-        "file_hash": "88591a42",
-        "date": "2026-03-08",
-        "grade": "A-",
-        "score": 103,
-        "max": 120,
-        "percentage": 85.8,
-        "dimensions": {
-          "D1": 17,
-          "D2": 14,
-          "D3": 13,
-          "D4": 8,
-          "D5": 12,
-          "D6": 13,
-          "D7": 12,
-          "D8": 14
-        },
-        "top_improvements": [
-          "[low] Condense Iteration Reference example (lines 191-219) from ~50 lines to ~30 by removing verbose dimension score blocks — tightens progressive disclosure without losing the before/after contrast",
-          "[low] Add cross-references to relevant memories (e.g., reducing_entropy philosophy) and /evaluate-batch skill to strengthen ecosystem integration",
-          "[low] Expand anti-pattern Problem column with downstream consequences (e.g., The Generalist leads to scope conflicts with other agents and unpredictable output quality)"
+          "[high] Fix broken reference to migration-reviewer agent (does not exist) and stale /115 scoring in iteration example — D7 accuracy",
+          "[low] Tool Selection Guide is mostly activation knowledge; consider trimming or merging into template section to strengthen D1",
+          "[low] Add explicit note about what parts of the template are fixed vs flexible to make freedom calibration fully explicit — D6 polish"
         ]
       },
       "create-hook": {
-        "file_hash": "95607dfa",
-        "date": "2026-03-08",
+        "file_hash": "985a90a3",
+        "date": "2026-03-09",
+        "type": "command",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 9,
+          "D5": 12,
+          "D6": 14,
+          "D7": 13,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[low] D5: Move the Notification example to the reference file — the PreToolUse and PostToolUse examples in the main skill sufficiently demonstrate blocking and non-blocking patterns, keeping the core under 200 lines",
+          "[low] D2: Add a brief note explaining why testing (step 3) precedes configuration (step 4) — the sequencing judgment is correct but implicit",
+          "[low] D8: Expand quality gate recovery guidance — specify which /evaluate-hook dimensions to prioritize when iterating below the 85% target"
+        ]
+      },
+      "create-memory": {
+        "file_hash": "02ad374a",
+        "date": "2026-03-09",
+        "type": "command",
         "grade": "A-",
         "score": 107,
         "max": 120,
@@ -651,38 +678,15 @@
           "D2": 13,
           "D3": 14,
           "D4": 9,
-          "D5": 14,
+          "D5": 13,
           "D6": 13,
-          "D7": 13,
+          "D7": 14,
           "D8": 14
         },
         "top_improvements": [
-          "[low] D7: Add a See Also section linking to sibling creation skills (/create-skill, /create-agent, /create-memory) and the HOOKS.md index for real-world examples",
-          "[low] D6: Add a warning about malformed JSON output behavior and hook timeout implications to prevent silent failures in production",
-          "[low] D8: Include a brief PostToolUse or Notification hook example to cover more than just the PreToolUse pattern"
-        ]
-      },
-      "create-memory": {
-        "file_hash": "022dacb1",
-        "date": "2026-01-28",
-        "grade": "A-",
-        "score": 105,
-        "max": 120,
-        "percentage": 87.5,
-        "dimensions": {
-          "D1": 17,
-          "D2": 13,
-          "D3": 14,
-          "D4": 14,
-          "D5": 13,
-          "D6": 12,
-          "D7": 9,
-          "D8": 13
-        },
-        "top_improvements": [
-          "Add filename examples for each category - a quick table showing essential/relevant/branch/idea/experimental filename patterns would improve practical usability",
-          "Add brief TOC - at 169 lines with multiple sections, a 5-line navigation table would improve discoverability",
-          "Strengthen why for category philosophy - add 1-2 sentences explaining the underlying principle (auto-load budget, context window conservation)"
+          "[low] Reduce category definition redundancy — the quick reference table (lines 37-43) partially restates the decision tree and conventions memory; consider deferring entirely to conventions memory",
+          "[low] Add explicit failure/recovery path in validation — what to do when /evaluate-memory returns below 85% beyond generic iterate",
+          "[low] Minor duplication in Instructions section (lines 50-56) restating categories already shown in decision tree — collapse or cross-reference"
         ]
       }
     }
