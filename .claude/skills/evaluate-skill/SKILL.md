@@ -282,6 +282,14 @@ Use branches for features. Commit often. Write good messages.
 | D7 | 13/15 | References commit conventions memory, defers to branch workflow |
 | D8 | 14/15 | Decision tree, tables, concrete examples |
 
+## See Also
+
+- `/evaluate-agent` — Sibling evaluator for agent .md files (behavioral effectiveness rubric).
+- `/evaluate-hook` — Sibling evaluator for hooks (testability and safety rubric).
+- `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
+- `/evaluate-batch` — Run evaluations across multiple resources of one type.
+- `/create-skill` — Skill creation with quality gates informed by this rubric.
+
 ## The Meta-Question
 
 > "Would an expert say this captures knowledge requiring years to learn?"
