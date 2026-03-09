@@ -7,14 +7,13 @@ Automation hooks configured in `settings.json`.
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
-| `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
+| `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks plan mode and git commits on main/master |
 | `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
-| `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for JSON files |
-| `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Ensures Python uses `uv run` |
-| `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Encourages Make targets |
-| `anti-rationalization.sh` | alpha | Stop | Detects rationalization / cop-out phrases and nudges Claude to reconsider |
+| `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
+| `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
+| `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
 **Note**: Beta hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
@@ -28,19 +27,24 @@ Automation hooks configured in `settings.json`.
 Loads essential memories and git context at the start of each session.
 
 - Outputs all `essential-*.md` memories
-- Lists other available memories
-- Shows current git branch
+- Lists other available memories (with category counts)
+- Shows current git branch and main branch
+- Loads recent lessons from `learned.json`
+- Outputs guidance text for memory usage
 
 ### enforce-feature-branch.sh
 
-**Trigger**: PreToolUse (EnterPlanMode)
+**Trigger**: PreToolUse (EnterPlanMode|Bash)
 
-Blocks entering plan mode while on main/master branch.
+Blocks plan mode and git commits on main/master branch.
 
 - Blocks: `EnterPlanMode` when on `main` or `master`
+- Blocks: `git commit` commands when on `main` or `master`
+- Handles: detached HEAD state (blocks with branch creation suggestion)
+- Config: `PROTECTED_BRANCHES` env var (regex, default: `^(main|master)$`)
 - Message: Suggests creating feature branch with prefix options
 
-Why: Non-trivial work (worthy of plan mode) should happen on feature branches.
+Why: Non-trivial work should happen on feature branches.
 
 ### block-dangerous-commands.sh
 
@@ -79,42 +83,35 @@ Blocks writes to shell config and SSH files to prevent persistent environment po
 
 **Trigger**: PreToolUse (Read)
 
-Suggests using `/read-json` skill for JSON files.
+Suggests using `/read-json` skill for large JSON files.
 
-- Blocks: Any `.json` file read
-- Reason: JSON files can be large; `/read-json` uses jq for efficient querying
+- Blocks: `.json` files larger than size threshold
+- Allows: Common config files (package.json, tsconfig.json, etc.) and `*.config.json`
+- Config: `JSON_SIZE_THRESHOLD_KB` env var (default: 50)
+- Reason: Large JSON files are better queried with jq via `/read-json`
 
 ### enforce-uv-run.sh
 
 **Trigger**: PreToolUse (Bash)
 
-Ensures Python commands use `uv run` instead of raw Python/pip.
+Blocks direct Python interpreter calls when venv is not activated.
 
-- Blocks: `python`, `python3`, `pip`, `pip3`, `pytest`, `ruff`, `mypy`
-- Suggests: Use `uv run <command>` or Make targets
+- Blocks: `python`, `python3`, `python3.X` (direct calls)
+- Allows: `uv run python` (prefixed calls)
+- Suggests: Use `uv run python` instead
 
-**Note**: Python-specific. Remove for non-Python projects.
+**Note**: Python-specific. Remove for non-Python projects. Does not block pip/pytest/ruff — those are handled by `enforce-make-commands.sh`.
 
 ### enforce-make-commands.sh
 
 **Trigger**: PreToolUse (Bash)
 
-Encourages using Make targets over raw commands.
+Blocks bare tool invocations, suggests Make targets.
 
-- Warns when common commands could use Make targets
-- Suggests: Check `make help` for available targets
-
-### anti-rationalization.sh
-
-**Trigger**: Stop
-
-Detects cop-out phrases in Claude's responses that signal premature victory or rationalized deferral.
-
-- Checks `stop_hook_active` first to prevent infinite loops
-- Reads last assistant message from transcript JSONL
-- Matches against cop-out patterns: scope deflection, deferral, blame shifting, overwhelm, explicit refusal
-- Blocks with constructive nudge including matched phrase
-- Silent on no match (exit 0, no stdout)
+- Blocks: bare `pytest`, `uv run pytest` (full suite only — targeted `pytest tests/file.py` allowed)
+- Blocks: `uv run ruff`, `uv run pre-commit`, bare `pre-commit`, `ruff check/format`
+- Blocks: `uv sync`, `docker up/down/build`
+- Suggests: `make test`, `make lint`, `make install`, etc.
 
 ### copy-plan-to-project.sh
 
@@ -132,13 +129,6 @@ Hooks are configured in `settings.json`:
 ```json
 {
   "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-{"type": "command", "command": "bash .claude/hooks/anti-rationalization.sh"}
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "EnterPlanMode",

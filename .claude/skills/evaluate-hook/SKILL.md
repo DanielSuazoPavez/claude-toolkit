@@ -54,29 +54,29 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Handles errors gracefully, logs failures, has allowlist |
-| 13-17 | Handles jq/parse failures (won't crash), but no logging and no allowlist for safe exceptions |
+| 18-20 | Handles errors gracefully, logs failures, false positives are rare or impossible |
+| 13-17 | Handles jq/parse failures (won't crash), but no logging. Minor false-positive risk |
 | 7-12 | No error handling — bad input causes silent pass-through or crash. No consideration of false positives |
 | 0-6 | Crashes on bad input, blocks legitimate work |
 
 **Check:**
 - What happens if jq fails or input is malformed?
-- Does it have an allowlist for safe exceptions?
-- Is it overly strict (blocks legitimate operations)?
+- Are false positives possible? If so, how are they mitigated?
+- For blocking hooks: strictness is a feature, not a bug. Don't penalize for lack of allowlists — guardrails should be strict
 
 ### D4: Maintainability (20 pts)
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Clear structure, configurable (safety levels), no hardcoded paths |
-| 13-17 | Logic is readable and sequential, but patterns or paths are inline rather than in variables. Extending requires editing logic, not config |
+| 18-20 | Clear structure, patterns in arrays/variables, easy to extend |
+| 13-17 | Logic is readable and sequential, but patterns are inline rather than in variables. Extending requires editing logic |
 | 7-12 | Deeply nested conditionals, mixed concerns, or magic values that require tracing to understand |
 | 0-6 | Spaghetti logic, magic values everywhere |
 
 **Check:**
 - Uses `$HOME` or env vars instead of hardcoded paths?
-- Safety level configurable via single constant?
 - Logic easy to extend with new patterns?
+- Patterns in arrays/variables rather than scattered through logic?
 
 ### D5: Documentation (15 pts)
 
