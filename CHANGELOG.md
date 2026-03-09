@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.24.0] - 2026-03-08 - Command-type skill classification
+
+### Added
+- **evaluate-skill**: Skill Types section — `type: knowledge|command` frontmatter field with dimension adjustments for D1, D2, D8
+- **evaluate-skill**: Separate D1 scoring calibration table for command-type skills (curation quality vs knowledge delta)
+- **evaluate-skill**: `type` field in JSON output format and Evaluation Protocol
+
+### Changed
+- **evaluate-skill**: Edge Cases table now includes Classification column mapping to skill types
+- **snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree**: Added `type: command` to frontmatter
+
 ## [1.23.0] - 2026-03-08 - Template-first pattern for create-* skills
 
 ### Added
