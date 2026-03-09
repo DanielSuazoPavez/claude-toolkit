@@ -56,6 +56,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
 
+- **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
+    - **status**: `idea`
+    - **scope**: `skills, agents, hooks, memories`
+    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation.
+
 ## P3 - Low
 
 - **[SKILLS]** Add examples to `refactor` skill (`skill-refactor-examples`)
