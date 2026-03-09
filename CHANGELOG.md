@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.24.1] - 2026-03-08 - Rules evaluation and backlog cleanup
+
+### Changed
+- **backlog**: Resolved `toolkit-rules` (P0) — `.claude/rules/` evaluated against our memory system, no adoption needed
+- **drafts**: Archived `claude-code-rules.md` with decision rationale and comparison table
+
 ## [1.24.0] - 2026-03-08 - Command-type skill classification
 
 ### Added
