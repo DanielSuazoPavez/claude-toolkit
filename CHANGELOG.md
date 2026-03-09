@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.25.3] - 2026-03-09 - Agent See Also sections and re-evaluation
+
+### Changed
+- **agents**: Added See Also sections to all 6 agents with bidirectional cross-references
+- **agents**: Fixed broken `test-reviewer` reference in code-reviewer → `/design-tests`
+- **agents**: Added explicit PASS/FAIL/PARTIAL status criteria to goal-verifier
+- **evaluations**: Re-evaluated all agents — scores improved across the board (D5 Integration was the common weak spot)
+
 ## [1.25.2] - 2026-03-08 - Evaluate-* rubric self-critique
 
 ### Changed

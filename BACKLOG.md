@@ -19,9 +19,10 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
 ## P0 - Critical
 
 - **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
-    - **status**: `idea`
+    - **status**: `in-progress`
     - **scope**: `skills, agents, hooks, memories`
     - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release.
+    - **progress**: Agents done (1.25.3). Remaining: skills, hooks, memories.
 
 ## P1 - High
 
