@@ -1,19 +1,19 @@
 ---
 name: design-diagram
 type: knowledge
-description: Use when requests mention "diagram", "visualize", "flow", "architecture", "model", or "map out".
+description: Use when requests mention "diagram", "visualize", "architecture diagram", "sequence diagram", "flowchart", "ERD", "C4", or "map out".
 ---
 
 # Mermaid Diagramming
 
 ## Which Diagram Type?
 
-| Audience | Time to Create | Maintenance | Recommended Type |
-|----------|----------------|-------------|------------------|
-| Developer (self) | 5 min | Update with code | Flowchart, Sequence |
-| Team review | 15 min | Monthly | Class, ERD |
-| External stakeholders | 30 min | Quarterly | C4 Context/Container |
-| Documentation | 10 min | With releases | Sequence, State |
+| Audience | Recommended Type | Why this pairing |
+|----------|------------------|-----------------|
+| Developer (self) | Flowchart, Sequence | Low ceremony, evolves with code — won't become stale because author maintains it |
+| Team review | Class, ERD | Structural types anchor discussion on "what exists" rather than "what happens" — stable enough for monthly review |
+| External stakeholders | C4 Context/Container | Hides implementation detail; named abstraction levels (Context, Container) prevent accidental over-detail |
+| Documentation | Sequence, State | Temporal types answer "what happens when..." — the question readers actually have |
 
 **Rule:** Match diagram complexity to how often it will be viewed and updated. Over-detailed diagrams become stale.
 
@@ -63,6 +63,49 @@ docs/diagrams/
 ```
 
 **Tip**: Include `%% Last updated: YYYY-MM-DD` comment for staleness detection.
+
+## Worked Example: E-Commerce Order System
+
+**Request:** "Diagram the order processing system"
+
+### Step 1: Pick the type
+
+Audience is dev team for a design review → structural types (Class, ERD) or C4.
+But "order processing" is temporal ("what happens when...") → Sequence or Flowchart.
+Multiple services involved (cart, payment, inventory) → Sequence preserves actor identity.
+
+**Decision:** Sequence diagram, with participants per service.
+
+### Step 2: Scope check
+
+Actors: User, API Gateway, Cart Service, Payment Service, Inventory Service, Notification Service.
+That's 6 participants — under the 15-node threshold, single diagram is fine.
+
+But: happy path + failure paths in one diagram → too dense. **Split:** happy path diagram + payment failure diagram.
+
+### Step 3: Output
+
+```mermaid
+%% Last updated: 2026-03-09
+sequenceDiagram
+  participant U as User
+  participant API as API Gateway
+  participant C as Cart Service
+  participant P as Payment Service
+  participant I as Inventory Service
+
+  U->>API: POST /orders
+  API->>C: validateCart(cartId)
+  C-->>API: items + totals
+  API->>I: reserveStock(items)
+  I-->>API: reservation confirmed
+  API->>P: charge(amount)
+  P-->>API: payment confirmed
+  API->>I: commitReservation()
+  API-->>U: 201 Order Created
+```
+
+**Why this worked:** Sequence preserved "who talks to whom." A flowchart would have shown the same steps but lost the service boundaries — critical for a team reviewing ownership.
 
 ## Anti-Patterns
 
