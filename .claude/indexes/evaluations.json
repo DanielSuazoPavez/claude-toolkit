@@ -639,23 +639,23 @@
         "file_hash": "95607dfa",
         "date": "2026-03-08",
         "grade": "A-",
-        "score": 103,
+        "score": 107,
         "max": 120,
-        "percentage": 85.8,
+        "percentage": 89.2,
         "dimensions": {
           "D1": 17,
           "D2": 13,
           "D3": 14,
           "D4": 9,
-          "D5": 11,
-          "D6": 14,
-          "D7": 11,
+          "D5": 14,
+          "D6": 13,
+          "D7": 13,
           "D8": 14
         },
         "top_improvements": [
-          "[high] D5: Add a Table of Contents to HOOKS_API.md (401 lines without navigation) and add brief context to the bare naming-conventions reference at line 8",
-          "[high] D7: Add cross-references to .claude/indexes/HOOKS.md (existing hooks catalog) and relevant-reference-hooks_config memory to strengthen ecosystem integration",
-          "[low] D2: Add an explicit defensive-thinking mindset section that transfers the security-first mental model for hook design"
+          "[low] D7: Add a See Also section linking to sibling creation skills (/create-skill, /create-agent, /create-memory) and the HOOKS.md index for real-world examples",
+          "[low] D6: Add a warning about malformed JSON output behavior and hook timeout implications to prevent silent failures in production",
+          "[low] D8: Include a brief PostToolUse or Notification hook example to cover more than just the PreToolUse pattern"
         ]
       },
       "create-memory": {
