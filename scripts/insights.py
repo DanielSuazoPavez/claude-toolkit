@@ -14,6 +14,7 @@ Global flags:
     --project <name>    Filter to one project (substring match)
     --since YYYY-MM-DD  Only include sessions after date
     --json              JSON output instead of formatted tables
+    --transcripts-dir   Path to transcripts (default: ~/.claude/projects/)
 """
 
 from __future__ import annotations
@@ -27,7 +28,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterator
 
-CLAUDE_PROJECTS_DIR = Path.home() / ".claude" / "projects"
+DEFAULT_TRANSCRIPTS_DIR = Path.home() / ".claude" / "projects"
+BACKUP_TRANSCRIPTS_DIR = Path.home() / "backups" / "claude-transcripts"
 
 # Regex to strip encoded path prefix and worktree suffix
 # e.g. "-home-hata-projects-personal-claude-toolkit--worktrees-feat" -> "claude-toolkit"
@@ -139,11 +141,14 @@ def extract_project_name(dir_name: str) -> str:
     return name
 
 
-def find_session_files(project_filter: str | None = None) -> Iterator[Path]:
+def find_session_files(
+    project_filter: str | None = None,
+    transcripts_dir: Path = DEFAULT_TRANSCRIPTS_DIR,
+) -> Iterator[Path]:
     """Yield all .jsonl session files, optionally filtered by project substring."""
-    if not CLAUDE_PROJECTS_DIR.is_dir():
+    if not transcripts_dir.is_dir():
         return
-    for project_dir in sorted(CLAUDE_PROJECTS_DIR.iterdir()):
+    for project_dir in sorted(transcripts_dir.iterdir()):
         if not project_dir.is_dir():
             continue
         if project_filter:
@@ -392,11 +397,13 @@ def _table(headers: list[str], rows: list[list[str]], colors: dict[str, str]) ->
 
 
 def load_sessions(
-    project_filter: str | None, since: str | None
+    project_filter: str | None,
+    since: str | None,
+    transcripts_dir: Path = DEFAULT_TRANSCRIPTS_DIR,
 ) -> list[Session]:
     """Load and parse all matching sessions."""
     sessions = []
-    for f in find_session_files(project_filter):
+    for f in find_session_files(project_filter, transcripts_dir):
         session = parse_session(f)
         # Filter by date
         if since and session.first_timestamp:
@@ -781,6 +788,11 @@ def main() -> None:
         metavar="PATH",
         help="Write output to file instead of console",
     )
+    parser.add_argument(
+        "--transcripts-dir",
+        metavar="PATH",
+        help=f"Path to transcripts dir (default: {DEFAULT_TRANSCRIPTS_DIR}, backup: {BACKUP_TRANSCRIPTS_DIR})",
+    )
     args = parser.parse_args()
 
     # Validate --since format
@@ -801,7 +813,8 @@ def main() -> None:
     if not args.as_json and sys.stderr.isatty():
         print("Loading sessions...", end="", flush=True, file=sys.stderr)
 
-    sessions = load_sessions(args.project, args.since)
+    transcripts_dir = Path(args.transcripts_dir) if args.transcripts_dir else DEFAULT_TRANSCRIPTS_DIR
+    sessions = load_sessions(args.project, args.since, transcripts_dir)
 
     if not args.as_json and sys.stderr.isatty():
         print(f" {len(sessions)} sessions loaded.", file=sys.stderr)
