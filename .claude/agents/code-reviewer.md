@@ -63,7 +63,7 @@ Same finding, different severity — because the context is different.
 ## What I Don't Do
 
 - Check code style or formatting (that's linters)
-- Review test implementations (that's test-reviewer)
+- Review test implementations (that's `/design-tests`)
 - Suggest refactoring for "future scalability" at current scale
 - Flag code that works correctly but doesn't match a preference
 
@@ -95,6 +95,12 @@ After writing, return a brief summary: "Report written to {path}. Status: {PASS|
 ## Nice-to-haves
 - [Suggestion]: [Why, if worth the complexity]
 ```
+
+## See Also
+
+- `code-debugger` — investigates specific bugs (you surface risks, they dig into root causes)
+- `goal-verifier` — verifies features work end-to-end (you review code quality, they verify completeness)
+- `/refactor` — structural refactoring analysis (when your review identifies coupling or duplication worth addressing)
 
 When no issues found:
 

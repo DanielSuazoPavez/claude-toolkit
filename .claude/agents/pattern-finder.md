@@ -85,6 +85,12 @@ For each pattern found:
 - Cataloging testing approaches: YES
 - Reviewing whether tests are *good*: NO
 
+## See Also
+
+- `codebase-explorer` — maps high-level architecture and tech stack (they map the territory, you catalog the patterns within it)
+- `code-reviewer` — reviews code quality (when patterns you find need quality assessment)
+- `code-debugger` — investigates bugs (your pattern catalog helps them understand expected behavior)
+
 ## What I Don't Do
 
 - Critique or judge existing patterns

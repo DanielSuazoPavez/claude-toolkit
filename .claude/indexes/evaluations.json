@@ -1141,45 +1141,7 @@
     },
     "resources": {
       "implementation-checker": {
-        "file_hash": "e8fd98d9",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 90,
-        "max": 100,
-        "percentage": 90,
-        "dimensions": {
-          "D1": 28,
-          "D2": 28,
-          "D3": 22,
-          "D4": 12
-        },
-        "top_improvements": [
-          "Add Bash tool or remove bash commands - Output Requirements references git/date commands but Bash is not in tool list",
-          "Strengthen Communication Style voice - section is competent but generic; add more detective/investigator flavor",
-          "Add Recommended Next Steps section to report template for clearer stakeholder action items"
-        ]
-      },
-      "pattern-finder": {
-        "file_hash": "f66f58cf",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 93,
-        "max": 100,
-        "percentage": 93,
-        "dimensions": {
-          "D1": 28,
-          "D2": 27,
-          "D3": 24,
-          "D4": 14
-        },
-        "top_improvements": [
-          "Add explicit Next Steps or handoff guidance for when the pattern catalog is delivered",
-          "Consider whether Bash is necessary given Grep/Glob tools are already available",
-          "Add example of a complete output to make the template even more concrete"
-        ]
-      },
-      "goal-verifier": {
-        "file_hash": "b06af904",
+        "file_hash": "7d4113e4",
         "date": "2026-03-08",
         "grade": "A",
         "score": 103,
@@ -1188,37 +1150,78 @@
         "dimensions": {
           "D1": 28,
           "D2": 28,
-          "D3": 21,
-          "D4": 15,
-          "D5": 11
+          "D3": 22,
+          "D4": 12,
+          "D5": 13
         },
         "top_improvements": [
-          "Thread the skeptic persona more consistently through procedural middle sections (Verification Levels, Goal-Backward Process, Verification Depth) where the voice fades into neutral instruction — the bookend sections are strong but the core procedures should carry the same suspicious tone",
-          "Add cross-references to complementary skills (/review-changes, /wrap-up) that may invoke or work alongside this agent, strengthening ecosystem integration beyond the sibling agent references in What I Don t Do",
-          "Add brief calibration examples showing the difference between PASS/PARTIAL/FAIL verdicts on the same feature to help set consistent verification thresholds"
+          "[med] Add Bash to tools — Output Requirements section requires git and date commands but Bash is not in the tool list (D4)",
+          "[low] Add explicit voice directives ('be X, not Y') to strengthen the drift detective persona beyond beliefs and anti-patterns (D3)",
+          "[low] Add self-calibration questions before starting (e.g., plan size, system complexity) to formalize the Token Efficiency guidance (D1)"
+        ]
+      },
+      "pattern-finder": {
+        "file_hash": "9705413c",
+        "date": "2026-03-08",
+        "grade": "A-",
+        "score": 99,
+        "max": 115,
+        "percentage": 86.1,
+        "dimensions": {
+          "D1": 26,
+          "D2": 24,
+          "D3": 23,
+          "D4": 14,
+          "D5": 12
+        },
+        "top_improvements": [
+          "[med] Add a summary/conclusion format to the output template and explicit handoff instructions for downstream agents — D2: +3-4pts",
+          "[low] Replace raw grep bash examples in Search Strategy with Grep/Glob tool references to match toolkit conventions — D5: +1-2pts, D1: +1pt",
+          "[low] Reference relevant memories or skills to deepen ecosystem integration — D5: +1-2pts"
+        ]
+      },
+      "goal-verifier": {
+        "file_hash": "64f2c06c",
+        "date": "2026-03-08",
+        "grade": "A",
+        "score": 105,
+        "max": 115,
+        "percentage": 91.3,
+        "dimensions": {
+          "D1": 28,
+          "D2": 28,
+          "D3": 21,
+          "D4": 15,
+          "D5": 13
+        },
+        "top_improvements": [
+          "[med] Strengthen persona voice throughout the body — opening is first-person skeptic but mid-sections shift to neutral instructional tone; add 1-2 voice reminders in key sections (D3)",
+          "[low] Reference relevant memory files or additional skills beyond /wrap-up to deepen ecosystem integration (D5)",
+          "[low] Consolidate redundant L1/L2/L3 presentations — Verification Levels table, Goal-Backward Process, Verification Checklist, and Compact Checklist all re-explain the same framework (D1)"
         ]
       },
       "code-reviewer": {
-        "file_hash": "2777c0f4",
-        "date": "2026-02-10",
+        "file_hash": "92d8b56e",
+        "date": "2026-03-08",
         "grade": "A",
-        "score": 91,
-        "max": 100,
-        "percentage": 91,
+        "score": 105,
+        "max": 115,
+        "percentage": 91.3,
         "dimensions": {
           "D1": 28,
           "D2": 27,
-          "D3": 22,
-          "D4": 14
+          "D3": 23,
+          "D4": 14,
+          "D5": 13
         },
         "top_improvements": [
-          "Add explicit post-report handoff guidance: what happens after the report is delivered (blockers block merge, risks are developer discretion, nice-to-haves are optional)",
-          "Thread the mechanic persona more deeply through later sections — Anti-patterns to Avoid and Calibration Questions read as instructions rather than character voice",
-          "Add a second concrete calibration example beyond the input validation one, showing the same structural issue (e.g., error handling) at different scales"
+          "[low] Clarify input scope — explicitly state whether the agent reviews a diff, file set, or directory to reduce ambiguity on invocation — D1",
+          "[low] Add file:line reference format to the output template findings (e.g., `src/foo.py:42`) so findings are directly navigable — D2",
+          "[low] Add a See Also reference to `review-changes` skill to clarify when to use the lightweight skill vs the full agent — D5"
         ]
       },
       "code-debugger": {
-        "file_hash": "04eaf827",
+        "file_hash": "7e364213",
         "date": "2026-03-08",
         "grade": "B+",
         "score": 97,
@@ -1226,34 +1229,35 @@
         "percentage": 84.3,
         "dimensions": {
           "D1": 25,
-          "D2": 28,
+          "D2": 27,
           "D3": 21,
-          "D4": 14,
-          "D5": 9
+          "D4": 12,
+          "D5": 12
         },
         "top_improvements": [
-          "Add cross-references to complementary resources: /design-qa for bug triage, code-reviewer for related code issues, and name the escalation target in cascading-fixes checkpoint instead of generic \"escalate for design review\"",
-          "Fix first/second person voice inconsistency (line 8: \"You are a code debugger... I follow evidence\") and thread the investigator persona more consistently through later reference sections (Investigation Techniques, Common Root Causes) where voice fades to neutral",
-          "Trim activation knowledge: Common Root Causes Checklist and Git Bisect Guide are standard knowledge Claude already has — condense to behavioral triggers (\"check these categories when stuck\") rather than listing the categories themselves"
+          "[med] Sharpen persona voice: add a vivid voice directive ('be X, not Y') and fix pronoun inconsistency ('You are... I follow'). E.g., 'Voice: I am a detective, not a mechanic. I build a case before I touch anything.' — D3",
+          "[low] Link to post-fix skills: reference design-qa or design-tests for regression tests after fixes, and learn for capturing debugging lessons — D5",
+          "[low] Consider splitting investigation vs fix modes: clarify tool usage per phase (Read/Grep/Glob/Bash for investigation, Edit for fixing) to justify the full tool set — D4"
         ]
       },
       "codebase-explorer": {
-        "file_hash": "8e03e598",
-        "date": "2026-01-28",
+        "file_hash": "75fa73dd",
+        "date": "2026-03-08",
         "grade": "A",
-        "score": 92,
-        "max": 100,
-        "percentage": 92,
+        "score": 103,
+        "max": 115,
+        "percentage": 89.6,
         "dimensions": {
           "D1": 27,
           "D2": 28,
-          "D3": 23,
-          "D4": 14
+          "D3": 22,
+          "D4": 14,
+          "D5": 12
         },
         "top_improvements": [
-          "Fix ARCHITECTURE.md template nested markdown code fences that could cause rendering issues",
-          "Add example confidence indicator usage within the document templates themselves",
-          "Consider adding When to invoke me vs When to use a different agent section for clearer handoff"
+          "[low] Add explicit voice directive (\"be X, not Y\") to persona statement to strengthen D3 beyond the metaphor",
+          "[low] Add templates for INTEGRATIONS.md and STRUCTURE.md to match the completeness of STACK.md and ARCHITECTURE.md templates",
+          "[low] Fix output path inconsistency between AGENTS.md index (reviews/codebase/) and agent file (reviews/{timestamp}__codebase-explorer/)"
         ]
       }
     }

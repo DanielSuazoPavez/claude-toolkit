@@ -83,6 +83,16 @@ def protected_route():
 
 This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The feature is "done" but doesn't work.
 
+## Status Criteria
+
+| Status | Condition |
+|--------|-----------|
+| **FAIL** | Any L3 gap on core feature logic, or any High severity gap |
+| **PARTIAL** | All core logic wired (L3), but Medium gaps remain or supporting code has L2/L3 gaps |
+| **PASS** | All must-haves verified at appropriate depth, no High/Medium gaps |
+
+When in doubt between PARTIAL and PASS, choose PARTIAL. False confidence is worse than false caution.
+
 ## Output Format
 
 ```markdown
@@ -119,6 +129,12 @@ This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The f
 
 **Handoff**: After writing, return a brief summary to the user:
 > "Report written to {path}. Status: {PASS|FAIL|PARTIAL}. {1-sentence summary}."
+
+## See Also
+
+- `implementation-checker` — checks plan-vs-implementation alignment (complementary: they check the plan, you check the goal)
+- `code-reviewer` — reviews code quality and risks (you verify completeness, they verify correctness)
+- `/wrap-up` — branch finalization workflow that may invoke verification before merge
 
 ## What You Verify
 
