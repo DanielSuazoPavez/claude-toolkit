@@ -79,6 +79,16 @@ Does it add genuine expert knowledge?
 Does it transfer expert thinking AND domain-specific workflows?
 - **Command type:** Does it encode expert sequencing? Does the order matter and is it correct?
 
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Transfers a distinct mental model — reader thinks differently about the domain after reading. Procedures encode non-obvious sequencing |
+| 10-12 | Some mindset transfer, but procedures are mostly "standard approach done well" |
+| 6-9 | Lists steps without explaining *why* this order or *why* this approach. Procedural but not insightful |
+| 3-5 | Generic workflow — could apply to any domain with word substitution |
+| 0-2 | No discernible mindset or procedure — just facts or commands |
+
+**Command type:** Replace "mental model" with "sequencing judgment." Does the order reflect hard-won experience? Would reordering break things or lose value?
+
 ### D3: Anti-Pattern Quality (15 pts)
 Are anti-patterns specific with reasoning, not vague warnings?
 
@@ -90,6 +100,14 @@ Is the description clear about WHAT and WHEN? Keywords should be precise — pen
 - Body: Loaded when triggered
 - References: On-demand
 - Target: Under 500 lines
+
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Clear tiers — metadata is minimal, body is self-contained, references loaded only when needed. Under 400 lines |
+| 10-12 | Reasonable structure but either slightly bloated (400-500 lines) or references not clearly gated |
+| 6-9 | Over 500 lines, or loads everything upfront, or unclear what's reference vs core |
+| 3-5 | Monolithic — everything in one flat document, no structure for selective loading |
+| 0-2 | Massive dump with no organization. Context bomb |
 
 #### Supporting Files Checklist
 
@@ -107,6 +125,14 @@ When skill has companion files, also check:
 - Creative tasks → High freedom (principles)
 - Fragile operations → Low freedom (exact scripts)
 
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Freedom level precisely matches task risk — creative tasks get principles + examples, fragile operations get exact sequences. Explicit about *what* is flexible vs fixed |
+| 10-12 | Freedom direction is right but boundaries aren't explicit — reader has to infer what's flexible |
+| 6-9 | Mismatch in one direction — either too rigid for creative tasks (over-templates) or too loose for fragile ones (just guidelines for a deploy script) |
+| 3-5 | Clear mismatch — prescriptive where it should inspire, or hand-wavy where it should constrain |
+| 0-2 | No awareness of freedom as a design choice — uniformly rigid or uniformly vague |
+
 ### D7: Integration Quality (15 pts)
 Does it work well within the resource ecosystem?
 - **Reference accuracy** — points to resources that exist and are current
@@ -118,6 +144,16 @@ Does it work well within the resource ecosystem?
 ### D8: Practical Usability (15 pts)
 Decision trees, working examples, error handling, edge cases?
 - **Command type:** Is the execution sequence clear and complete? Are edge cases handled (partial completion, errors)?
+
+| Score | Criteria |
+|-------|----------|
+| 13-15 | Decision trees with branching logic, worked examples showing non-trivial cases, edge cases with specific handling. Reader can apply immediately |
+| 10-12 | Has examples and some decision guidance, but examples are simple/happy-path or decision tree is linear (no real branching) |
+| 6-9 | Minimal examples or only lists considerations without showing how to decide. "Consider X, Y, Z" without resolution |
+| 3-5 | No examples. Abstract principles only. Reader must figure out application themselves |
+| 0-2 | Unusable in practice — too abstract or too vague to act on |
+
+**Command type:** Replace "decision trees" with "execution sequences." Is the happy path clear? Are failure/partial-completion paths handled?
 
 ## Scoring Calibration
 

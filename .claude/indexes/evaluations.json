@@ -38,26 +38,27 @@
     },
     "resources": {
       "evaluate-skill": {
-        "file_hash": "2b222d30",
-        "date": "2026-01-28",
+        "file_hash": "eb1dd4f3",
+        "date": "2026-03-08",
+        "type": "knowledge",
         "grade": "A",
-        "score": 112,
+        "score": 108,
         "max": 120,
-        "percentage": 93.3,
+        "percentage": 90.0,
         "dimensions": {
-          "D1": 19,
+          "D1": 18,
           "D2": 14,
           "D3": 14,
-          "D4": 14,
-          "D5": 14,
+          "D4": 9,
+          "D5": 13,
           "D6": 14,
-          "D7": 9,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "Add calibration tables for dimensions D4-D7 - D1 and D3 have detailed tables but other dimensions lack equivalent scoring guidance",
-          "Condense to ~200 lines - at 240 lines exceeds Process pattern target; consider moving Example Evaluation to supporting reference file",
-          "Add evaluator anti-patterns section - common mistakes like conflating activation with redundant knowledge, over-penalizing brevity"
+          "[low] Connect to indexes system and memory conventions in See Also or body — D7 still has room",
+          "[low] Trim activation knowledge in Core Philosophy section — the formula is expert but surrounding explanation is partly redundant",
+          "[low] Add evaluator anti-patterns — common mistakes like conflating activation with redundant, or over-penalizing brevity"
         ]
       },
       "evaluate-batch": {
