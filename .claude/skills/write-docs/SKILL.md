@@ -174,3 +174,4 @@ See `resources/EXAMPLES.md` for worked examples (end-to-end flow) and good/bad c
 - `/analyze-idea` — Research coverage gaps
 - `codebase-explorer` agent — Generate full architecture report before writing docs
 - `pattern-finder` agent — Targeted searches for specific patterns or conventions
+- `/design-diagram` — Generate architecture diagrams to embed in documentation

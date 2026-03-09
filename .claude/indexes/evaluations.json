@@ -158,26 +158,27 @@
         ]
       },
       "design-diagram": {
-        "file_hash": "428b9acd",
-        "date": "2026-01-28",
+        "file_hash": "32eb5192",
+        "date": "2026-03-09",
+        "type": "knowledge",
         "grade": "A-",
-        "score": 102,
+        "score": 103,
         "max": 120,
-        "percentage": 85,
+        "percentage": 85.8,
         "dimensions": {
-          "D1": 16,
-          "D2": 13,
-          "D3": 13,
-          "D4": 13,
+          "D1": 17,
+          "D2": 11,
+          "D3": 14,
+          "D4": 8,
           "D5": 14,
-          "D6": 12,
-          "D7": 9,
+          "D6": 13,
+          "D7": 14,
           "D8": 12
         },
         "top_improvements": [
-          "Add brief when NOT to diagram guidance - avoid unnecessary documentation",
-          "Strengthen anti-pattern reasoning: add WHY each pattern causes problems",
-          "Make subgraph threshold more precise: add node count heuristics beyond <20 nodes"
+          "[high] Add a brief end-to-end worked example showing the full decision flow: requirement → diagram type selection → scoping decision → final diagram (D8 +2-3)",
+          "[low] Add an explicit Mindset/Process section articulating the mental model as a coherent workflow rather than relying on it being implicit in tables (D2 +2)",
+          "[low] Consider narrowing architecture and model in description keywords to reduce false-positive risk (D4 +1)"
         ]
       },
       "design-docker": {
