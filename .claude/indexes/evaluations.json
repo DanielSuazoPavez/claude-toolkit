@@ -391,25 +391,26 @@
       },
       "review-changes": {
         "file_hash": "da65d765",
-        "date": "2026-03-08",
-        "grade": "A-",
-        "score": 102,
+        "date": "2026-03-09",
+        "type": "knowledge",
+        "grade": "A",
+        "score": 108,
         "max": 120,
-        "percentage": 85.0,
+        "percentage": 90.0,
         "dimensions": {
-          "D1": 16,
-          "D2": 13,
-          "D3": 13,
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
           "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 12,
-          "D8": 12
+          "D7": 13,
+          "D8": 14
         },
         "top_improvements": [
-          "[low] Add a worked example of an actual review finding to boost D8 — showing how a real issue is traced through context discovery and the decision tree",
-          "[low] Fix code-reviewer agent reference path format in See Also for consistency with ecosystem conventions",
-          "[low] Phase 2 (Architectural Fit) could include more expert-level heuristics beyond standard layer/duplication checks"
+          "[low] Add a brief worked example showing a false-positive caught by Phase 0 context discovery (e.g., missing validation handled at API boundary) — D8 would reach 15",
+          "[low] Make freedom boundaries more explicit — state when to follow the decision tree mechanically vs. use judgment — D6 polish",
+          "[low] Consider connecting to goal-verifier agent for intent verification in Phase 1 — D7 ecosystem gap"
         ]
       },
       "review-plan": {
@@ -437,26 +438,27 @@
         ]
       },
       "setup-worktree": {
-        "file_hash": "104f59d5",
-        "date": "2026-01-28",
+        "file_hash": "c72c835f",
+        "date": "2026-03-09",
+        "type": "command",
         "grade": "A-",
-        "score": 103,
+        "score": 104,
         "max": 120,
-        "percentage": 85.8,
+        "percentage": 86.7,
         "dimensions": {
-          "D1": 15,
+          "D1": 16,
           "D2": 13,
-          "D3": 14,
-          "D4": 12,
+          "D3": 12,
+          "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 9,
+          "D7": 14,
           "D8": 13
         },
         "top_improvements": [
-          "Basic Commands section is mostly activation knowledge - could be condensed to 2-3 lines or moved to reference",
-          "Add edge case: worktree on different filesystem (symlinks break, performance implications)",
-          "Description could add more trigger keywords like isolation, concurrent development, multiple features"
+          "[low] Restructure Common Pitfalls into table format (Pattern | Problem | Fix) matching sibling teardown-worktree skill; trim generic git pitfalls that are well-known (D1, D3)",
+          "[low] Add a concrete worked example with real branch/plan names showing the full invocation from $ARGUMENTS through verification (D8)",
+          "[low] Add brief WHY annotations to step ordering — e.g. gitignore first to prevent accidental tracking, symlink immediately to avoid running unconfigured agents (D2)"
         ]
       },
       "snap-back": {
@@ -483,26 +485,27 @@
         ]
       },
       "teardown-worktree": {
-        "file_hash": "aa722503",
-        "date": "2026-01-28",
+        "file_hash": "c448f0a3",
+        "date": "2026-03-09",
+        "type": "command",
         "grade": "A-",
-        "score": 102,
+        "score": 105,
         "max": 120,
-        "percentage": 85,
+        "percentage": 87.5,
         "dimensions": {
-          "D1": 15,
+          "D1": 17,
           "D2": 13,
-          "D3": 12,
-          "D4": 14,
-          "D5": 13,
+          "D3": 13,
+          "D4": 8,
+          "D5": 14,
           "D6": 14,
-          "D7": 9,
-          "D8": 12
+          "D7": 13,
+          "D8": 13
         },
         "top_improvements": [
-          "Add example report output showing what implementation-checker produces for GREEN/YELLOW/RED cases",
-          "Deepen anti-pattern reasoning - expand WHY column with consequences similar to uncommitted changes explanation",
-          "Add TOC for navigation at 106 lines"
+          "[low] Add guidance for when implementation-checker agent itself fails or errors out (not just RED health) — covers an unhandled edge case in the execution sequence",
+          "[low] Trim Step 0 (validate path) and Step 3 (run verification) — mostly activation knowledge that could be more concise",
+          "[low] Add worktree remove as a keyword to catch users who think in git terms rather than workflow terms"
         ]
       },
       "wrap-up": {
@@ -578,7 +581,8 @@
       },
       "refactor": {
         "file_hash": "7d04fe6f",
-        "date": "2026-03-08",
+        "date": "2026-03-09",
+        "type": "knowledge",
         "grade": "A",
         "score": 109,
         "max": 120,
@@ -589,14 +593,14 @@
           "D3": 14,
           "D4": 9,
           "D5": 14,
-          "D6": 13,
-          "D7": 14,
+          "D6": 14,
+          "D7": 13,
           "D8": 14
         },
         "top_improvements": [
-          "[low] D1: Some lenses (coupling, cohesion) cover concepts partially derivable from first principles — could add more non-obvious heuristics or thresholds specific to particular ecosystems",
-          "[low] D6: Could differentiate freedom levels more explicitly per lens — e.g., shared patterns lens needs stricter thresholds than cohesion lens",
-          "[low] D1: The Measure step could include one more expert-only signal beyond imports/sizes (e.g., change frequency from git log as a coupling proxy)"
+          "[low] Add explicit type: knowledge to frontmatter for consistency with ecosystem convention",
+          "[low] Deduplicate related resources — lines 102-105 and 206-212 cover the same connections; keep Before/During/After framing inline and simplify See Also",
+          "[low] Add a triage-level example showing the cosmetic short-circuit in action — current examples all demonstrate five-lens reasoning but none show triage stopping early"
         ]
       },
       "create-skill": {

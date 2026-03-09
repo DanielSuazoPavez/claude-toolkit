@@ -7,6 +7,8 @@ argument-hint: Path to plan file (e.g. .claude/plans/2026-02-04_my-plan.md)
 
 Set up a worktree with full Claude configuration. Worktrees live in `.worktrees/` (gitignored, inside project).
 
+**See also:** `/teardown-worktree` (close out worktree after completion), `/review-plan` (review the plan before handing to a worktree agent), `relevant-workflow-branch_development` memory (branch workflow conventions)
+
 ## Plan File
 
 `$ARGUMENTS` must contain a path to the plan file to symlink into the worktree. If not provided, ask the user which plan file to use — every worktree needs a plan.
@@ -103,13 +105,22 @@ git worktree remove .worktrees/feature-x
 git branch -d feature-x  # now works
 ```
 
+## After Setup: Launching an Agent
+
+The worktree is ready but nothing is running in it yet. To start implementation:
+
+1. **Launch a Claude instance** in the worktree using the Agent tool with `isolation: "worktree"`, or by running `claude` manually from the worktree directory
+2. **The plan is the entry point** — the agent's first action should be reading the symlinked plan in `.claude/plans/`
+3. **When the agent reports done**, use `/teardown-worktree` to verify and close out
+
 ## Multi-Agent Workflow
 
 When using multiple Claude agents in parallel:
 
 1. Create worktree per agent task (each with its own plan)
-2. Each agent works in isolation with full Claude config
-3. Merge results back to main when done
-4. Clean up worktrees after merge
+2. Launch a Claude instance in each worktree
+3. Each agent works in isolation with full Claude config
+4. Use `/teardown-worktree` on each when done
+5. Merge results back to main
 
-**Note:** After setup, implementation is typically handled by another Claude instance working in the worktree. That instance won't see uncommitted changes from other worktrees — check `git log` (not just `git status`) to see commits made by other instances.
+**Note:** Worktree instances won't see uncommitted changes from other worktrees — check `git log` (not just `git status`) to see commits made by other instances.
