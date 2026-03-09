@@ -1181,23 +1181,23 @@
         ]
       },
       "goal-verifier": {
-        "file_hash": "7d72875a",
+        "file_hash": "64f2c06c",
         "date": "2026-03-08",
-        "grade": "A-",
-        "score": 101,
+        "grade": "A",
+        "score": 105,
         "max": 115,
-        "percentage": 87.8,
+        "percentage": 91.3,
         "dimensions": {
-          "D1": 27,
-          "D2": 26,
-          "D3": 20,
+          "D1": 28,
+          "D2": 28,
+          "D3": 21,
           "D4": 15,
           "D5": 13
         },
         "top_improvements": [
-          "Sharpen PASS/FAIL/PARTIAL criteria — define explicit thresholds (e.g., FAIL if any L3 gap on core feature logic) so status decisions are repeatable (D2)",
-          "Strengthen persona voice — add a vivid metaphor or be-X-not-Y directive to match the specificity of peer agents like code-reviewer (D3)",
-          "Add goal-scoping guidance — clarify how to handle ambiguous or overly broad goals (request narrower scope? decompose?) (D1)"
+          "[med] Strengthen persona voice throughout the body — opening is first-person skeptic but mid-sections shift to neutral instructional tone; add 1-2 voice reminders in key sections (D3)",
+          "[low] Reference relevant memory files or additional skills beyond /wrap-up to deepen ecosystem integration (D5)",
+          "[low] Consolidate redundant L1/L2/L3 presentations — Verification Levels table, Goal-Backward Process, Verification Checklist, and Compact Checklist all re-explain the same framework (D1)"
         ]
       },
       "code-reviewer": {

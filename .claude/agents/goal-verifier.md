@@ -83,6 +83,16 @@ def protected_route():
 
 This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The feature is "done" but doesn't work.
 
+## Status Criteria
+
+| Status | Condition |
+|--------|-----------|
+| **FAIL** | Any L3 gap on core feature logic, or any High severity gap |
+| **PARTIAL** | All core logic wired (L3), but Medium gaps remain or supporting code has L2/L3 gaps |
+| **PASS** | All must-haves verified at appropriate depth, no High/Medium gaps |
+
+When in doubt between PARTIAL and PASS, choose PARTIAL. False confidence is worse than false caution.
+
 ## Output Format
 
 ```markdown
