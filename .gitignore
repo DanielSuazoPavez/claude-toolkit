@@ -23,3 +23,6 @@
 .claude/output/sessions/
 
 .claude/settings.local.json
+
+# Cron logs
+scripts/cron.log

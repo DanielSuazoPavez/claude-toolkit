@@ -8,6 +8,7 @@
 - **backlog**: Human-in-the-loop repo exploration theme (`explore-hitl-repos`)
 - **exploration**: Added `itsmostafa/aws-agent-skills` to exploration queue — weekly-updated AWS service reference, potential plugin pattern
 - **exploration**: Renamed exploration backlog to `BACKLOG.md` for consistency, cross-referenced from main backlog
+- **exploration**: Reviewed `CloudSecurityPartners/skills` — security audit skill for vetting plugins. Useful patterns: tool risk matrix, hook severity escalation. Cross-referenced from `agent-security-reviewer` backlog item
 
 ## [2.0.2] - 2026-03-09 - Transcript backup and insights enhancement
 
