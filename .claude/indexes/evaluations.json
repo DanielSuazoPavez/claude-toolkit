@@ -939,24 +939,24 @@
     },
     "resources": {
       "essential-conventions-code_style": {
-        "file_hash": "1827f8e2",
+        "file_hash": "890c2e81",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 101,
+        "grade": "A",
+        "score": 106,
         "max": 115,
-        "percentage": 87.8,
+        "percentage": 92.2,
         "dimensions": {
-          "D1": 19,
-          "D2": 21,
-          "D3": 16,
-          "D4": 14,
+          "D1": 20,
+          "D2": 22,
+          "D3": 19,
+          "D4": 15,
           "D5": 17,
-          "D6": 14
+          "D6": 13
         },
         "top_improvements": [
-          "Strengthen Quick Reference with a bullet summary of the top 3-5 actionable rules so readers can act without reading further sections",
-          "Make Implementation Guidelines (section 4) more opinionated and project-specific rather than restating universal best practices (type hints, small functions, docstrings)",
-          "Merge single-sentence Section 2 (Core Philosophy) into Quick Reference to reduce unnecessary section overhead and use tables in sections 3-4 for faster scanning"
+          "[low] Convert Section 2 (Design Principles) from bold-heading-with-bullets to a table format (Principle | Guidance) for faster scanning — matches the density of Section 3 better (D5: +2-3)",
+          "[low] Add a cross-reference to enforce-make-commands hook or relevant-reference-hooks_config since Section 3 make-targets convention is actively enforced by a hook — strengthens ecosystem connection (D6: +1-2)",
+          "[low] Consider using the ONLY READ WHEN pattern in Quick Reference to match the convention-memory pattern defined in essential-conventions-memory, even though MANDATORY works for essential auto-loaded content (D2: +1-2)"
         ]
       },
       "essential-conventions-memory": {
