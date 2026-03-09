@@ -16,13 +16,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ---
 
-## P0 - Critical
-
-- **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could add automatic file-aware instruction activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
-
 ## P1 - High
 
 - **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
