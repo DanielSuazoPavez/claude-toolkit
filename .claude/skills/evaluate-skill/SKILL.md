@@ -292,6 +292,12 @@ Use branches for features. Commit often. Write good messages.
 
 ## The Meta-Question
 
+**Knowledge type:**
 > "Would an expert say this captures knowledge requiring years to learn?"
 
 If yes → genuine value. If no → it's compressing what Claude already knows.
+
+**Command type:**
+> "Does this flow produce more consistent results than a natural language prompt asking for the same task?"
+
+If yes → the structure encodes "how we work here" in a stable, repeatable way. If no → it should be a prompt, not a skill.
