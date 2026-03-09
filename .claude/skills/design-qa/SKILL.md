@@ -1,5 +1,6 @@
 ---
 name: design-qa
+type: knowledge
 description: Design test plans, QA strategies, regression suites, and bug triage workflows. Use when requests mention "test plan", "QA strategy", "regression testing", "test coverage", "bug report", "acceptance criteria", or "release testing".
 disable-model-invocation: true
 ---
@@ -115,12 +116,9 @@ Push back on shipping without tests when you see these:
 
 ### Acceptance Criteria Validation
 
-When reviewing acceptance criteria before testing:
-- **Testable?** Can you write a pass/fail test for it?
-- **Complete?** What about error states, edge cases, permissions?
-- **Measurable?** "Fast" is vague; "< 2 seconds" is testable
+Push back on untestable criteria: "works correctly", "handles errors gracefully", "user-friendly". Each criterion needs a pass/fail condition.
 
-Push back on: "works correctly", "handles errors gracefully", "user-friendly"
+**Defect clustering heuristic**: 80% of bugs come from 20% of modules. Track where bugs cluster — those modules need disproportionately more test coverage, not equal treatment. If you're writing a test plan and don't know where bugs cluster, ask for the bug history first.
 
 ## Edge Cases
 
@@ -159,10 +157,12 @@ When you have hours, not days:
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| Vague Steps | "Test the feature" | One action + expected result per step |
-| Missing Preconditions | Test fails on setup | Document setup, test data, user state |
-| Happy Path Only | Misses real failures | Boundaries, empty states, errors |
-| Generic Bug Title | "Login broken" | "[Login] OTP fails with leading zeros" |
+| **Testing implementation, not behavior** | Tests break on refactor even when feature works fine | Write tests against observable outcomes, not internal steps |
+| **Over-mocking hides integration bugs** | Unit tests pass, production breaks at boundaries | Reserve mocks for external services; test real integrations where feasible |
+| **Copy-paste test plans** | Reused plans miss feature-specific risks | Start from risk analysis, not templates |
+| **Conflating severity with priority** | P1 cosmetic bugs block release while P3 data loss waits | Severity = impact, priority = business urgency. A low-severity bug on the checkout page can be high priority |
+| **Testing everything equally** | 200 test cases, all medium priority, no one runs them all | Risk-weight: P0 paths get exhaustive coverage, P3 gets smoke only |
+| **Happy path only** | Misses real failures | Boundaries, empty states, error paths, concurrent access |
 
 ## Rationalizations
 

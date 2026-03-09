@@ -206,26 +206,27 @@
         ]
       },
       "design-qa": {
-        "file_hash": "c781c88a",
-        "date": "2026-03-08",
-        "grade": "B+",
-        "score": 101,
+        "file_hash": "967da041",
+        "date": "2026-03-09",
+        "type": "knowledge",
+        "grade": "A-",
+        "score": 104,
         "max": 120,
-        "percentage": 84.2,
+        "percentage": 86.7,
         "dimensions": {
-          "D1": 17,
+          "D1": 16,
           "D2": 13,
-          "D3": 11,
+          "D3": 14,
           "D4": 8,
           "D5": 14,
-          "D6": 12,
+          "D6": 13,
           "D7": 13,
           "D8": 13
         },
         "top_improvements": [
-          "[high] D3: Strengthen anti-patterns with more non-obvious entries — current set (happy path only, vague steps) is well-known; add expert-level anti-patterns like testing implementation details instead of behavior, or over-mocking hiding integration bugs",
-          "[high] D8: Add a complete worked example showing a real test plan output — the skill teaches how to think but never shows a finished artifact",
-          "[low] D1: Trim activation-level content (acceptance criteria validation section) and replace with more expert heuristics like defect clustering analysis or risk-based test selection algorithms"
+          "[high] Add a worked example of a complete mini test plan showing how the artifact selection, risk weighting, and exit criteria come together end-to-end",
+          "[low] Clarify in the frontmatter description how this skill differs from design-tests to reduce routing ambiguity",
+          "[low] Add 1-2 more expert-level D1 heuristics (e.g., when to invest in test automation vs manual testing, or test environment management trade-offs) to push knowledge delta higher"
         ]
       },
       "design-tests": {
