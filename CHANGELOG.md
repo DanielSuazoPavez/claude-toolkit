@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **backlog**: Starter pack design — shared subset for coworker onboarding (6 skills, 5 hooks, 3 agents, 2 memories, 3 templates). Design doc: `.claude/output/design/starter-pack.md`
+- **backlog**: Auto-publish starter pack to separate repo via GitHub Action (`toolkit-starter-pack-publish`)
+- **backlog**: Human-in-the-loop repo exploration theme (`explore-hitl-repos`)
+- **exploration**: Added `itsmostafa/aws-agent-skills` to exploration queue — weekly-updated AWS service reference, potential plugin pattern
+- **exploration**: Renamed exploration backlog to `BACKLOG.md` for consistency, cross-referenced from main backlog
+
 ## [2.0.1] - 2026-03-09 - v2 wrap-up cleanup
 
 ### Changed

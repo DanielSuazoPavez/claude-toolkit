@@ -4,6 +4,8 @@
 
 Post-v2 — improve resources through real usage, expand into AWS and security domains.
 
+**See also:** `.claude/output/reviews/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
+
 ## Scope Definitions
 
 | Scope | Description |
@@ -63,6 +65,18 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills, toolkit`
     - **notes**: Claude Code / VS Code extension flags `type` as unsupported in skill frontmatter. Rename to something like `metadata: X-type` or a different key. Affects: all skills with `type: knowledge|command`, evaluate-skill rubric (references `type` in frontmatter), create-skill template, evaluations.json schema.
 
+- **[TOOLKIT]** Starter pack — shared subset for onboarding coworkers (`toolkit-starter-pack`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Curated slice of the MANIFEST for non-toolkit-users getting Claude Code. 6 skills, 5 hooks, 3 agents, 2 memories (one trimmed), 3 templates. No personal preferences. Design doc: `.claude/output/design/starter-pack.md`
+    - **related**: `toolkit-starter-pack-publish`
+
+- **[TOOLKIT]** Auto-publish starter pack to separate repo (`toolkit-starter-pack-publish`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **depends-on**: `toolkit-starter-pack`
+    - **notes**: GitHub Action on push to main — filters starter manifest files, pushes to target repo (e.g. `claude-toolkit-raiz`). Deploy key for scoped auth. Existing actions like `cpina/github-action-push-to-another-repository` handle the plumbing. Needs: `MANIFEST.starter` (or similar), target repo created, deploy key pair configured.
+
 ## P3 - Low
 
 - **[SKILLS]** Link `design-db` skill to config-driven schema generation repo (`skill-design-db-backing-repo`)
@@ -97,6 +111,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **status**: `idea`
     - **scope**: `skills`
     - **notes**: CI/CD pipeline patterns, caching, matrix builds. Build when encountering real CI/CD need.
+
+- **[TOOLKIT]** Explore human-in-the-loop Claude Code repos (`explore-hitl-repos`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Find repos/configs that emphasize collaborative sessions over autonomous agents. Most ecosystem repos skew "launch and walk away." obra/superpowers and trailofbits are closest matches so far. Theme search tracked in exploration BACKLOG.
 
 - **[TOOLKIT]** Telegram bot bridge to Claude Code (`telegram-bridge`)
     - **status**: `idea`
