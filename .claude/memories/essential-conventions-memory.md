@@ -2,12 +2,7 @@
 
 ## 1. Quick Reference
 
-**ONLY READ WHEN:**
-- Creating a new memory file
-- Unsure about memory naming or categorization
-- User explicitly asks about memory organization
-
-Guidelines for naming and structuring memory files, including categories, formats, and Quick Reference patterns.
+**MANDATORY:** Read at session start - defines memory naming, categories, and Quick Reference patterns.
 
 **See also:** `/create-memory` skill, `essential-toolkit-identity` for resource roles
 
