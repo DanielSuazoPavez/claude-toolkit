@@ -960,133 +960,133 @@
         ]
       },
       "essential-conventions-memory": {
-        "file_hash": "8524d3e7",
+        "file_hash": "b1866938",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 90,
+        "grade": "C",
+        "score": 84,
         "max": 115,
-        "percentage": 78.3,
+        "percentage": 73.0,
         "dimensions": {
           "D1": 17,
-          "D2": 21,
-          "D3": 15,
-          "D4": 10,
-          "D5": 19,
-          "D6": 8
+          "D2": 18,
+          "D3": 14,
+          "D4": 8,
+          "D5": 17,
+          "D6": 10
         },
         "top_improvements": [
-          "[med] Add See Also cross-references to /create-memory skill and essential-toolkit-identity memory — the memory is well-referenced by others but has zero outgoing connections (D6: +4-5)",
-          "[med] Deduplicate memory categories content with MEMORIES.md index — either cross-reference the index or make the index defer to this memory as source of truth (D3: +3-4)",
-          "[low] Rename to essential-conventions-memory_naming for specificity — current name is vague about what aspect of memory it covers (D1: +2)"
+          "[high] Downgrade from essential- to relevant- — memory conventions are only needed when creating/evaluating memories, not every session; auto-loading wastes context (D4: +5-7)",
+          "[med] Resolve duplication with MEMORIES.md index — the index repeats all six category definitions; make this memory the single source of truth and have the index cross-reference it instead (D3: +4-5)",
+          "[med] Fix Quick Reference pattern mismatch — uses ONLY READ WHEN (selective) but auto-loads as essential; either switch to MANDATORY pattern or downgrade category (D2: +4-5)"
         ]
       },
       "essential-preferences-communication_style": {
-        "file_hash": "78cf4171",
+        "file_hash": "0afefdee",
         "date": "2026-03-09",
         "grade": "B",
-        "score": 100,
+        "score": 99,
         "max": 115,
-        "percentage": 87,
+        "percentage": 86.1,
         "dimensions": {
           "D1": 19,
           "D2": 23,
           "D3": 14,
           "D4": 15,
-          "D5": 19,
+          "D5": 18,
           "D6": 10
         },
         "top_improvements": [
-          "Deduplicate content shared with /snap-back skill — the anti-patterns table, pushback handling table, The Test blockquote, politeness table, and not-sycophancy list are all nearly verbatim in both; memory should be source of truth, skill should reference it",
-          "Add cross-reference to personal-preferences-casual_communication_style in Quick Reference See Also — the casual memory references this one but not vice versa",
-          "Consider restructuring section 5 (Key Principle) to separate the principle statement from the clarification list for better scannability"
+          "[high] Deduplicate content shared with /snap-back skill — anti-patterns table, pushback handling table, The Test blockquote, politeness table, and not-sycophancy list are nearly verbatim in both; designate this memory as source of truth and have snap-back cross-reference it (D3: +4, D6: +2)",
+          "[low] Add cross-reference to essential-toolkit-identity in See Also for ecosystem connectivity among sibling essential memories (D6: +1-2)",
+          "[low] Restructure section 5 (Key Principle) — separate the bold principle statement from the clarification list into a table or clearer visual structure for faster scanning (D5: +1-2)"
         ]
       },
       "relevant-workflow-task_completion": {
-        "file_hash": "8bcf7e8c",
+        "file_hash": "148897f0",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 100,
+        "grade": "A",
+        "score": 103,
         "max": 115,
-        "percentage": 86.96,
+        "percentage": 89.6,
         "dimensions": {
           "D1": 19,
           "D2": 23,
           "D3": 15,
           "D4": 14,
-          "D5": 18,
-          "D6": 11
+          "D5": 19,
+          "D6": 13
         },
         "top_improvements": [
-          "[medium] Section 5 (Bug Fix Approach) is tangential to task completion — move to essential-conventions-code_style or add context explaining why it belongs in this workflow (D3: -3)",
-          "[medium] Add cross-reference to relevant-workflow-branch_development as a natural companion workflow and to CLAUDE.md When You re Done section (D6: -3)",
-          "[low] Section 3 (Handling Linter Exceptions) is narrowly scoped to PLR09XX ruff errors — either broaden to cover general linter exception handling or rename the section to be specific (D3: -2)"
+          "[medium] Section 5 (Bug Fix Approach) is tangential to task completion — move to essential-conventions-code_style or add context framing why bug fix philosophy is a completion gate (D3: +3-5)",
+          "[low] Section 3 (Handling Linter Exceptions) is narrowly scoped to PLR09XX ruff errors — either broaden to general linter exception handling or rename to be specific about ruff complexity rules (D3: +1-2)",
+          "[low] Add cross-reference to goal-verifier agent which validates task completion from a different angle (D6: +1-2)"
         ]
       },
       "relevant-workflow-branch_development": {
-        "file_hash": "8bc8dbc1",
+        "file_hash": "dfd83431",
         "date": "2026-03-09",
         "grade": "A",
-        "score": 105,
+        "score": 108,
         "max": 115,
-        "percentage": 91.3,
+        "percentage": 93.91,
         "dimensions": {
           "D1": 19,
-          "D2": 23,
+          "D2": 24,
           "D3": 18,
           "D4": 14,
           "D5": 19,
-          "D6": 12
+          "D6": 14
         },
         "top_improvements": [
-          "Add cross-reference to relevant-reference-hooks_config for enforce-feature-branch.sh hook that enforces the same branch protection convention",
-          "Add cross-reference to sibling workflow memory relevant-workflow-task_completion for ecosystem connectivity",
-          "Section 5 (Exceptions) could use a table format instead of prose+bullets for consistency with other sections"
+          "[low] Section 5 (Exceptions) could use a table format (Condition/Acceptable columns) instead of prose+bullets for visual consistency with sections 2 and 4 (D5: +1)",
+          "[low] The --no-ff merge command in Section 3 overlaps with CLAUDE.md line 18 — consider replacing the inline command with a comment referencing CLAUDE.md to fully avoid duplication (D3: +1)",
+          "[low] Could add a brief note about branch cleanup after merge in a remote context (git push origin --delete) for completeness (D3: minor)"
         ]
       },
       "relevant-conventions-backlog_schema": {
-        "file_hash": "d2a553f0",
+        "file_hash": "474bd2e3",
         "date": "2026-03-09",
         "grade": "B",
-        "score": 95,
+        "score": 97,
         "max": 115,
-        "percentage": 82.6,
+        "percentage": 84.3,
         "dimensions": {
           "D1": 19,
-          "D2": 22,
+          "D2": 23,
           "D3": 14,
           "D4": 14,
           "D5": 19,
-          "D6": 7
+          "D6": 8
         },
         "top_improvements": [
-          "[high] Add See Also cross-references to parent CLAUDE.md Backlog Format section and remove duplicated tooling section (section 7) — tooling commands are nearly verbatim from parent CLAUDE.md (D6: +5, D3: +3)",
-          "[high] Fix P3 priority tier contradiction — memory defines P3 (Low) but parent CLAUDE.md schema only has P0/P1/P2/P100 with no P3; reconcile or document the discrepancy (D3: +2)",
-          "[med] Add See Also section referencing essential-conventions-memory and any BACKLOG template files to integrate with the resource ecosystem (D6: +3)"
+          "[high] Remove or reduce section 7 (Tooling) which is nearly verbatim from parent CLAUDE.md; replace with a cross-reference to the canonical source to eliminate duplication (D3: +3, D6: +3)",
+          "[high] Reconcile P3 priority tier — memory defines P3 (Low) but parent CLAUDE.md only lists P0/P1/P2/P100; either remove P3 or document it as a toolkit extension (D3: +2, D6: +1)",
+          "[med] Add a See Also section at end referencing parent CLAUDE.md Backlog Format section and .claude/templates/backlog/ template files for ecosystem connectivity (D6: +3)"
         ]
       },
       "relevant-reference-hooks_config": {
-        "file_hash": "812f5548",
+        "file_hash": "ab4f5361",
         "date": "2026-03-09",
         "grade": "B",
-        "score": 92,
+        "score": 96,
         "max": 115,
-        "percentage": 80.0,
+        "percentage": 83.5,
         "dimensions": {
-          "D1": 19,
-          "D2": 21,
-          "D3": 12,
+          "D1": 18,
+          "D2": 23,
+          "D3": 13,
           "D4": 14,
           "D5": 19,
-          "D6": 7
+          "D6": 9
         },
         "top_improvements": [
-          "Remove or replace section 2 (Active Hooks by Trigger) with a cross-reference to .claude/indexes/HOOKS.md to eliminate duplication — D3/D6 impact",
-          "Add See Also section cross-referencing HOOKS.md index, settings.json, and related hook scripts — D6 impact",
-          "Add missing hooks (block-config-edits.sh, anti-rationalization.sh) if keeping the hook listing, or remove listing entirely — D3/D6 accuracy"
+          "Remove or cross-reference the hooks listing table — it duplicates HOOKS.md index and is already stale (missing block-config-edits.sh). Replace with a pointer to HOOKS.md as the authoritative source.",
+          "Add HOOKS.md index to See Also as the comprehensive hook reference, since this memory is a configuration-focused subset.",
+          "Add block-config-edits.sh to the hooks table if keeping the listing, or note that the full list lives in HOOKS.md."
         ]
       },
       "relevant-philosophy-reducing_entropy": {
-        "file_hash": "c4c8bffb",
+        "file_hash": "c6d97d69",
         "date": "2026-03-09",
         "grade": "A",
         "score": 105,
@@ -1097,13 +1097,13 @@
           "D2": 24,
           "D3": 17,
           "D4": 14,
-          "D5": 17,
-          "D6": 13
+          "D5": 16,
+          "D6": 14
         },
         "top_improvements": [
-          "Remove internal redundancy: \"The Uncomfortable Truth\" section restates the same idea from \"Three Questions\" point 2 — consolidate or differentiate",
-          "Number all sections consistently (only section 1 is numbered, rest use descriptive headings without numbers)",
-          "Add back-reference to essential-toolkit-identity which references this memory as \"curation philosophy\""
+          "[medium] Number all sections consistently (## 2. Core Question, ## 3. Three Questions, etc.) to match convention used in other memories -- D5",
+          "[low] Remove internal repetition: the core message about \"better organized but more code = more entropy\" appears in both Core Question (line 21) and The Uncomfortable Truth (line 57) -- consolidate into one location -- D3",
+          "[low] The Uncomfortable Truth section could be merged into Core Question or deleted entirely since it restates the same point with a slightly different quote -- D3"
         ]
       },
       "essential-toolkit-identity": {
