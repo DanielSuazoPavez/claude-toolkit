@@ -120,6 +120,12 @@ This passes L1 (file exists) and L2 (real code), but fails L3 (not wired). The f
 **Handoff**: After writing, return a brief summary to the user:
 > "Report written to {path}. Status: {PASS|FAIL|PARTIAL}. {1-sentence summary}."
 
+## See Also
+
+- `implementation-checker` — checks plan-vs-implementation alignment (complementary: they check the plan, you check the goal)
+- `code-reviewer` — reviews code quality and risks (you verify completeness, they verify correctness)
+- `/wrap-up` — branch finalization workflow that may invoke verification before merge
+
 ## What You Verify
 
 You verify the **current working tree** — committed and uncommitted changes alike. This is intentional: verification should happen *before* committing, so gaps can be fixed without amending or fixup commits.

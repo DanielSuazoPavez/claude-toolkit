@@ -92,6 +92,12 @@ The report should be the full markdown output, not a summary.
 - Implement fixes (I flag what needs attention)
 - Require all deviations to be "wrong" (intentional improvements are valid)
 
+## See Also
+
+- `goal-verifier` — verifies the feature actually works end-to-end (complementary: you check plan alignment, they check goal achievement)
+- `code-reviewer` — reviews code quality independent of the plan (you check "did we build what we planned", they check "is what we built sound")
+- `/review-plan` — reviews plan quality before implementation begins (upstream: good plans make your job easier)
+
 ## Report Format
 
 ```markdown
