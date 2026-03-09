@@ -10,12 +10,13 @@ Evaluate skill design quality against best practices.
 ## Contents
 
 1. [Core Philosophy](#core-philosophy) - Knowledge delta formula
-2. [Evaluation Dimensions](#evaluation-dimensions-120-points) - 8 dimensions (D4 revised, D7 replaced)
-3. [Scoring Calibration](#scoring-calibration) - Score-to-criteria mapping
-4. [Grading Scale](#grading-scale) - Grade thresholds
-5. [JSON Output Format](#json-output-format) - Result schema
-6. [Invocation](#invocation) - How to run evaluations
-7. [Example Evaluation](#example-evaluation) - Complete worked example
+2. [Skill Types](#skill-types) - Knowledge vs command classification
+3. [Evaluation Dimensions](#evaluation-dimensions-120-points) - 8 dimensions (D4 revised, D7 replaced)
+4. [Scoring Calibration](#scoring-calibration) - Score-to-criteria mapping
+5. [Grading Scale](#grading-scale) - Grade thresholds
+6. [JSON Output Format](#json-output-format) - Result schema
+7. [Invocation](#invocation) - How to run evaluations
+8. [Example Evaluation](#example-evaluation) - Complete worked example
 
 ## Core Philosophy
 
@@ -33,15 +34,50 @@ Value = knowledge delta. Skills should contain decision trees, trade-offs, edge 
 | **Activation** | Keep sparingly | Brief reminders of known concepts |
 | **Redundant** | Delete | Basic concepts Claude knows |
 
+## Skill Types
+
+Skills declare a `type` in frontmatter: `knowledge` (default) or `command`.
+
+| Type | Value Proposition | Examples |
+|------|-------------------|----------|
+| **knowledge** | Expert knowledge transfer — decision trees, trade-offs, domain frameworks | design-db, design-tests, refactor |
+| **command** | Expert curation + consistent execution — checklists, sequences, resets | wrap-up, write-handoff, snap-back |
+
+**How to classify:** If the skill's primary value is "knowing *which* things to check and *in what order*" rather than "explaining *how* to think about a domain," it's a command.
+
+### Dimension Adjustments for Command-Type Skills
+
+Command skills use the same 8 dimensions and 120-point scale, but D1, D2, and D8 are interpreted differently:
+
+| Dimension | Knowledge Interpretation | Command Interpretation |
+|-----------|--------------------------|------------------------|
+| **D1** (20 pts) | Does it add genuine expert knowledge? | Is the checklist expert-curated? Would removing any item leave a gap? Are items non-obvious in combination? |
+| **D2** (15 pts) | Does it transfer expert thinking? | Does it encode expert sequencing? Does the order matter and is it correct? |
+| **D8** (15 pts) | Decision trees, examples, edge cases? | Is the execution sequence clear and complete? Are edge cases handled (partial completion, errors)? |
+
+D3–D7 apply identically to both types.
+
+### D1 Scoring Calibration for Command Type
+
+| Score | Criteria |
+|-------|----------|
+| 18-20 | Checklist captures non-obvious items; removing any creates a real gap; ordering reflects expert judgment |
+| 14-17 | Good coverage but some items are obvious or ordering is arbitrary |
+| 10-13 | Mostly obvious items with a few expert picks |
+| 5-9 | Generic checklist anyone could write |
+| 0-4 | Trivial — no curation value |
+
 ## Evaluation Dimensions (120 points)
 
 ### D1: Knowledge Delta (20 pts) - Most Critical
 Does it add genuine expert knowledge?
 - Red flags: "What is X" sections, generic best practices
 - Green flags: Non-obvious decisions, expert trade-offs
+- **Command type:** See [Dimension Adjustments](#dimension-adjustments-for-command-type-skills) for reinterpretation
 
 ### D2: Mindset + Procedures (15 pts)
 Does it transfer expert thinking AND domain-specific workflows?
+- **Command type:** Does it encode expert sequencing? Does the order matter and is it correct?
 
 ### D3: Anti-Pattern Quality (15 pts)
 Are anti-patterns specific with reasoning, not vague warnings?
@@ -81,6 +117,7 @@ Does it work well within the resource ecosystem?
 
 ### D8: Practical Usability (15 pts)
 Decision trees, working examples, error handling, edge cases?
+- **Command type:** Is the execution sequence clear and complete? Are edge cases handled (partial completion, errors)?
 
 ## Scoring Calibration
 
@@ -115,12 +152,12 @@ Decision trees, working examples, error handling, edge cases?
 
 ## Edge Cases
 
-| Skill Type | Evaluation Adjustment |
-|------------|----------------------|
-| **Reset/Calibration** | D1 judged on "resets behavior effectively" not "adds knowledge" |
-| **Meta-skills** | Self-reference is fine if genuinely useful |
-| **Navigation** | Minimal is correct; penalize bloat, not brevity |
-| **Wrapper/Utility** | Lower D1 bar if procedural value is clear |
+| Skill Type | Classification | Evaluation Adjustment |
+|------------|---------------|----------------------|
+| **Reset/Calibration** | `command` | D1 judged on curation: does the reset target the right behaviors? |
+| **Meta-skills** | `knowledge` | Self-reference is fine if genuinely useful |
+| **Navigation** | `knowledge` | Minimal is correct; penalize bloat, not brevity |
+| **Wrapper/Utility** | `command` | D1 judged on curation: does it cover the right steps? |
 
 ## Grading Scale
 
@@ -151,6 +188,7 @@ Decision trees, working examples, error handling, edge cases?
 {
   "file_hash": "<first 8 chars of MD5>",
   "date": "YYYY-MM-DD",
+  "type": "knowledge|command",
   "grade": "A/A-/B+/B/B-/C+/C/D/F",
   "score": <total>,
   "max": 120,
@@ -187,11 +225,12 @@ Using a separate agent ensures objective assessment without influence from prior
 ## Evaluation Protocol
 
 1. Read completely, mark sections as [E]xpert, [A]ctivation, [R]edundant
-2. Analyze structure: frontmatter, line count, pattern
-3. Score each dimension with evidence
-4. Calculate total, assign grade
-5. Generate report with JSON output including file_hash and top 3 improvements (tag each with `[high]` or `[low]` priority)
-6. Update `.claude/indexes/evaluations.json` using jq:
+2. Determine type from frontmatter (`type: knowledge|command`, default: `knowledge`). Apply dimension adjustments from [Skill Types](#skill-types) accordingly.
+3. Analyze structure: frontmatter, line count, pattern
+4. Score each dimension with evidence
+5. Calculate total, assign grade
+6. Generate report with JSON output including file_hash, type, and top 3 improvements (tag each with `[high]` or `[low]` priority)
+7. Update `.claude/indexes/evaluations.json` using jq:
    ```bash
    jq --argjson result '<JSON>' '.skills.resources["<name>"] = $result' .claude/indexes/evaluations.json > tmp && mv tmp .claude/indexes/evaluations.json
    ```
@@ -243,8 +282,22 @@ Use branches for features. Commit often. Write good messages.
 | D7 | 13/15 | References commit conventions memory, defers to branch workflow |
 | D8 | 14/15 | Decision tree, tables, concrete examples |
 
+## See Also
+
+- `/evaluate-agent` — Sibling evaluator for agent .md files (behavioral effectiveness rubric).
+- `/evaluate-hook` — Sibling evaluator for hooks (testability and safety rubric).
+- `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
+- `/evaluate-batch` — Run evaluations across multiple resources of one type.
+- `/create-skill` — Skill creation with quality gates informed by this rubric.
+
 ## The Meta-Question
 
+**Knowledge type:**
 > "Would an expert say this captures knowledge requiring years to learn?"
 
 If yes → genuine value. If no → it's compressing what Claude already knows.
+
+**Command type:**
+> "Does this flow produce more consistent results than a natural language prompt asking for the same task?"
+
+If yes → the structure encodes "how we work here" in a stable, repeatable way. If no → it should be a prompt, not a skill.

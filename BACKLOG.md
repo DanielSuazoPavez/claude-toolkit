@@ -23,11 +23,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **scope**: `toolkit`
     - **notes**: Rules are modular markdown files in `.claude/rules/` with optional `paths` glob frontmatter — instructions that only activate when working with matching files. Could add automatic file-aware instruction activation. Ref: `.claude/output/drafts/claude-code-rules.md`, https://code.claude.com/docs/en/memory
 
-- **[SKILLS]** Command-style skill classification and evaluation (`skill-command-type-evaluation`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Command-like skills (snap-back, wrap-up, write-handoff) get unfairly penalized on D1 Knowledge Delta — their value is activation and consistency, not novel knowledge. A curated "check these 16 things" list is expert curation even if individual items aren't novel. Options: (1) Add a `type` field to skill frontmatter and branch evaluation by type, (2) Revive `commands/` as a separate resource type with its own lighter evaluator, (3) Keep in `skills/` but create a second rubric dispatched by type. Deep dive into Anthropic's skill-creator skill for reference on how they handle this spectrum. Ref: suggestions-box/claude-meta issues #1 and #5.
-
 ## P1 - High
 
 - **[TOOLKIT]** Repository identity document — what claude-toolkit is and isn't (`toolkit-identity-doc`)
@@ -60,6 +55,11 @@ Iterating on resources through real usage — fixing issues surfaced from projec
     - **status**: `idea`
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
+
+- **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
+    - **status**: `idea`
+    - **scope**: `skills, agents, hooks, memories`
+    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation.
 
 ## P3 - Low
 

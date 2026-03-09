@@ -1,5 +1,6 @@
 ---
 name: snap-back
+type: command
 description: Reset tone when Claude drifts into sycophancy. Use when responses feel "off" or overly agreeable.
 ---
 
