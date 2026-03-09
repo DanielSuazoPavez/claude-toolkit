@@ -1,11 +1,50 @@
 # write-docs Examples
 
-Good and bad examples for both modes. Use these to calibrate output quality.
+Worked examples and good/bad comparisons for both modes.
 
 ## Contents
 
-1. [User-Docs Mode](#user-docs-mode) — README and markdown documentation
-2. [Docstrings Mode](#docstrings-mode) — Inline code documentation
+1. [Worked Example](#worked-example-gap-analysis-to-documentation) — End-to-end flow
+2. [User-Docs Mode](#user-docs-mode) — README and markdown documentation
+3. [Docstrings Mode](#docstrings-mode) — Inline code documentation
+
+---
+
+## Worked Example: Gap Analysis to Documentation
+
+A user asks: "Document the CLI for my project." Here's the flow from gap analysis through writing and verification.
+
+**Step 1-2: Discovery and gap analysis output:**
+
+```markdown
+## Gap Analysis: myapp CLI
+
+### Existing Docs
+- `README.md` — has install section, CLI section lists 2 of 4 subcommands
+- No standalone CLI reference
+
+### Gaps Found
+1. [OUTDATED] README shows `myapp init --template` but code removed `--template` in v2.0
+2. [GAP] `myapp migrate` and `myapp validate` subcommands undocumented
+3. [MISSING] No exit code documentation (CI users need this)
+
+### Recommended Actions
+- [ ] Fix README CLI section (remove dead `--template` flag)
+- [ ] Add `migrate` and `validate` to CLI reference
+- [ ] Document exit codes
+
+Proceed with these?
+```
+
+**Step 3: Style detection** — existing README uses casual tone, `##` for sections, code blocks with output comments.
+
+**Step 4: Write** — after user confirms, update README CLI section. Every flag comes from reading `cli.py`'s argument parser. Every exit code comes from tracing `sys.exit()` calls.
+
+**Step 5: Verify** — staleness-risk prioritization:
+1. Code examples: mentally trace `myapp migrate --dry-run` against the handler
+2. Parameter list: confirm `--dry-run` and `--target` exist in argparse definition
+3. Exit codes: trace each `sys.exit()` call to confirm codes 0, 1, 2 match documented values
+4. File path `config/migrations/`: confirm directory exists in project structure
 
 ---
 

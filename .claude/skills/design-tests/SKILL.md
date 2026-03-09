@@ -1,6 +1,7 @@
 ---
 name: design-tests
-description: Use when writing or reviewing tests. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "test organization", "test gaps", "test audit", or "coverage audit".
+type: knowledge
+description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "pytest structure", "missing tests", "test audit", or "coverage audit".
 ---
 
 # Test Design Guide
@@ -9,12 +10,7 @@ Consistent pytest patterns for reliable, maintainable tests.
 
 ## Mindset: Tests Are Specifications
 
-Tests are not verification — they are **executable specifications** of behavior contracts. A well-written test suite is the most accurate documentation of what your code promises to do.
-
-This changes how you write them:
-- **Name tests for the behavior**, not the function: `test_expired_token_returns_401` not `test_validate_token`
-- **A broken test means the contract changed** — decide if the contract or the code is wrong before touching either
-- **Missing test = undocumented behavior** — if it's not tested, it's not promised
+Tests are executable behavior contracts. Name them for the behavior (`test_expired_token_returns_401`), not the function (`test_validate_token`). A broken test means the contract changed — decide if the contract or the code is wrong before touching either.
 
 ## Table of Contents
 
@@ -68,7 +64,7 @@ What type of code is this?
 
 ## Audit Mode — Gap Analysis
 
-Use when asked to audit, review, or find gaps in existing test coverage.
+Code-level audit: maps source files to pytest files, flags missing test cases. For test *strategy* (risk-based prioritization, release readiness, QA planning), use `/design-qa` instead.
 
 ### Process
 
@@ -186,16 +182,7 @@ Should I mock this?
 └─ Third-party library internals? → No, mock at your boundary
 ```
 
-**Prefer dependency injection** over `@patch` — it makes dependencies explicit and tests clearer. Use `@patch` only for legacy code without DI.
-
-```python
-# Mock at your boundary, not theirs
-@patch("myapp.service.tax_api.get_rate")  # Good: external boundary
-def test_order_total(mock_api): ...
-
-@patch("myapp.service._calculate_tax")  # Bad: internal detail
-def test_order_total(mock_tax): ...
-```
+**Prefer dependency injection** over `@patch`. Use `@patch` only for legacy code without DI. Always mock at your boundary (`myapp.service.tax_api.get_rate`), never at internals (`myapp.service._calculate_tax`).
 
 ---
 
@@ -391,20 +378,23 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | **Parametrize different logic** | Cryptic names, painful debugging | Separate tests for different behaviors |
 | **100% coverage goal** | Diminishing returns past 80% | Cover critical paths and edge cases |
 | **Testing only happy path** | Misses rollback bugs, auth bypasses, API failures | See [High-Risk Scenarios](#high-risk-scenarios) |
+| **Fixture scope pollution** | `session`/`module` fixture mutated by one test, breaks others non-deterministically | Use `function` scope for mutable state; reserve broader scopes for read-only or connection fixtures |
+| **conftest.py at wrong level** | Fixtures in root conftest shared everywhere — tests implicitly depend on unrelated setup | Put fixtures in the narrowest conftest that covers their consumers; root conftest only for truly global fixtures (DB connection, app factory) |
 
 ## Rationalizations
 
 | Rationalization | Counter |
 |-----------------|---------|
-| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
-| "I'll write tests after" | Tests-after ask "what does this do?" Tests-first ask "what should this do?" Different questions, different quality. |
-| "I already manually tested it" | Ad-hoc ≠ systematic. No record, can't re-run, misses edge cases. |
-| "TDD will slow me down" | TDD is faster than debugging. The test you skip now is the bug you debug later. |
-| "This is glue code, doesn't need tests" | Glue fails silently. Integration bugs are the hardest to find. |
-| "Need to explore the API first" | Fine. Throw away the exploration code, then start with TDD. |
+| "Too simple to need tests" | Simple code breaks at boundaries. The test takes 30 seconds — the debugging takes 30 minutes. |
+| "I'll add tests after the implementation" | You won't. And tests-after verify what you wrote, not what you intended. Write the test first. |
+| "I already verified it works" | You verified the happy path once. Tests verify edge cases every time, automatically. |
+| "This is just glue code" | Glue fails silently — wrong argument order, missing await, swapped parameters. Integration bugs are the hardest to trace. |
+| "The function is too hard to test" | Hard to test = hard to use. The test is telling you the interface needs work. Listen to it. |
+| "Existing code has no tests" | You're touching it now. Add tests for what you change — don't inherit the debt. |
 
 ## See Also
 
-- `/design-qa` — Sister skill for test strategy and planning. Use design-qa for risk-based test prioritization, design-tests for pytest patterns and implementation.
+- `/design-qa` — Test strategy and planning (what to test, risk prioritization, release readiness). This skill covers pytest implementation (how to write the tests). If you need both, start with design-qa for the plan, then come here to write the code.
 - `code-reviewer` agent — May flag missing tests or over-testing during code review.
+- `/design-docker` — Testing containerized services and CI/CD pipeline test configuration.
 - `/refactor` — If test structure needs updating after module reorganization.

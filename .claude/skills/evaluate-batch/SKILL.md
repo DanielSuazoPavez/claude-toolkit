@@ -63,10 +63,10 @@ agents:   .claude/agents/*.md
 ### 2. Filter
 
 - **Always exclude** `personal-` memories — personal memories are not evaluated
-- Read `.claude/indexes/evaluations.json`
-- Unless `re-evaluate=true`, only include resources that are:
+- If specific resources are listed in the invocation, evaluate exactly those — skip staleness checks
+- Otherwise, read `.claude/indexes/evaluations.json` and include resources that are:
   - **Unevaluated**: Not in `{type}.resources`
-  - **Stale**: `file_hash` doesn't match current file (`md5sum <file> | cut -c1-8`)
+  - **Stale**: `file_hash` doesn't match current file (`md5sum <file> | cut -c1-8`), OR the evaluate-* skill itself has changed since last evaluation
 
 Use the staleness check:
 ```bash
@@ -74,11 +74,15 @@ Use the staleness check:
 .claude/scripts/evaluation-query.sh stale        # hash mismatch
 ```
 
+**Note:** Hash-based staleness only catches resource changes. If the evaluate-* skill rubric has changed, resources may need re-evaluation even with matching hashes. When the user requests a full re-evaluation, skip staleness checks entirely.
+
 ### 3. Process Batches (Write After Each)
 
 For each batch of resources (up to batch-size):
 
 **3a. Launch parallel agents:**
+
+Agent prompt template:
 ```
 Launch agent with prompt:
 "Run /evaluate-{singular-type} on {resource-name} ({resource-path}).
@@ -95,6 +99,23 @@ Return results in JSON format:
   "top_improvements": ["...", "...", "..."]
 }
 "
+```
+
+Concrete example (evaluating a skill):
+```
+Run /evaluate-skill on create-hook (/home/user/project/.claude/skills/create-hook/SKILL.md).
+
+Return results in JSON format:
+{
+  "name": "create-hook",
+  "file_hash": "985a90a3",
+  "grade": "...",
+  "score": ...,
+  "max": 120,
+  "percentage": ...,
+  "dimensions": { "D1": ..., "D2": ..., "D3": ..., "D4": ..., "D5": ..., "D6": ..., "D7": ..., "D8": ... },
+  "top_improvements": ["...", "...", "..."]
+}
 ```
 
 Type mapping:
@@ -127,8 +148,8 @@ Add each result to `.claude/indexes/evaluations.json` under `{type}.resources.{n
 Batch 1/3 complete:
 | Resource | Grade | Score |
 |----------|-------|-------|
-| name-1   | A     | 93/100 |
-| name-2   | A-    | 89/100 |
+| name-1   | A     | 108/120 (90.0%) |
+| name-2   | A-    | 105/120 (87.5%) |
 ```
 
 **Why write after each batch:** If later batches fail or timeout, earlier results are already saved. Re-running the command will skip already-evaluated resources.
@@ -140,8 +161,8 @@ After all batches complete:
 ```
 | Resource | Grade | Score |
 |----------|-------|-------|
-| name-1   | A     | 93/100 |
-| name-2   | A-    | 89/100 |
+| name-1   | A     | 108/120 (90.0%) |
+| name-2   | A-    | 105/120 (87.5%) |
 ...
 
 Added N evaluations to .claude/indexes/evaluations.json
@@ -153,8 +174,10 @@ Added N evaluations to .claude/indexes/evaluations.json
 |----------|----------|
 | Fill gaps + refresh stale | Default (unevaluated + stale) |
 | Full quality audit | `re-evaluate=true` |
+| Rubric changed | `re-evaluate=true` — resource hashes match but scores are stale because the rubric itself changed |
 | Large resource set (10+) | `batch-size=3` to avoid timeouts |
 | Quick spot-check | `batch-size=2` on specific type |
+| Specific resources listed | Evaluates exactly those, skips all staleness checks |
 
 ## Calibration Notes
 
@@ -179,7 +202,7 @@ Evaluate in this order when doing full audit:
 
 **Detection:** Check agent files for `/skill-name` references to identify dependencies.
 
-**Score normalization:** All evaluations output scores as percentage (0-100) regardless of the underlying dimension structure.
+**Score normalization:** Each resource type has its own dimension structure and max score (e.g., skills: /120, agents: /115, hooks: /115). The `percentage` field normalizes across types — use it for cross-type comparisons and thresholds (e.g., 85% quality gate).
 
 ## Error Handling
 
@@ -234,8 +257,8 @@ Re-run → Filter finds only 5 remaining → single batch needed
 ```
 | Resource      | Grade | Score   |
 |---------------|-------|---------|
-| secrets-guard | A-    | 89/100  |
-| session-start | A     | 93/100  |
+| secrets-guard | A-    | 95/115 (82.6%)  |
+| session-start | A     | 103/115 (89.6%) |
 
 Added 2 evaluations to .claude/indexes/evaluations.json
 ```
@@ -244,7 +267,7 @@ Added 2 evaluations to .claude/indexes/evaluations.json
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| **Bypassing skills** | Manually writing evaluation logic | Always use `/evaluate-{type}` skills via agents |
+| **Bypassing skills** | Each evaluator outputs different JSON structures and dimension names — manually writing evaluation logic produces inconsistent formats that break evaluations.json merging and cross-resource comparisons | Always use `/evaluate-{type}` skills via agents |
 | **Serial execution** | Running one at a time | Use parallel Task calls up to batch-size |
 | **Over-parallelizing** | Burns tokens fast, hits API throughput limits | Keep batch-size ≤5, run batches sequentially |
 | **Missing JSON format** | Agent returns prose, not structured data | Explicitly request JSON in agent prompt |

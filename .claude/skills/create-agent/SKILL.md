@@ -18,7 +18,7 @@ Use when adding a new agent to `.claude/agents/`.
 9. [Anti-Patterns](#anti-patterns) - Named failures
 10. [Iteration Reference](#iteration-reference) - Narrowing scope and fixing evaluations
 
-**Related:** `/evaluate-agent` (quality gate — run after creating), `/create-skill` (when a skill fits better than an agent)
+**See also:** `/evaluate-agent` (quality gate), `/create-skill` (when a skill fits better), `/create-hook` (for enforcement patterns), `/create-memory` (for context persistence)
 
 ## When to Use
 
@@ -51,7 +51,7 @@ What does this agent do that default Claude doesn't?
 
 Location: `.claude/agents/<agent-name>.md`
 
-Use `noun` or `noun-qualifier` format for agent names. See `docs/naming-conventions.md`.
+Use `context-role` format for agent names. See `docs/naming-conventions.md`.
 
 **Required frontmatter:**
 ```yaml
@@ -153,7 +153,7 @@ Agents that evaluate, check, or validate work need explicit rejection criteria t
 - Explicit pass/fail/partial output states
 - Automatic fail triggers (conditions that always result in rejection)
 
-**Example from migration-reviewer:**
+**Example (hypothetical migration-reviewer):**
 ```
 ## Verdict
 

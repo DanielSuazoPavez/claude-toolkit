@@ -1,9 +1,12 @@
 ---
 name: create-hook
+type: command
 description: Create new hooks for Claude Code. Use when adding safety, automation, or notification hooks. Keywords: PreToolUse, PostToolUse, block commands, hook script, settings.json hooks.
 ---
 
 Use when adding a new hook to `.claude/hooks/`.
+
+**See also:** `/evaluate-hook` (quality gate), `/create-skill` (when a skill fits better), `/create-agent` (when an agent fits better)
 
 Use `verb-noun.sh` format for hook names. See `docs/naming-conventions.md`.
 
@@ -22,7 +25,7 @@ Use `verb-noun.sh` format for hook names. See `docs/naming-conventions.md`.
 - Want to **react after** something happens? → `PostToolUse`
 - Want **alerts when Claude waits**? → `Notification`
 
-See `HOOKS_API.md` for all 13 events.
+See `resources/HOOKS_API.md` for all 13 events.
 
 ### 2. Write the Hook
 
@@ -84,6 +87,63 @@ Use this configuration as the LITERAL STARTING POINT. Modify the event, matcher,
 Run `/evaluate-hook` on the result:
 - **Target: 85%**
 - If below target, iterate on the weakest dimensions
+
+### PostToolUse Example
+
+A hook that logs all file writes:
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+
+if [ "$TOOL_NAME" != "Write" ]; then
+    exit 0
+fi
+
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
+echo "[$(date)] Wrote: $FILE_PATH" >> ~/.claude/hooks-logs/writes.log
+exit 0
+```
+
+Configuration:
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Write",
+      "hooks": [{"type": "command", "command": "/path/to/log-writes.sh"}]
+    }]
+  }
+}
+```
+
+### Notification Example
+
+A hook that sends a desktop alert when Claude needs input:
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+MESSAGE=$(echo "$INPUT" | jq -r '.message // "Claude needs your attention"')
+notify-send "Claude Code" "$MESSAGE" 2>/dev/null || true
+exit 0
+```
+
+Configuration:
+```json
+{
+  "hooks": {
+    "Notification": [{
+      "hooks": [{"type": "command", "command": "/path/to/notify.sh"}]
+    }]
+  }
+}
+```
+
+## Real-World Reference
+
+See `relevant-reference-hooks_config` memory for 9 production hooks in this toolkit, covering safety (secrets-guard, enforce-uv-run), automation (session-start), and notification patterns.
 
 ## Best Patterns
 

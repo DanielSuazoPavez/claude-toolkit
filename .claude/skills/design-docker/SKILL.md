@@ -1,5 +1,6 @@
 ---
 name: design-docker
+type: knowledge
 description: Use when requests mention "dockerfile", "docker-compose", "containerize", "image size", or "deployment config".
 ---
 
@@ -322,3 +323,9 @@ infra-down:
 | **Shell form CMD** | Signals not forwarded | Exec form: `CMD ["app"]` |
 | **Secrets in ENV** | Visible in history | Runtime secrets, env_file |
 | **No health check** | Orchestrator can't verify readiness | Add with appropriate start_period |
+
+## See Also
+
+- `/design-db` — Database containers often pair with app containers. Use design-db for schema design, this skill for the Docker infrastructure around it.
+- `/design-diagram` — Visualize multi-container architectures. Use design-diagram to map service dependencies before writing compose files.
+- `/design-tests` — Test containers and CI/CD pipeline testing. Use design-tests for pytest patterns that test containerized services.

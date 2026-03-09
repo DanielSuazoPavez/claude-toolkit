@@ -1,6 +1,7 @@
 ---
 name: read-json
-description: Use when reading, querying, or analyzing JSON files. Keywords: .json, jq, JSON file, read JSON, parse JSON, query JSON, inspect JSON, extract from JSON. Uses jq for efficient querying.
+type: command
+description: Use when reading, querying, or analyzing JSON files. Keywords: .json, jq, JSON file, read JSON, parse JSON, query JSON, inspect JSON, extract from JSON.
 ---
 
 # JSON Reader Skill
@@ -30,103 +31,60 @@ jq '.[0:3]' /path/to/file.json  # For arrays
 jq '.specific.path' /path/to/file.json
 ```
 
-### 3. Common Operations
+### 3. Shell Quoting for jq
 
-| Task | Command |
-|------|---------|
-| Pretty-print | `jq '.' file.json` |
-| Extract field | `jq '.fieldname' file.json` |
-| Get keys | `jq 'keys' file.json` |
-| Filter array | `jq '.[] \| select(.status=="active")' file.json` |
-| Transform | `jq '{name: .user.name, age: .user.age}' file.json` |
-| Count items | `jq 'length' file.json` |
-| Get first N | `jq '.[0:5]' file.json` |
-| Remove quotes | `jq -r '.field' file.json` |
-
-### 4. Error Handling Patterns
+jq expressions with special characters break silently or produce wrong results. These patterns are the most common source of bugs.
 
 ```bash
-# Handle missing keys (return null instead of error)
-jq '.missing_key // null' file.json
+# WRONG: double quotes inside double quotes — shell eats the inner quotes
+jq ".users[] | select(.name == "alice")" file.json
 
-# Return default value for missing keys
-jq '.config.timeout // 30' file.json
+# RIGHT: single-quote the jq expression, use \" or jq's own string matching
+jq '.users[] | select(.name == "alice")' file.json
 
-# Handle null values in arrays
-jq '[.items[] | select(. != null)]' file.json
+# Interpolating shell variables — use --arg, not string interpolation
+name="alice"
+# WRONG: shell expansion inside jq
+jq ".users[] | select(.name == \"$name\")" file.json
+# RIGHT: --arg passes variables safely
+jq --arg n "$name" '.users[] | select(.name == $n)' file.json
 
-# Safe nested access (won't error if intermediate is null)
-jq '.data?.nested?.value' file.json
+# Multiple variables
+jq --arg status "$status" --arg role "$role" \
+  '.users[] | select(.status == $status and .role == $role)' file.json
 
-# Try/catch for potentially invalid paths
-jq 'try .path.to.value catch "not found"' file.json
+# Numeric variables — use --argjson (not --arg) to avoid string coercion
+jq --argjson min "$threshold" '.[] | select(.score >= $min)' file.json
 
-# Validate JSON before processing
-jq empty file.json && echo "Valid JSON" || echo "Invalid JSON"
-
-# Handle both object and array inputs
-jq 'if type == "array" then .[0] else . end' file.json
+# Filenames with spaces or special chars — quote the path
+jq '.data' "/path/to/my file.json"
 ```
 
-### 5. Complex Query Examples
+### 4. Malformed JSON Handling
 
 ```bash
-# Nested access with multiple conditions
-jq '.users[] | select(.age > 21 and .status == "active") | .name' file.json
+# Validate before processing
+jq empty file.json 2>/dev/null && echo "Valid" || echo "Invalid"
 
-# Combine filters with transformation
-jq '[.items[] | select(.price < 100) | {name, discounted: (.price * 0.9)}]' file.json
+# Show the exact parse error location
+jq '.' file.json 2>&1 | head -5
 
-# Group and count
-jq 'group_by(.category) | map({category: .[0].category, count: length})' file.json
+# Handle trailing commas (common hand-edited JSON)
+sed 's/,\s*}/}/g; s/,\s*\]/]/g' file.json | jq '.'
 
-# Flatten nested arrays
-jq '[.departments[].employees[].name]' file.json
+# Handle JSONL (newline-delimited JSON) — NOT valid JSON but common
+jq -s '.' file.jsonl          # slurp into array
+jq '.' file.jsonl             # process line by line (no -s)
 
-# Custom output formatting
-jq -r '.users[] | "\(.name): \(.email)"' file.json
+# Handle JSON with BOM (Windows-created files)
+sed '1s/^\xEF\xBB\xBF//' file.json | jq '.'
 
-# Multiple filters with different outputs
-jq '{total: length, active: [.[] | select(.active)] | length}' file.json
+# Truncated JSON — extract what you can
+jq -R 'try (fromjson | .key) catch empty' file.json
 
-# Sort and limit
-jq '[.[] | select(.score > 50)] | sort_by(.score) | reverse | .[0:10]' file.json
-
-# Merge objects
-jq '.defaults * .overrides' file.json
+# JSON embedded in other output (e.g., API response with headers)
+tail -1 response.txt | jq '.'
 ```
-
-## Fallback: When jq Is Unavailable
-
-If jq is not installed, use Python as fallback:
-
-```bash
-# Check if jq exists
-which jq || echo "jq not found, using Python fallback"
-
-# Python fallback for common operations
-python3 -c "import json; print(json.dumps(json.load(open('file.json')), indent=2))"
-
-# Get keys
-python3 -c "import json; print(list(json.load(open('file.json')).keys()))"
-
-# Extract field
-python3 -c "import json; print(json.load(open('file.json'))['fieldname'])"
-
-# Get length
-python3 -c "import json; print(len(json.load(open('file.json'))))"
-```
-
-### jq vs Python Comparison
-
-| Task | jq | Python Fallback |
-|------|-----|-----------------|
-| Pretty-print | `jq '.'` | `python3 -c "import json; ..."` |
-| Keys | `jq 'keys'` | `.keys()` |
-| Field | `jq '.field'` | `['field']` |
-| Filter | `jq 'select(...)'` | List comprehension |
-
-**Prefer jq** when available (faster, cleaner). Use Python only as fallback.
 
 ## Tool Selection
 
@@ -136,7 +94,7 @@ What do I need from this JSON?
 ├─ Specific known path → jq '.path.to.value'
 ├─ Complex filtering → jq with select()
 ├─ jq not installed → Python fallback
-└─ Need to modify file → Python (jq is read-only)
+└─ Need to modify file → Python or sponge (jq is read-only)
 ```
 
 | File Size | Approach |
@@ -151,5 +109,11 @@ What do I need from this JSON?
 |---------|---------|-----|
 | **Load Full File** | Wastes tokens on structure you don't need | Use `jq 'keys'` first, then target specific paths |
 | **Blind Extraction** | Guessing paths that may not exist | Explore with `keys` and samples before extracting |
-| **Read Tool for JSON** | Loads entire file into context | Always use jq/Python, even for small files |
+| **Read Tool for JSON** | Loads entire file into context | Always use jq via Bash, even for small files |
 | **No Length Check** | Surprised by 10K array elements | Check `length` before iterating |
+| **Shell Interpolation in jq** | Quoting bugs, injection, wrong results | Use `--arg`/`--argjson` for all shell variables |
+| **Assuming Valid JSON** | Cryptic jq errors on malformed input | Run `jq empty` first to validate |
+
+## See Also
+
+- `suggest-read-json` hook — PreToolUse hook that blocks Read tool on large JSON files and suggests this skill

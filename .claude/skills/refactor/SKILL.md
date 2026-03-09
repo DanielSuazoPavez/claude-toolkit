@@ -210,3 +210,4 @@ Cohesion issue at helpers.py
 - `code-reviewer` agent — Complementary pre-refactoring analysis.
 - `/review-changes` — Verify the refactoring after implementation.
 - `/design-tests` — Update test structure to match new module layout.
+- `/design-diagram` — Visualize dependency structure before and after refactoring.

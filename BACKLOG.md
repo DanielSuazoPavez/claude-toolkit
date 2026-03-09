@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluation baseline.
+Post-v2 — improve resources through real usage, expand into AWS and security domains.
 
 ## Scope Definitions
 
@@ -18,11 +18,7 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
 
 ## P0 - Critical
 
-- **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
-    - **status**: `in-progress`
-    - **scope**: `skills, agents, hooks, memories`
-    - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release.
-    - **progress**: Agents done (1.25.3). Hooks done (1.25.4). Memories done (1.25.5). Remaining: skills.
+(none)
 
 ## P1 - High
 
@@ -57,7 +53,22 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
 
+- **[TOOLKIT]** Standardize evaluation output to percentages (`evaluation-percentage-normalization`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: evaluate-skill uses /120 max, evaluate-agent uses /115 max — different scales confuse agents running evaluations. Standardize all evaluation outputs to percentages so 85% means the same thing everywhere. Affects: evaluate-skill rubric, evaluate-agent rubric, evaluations.json schema, evaluate-batch prompts.
+
+- **[SKILLS]** Rename frontmatter `type` field to avoid conflicts (`skill-frontmatter-type-rename`)
+    - **status**: `idea`
+    - **scope**: `skills, toolkit`
+    - **notes**: Claude Code / VS Code extension flags `type` as unsupported in skill frontmatter. Rename to something like `metadata: X-type` or a different key. Affects: all skills with `type: knowledge|command`, evaluate-skill rubric (references `type` in frontmatter), create-skill template, evaluations.json schema.
+
 ## P3 - Low
+
+- **[SKILLS]** Link `design-db` skill to config-driven schema generation repo (`skill-design-db-backing-repo`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Tie design-db to the config-driven schema generation repo (once polished). Would establish a new pattern: skills backed by real project code/examples, beyond just expert knowledge in markdown. Wait until the backing repo is stable enough to reference.
 
 ## P100 - Nice to Have
 

@@ -1,161 +1,102 @@
 ---
 name: design-db
-description: Use when requests mention "schema design", "database migration", "data modeling", "table design", "indexing strategy", or "normalize". Designs robust SQL/NoSQL schemas with normalization, indexing, migrations, constraints, and performance optimization.
+type: knowledge
+description: Use when requests mention "schema design", "database migration", "data modeling", "table design", "indexing strategy", or "normalize".
 ---
 
 # Database Schema Designer
 
-Design production-ready database schemas with best practices built-in.
+## Defaults (strict unless project overrides)
 
-## Quick Start
+| Decision | Default | Flexible when... |
+|----------|---------|-------------------|
+| Primary keys | BIGINT internal, UUID public-facing | Project already uses a different convention |
+| UUID version | UUIDv7 (time-ordered index locality) | UUIDv4 acceptable if no range queries on PK |
+| Foreign keys | Always constrain, define ON DELETE | Never skip — no flexibility here |
+| Money columns | DECIMAL, never FLOAT | Never skip |
+| Migrations | Always reversible (UP + DOWN) | One-way acceptable for data-only backfills |
+| Starting point | Normalize to 3NF first | Denormalize only with measured perf data |
 
-Describe your data model:
-```
-design a schema for an e-commerce platform with users, products, orders
-```
-
-## Process
-
-1. **Analyze**: Identify entities, relationships, access patterns
-2. **Design**: Normalize to 3NF, define keys, add constraints
-3. **Optimize**: Indexing strategy, consider denormalization
-4. **Migrate**: Reversible scripts, backward compatible
-
-## Quick Reference
-
-| Task | Approach |
-|------|----------|
-| New schema | Normalize to 3NF first |
-| SQL vs NoSQL | Access patterns decide |
-| Primary keys | INT or UUID (UUID for distributed) |
-| Foreign keys | Always constrain, define ON DELETE |
-| Indexes | FKs + WHERE columns |
-| Migrations | Always reversible |
-
-## SQL vs NoSQL Decision Tree
-
-```
-What's your primary access pattern?
-├─ Complex queries, joins, transactions → SQL
-│   ├─ Need ACID guarantees? → PostgreSQL
-│   ├─ High read volume? → MySQL with replicas
-│   └─ Embedded/lightweight? → SQLite
-│
-└─ Simple lookups by key, flexible schema → NoSQL
-    ├─ Document storage (nested, variable structure)? → MongoDB
-    ├─ Key-value with TTL (caching, sessions)? → Redis
-    ├─ Time-series data? → TimescaleDB, InfluxDB
-    └─ Graph relationships? → Neo4j
-```
-
-### Decision Factors
-
-| Factor | SQL | NoSQL |
-|--------|-----|-------|
-| Schema | Fixed, migrations | Flexible, schemaless |
-| Transactions | ACID guaranteed | Eventually consistent* |
-| Joins | Native, optimized | Application-level |
-| Scale | Vertical (+ read replicas) | Horizontal sharding |
-| Best for | Complex queries, reporting | High write volume, simple reads |
-
-*Some NoSQL (MongoDB, FaunaDB) support transactions
-
-## Data Types
+## Indexing Strategy
 
 ```sql
--- Money: ALWAYS DECIMAL, never FLOAT
-price DECIMAL(10, 2)
-
--- Timestamps
-created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-updated_at TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-
--- IDs
-id BIGINT AUTO_INCREMENT PRIMARY KEY  -- Simple
-id CHAR(36) DEFAULT (UUID())          -- Distributed
-```
-
-## Indexing
-
-```sql
--- Always index foreign keys
-CREATE INDEX idx_orders_customer ON orders(customer_id);
-
--- Composite: most selective first
+-- Composite: most selective column first
 CREATE INDEX idx_orders_status_date ON orders(status, created_at);
 
 -- Partial indexes: index only relevant rows (PostgreSQL)
 CREATE INDEX idx_orders_pending ON orders(created_at)
   WHERE status = 'pending';  -- Much smaller, faster index
 
--- Partial index for sparse columns (mostly NULL)
-CREATE INDEX idx_users_deleted ON users(deleted_at)
-  WHERE deleted_at IS NOT NULL;  -- Index only deleted users
-
--- Covering index: avoid table lookups
+-- Covering index: avoid table lookups entirely
 CREATE INDEX idx_orders_covering ON orders(customer_id, status, total)
-  INCLUDE (created_at);  -- Query satisfied entirely from index
+  INCLUDE (created_at);  -- Query satisfied from index alone
 ```
 
-## Anti-Patterns
+### When NOT to Index
 
-| Avoid | Instead | Why |
-|-------|---------|-----|
-| VARCHAR(255) everywhere | Size appropriately | Wastes memory in indexes, misleads validation |
-| FLOAT for money | DECIMAL(10,2) | FLOAT causes rounding errors: `0.1 + 0.2 != 0.3` |
-| Missing FK constraints | Always define FKs | Orphaned records, data corruption over time |
-| No indexes on FKs | Index every FK | JOINs become full table scans, cascade deletes slow |
-| Dates as strings | DATE, TIMESTAMP types | Can't compare, sort, or do date math correctly |
-| Non-reversible migrations | Always write DOWN | Stuck deployments, can't rollback safely |
-| Hard deletes | Soft delete with `deleted_at` | Lose audit trail, break foreign key references |
-| EAV (Entity-Attribute-Value) | JSON column or separate tables | Impossible to query efficiently, no type safety |
+| Scenario | Why Skip |
+|----------|----------|
+| Low-cardinality columns alone (boolean, status with 3 values) | Full scan often faster than index scan |
+| Write-heavy tables with rarely-queried columns | Index maintenance slows every INSERT/UPDATE |
+| Small tables (<1000 rows) | Sequential scan is fast enough |
+| Columns used only with functions | Index won't be used unless it's a functional index |
 
-## Migration Template
+### Index Maintenance Costs
 
-```sql
--- UP
-BEGIN;
-ALTER TABLE users ADD COLUMN phone VARCHAR(20);
-CREATE INDEX idx_users_phone ON users(phone);
-COMMIT;
+- Each index adds overhead to every INSERT, UPDATE, DELETE
+- Unused indexes waste disk and slow writes — audit with `pg_stat_user_indexes` or `sys.dm_db_index_usage_stats`
+- Duplicate/overlapping indexes (e.g., `(a)` + `(a, b)`) — the composite covers single-column queries
 
--- DOWN
-BEGIN;
-DROP INDEX idx_users_phone ON users;
-ALTER TABLE users DROP COLUMN phone;
-COMMIT;
+## Normalize vs Denormalize
+
+For complex schemas, use `/design-diagram` to visualize entity relationships before normalizing.
+
+```
+Should I normalize this data?
+├─ Is it reference data (rarely changes)? → Normalize (separate table)
+├─ Is it frequently queried together? → Consider denormalizing
+├─ Does duplication risk inconsistency? → Normalize
+├─ Is read performance critical? → Denormalize with care
+└─ Is write performance critical? → Normalize (fewer updates)
 ```
 
-## Schema Evolution Patterns
+| Scenario | Decision | Reasoning |
+|----------|----------|-----------|
+| User addresses | Normalize | `addresses` table with FK |
+| Order line items | Denormalize | Store price/name at time of order — source data changes |
+| Product categories | Normalize | Categories change rarely, many products reference same |
+| Cached aggregates | Denormalize | Store `order_count` on user — accept staleness |
 
-### Adding Columns Safely
+**Rule of thumb:** Start normalized, denormalize only when you have measured performance problems.
+
+## Schema Evolution
+
+### Safe Column Changes
 ```sql
 -- Safe: nullable column with default
 ALTER TABLE users ADD COLUMN preferences JSONB DEFAULT '{}';
 
 -- Unsafe: NOT NULL without default on large table (locks table)
--- Instead: add nullable, backfill, then add constraint
+-- Instead: add nullable → backfill in batches → add constraint
 ALTER TABLE users ADD COLUMN tenant_id BIGINT;
-UPDATE users SET tenant_id = 1 WHERE tenant_id IS NULL;  -- Batch this!
+-- Backfill in batches to avoid long locks:
+UPDATE users SET tenant_id = 1 WHERE tenant_id IS NULL AND id BETWEEN 1 AND 10000;
 ALTER TABLE users ALTER COLUMN tenant_id SET NOT NULL;
 ```
 
 ### Online DDL for Large Tables
-```sql
--- PostgreSQL: CREATE INDEX CONCURRENTLY (no lock)
-CREATE INDEX CONCURRENTLY idx_orders_customer ON orders(customer_id);
+- **PostgreSQL**: `CREATE INDEX CONCURRENTLY` (no lock)
+- **MySQL**: `pt-online-schema-change` or `gh-ost`
+- **Never** `ALTER TABLE` on million+ row tables during peak traffic
+- Backfill in batches: `UPDATE ... WHERE id BETWEEN x AND y LIMIT 1000`
 
--- MySQL: pt-online-schema-change or gh-ost for large tables
--- Avoid: ALTER TABLE on multi-million row tables during traffic
-```
-
-### Constraint Violation Handling
+### Upsert Patterns
 ```sql
--- Upsert pattern (PostgreSQL)
+-- PostgreSQL
 INSERT INTO users (email, name) VALUES ('a@b.com', 'Alice')
 ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;
 
--- Upsert pattern (MySQL)
+-- MySQL
 INSERT INTO users (email, name) VALUES ('a@b.com', 'Alice')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 ```
@@ -178,15 +119,13 @@ CREATE POLICY tenant_isolation ON orders
 CREATE INDEX idx_orders_tenant ON orders(tenant_id, created_at);
 ```
 
-## Soft Delete Patterns
+## Soft Delete Pattern
 
 ```sql
--- Standard soft delete
 ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP;
 CREATE INDEX idx_users_active ON users(id) WHERE deleted_at IS NULL;
 
--- Queries must filter: WHERE deleted_at IS NULL
--- Consider: view for active records
+-- View for active records (avoids forgetting the filter)
 CREATE VIEW active_users AS SELECT * FROM users WHERE deleted_at IS NULL;
 
 -- Unique constraints with soft delete (PostgreSQL)
@@ -194,56 +133,28 @@ CREATE UNIQUE INDEX idx_users_email_active ON users(email)
   WHERE deleted_at IS NULL;  -- Allows reuse of deleted emails
 ```
 
-## Normalize vs Denormalize
+## Anti-Patterns
 
-```
-Should I normalize this data?
-├─ Is it reference data (rarely changes)? → Normalize (separate table)
-├─ Is it frequently queried together? → Consider denormalizing
-├─ Does duplication risk inconsistency? → Normalize
-├─ Is read performance critical? → Denormalize with care
-└─ Is write performance critical? → Normalize (fewer updates)
-```
-
-| Scenario | Decision | Example |
-|----------|----------|---------|
-| User addresses | Normalize | `addresses` table with FK |
-| Order snapshot | Denormalize | Store price at time of order |
-| Product categories | Normalize | Categories change rarely |
-| Cached aggregates | Denormalize | Store `order_count` on user |
-
-**Rule of thumb:** Start normalized, denormalize only when you have measured performance problems.
-
-## Edge Cases
-
-### Large Table Migrations
-- **Never** run `ALTER TABLE` on million+ row tables during peak traffic
-- Use `pt-online-schema-change` (MySQL) or `CREATE INDEX CONCURRENTLY` (PostgreSQL)
-- Backfill data in batches: `UPDATE ... WHERE id BETWEEN x AND y LIMIT 1000`
-- Add columns as nullable first, backfill, then add NOT NULL constraint
-
-### Handling Constraint Violations
-- Use `ON CONFLICT` / `ON DUPLICATE KEY` for upserts
-- Wrap bulk inserts in transactions with `SAVEPOINT` for partial success
-- Log violations for debugging rather than silently ignoring
-
-### Partial Indexes for Sparse Data
-- Index only non-NULL values: `WHERE column IS NOT NULL`
-- Index only active records: `WHERE status = 'active'`
-- Index hot data: `WHERE created_at > NOW() - INTERVAL '30 days'`
-
-### UUID vs Integer Keys
-- UUIDs: no sequence bottleneck, safe for distributed systems, but larger indexes
-- Use UUIDv7 (time-ordered) for better index locality than UUIDv4
-- Consider `BIGINT` for internal tables, `UUID` for public-facing IDs
+| Avoid | Instead | Why |
+|-------|---------|-----|
+| VARCHAR(255) everywhere | Size appropriately | Wastes memory in indexes, misleads validation |
+| FLOAT for money | DECIMAL(10,2) | Rounding errors: `0.1 + 0.2 != 0.3` |
+| Missing FK constraints | Always define FKs | Orphaned records, data corruption over time |
+| No indexes on FKs | Index every FK | JOINs become full table scans, cascade deletes slow |
+| Non-reversible migrations | Always write DOWN | Stuck deployments, can't rollback safely |
+| Hard deletes | Soft delete with `deleted_at` | Lose audit trail, break FK references |
+| EAV (Entity-Attribute-Value) | JSON column or separate tables | Impossible to query efficiently, no type safety |
+| Indexing everything | Index what queries need | Write overhead, wasted disk, maintenance burden |
 
 ## Checklist
 
 - [ ] Every table has a primary key
-- [ ] All relationships have FK constraints
-- [ ] ON DELETE strategy defined for each FK
+- [ ] All relationships have FK constraints with ON DELETE defined
 - [ ] Indexes on all FKs and frequently queried columns
 - [ ] DECIMAL for money, proper types everywhere
 - [ ] NOT NULL on required fields
 - [ ] created_at and updated_at timestamps
-- [ ] Migrations are reversible
+- [ ] Migrations are reversible (UP + DOWN)
+- [ ] No unnecessary indexes on low-cardinality or write-heavy columns
+
+**See also:** `/design-diagram` (ER diagrams and relationship visualization), `/design-tests` (test database fixtures and factory patterns), `/refactor` (restructuring data access layers), `/design-docker` (database containers for local dev)

@@ -10,7 +10,7 @@ User-invocable skills activated with `/skill-name`.
 | `analyze-idea` | stable | Research tasks - investigate topics, gather evidence, generate reports |
 | `review-plan` | stable | Review implementation plans against quality criteria |
 | `write-handoff` | stable | Capture context before `/clear` for session continuity |
-| `wrap-up` | stable | Session wrap-up and handoff documentation |
+| `wrap-up` | stable | Finalize feature branches with changelog, version bump, and backlog updates |
 | `learn` | alpha | Capture lessons from corrections, patterns, conventions, gotchas |
 | `list-memories` | stable | List available memories with Quick Reference summaries |
 

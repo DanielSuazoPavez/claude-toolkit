@@ -6,6 +6,8 @@ description: Use before /clear when you have uncommitted changes, partial work, 
 
 Use before /clear to preserve context. Generates a continuation file for resuming work in a new session.
 
+**See also:** `/wrap-up` (when finishing a branch instead of pausing)
+
 ## What to Include vs Exclude
 
 ```

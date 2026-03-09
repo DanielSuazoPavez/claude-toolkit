@@ -150,7 +150,7 @@ Contains:
 
 `create-hook` demonstrates this pattern:
 - `SKILL.md` (~165 lines): Process + triggers
-- `HOOKS_API.md` (400 lines): Complete API reference
+- `resources/HOOKS_API.md` (400 lines): Complete API reference
 
 ## Testing Your Skill
 
@@ -166,6 +166,8 @@ Before outputting the skill, evaluate it with `/evaluate-skill`:
 - If below target, iterate on the weakest dimensions
 - Common fixes: add anti-patterns table, add decision tree, remove tutorial content
 - **D7 (Integration Quality)**: Check that references point to real resources, defer to existing content instead of restating it, and connect to related skills/agents/memories
+
+**See also:** `/create-agent` (when an agent fits better), `/create-hook` (for enforcement patterns), `/create-memory` (for context persistence)
 
 ## Naming Convention
 

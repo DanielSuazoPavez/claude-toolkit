@@ -69,7 +69,7 @@ Skip gracefully if not configured. Report failures.
 ```
 
 **GREEN path:**
-1. **Copy report FIRST** (before any removal): `cp <worktree>/.claude/output/reviews/<branch>-implementation-check-<YYYYMMDD>.md .claude/output/reviews/`
+1. **Copy report FIRST** (before any removal): `cp <worktree>/.claude/output/reviews/{YYYYMMDD}_{HHMM}__implementation-checker__{branch}.md .claude/output/reviews/`
 2. Remove worktree: `git worktree remove <worktree_path>`
 3. Checkout branch: `git checkout <branch_name>`
 4. Inform user: "On branch `<branch>` for manual review. Merge when ready: `git merge --no-ff <branch>`"
@@ -103,5 +103,8 @@ Skip gracefully if not configured. Report failures.
 
 ## See Also
 
-- `/setup-worktree` - Partner skill for creating worktrees
-- `implementation-checker` agent - Generates the health report
+- `/setup-worktree` — Partner skill for creating worktrees
+- `implementation-checker` agent — Generates the health report
+- `/wrap-up` — Finalize the branch after merging worktree results
+- `goal-verifier` agent — Alternative to implementation-checker for feature completeness
+- `relevant-workflow-branch_development` memory — Branch workflow conventions
