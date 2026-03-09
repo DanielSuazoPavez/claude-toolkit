@@ -26,7 +26,7 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
         - [x] Group 1 — create-*: create-agent, create-hook, create-memory, create-skill
         - [x] Group 2 — evaluate-*: evaluate-agent, evaluate-batch, evaluate-hook, evaluate-memory
         - [x] Group 3: brainstorm-idea, analyze-idea, wrap-up, write-handoff, review-plan
-        - [ ] Group 4: setup-worktree, teardown-worktree, review-changes, refactor, snap-back, list-memories, read-json, draft-pr, write-docs
+        - [x] Group 4: setup-worktree, teardown-worktree, review-changes, refactor, snap-back, list-memories, read-json, draft-pr, write-docs
         - [ ] Group 5 — design-*: design-db, design-diagram, design-docker, design-qa, design-tests
 
 ## P1 - High

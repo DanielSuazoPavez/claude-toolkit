@@ -369,27 +369,27 @@
         ]
       },
       "read-json": {
-        "file_hash": "09fdce86",
+        "file_hash": "d22c02d2",
         "date": "2026-03-09",
         "type": "command",
         "grade": "A-",
-        "score": 102,
+        "score": 106,
         "max": 120,
-        "percentage": 85.0,
+        "percentage": 88.3,
         "dimensions": {
           "D1": 17,
           "D2": 13,
           "D3": 14,
-          "D4": 8,
+          "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 9,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "[high] Add a See Also section referencing relevant ecosystem resources — D7 is the largest gap at 9/15",
-          "[low] Trim activation-level content (basic quoting) and add guidance for when jq output is too large for context — D1/D8",
-          "[low] Add JSONL and malformed JSON to keywords since the skill covers these cases substantively — D4"
+          "[low] Add JSONL and malformed to keywords since the skill covers these cases substantively — D4",
+          "[low] Trim the basic single-vs-double-quote example (lines 39-43) which is activation knowledge — D1",
+          "[low] Add guidance for when jq output exceeds context limits (jq -c, pipe to head) — D8"
         ]
       },
       "review-changes": {
@@ -561,27 +561,27 @@
         ]
       },
       "write-docs": {
-        "file_hash": "ad3719d6",
+        "file_hash": "2e262b60",
         "date": "2026-03-09",
         "type": "knowledge",
-        "grade": "B+",
-        "score": 101,
+        "grade": "A-",
+        "score": 105,
         "max": 120,
-        "percentage": 84.2,
+        "percentage": 87.5,
         "dimensions": {
-          "D1": 16,
+          "D1": 17,
           "D2": 13,
           "D3": 13,
-          "D4": 8,
-          "D5": 12,
+          "D4": 9,
+          "D5": 14,
           "D6": 13,
           "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "[high] Trim activation knowledge from Quality Rules table — rules like Never fabricate, Code is truth are principles Claude already follows; compress or delete to boost D1",
-          "[low] Standardize See Also reference format — mix of backtick agent names and /skill-name formats; use consistent style to improve D7",
-          "[low] Move worked example to EXAMPLES.md — gap analysis template already shows the format; worked example partially duplicates it; moving it tightens the main file and improves D5"
+          "[low] D1: Compress Style Detection section (lines 86-94) to a one-liner — detecting tone/conventions is activation knowledge Claude already performs",
+          "[low] D7: Connect to /design-tests or doc-convention memories for fuller ecosystem integration",
+          "[low] D3: Add stale-example anti-pattern as explicit entry in Anti-Patterns table (currently covered only in Verify section)"
         ]
       },
       "refactor": {

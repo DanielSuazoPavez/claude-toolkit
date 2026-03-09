@@ -1,5 +1,6 @@
 ---
 name: write-docs
+type: knowledge
 description: Use when writing or updating project documentation. Keywords: docs, documentation, README, docstrings, API docs, write docs, update docs, document.
 ---
 
@@ -143,16 +144,6 @@ What to spot-check first (highest risk → lowest):
 - Configuration examples (defaults change, keys get renamed)
 - Anything mentioning "currently" or "as of" — time-bound claims rot
 
-## Quality Rules
-
-| Rule | Why |
-|------|-----|
-| **Never fabricate** | If unsure about behavior, read the code first or mark as `[VERIFY]` |
-| **Accuracy > completeness** | Better to skip than document wrong |
-| **Code is truth** | When docs and code disagree, update docs to match code |
-| **Working examples** | Dead examples are worse than no examples |
-| **No filler** | Skip boilerplate ("This project is a...") unless it adds real context |
-
 ## Edge Cases
 
 | Situation | Response |
@@ -180,6 +171,6 @@ See `resources/EXAMPLES.md` for worked examples (end-to-end flow) and good/bad c
 
 ## See Also
 
+- `/analyze-idea` — Research coverage gaps
 - `codebase-explorer` agent — Generate full architecture report before writing docs
 - `pattern-finder` agent — Targeted searches for specific patterns or conventions
-- `/analyze-idea` — Research coverage gaps
