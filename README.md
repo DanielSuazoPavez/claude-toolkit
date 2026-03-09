@@ -75,7 +75,7 @@ A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 
 ## What's Included
 
-### Skills (26)
+### Skills (29)
 
 User-invocable skills activated with `/skill-name`:
 
@@ -83,6 +83,10 @@ User-invocable skills activated with `/skill-name`:
 |-------|-------------|
 | `analyze-idea` | Research and exploration - investigates topics, gathers evidence, generates reports |
 | `brainstorm-idea` | Turn fuzzy ideas into clear designs through structured dialogue |
+| `create-agent` | Create new agents for specialized tasks |
+| `create-hook` | Create new hooks for Claude Code |
+| `create-memory` | Create new memory files following conventions |
+| `create-skill` | Create new skills using test-driven documentation |
 | `design-db` | Design robust database schemas with normalization and indexing guidance |
 | `design-diagram` | Create diagrams for architecture, flows, and models |
 | `design-docker` | Generate Dockerfile and docker-compose for projects |
@@ -94,18 +98,17 @@ User-invocable skills activated with `/skill-name`:
 | `evaluate-hook` | Evaluate hook quality before deployment |
 | `evaluate-memory` | Evaluate memory file quality against conventions |
 | `evaluate-skill` | Evaluate skill design quality against specifications |
+| `learn` | Capture lessons from corrections, patterns, conventions, gotchas |
 | `list-memories` | List available memories with Quick Reference summaries |
 | `read-json` | Read and analyze JSON files efficiently using jq |
+| `refactor` | Structural refactoring analysis |
 | `review-changes` | Fast code review focused on blockers |
 | `review-plan` | Review implementation plans against quality criteria |
 | `setup-worktree` | Reference for git worktrees - setup, usage, and common pitfalls |
 | `snap-back` | Reset tone when Claude drifts into sycophancy |
 | `teardown-worktree` | Safe worktree closure after agent completion |
 | `wrap-up` | Finish feature branch - changelog, version bump, commit |
-| `create-agent` | Create new agents for specialized tasks |
-| `create-hook` | Create new hooks for Claude Code |
-| `create-memory` | Create new memory files following conventions |
-| `create-skill` | Create new skills using test-driven documentation |
+| `write-docs` | Write or update project documentation via gap analysis |
 | `write-handoff` | Capture context before `/clear` for session continuity |
 
 ### Agents (6)
@@ -121,50 +124,48 @@ Specialized agents for complex tasks:
 | `implementation-checker` | Compares implementation to planning docs at milestones |
 | `pattern-finder` | Documents how things are implemented - finds examples of patterns |
 
-### Hooks (8)
+### Hooks (9)
 
 Automation hooks configured in `settings.json`:
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | `session-start.sh` | SessionStart | Loads essential memories and git context |
-| `enforce-feature-branch.sh` | PreToolUse (EnterPlanMode) | Blocks plan mode on main/master |
+| `enforce-feature-branch.sh` | PreToolUse (EnterPlanMode\|Bash) | Blocks plan mode and git commits on main/master |
 | `block-dangerous-commands.sh` | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, etc.) |
+| `block-config-edits.sh` | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
 | `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
-| `secrets-guard.sh` | PreToolUse (Read\|Bash) | Warns before reading .env files |
+| `secrets-guard.sh` | PreToolUse (Read\|Bash) | Blocks reading .env files and credential files |
 | `suggest-read-json.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
 | `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.claude/plans/` |
 
-**Note:** `enforce-uv-run.sh` is Python-specific. Remove or modify for non-Python projects.
+**Note:** `enforce-uv-run.sh` and `enforce-make-commands.sh` are Python-specific. Remove or modify for non-Python projects.
 
-### Memory Templates (9)
+### Memory Templates (7)
 
-Starting point for project memories in `.claude/memories/`:
+Synced to target projects as starting points in `.claude/memories/`:
 
 | Memory | Purpose |
 |--------|---------|
 | `essential-conventions-code_style` | Coding conventions and style guide |
 | `essential-conventions-memory` | Memory naming conventions |
 | `essential-preferences-communication_style` | Communication style preferences |
-| `relevant-workflow-branch_development` | Branch-based development workflow |
-| `relevant-workflow-task_completion` | Task completion checklist |
-| `experimental-preferences-casual_communication_style` | Casual communication mode for meta-discussions |
 | `relevant-conventions-backlog_schema` | Standardized BACKLOG.md format |
 | `relevant-philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
 | `relevant-reference-hooks_config` | Hook environment variables reference |
+| `relevant-workflow-task_completion` | Task completion checklist |
 
 ## Configuration
 
 ### settings.local.json
 
-The included `settings.local.json` configures:
-- Pre-approved Bash commands (`uv run`, `make`, `mkdir`, `mv`, `ls`)
-- Session start hook for loading memories
-- Pre-tool hooks for enforcing patterns
-- Post-tool hooks for plan management
+Per-machine configuration (gitignored in target projects). Configures:
+- Pre-approved Bash commands to reduce permission prompts (`uv run`, `make`, `git`, etc.)
+- MCP server enablement
+- UI preferences
 
-Customize permissions and hooks for your workflow.
+Hooks are configured in `settings.json` (committed, shared).
 
 ## Customization
 
@@ -188,11 +189,6 @@ Customize permissions and hooks for your workflow.
 ## Design Philosophy
 
 See [`.claude/memories/essential-toolkit-identity.md`](.claude/memories/essential-toolkit-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
-
-## Related Projects
-
-- [dotfiles](https://github.com/yourusername/dotfiles) - Personal development environment (shell, git, editors)
-- [python-template](https://github.com/yourusername/python-template) - Python/data engineering project scaffold
 
 ## License
 

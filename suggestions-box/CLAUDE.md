@@ -10,7 +10,7 @@ Inbox for resources sent from other projects via `claude-toolkit send`.
    - `/evaluate-skill` for skills
    - `/evaluate-hook` for hooks
    - `/evaluate-memory` for memories
-   - (Read and summarize for agents - no evaluate skill yet)
+   - `/evaluate-agent` for agents
 4. Consider scope: **Is this project-specific or toolkit-worthy?**
    - Project-specific patterns → reject (belongs in that project only)
    - Generally useful patterns → accept for toolkit
