@@ -115,16 +115,16 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 
 ## 7. Tooling
 
-Query and validate backlogs with scripts in `projects/scripts/`:
+Query and validate backlogs via `.claude/scripts/`:
 
 ```bash
-backlog-query.sh                    # List all tasks
-backlog-query.sh --path FILE        # Use specific file
-backlog-query.sh summary            # Counts by priority/status
-backlog-query.sh validate           # Validate format
-backlog-query.sh id <task-id>       # Lookup by id
-backlog-query.sh priority P1        # Filter by priority
-backlog-query.sh status in-progress # Filter by status
-backlog-query.sh blocked            # Tasks with dependencies
-backlog-query.sh unblocked          # Actionable tasks
+bash .claude/scripts/backlog-query.sh                    # List all tasks
+bash .claude/scripts/backlog-query.sh summary            # Counts by priority/status
+bash .claude/scripts/backlog-query.sh id <task-id>       # Lookup by id
+bash .claude/scripts/backlog-query.sh priority P1        # Filter by priority
+bash .claude/scripts/backlog-query.sh status in-progress # Filter by status
+bash .claude/scripts/backlog-query.sh blocked            # Tasks with dependencies
+bash .claude/scripts/backlog-query.sh unblocked          # Actionable tasks
+bash .claude/scripts/backlog-query.sh --path FILE        # Use specific file
+bash .claude/scripts/backlog-validate.sh                 # Validate format
 ```
