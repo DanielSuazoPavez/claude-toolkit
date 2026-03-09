@@ -58,12 +58,24 @@ Test the skill, find edge cases where it fails, tighten the language.
 .claude/skills/<skill-name>/SKILL.md
 ```
 
+Read `resources/TEMPLATE.md` and use it as the LITERAL STARTING POINT.
+Copy the entire template, then modify every section for the new skill.
+Do not write from scratch — always start from the template.
+
 ### Required Sections
 
 1. **First line**: "Use when..." - triggering conditions only
 2. **When to Use**: Symptoms that indicate this skill applies
 3. **Process/Instructions**: The actual workflow
 4. **Anti-patterns** (optional): Common mistakes
+
+### Template Modifications by Type
+
+| Skill Type | Modify | Example |
+|------------|--------|---------|
+| Discipline-enforcing | Add Rationalization table | See [Rationalization Tables](#rationalization-tables-vs-anti-pattern-tables) |
+| Reference/lookup | Split to resources/ | See [Progressive Disclosure](#progressive-disclosure-pattern) |
+| Minimal | Trim to <150 words | Remove anti-patterns, keep process only |
 
 ### Description Rules
 
@@ -78,7 +90,7 @@ The first line (description) must:
 
 | Skill Type | Target |
 |------------|--------|
-| Getting-started | <150 words |
+| Minimal | <150 words |
 | Standard | <500 words |
 | Complex reference | Use supporting files |
 
@@ -137,7 +149,7 @@ Contains:
 ### Example
 
 `create-hook` demonstrates this pattern:
-- `SKILL.md` (100 lines): Process + triggers
+- `SKILL.md` (~165 lines): Process + triggers
 - `HOOKS_API.md` (400 lines): Complete API reference
 
 ## Testing Your Skill
@@ -161,58 +173,15 @@ Use `verb-noun` format: `create-skill`, `review-changes`, `brainstorm-idea`
 
 See `docs/naming-conventions.md` for the full naming guide.
 
-## Complete Example
+## Iteration Example
 
-### Before (The Gap)
-Without a skill, Claude writes changelog updates inconsistently:
-- Sometimes updates, sometimes forgets
-- No standard format
-- Misses version bumps
+**Gap:** Without a skill, Claude writes changelog updates inconsistently — sometimes forgets, no standard format, misses version bumps.
 
-### The Skill: `wrap-up`
+**First attempt:** Skill listed steps but no anti-patterns. Claude followed steps but chose wrong version bump types (patch for new features).
 
-```yaml
----
-name: wrap-up
-description: Use when finishing work on a feature branch. Keywords: finish feature, complete branch, ready to merge, finalize branch, wrap up.
----
-```
+**Fix:** Added anti-patterns table mapping common mistakes to corrections. With table, Claude self-corrects before outputting.
 
-```markdown
-Use when finishing a feature branch.
-
-## Instructions
-
-### 1. Analyze the branch
-Review commits since branching from main.
-
-### 2. Determine version bump
-- **Major**: Breaking changes
-- **Minor**: New features
-- **Patch**: Bug fixes only
-
-### 3. Update CHANGELOG.md
-Add entry with date, version, changes.
-
-### 4. Update pyproject.toml
-Bump the version field.
-
-### 5. Commit changes
-`git commit -m "docs: update changelog, version X.Y.Z"`
-
-## Anti-Patterns
-
-| Pattern | Problem | Fix |
-|---------|---------|-----|
-| **Wrong Bump** | Patch for new feature | Match bump to change type |
-| **Empty Entry** | "Updated stuff" | Describe what and why |
-```
-
-### After (The Fix)
-With skill active, Claude consistently:
-- Updates changelog with proper format
-- Bumps version appropriately
-- Commits with standard message
+The template in `resources/TEMPLATE.md` shows what a complete skill looks like. Use it as the starting point, then iterate with `/evaluate-skill` to close gaps.
 
 ## Anti-Patterns
 

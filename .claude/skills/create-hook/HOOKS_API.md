@@ -2,6 +2,16 @@
 
 Source: [Official Claude Code Hooks Documentation](https://code.claude.com/docs/en/hooks)
 
+## Contents
+
+1. [Hook Events](#hook-events) - All 13 events with blocking/matcher support
+2. [Common Input Fields](#common-input-fields) - Fields available to all hooks
+3. [Event-Specific Input Fields](#event-specific-input-fields) - Per-event JSON schemas
+4. [Tool-Specific Inputs](#tool-specific-inputs) - Bash, Read, Edit, Write, Task
+5. [Output Format](#output-format) - Exit codes, JSON decisions, control flow
+6. [settings.json Configuration](#settingsjson-configuration) - Matcher syntax, env vars
+7. [Debugging](#debugging) - Logging and troubleshooting
+
 ## Hook Events
 
 | Event | When | Can Block? | Matcher? |

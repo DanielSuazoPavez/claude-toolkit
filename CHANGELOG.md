@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.23.0] - 2026-03-08 - Template-first pattern for create-* skills
+
+### Added
+- **create-agent**: `resources/TEMPLATE.md` — complete `config-auditor` agent as literal starting point for new agents
+- **create-skill**: `resources/TEMPLATE.md` — complete `check-dependencies` skill as literal starting point for new skills
+- **create-agent**: Template Modifications by Type table (reviewer/verifier, read-only cataloger, code modifier)
+- **create-skill**: Template Modifications by Type table (discipline-enforcing, reference/lookup, minimal)
+- **create-hook**: HOOKS_API.md table of contents for navigation
+
+### Changed
+- **create-agent**: Replaced inline structure template with template reference using LITERAL STARTING POINT framing (305 → 219 lines)
+- **create-agent**: Compressed worked examples into iteration reference (~95 → ~20 lines)
+- **create-skill**: Replaced Complete Example with compressed iteration reference (~52 → ~8 lines)
+- **create-skill**: Renamed "Getting-started" to "Minimal" in Token Efficiency table
+- **create-hook**: Added LITERAL STARTING POINT language to bash script and settings.json sections
+
 ## [1.22.1] - 2026-03-08 - Backlog triage and reprioritization
 
 ### Changed
