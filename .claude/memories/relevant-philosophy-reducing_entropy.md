@@ -10,7 +10,7 @@
 
 Core principle: Measure changes by final code amount, not effort. Bias toward deletion.
 
-**See also:** `essential-conventions-code_style` for related anti-over-engineering guidance
+**See also:** `essential-conventions-code_style` for anti-over-engineering guidelines, `essential-toolkit-identity` for curation philosophy
 
 ---
 

@@ -9,6 +9,8 @@
 
 Guidelines for naming and structuring memory files, including categories, formats, and Quick Reference patterns.
 
+**See also:** `/create-memory` skill, `essential-toolkit-identity` for resource roles
+
 ---
 
 ## 2. Memory Categories

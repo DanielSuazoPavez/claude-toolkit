@@ -8,6 +8,8 @@
 
 Reference for hook triggers, environment variables, and customization options.
 
+**See also:** `/create-hook` skill, `relevant-workflow-branch_development` for enforce-feature-branch hook context
+
 ---
 
 ## 2. Active Hooks by Trigger

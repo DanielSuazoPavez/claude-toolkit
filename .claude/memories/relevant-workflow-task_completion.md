@@ -9,7 +9,7 @@
 
 Checklist for code quality before completing a task.
 
-**See also:** `essential-conventions-code_style` for coding standards
+**See also:** `essential-conventions-code_style` for coding standards, `relevant-workflow-branch_development` for branching workflow, `/wrap-up` for finalizing branches
 
 ---
 

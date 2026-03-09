@@ -57,6 +57,8 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
 
+## P3 - Low
+
 ## P100 - Nice to Have
 
 - **[TOOLKIT]** Evaluate multi-model review in main workflows (`toolkit-multi-model-workflows`)
