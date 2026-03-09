@@ -55,8 +55,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 | Score | Criteria |
 |-------|----------|
 | 18-20 | Handles errors gracefully, logs failures, has allowlist |
-| 13-17 | Basic error handling, some edge cases covered |
-| 7-12 | Fails silently on errors, no allowlist |
+| 13-17 | Handles jq/parse failures (won't crash), but no logging and no allowlist for safe exceptions |
+| 7-12 | No error handling — bad input causes silent pass-through or crash. No consideration of false positives |
 | 0-6 | Crashes on bad input, blocks legitimate work |
 
 **Check:**
@@ -69,8 +69,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 | Score | Criteria |
 |-------|----------|
 | 18-20 | Clear structure, configurable (safety levels), no hardcoded paths |
-| 13-17 | Readable but some hardcoding |
-| 7-12 | Works but hard to modify |
+| 13-17 | Logic is readable and sequential, but patterns or paths are inline rather than in variables. Extending requires editing logic, not config |
+| 7-12 | Deeply nested conditionals, mixed concerns, or magic values that require tracing to understand |
 | 0-6 | Spaghetti logic, magic values everywhere |
 
 **Check:**
@@ -187,6 +187,14 @@ Using a separate agent ensures objective assessment without influence from prior
 | **Simple passthrough** | Minimal is fine if purpose is clear |
 | **Multi-tool** | Higher D4 bar (must handle all matched tools) |
 
+## See Also
+
+- `/evaluate-skill` — Sibling evaluator for skills (knowledge delta rubric).
+- `/evaluate-agent` — Sibling evaluator for agents (behavioral effectiveness rubric).
+- `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
+- `/evaluate-batch` — Run evaluations across multiple resources of one type.
+- `/create-hook` — Hook creation workflow that feeds into this evaluator.
+
 ## Example Evaluation
 
 **Hook:** `enforce-make-commands.sh` (blocks direct pytest/ruff, suggests make targets)
@@ -195,10 +203,11 @@ Using a separate agent ensures objective assessment without influence from prior
 |-----------|-------|----------|
 | D1: Correctness | 22/25 | Right event (PreToolUse), correct output format, early exit for non-Bash |
 | D2: Testability | 16/20 | Testable via stdin, but no documented test cases |
-| D3: Safety | 15/20 | No error handling if jq fails, no allowlist |
-| D4: Maintainability | 17/20 | Clear structure, but patterns could be configurable |
+| D3: Safety | 15/20 | Handles jq failures, but no allowlist for safe exceptions |
+| D4: Maintainability | 17/20 | Clear structure, but patterns are inline rather than configurable |
 | D5: Documentation | 10/15 | Purpose clear from comments, no settings.json example |
+| D6: Integration | 10/15 | Follows toolkit hook patterns, no conflicts with other hooks |
 
-**Total: 80/100 - Grade B**
+**Total: 90/115 - Grade B**
 
-**Top improvements:** Add jq error handling, document test cases, add settings.json example.
+**Top improvements:** Add allowlist for safe exceptions, document test cases, add settings.json example.

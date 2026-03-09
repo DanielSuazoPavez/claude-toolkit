@@ -293,26 +293,27 @@
         ]
       },
       "evaluate-hook": {
-        "file_hash": "3942d73b",
-        "date": "2026-01-28",
-        "grade": "A-",
-        "score": 106,
+        "file_hash": "8ed2dc9f",
+        "date": "2026-03-08",
+        "type": "knowledge",
+        "grade": "B+",
+        "score": 99,
         "max": 120,
-        "percentage": 88.3,
+        "percentage": 82.5,
         "dimensions": {
           "D1": 16,
-          "D2": 13,
-          "D3": 15,
-          "D4": 13,
+          "D2": 11,
+          "D3": 14,
+          "D4": 9,
           "D5": 13,
-          "D6": 14,
-          "D7": 9,
+          "D6": 13,
+          "D7": 10,
           "D8": 13
         },
         "top_improvements": [
-          "Add more expert-only content in D1-D5 criteria (some testability/maintainability points are general software principles)",
-          "Add a Table of Contents for easier navigation of the 186-line document",
-          "Include additional worked examples covering edge case hook types (logging-only, passthrough)"
+          "[low] Add brief note to Evaluation Protocol explaining why correctness and output format are checked before testability and documentation",
+          "[low] Add a before/after example pair showing hook improvement (currently only one scored example)",
+          "[low] Strengthen D1 knowledge delta with more non-obvious hook pitfalls beyond the current anti-patterns table"
         ]
       },
       "evaluate-memory": {
