@@ -185,6 +185,10 @@ Customize permissions and hooks for your workflow.
 1. Use `/create-memory` to create properly formatted memories
 2. Follow naming conventions in `essential-conventions-memory.md`
 
+## Design Philosophy
+
+See [`.claude/memories/essential-toolkit-identity.md`](.claude/memories/essential-toolkit-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
+
 ## Related Projects
 
 - [dotfiles](https://github.com/yourusername/dotfiles) - Personal development environment (shell, git, editors)
