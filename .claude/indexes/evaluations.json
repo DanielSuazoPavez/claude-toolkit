@@ -134,26 +134,27 @@
         ]
       },
       "design-db": {
-        "file_hash": "313f9ebb",
-        "date": "2026-01-28",
+        "file_hash": "1b37bf88",
+        "date": "2026-03-09",
+        "type": "knowledge",
         "grade": "A-",
-        "score": 106,
+        "score": 102,
         "max": 120,
-        "percentage": 88.3,
+        "percentage": 85.0,
         "dimensions": {
-          "D1": 17,
-          "D2": 13,
-          "D3": 14,
-          "D4": 14,
-          "D5": 13,
+          "D1": 16,
+          "D2": 12,
+          "D3": 13,
+          "D4": 8,
+          "D5": 14,
           "D6": 13,
-          "D7": 9,
-          "D8": 13
+          "D7": 12,
+          "D8": 14
         },
         "top_improvements": [
-          "Add index performance trade-offs: guidance on when NOT to index and index maintenance costs",
-          "Expand error handling examples: deadlock handling, transaction retry logic, more constraint violation scenarios",
-          "Add capacity planning section: table size estimation, partition strategies, archiving patterns"
+          "[high] Add trigger keywords for multi-tenancy and soft-delete topics to the description to avoid routing misses",
+          "[low] Add an overarching procedural workflow (e.g., a schema design sequence) to tie sections together and strengthen mindset transfer",
+          "[low] Reference relevant memory files for project-specific DB conventions and clarify handoff context for referenced skills"
         ]
       },
       "design-diagram": {
