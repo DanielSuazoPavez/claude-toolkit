@@ -1,11 +1,24 @@
 ---
 name: evaluate-hook
-description: Evaluate Claude Code hook quality. Use when reviewing, auditing, or improving hooks before deployment.
+description: Evaluate Claude Code hook quality. Use when reviewing, auditing, or improving hooks before deployment. Keywords: hook quality, hook review, evaluate hook, audit hook.
 ---
 
 # Hook Judge
 
 Evaluate hook quality against hook-specific best practices.
+
+## Contents
+
+1. [When to Use](#when-to-use) - Triggers
+2. [Core Philosophy](#core-philosophy) - What makes a good hook
+3. [Evaluation Dimensions](#evaluation-dimensions-115-points) - 6-dimension rubric
+4. [Grading Scale](#grading-scale) - Score-to-grade mapping
+5. [JSON Output Format](#json-output-format) - Required output structure
+6. [Invocation](#invocation) - How to run evaluations
+7. [Evaluation Protocol](#evaluation-protocol) - Step-by-step process
+8. [Anti-Patterns](#anti-patterns) - Named failures with fixes
+9. [Edge Cases](#edge-cases) - Scoring adjustments by hook type
+10. [Example Evaluations](#example-evaluations) - Before/after worked examples
 
 ## When to Use
 
@@ -64,6 +77,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 - Are false positives possible? If so, how are they mitigated?
 - For blocking hooks: strictness is a feature, not a bug. Don't penalize for lack of allowlists — guardrails should be strict
 
+**Safety-vs-UX tension:** The core hook design tradeoff. A secrets-guard hook that's too strict blocks `.env.example` commits (false positive noise). One that's too loose misses `.env.local` (security gap). Score based on how thoughtfully this tension is resolved — not just whether it works.
+
 ### D4: Maintainability (20 pts)
 
 | Score | Criteria |
@@ -77,6 +92,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 - Uses `$HOME` or env vars instead of hardcoded paths?
 - Logic easy to extend with new patterns?
 - Patterns in arrays/variables rather than scattered through logic?
+
+**Performance note:** Hooks run synchronously on every matched tool call. A hook that spawns subprocesses, does network calls, or reads large files adds latency to every action. Penalize unnecessary complexity that slows the feedback loop.
 
 ### D5: Documentation (15 pts)
 
@@ -169,15 +186,16 @@ Using a separate agent ensures objective assessment without influence from prior
 
 ## Anti-Patterns
 
-| Pattern | Problem | Score Impact |
-|---------|---------|--------------|
-| **Wrong output format** | Hook doesn't block when it should | D1: -15 |
-| **No early exit** | Processes every tool, wastes cycles | D1: -5, D4: -5 |
-| **Silent failures** | Errors go unnoticed | D3: -10 |
-| **Hardcoded paths** | Breaks on other machines | D4: -10 |
-| **No allowlist** | Blocks legitimate work | D3: -8 |
-| **Untestable** | Can't verify behavior | D2: -15 |
-| **Env var bypass** | Defeats the hook's purpose; user can just run the command directly if needed | D3: -5 |
+| Pattern | Problem | Fix | Score Impact |
+|---------|---------|-----|--------------|
+| **Wrong output format** | Hook doesn't block when it should | Use `{"decision":"block","reason":"..."}` for PreToolUse, empty output for allow | D1: -15 |
+| **No early exit** | Processes every tool, wastes cycles | Check `tool_name` first, `exit 0` if no match | D1: -5, D4: -5 |
+| **Silent failures** | Errors go unnoticed | Log to `~/.claude/hooks-logs/`, handle jq errors | D3: -10 |
+| **Hardcoded paths** | Breaks on other machines | Use `$HOME`, `$CLAUDE_PROJECT_DIR`, or relative paths | D4: -10 |
+| **No allowlist** | Blocks legitimate work | Add explicit safe-pattern exceptions (e.g., `.env.example`) | D3: -8 |
+| **Untestable** | Can't verify behavior | Design for stdin/stdout, document test cases | D2: -15 |
+| **Env var bypass** | Defeats the hook's purpose | Remove `ALLOW_*` overrides; user can run commands directly if needed | D3: -5 |
+| **Broad matcher** | Hooks fire on unrelated tools | Use specific matcher (`"Bash"`) not `"*"` | D1: -5, D4: -5 |
 
 ## Edge Cases
 
@@ -195,7 +213,9 @@ Using a separate agent ensures objective assessment without influence from prior
 - `/evaluate-batch` — Run evaluations across multiple resources of one type.
 - `/create-hook` — Hook creation workflow that feeds into this evaluator.
 
-## Example Evaluation
+## Example Evaluations
+
+### Good Hook (Grade B)
 
 **Hook:** `enforce-make-commands.sh` (blocks direct pytest/ruff, suggests make targets)
 
@@ -208,6 +228,57 @@ Using a separate agent ensures objective assessment without influence from prior
 | D5: Documentation | 10/15 | Purpose clear from comments, no settings.json example |
 | D6: Integration | 10/15 | Follows toolkit hook patterns, no conflicts with other hooks |
 
-**Total: 90/115 - Grade B**
+**Total: 90/115 (78.3%) - Grade B**
 
-**Top improvements:** Add allowlist for safe exceptions, document test cases, add settings.json example.
+### Before/After: F → B
+
+**First attempt** of a secrets-guard hook — blocks commits containing secrets:
+
+```bash
+#!/bin/bash
+# block secrets
+cat | grep -q "password\|secret\|key" && echo "blocked" && exit 1
+```
+
+| Dimension | Score | Why |
+|-----------|-------|-----|
+| D1 | 5/25 | Wrong output format (plain text, exit 1), no tool_name check, matches on ANY tool |
+| D2 | 3/20 | No stdin JSON parsing, can't test specific tools |
+| D3 | 2/20 | False positives on "key" in variable names, crashes on empty input |
+| D4 | 4/20 | Single line, no structure, unmaintainable patterns |
+| D5 | 2/15 | One comment, no test cases or config |
+| D6 | 2/15 | Ignores toolkit patterns entirely |
+| **Total** | **18/115 (15.7%) - F** | |
+
+**After iteration:**
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+[ "$TOOL_NAME" != "Bash" ] && [ "$TOOL_NAME" != "Write" ] && exit 0
+
+CONTENT=$(echo "$INPUT" | jq -r '.tool_input.command // .tool_input.content // ""')
+SAFE_PATTERNS=(".env.example" "secret_key_base" "test_secret")
+for safe in "${SAFE_PATTERNS[@]}"; do
+    CONTENT=$(echo "$CONTENT" | grep -v "$safe")
+done
+
+SECRETS_RE='(AWS_SECRET|PRIVATE_KEY|password\s*=\s*["\x27][^"\x27]+)'
+if echo "$CONTENT" | grep -qP "$SECRETS_RE"; then
+    echo '{"decision":"block","reason":"Potential secret detected. Review content before proceeding."}'
+fi
+exit 0
+```
+
+| Dimension | Score | Why |
+|-----------|-------|-----|
+| D1 | 20/25 | Correct JSON output, early exit, matches Bash+Write |
+| D2 | 15/20 | Testable via stdin, clear block/allow paths |
+| D3 | 14/20 | Allowlist for safe patterns, targeted regex reduces false positives |
+| D4 | 15/20 | Patterns in variables, easy to extend arrays |
+| D5 | 8/15 | Purpose clear, but no settings.json example |
+| D6 | 10/15 | Follows toolkit conventions, no conflicts |
+| **Total** | **82/115 (71.3%) - B** | |
+
+**Key fixes:** JSON output format, early exit by tool_name, allowlist array, targeted regex instead of broad keyword match.
