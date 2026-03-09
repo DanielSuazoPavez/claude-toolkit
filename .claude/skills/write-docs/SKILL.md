@@ -126,10 +126,22 @@ How deep?
 
 ### 5. Verify
 
-After writing, spot-check:
-- Do code examples actually work?
-- Do file paths referenced in docs exist?
-- Do function signatures in docs match source?
+Not all claims need equal scrutiny. Prioritize verification by staleness risk:
+
+```
+What to spot-check first (highest risk → lowest):
+├─ Code examples → Run them or trace execution mentally. Dead examples erode trust fastest.
+├─ Parameter lists & signatures → Compare against source. Fabricated params are the #1 doc failure mode.
+├─ File paths & cross-references → Verify targets exist. Broken links signal abandoned docs.
+├─ Behavioral claims (error handling, side effects) → Trace the code path. "Raises X" must be real.
+└─ Prose descriptions → Lowest priority. Slight inaccuracies here are tolerable.
+```
+
+**Staleness signals** — check these claims first, they're most likely to have drifted:
+- Docs referencing specific version numbers or dependency names
+- Install/setup steps (dependency changes break these silently)
+- Configuration examples (defaults change, keys get renamed)
+- Anything mentioning "currently" or "as of" — time-bound claims rot
 
 ## Quality Rules
 
@@ -153,15 +165,21 @@ After writing, spot-check:
 
 ## Examples
 
-See `resources/EXAMPLES.md` for good and bad examples of both modes (user-docs and docstrings).
+See `resources/EXAMPLES.md` for worked examples (end-to-end flow) and good/bad comparisons for both modes.
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| **Write-first** | Docs based on assumptions, not code | Always run gap analysis first |
-| **Copy-paste syndrome** | Duplicating the same info across files | Cross-reference instead |
-| **Aspirational docs** | Documenting planned features as if they exist | Document current state only |
-| **Over-documenting internals** | Exposing implementation details in user docs | User docs = what/how-to-use, not how-it-works |
-| **Ignoring existing voice** | Generic tone clashing with project style | Detect and match existing style |
-| **Skipping verification** | "Looks right" without checking code | Spot-check examples, paths, signatures |
+| **Write-first** | Docs based on assumptions, not code — fabricated params ship, users file bugs against non-existent features | Always run gap analysis first |
+| **Copy-paste syndrome** | Same info in 3 files, one gets updated, two don't — now docs contradict each other | Cross-reference instead |
+| **Aspirational docs** | Documenting planned features as if they exist — users try them, fail, lose trust in all docs | Document current state only |
+| **Over-documenting internals** | Implementation details in user docs create implicit contracts — refactoring breaks "documented" behavior | User docs = what/how-to-use, not how-it-works |
+| **Ignoring existing voice** | Generic formal tone in a casual codebase (or vice versa) — docs feel foreign, contributors don't maintain them | Detect and match existing style |
+| **Skipping verification** | Unverified examples silently break — users copy-paste, hit errors, blame the project | Spot-check using staleness-risk prioritization |
+
+## See Also
+
+- `codebase-explorer` agent — Generate full architecture report before writing docs
+- `pattern-finder` agent — Targeted searches for specific patterns or conventions
+- `/analyze-idea` — Research coverage gaps

@@ -249,26 +249,27 @@
         ]
       },
       "draft-pr": {
-        "file_hash": "2c431576",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 110,
+        "file_hash": "06209e03",
+        "date": "2026-03-09",
+        "type": "command",
+        "grade": "A-",
+        "score": 105,
         "max": 120,
-        "percentage": 91.67,
+        "percentage": 87.5,
         "dimensions": {
-          "D1": 17,
-          "D2": 14,
-          "D3": 15,
-          "D4": 14,
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 9,
-          "D8": 14
+          "D7": 14,
+          "D8": 13
         },
         "top_improvements": [
-          "Add edge case guidance for monorepo PRs, infrastructure changes, or security fixes that may warrant different sizing rules",
-          "Expand stacked PRs workflow with more detail on managing dependent feature sequences",
-          "Add explicit guidance on when NOT to use this skill (e.g., trivial single-commit fixes)"
+          "[low] D1: Trim or elevate the PR template — Summary/Changes/Testing is standard knowledge; either remove or add expert annotations showing good vs bad examples",
+          "[low] D8: Add failure path handling — what to do when branch has merge conflicts or when split is needed but commits are entangled",
+          "[low] D1: Strengthen Analyze step with expert heuristics — e.g. spotting scope creep in diff, checking test-to-code change ratio"
         ]
       },
       "evaluate-agent": {
@@ -344,8 +345,9 @@
         ]
       },
       "list-memories": {
-        "file_hash": "7449467e",
-        "date": "2026-01-28",
+        "file_hash": "42885898",
+        "date": "2026-03-09",
+        "type": "command",
         "grade": "A-",
         "score": 105,
         "max": 120,
@@ -353,40 +355,41 @@
         "dimensions": {
           "D1": 16,
           "D2": 13,
-          "D3": 14,
-          "D4": 14,
+          "D3": 13,
+          "D4": 9,
           "D5": 14,
-          "D6": 12,
-          "D7": 9,
+          "D6": 13,
+          "D7": 14,
           "D8": 13
         },
         "top_improvements": [
-          "Add guidance for handling malformed memories (missing sections, invalid frontmatter)",
-          "Consider adding a verbose mode that shows file sizes or last-modified dates",
-          "Strengthen D6 with a second command variant for edge cases"
+          "[low] Add a filtering variant for targeted category discovery (e.g., list-memories essential or list-memories relevant-workflow)",
+          "[low] Document the awk regex matching behavior for non-standard Quick Reference heading formats (numbered headings, etc.)",
+          "[low] Expand anti-pattern fixes with slightly more specific guidance (e.g., \"Use Quick Reference to filter\" could explain the filter decision process)"
         ]
       },
       "read-json": {
-        "file_hash": "befdb400",
-        "date": "2026-01-28",
+        "file_hash": "09fdce86",
+        "date": "2026-03-09",
+        "type": "command",
         "grade": "A-",
         "score": 102,
         "max": 120,
-        "percentage": 85,
+        "percentage": 85.0,
         "dimensions": {
-          "D1": 15,
-          "D2": 12,
-          "D3": 12,
-          "D4": 14,
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 8,
           "D5": 14,
           "D6": 13,
           "D7": 9,
-          "D8": 13
+          "D8": 14
         },
         "top_improvements": [
-          "Add shell quoting anti-patterns - jq expressions with special characters often fail due to shell quoting issues",
-          "Include malformed JSON handling - patterns for recovering from or validating corrupted/incomplete JSON files",
-          "Reduce redundant basic syntax - Common Operations table could be trimmed as Claude knows basic jq syntax"
+          "[high] Add a See Also section referencing relevant ecosystem resources — D7 is the largest gap at 9/15",
+          "[low] Trim activation-level content (basic quoting) and add guidance for when jq output is too large for context — D1/D8",
+          "[low] Add JSONL and malformed JSON to keywords since the skill covers these cases substantively — D4"
         ]
       },
       "review-changes": {
@@ -462,26 +465,27 @@
         ]
       },
       "snap-back": {
-        "file_hash": "26533d29",
-        "date": "2026-01-28",
+        "file_hash": "6fa012ac",
+        "date": "2026-03-09",
+        "type": "command",
         "grade": "A-",
-        "score": 103,
+        "score": 106,
         "max": 120,
-        "percentage": 85.8,
+        "percentage": 88.3,
         "dimensions": {
-          "D1": 14,
+          "D1": 17,
           "D2": 13,
           "D3": 12,
-          "D4": 14,
+          "D4": 9,
           "D5": 15,
-          "D6": 14,
-          "D7": 9,
-          "D8": 12
+          "D6": 13,
+          "D7": 14,
+          "D8": 13
         },
         "top_improvements": [
-          "Add a worked 'reset in action' example showing before/after of Claude mid-drift",
-          "Expand knowledge delta with non-obvious sycophancy triggers (e.g., after user praise, long sessions)",
-          "Add severity calibration guidance - when full reset vs minor adjustment"
+          "[low] Add per-trigger correction hints in the Non-Obvious Triggers table to strengthen D3",
+          "[low] Add brief false-positive detection guidance for when apparent sycophancy is appropriate warmth to close D8 edge-case gap",
+          "[low] Include after a mistake as a trigger keyword in frontmatter description to improve D4 routing precision"
         ]
       },
       "teardown-worktree": {
@@ -557,26 +561,27 @@
         ]
       },
       "write-docs": {
-        "file_hash": "5323e6b1",
-        "date": "2026-02-07",
-        "grade": "A-",
-        "score": 106,
+        "file_hash": "ad3719d6",
+        "date": "2026-03-09",
+        "type": "knowledge",
+        "grade": "B+",
+        "score": 101,
         "max": 120,
-        "percentage": 88.3,
+        "percentage": 84.2,
         "dimensions": {
           "D1": 16,
-          "D2": 14,
+          "D2": 13,
           "D3": 13,
-          "D4": 14,
-          "D5": 14,
+          "D4": 8,
+          "D5": 12,
           "D6": 13,
-          "D7": 9,
-          "D8": 13
+          "D7": 12,
+          "D8": 14
         },
         "top_improvements": [
-          "Add an end-to-end worked example in the main skill showing gap analysis output flowing into actual documentation writing for a concrete scenario",
-          "Strengthen D1 by replacing the basic Verify step with expert heuristics for verification prioritization - which claims to spot-check first based on staleness signals",
-          "Deepen anti-pattern consequences: expand Problem column with specific downstream effects - aspirational docs cause user trust erosion when features don't exist"
+          "[high] Trim activation knowledge from Quality Rules table — rules like Never fabricate, Code is truth are principles Claude already follows; compress or delete to boost D1",
+          "[low] Standardize See Also reference format — mix of backtick agent names and /skill-name formats; use consistent style to improve D7",
+          "[low] Move worked example to EXAMPLES.md — gap analysis template already shows the format; worked example partially duplicates it; moving it tightens the main file and improves D5"
         ]
       },
       "refactor": {

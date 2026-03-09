@@ -1,97 +1,78 @@
 ---
 name: list-memories
+type: command
 description: List available memories with their Quick Reference summaries. Use to discover relevant context without loading full files into conversation. Keywords: memory, context, preview, discover, scan, index.
-allowed-tools: Bash(for f in *)
+allowed-tools: Bash(for f in .claude/memories/*)
 ---
 
 # List Memories
 
 Preview available memories without loading full content.
 
+**See also:** `/create-memory` (create new memories), `essential-conventions-memory` memory (naming conventions and categories)
+
 ## Instructions
 
-Run this command to extract only Quick Reference sections:
+### Standard: Quick Reference summaries
 
 ```bash
 for f in .claude/memories/*.md; do
-  echo "### $(basename "$f" .md)"
-  awk '/^## .*Quick Reference/{found=1; next} found && /^## /{exit} found' "$f" 2>/dev/null
+  name=$(basename "$f" .md)
+  echo "### $name"
+  content=$(awk '/^## .*Quick Reference/{found=1; next} found && /^## /{exit} found' "$f" 2>/dev/null | sed '/^---$/d' | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }')
+  if [ -z "$content" ]; then
+    echo "[no Quick Reference section]"
+  else
+    echo "$content"
+  fi
   echo "---"
 done
 ```
 
-## Example Output
+### Verbose: with file sizes and last-modified dates
 
-```
-### essential-conventions
-- Use conventional commits: feat|fix|docs|refactor
-- Run tests before committing
-- Keep functions under 50 lines
----
-### relevant-testing
-- Use pytest for all tests
-- Mocks go in conftest.py
-- Coverage minimum: 80%
----
-### branch-feature-auth
-- Implementing OAuth2 flow
-- Blocked: waiting for API keys
----
+Use when triaging stale memories or debugging missing content:
+
+```bash
+for f in .claude/memories/*.md; do
+  name=$(basename "$f" .md)
+  size=$(wc -l < "$f")
+  modified=$(date -r "$f" +%Y-%m-%d 2>/dev/null || stat -c %y "$f" 2>/dev/null | cut -d' ' -f1)
+  echo "### $name  (${size} lines, modified ${modified})"
+  content=$(awk '/^## .*Quick Reference/{found=1; next} found && /^## /{exit} found' "$f" 2>/dev/null | sed '/^---$/d' | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }')
+  if [ -z "$content" ]; then
+    echo "[no Quick Reference section]"
+  else
+    echo "$content"
+  fi
+  echo "---"
+done
 ```
 
 ## Error Handling
 
 | Condition | What Happens | Action |
 |-----------|--------------|--------|
-| Empty memories directory | No output | Inform user: "No memories found" |
-| Memory missing Quick Reference | Empty section shown | Skip silently or note missing |
-| Directory doesn't exist | Glob fails silently | Create `.claude/memories/` first |
+| Empty memories directory | No output from loop | Tell user: "No memories found in `.claude/memories/`" |
+| Memory missing Quick Reference | `[no Quick Reference section]` shown | File may be malformed — check it has a `## Quick Reference` or `## 1. Quick Reference` heading |
+| Memory has frontmatter but no body | Only `[no Quick Reference section]` shown | Likely a stub — read the file to check |
+| Directory doesn't exist | Glob expands literally | Create `.claude/memories/` first |
 
-If the command produces no output, check:
-1. Does `.claude/memories/` directory exist?
-2. Are there any `.md` files in it?
-3. Do the files have `## Quick Reference` sections?
+## After Running
 
-## Decision Tree: What to Load
+Based on Quick References, load only the memories relevant to current work:
 
 ```
-What am I doing?
-├─ Quick question about project?
-│   └─ Read Quick References only, don't load full files
-├─ New feature or significant work?
-│   ├─ Load: essential-* (always)
-│   ├─ Load: relevant-* for affected area
-│   └─ Skip: idea-*, branch-* (unless continuing that branch)
-├─ Bug fix?
-│   ├─ Load: essential-*
-│   └─ Load: only the area with the bug
-├─ Continuing branch work?
-│   └─ Load: branch-* for that specific branch
-└─ Exploring an idea?
-    └─ Load: idea-* (only with explicit permission)
+Read .claude/memories/<memory-name>.md
 ```
 
-### Loading Priority
-
-| Priority | Category | When |
-|----------|----------|------|
-| 1 | `essential-*` | Always load these |
-| 2 | `relevant-*` (area) | Only if touching that area |
-| 3 | `branch-*` | Only if continuing that branch |
-| 4 | `idea-*` | Only with explicit user permission |
+**Loading priority** is defined in `essential-conventions-memory` — see the Memory Categories table for category lifetimes and load patterns. Short version: `essential-*` always, `relevant-*` when touching that area, `branch-*` only for that branch, `personal-*`/`idea-*` only with explicit user permission.
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
 | **Load Everything** | Wastes context on irrelevant info | Use Quick Reference to filter |
-| **Skip Essential** | Make mistakes the memory prevents | Always check essential-* |
+| **Skip Essential** | Miss conventions the memory enforces | Always check essential-* |
 | **Ignore Quick Reference** | Load full file for one fact | Read summary first |
-| **Stale Branch Memories** | Loading old branch context | Check if branch still active |
-
-## After Running
-
-Based on Quick References, load only relevant full memories:
-```
-Read .claude/memories/<memory-name>.md
-```
+| **Stale Branch Memories** | Loading context for merged/abandoned branches | Use verbose mode to check dates |
