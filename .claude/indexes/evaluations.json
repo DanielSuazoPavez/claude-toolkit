@@ -590,30 +590,7 @@
         ]
       },
       "create-skill": {
-        "file_hash": "0bb9af70",
-        "date": "2026-01-28",
-        "grade": "A",
-        "score": 111,
-        "max": 120,
-        "percentage": 92.5,
-        "dimensions": {
-          "D1": 18,
-          "D2": 14,
-          "D3": 14,
-          "D4": 14,
-          "D5": 14,
-          "D6": 14,
-          "D7": 9,
-          "D8": 14
-        },
-        "top_improvements": [
-          "Condense complete example section - reduce from 50+ lines to ~30 lines while preserving the before/after contrast",
-          "Add edge case guidance for when to abandon/reject a skill idea vs. iterate",
-          "Expand REFACTOR phase with specific iteration techniques for tightening language"
-        ]
-      },
-      "create-agent": {
-        "file_hash": "a3e4d2a9",
+        "file_hash": "34cf5cc7",
         "date": "2026-03-08",
         "grade": "A-",
         "score": 105,
@@ -624,38 +601,61 @@
           "D2": 14,
           "D3": 14,
           "D4": 9,
+          "D5": 13,
+          "D6": 13,
+          "D7": 11,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[high] D7: Add See Also section referencing sibling creation skills (/create-agent, /create-memory, /create-hook) and fix inaccurate create-hook line count claim (says 100 lines, actually 165)",
+          "[low] D5: Add Table of Contents to SKILL.md — at 206 lines with 10+ sections, navigation would benefit from a TOC",
+          "[low] D2: Expand REFACTOR phase (currently 2 lines) with specific iteration techniques for tightening language and closing loopholes"
+        ]
+      },
+      "create-agent": {
+        "file_hash": "88591a42",
+        "date": "2026-03-08",
+        "grade": "A-",
+        "score": 103,
+        "max": 120,
+        "percentage": 85.8,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 13,
+          "D4": 8,
           "D5": 12,
           "D6": 13,
           "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "[low] Trim Example 2 (lines 246-297) — the full before/after with dimension scores is 50 lines; condensing to ~30 lines by removing verbose code blocks would tighten progressive disclosure",
-          "[low] Add cross-reference to relevant memories (e.g., reducing_entropy philosophy) that inform agent design decisions, strengthening ecosystem integration",
-          "[low] Expand anti-pattern Problem column with downstream consequences (e.g., The Generalist leads to scope conflicts and unpredictable output quality)"
+          "[low] Condense Iteration Reference example (lines 191-219) from ~50 lines to ~30 by removing verbose dimension score blocks — tightens progressive disclosure without losing the before/after contrast",
+          "[low] Add cross-references to relevant memories (e.g., reducing_entropy philosophy) and /evaluate-batch skill to strengthen ecosystem integration",
+          "[low] Expand anti-pattern Problem column with downstream consequences (e.g., The Generalist leads to scope conflicts with other agents and unpredictable output quality)"
         ]
       },
       "create-hook": {
-        "file_hash": "550a1c71",
-        "date": "2026-01-28",
+        "file_hash": "95607dfa",
+        "date": "2026-03-08",
         "grade": "A-",
-        "score": 107,
+        "score": 103,
         "max": 120,
-        "percentage": 89.2,
+        "percentage": 85.8,
         "dimensions": {
           "D1": 17,
           "D2": 13,
           "D3": 14,
-          "D4": 14,
-          "D5": 12,
+          "D4": 9,
+          "D5": 11,
           "D6": 14,
-          "D7": 9,
+          "D7": 11,
           "D8": 14
         },
         "top_improvements": [
-          "Add TOC to HOOKS_API.md - reference file is 401 lines without navigation",
-          "Add brief context to naming convention reference at line 8",
-          "Expand mindset transfer with explicit defensive thinking section"
+          "[high] D5: Add a Table of Contents to HOOKS_API.md (401 lines without navigation) and add brief context to the bare naming-conventions reference at line 8",
+          "[high] D7: Add cross-references to .claude/indexes/HOOKS.md (existing hooks catalog) and relevant-reference-hooks_config memory to strengthen ecosystem integration",
+          "[low] D2: Add an explicit defensive-thinking mindset section that transfers the security-first mental model for hook design"
         ]
       },
       "create-memory": {
