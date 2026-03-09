@@ -19,8 +19,6 @@ Evaluate agent design quality against behavioral effectiveness.
 8. [Invocation](#invocation) - How to run evaluations
 9. [Example Evaluation](#example-evaluation) - Before/After
 
-**Related:** `/evaluate-skill` (knowledge delta rubric for skills), `/create-agent` (agent creation workflow that feeds into this evaluator)
-
 ## Core Philosophy
 
 **The Formula:** `Good Agent = Specialized Mindset − Claude's Default Approach`
@@ -70,9 +68,9 @@ Does the agent have a consistent identity and voice?
 
 | Score | Criteria |
 |-------|----------|
-| 23-25 | Clear role, consistent tone, knows what it isn't |
-| 18-22 | Identity clear, voice mostly consistent |
-| 13-17 | Role defined but voice drifts or generic |
+| 23-25 | Clear role with explicit anti-behaviors, voice directives ("be X, not Y"), and "What I Don't Do" section |
+| 18-22 | Role stated and tone present, but no anti-behaviors or persona doesn't constrain default Claude behavior |
+| 13-17 | Role is a job title only ("You are a code reviewer") — no behavioral specifics that change how Claude acts |
 | 7-12 | Vague identity, could be any agent |
 | 0-6 | No discernible persona |
 
@@ -259,6 +257,14 @@ Find code paths without test coverage. Don't review test quality or suggest impl
 - D3: 20/25 - Good persona, could strengthen voice
 - D4: 13/15 - Appropriate read-only tools
 - D5: 10/15 - References test-reviewer, could connect more
+
+## See Also
+
+- `/evaluate-skill` — Sibling evaluator for skills (knowledge delta rubric).
+- `/evaluate-hook` — Sibling evaluator for hooks (testability and safety rubric).
+- `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
+- `/evaluate-batch` — Run evaluations across multiple resources of one type.
+- `/create-agent` — Agent creation workflow that feeds into this evaluator.
 
 ## The Meta-Question
 

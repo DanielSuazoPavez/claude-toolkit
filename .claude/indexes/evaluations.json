@@ -38,26 +38,27 @@
     },
     "resources": {
       "evaluate-skill": {
-        "file_hash": "2b222d30",
-        "date": "2026-01-28",
+        "file_hash": "eb1dd4f3",
+        "date": "2026-03-08",
+        "type": "knowledge",
         "grade": "A",
-        "score": 112,
+        "score": 108,
         "max": 120,
-        "percentage": 93.3,
+        "percentage": 90.0,
         "dimensions": {
-          "D1": 19,
+          "D1": 18,
           "D2": 14,
           "D3": 14,
-          "D4": 14,
-          "D5": 14,
+          "D4": 9,
+          "D5": 13,
           "D6": 14,
-          "D7": 9,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "Add calibration tables for dimensions D4-D7 - D1 and D3 have detailed tables but other dimensions lack equivalent scoring guidance",
-          "Condense to ~200 lines - at 240 lines exceeds Process pattern target; consider moving Example Evaluation to supporting reference file",
-          "Add evaluator anti-patterns section - common mistakes like conflating activation with redundant knowledge, over-penalizing brevity"
+          "[low] Connect to indexes system and memory conventions in See Also or body — D7 still has room",
+          "[low] Trim activation knowledge in Core Philosophy section — the formula is expert but surrounding explanation is partly redundant",
+          "[low] Add evaluator anti-patterns — common mistakes like conflating activation with redundant, or over-penalizing brevity"
         ]
       },
       "evaluate-batch": {
@@ -268,72 +269,75 @@
         ]
       },
       "evaluate-agent": {
-        "file_hash": "a2adf7fb",
+        "file_hash": "1fd7d1d2",
         "date": "2026-03-08",
+        "type": "knowledge",
         "grade": "A-",
         "score": 104,
         "max": 120,
         "percentage": 86.7,
         "dimensions": {
           "D1": 17,
-          "D2": 13,
-          "D3": 13,
+          "D2": 12,
+          "D3": 14,
           "D4": 9,
           "D5": 14,
-          "D6": 13,
-          "D7": 12,
+          "D6": 12,
+          "D7": 13,
           "D8": 13
         },
         "top_improvements": [
-          "[low] Add evaluation process anti-patterns — include warnings about common evaluator mistakes (anchoring to prior scores, dimension cross-contamination, leniency bias for well-formatted but shallow agents)",
-          "[low] Reference /evaluate-batch in the Related line — the batch evaluation skill orchestrates this one and the connection improves ecosystem discoverability",
-          "[low] Add dimension conflict guidance — when D1 is strong but D2 is weak (or vice versa), provide guidance on whether to weight one dimension more heavily"
+          "[low] Make explicit which aspects are fixed (point scales, grade thresholds, JSON schema) vs flexible (evidence gathering, edge case judgment)",
+          "[low] Add second worked example for a non-standard agent type (e.g., multi-step orchestrator) to demonstrate edge case scoring",
+          "[low] Add integration anti-patterns to D5 inner rubric (e.g., references non-existent resources, duplicates content from another skill)"
         ]
       },
       "evaluate-hook": {
-        "file_hash": "3942d73b",
-        "date": "2026-01-28",
-        "grade": "A-",
-        "score": 106,
+        "file_hash": "8ed2dc9f",
+        "date": "2026-03-08",
+        "type": "knowledge",
+        "grade": "B+",
+        "score": 99,
         "max": 120,
-        "percentage": 88.3,
+        "percentage": 82.5,
         "dimensions": {
           "D1": 16,
-          "D2": 13,
-          "D3": 15,
-          "D4": 13,
+          "D2": 11,
+          "D3": 14,
+          "D4": 9,
           "D5": 13,
-          "D6": 14,
-          "D7": 9,
+          "D6": 13,
+          "D7": 10,
           "D8": 13
         },
         "top_improvements": [
-          "Add more expert-only content in D1-D5 criteria (some testability/maintainability points are general software principles)",
-          "Add a Table of Contents for easier navigation of the 186-line document",
-          "Include additional worked examples covering edge case hook types (logging-only, passthrough)"
+          "[low] Add brief note to Evaluation Protocol explaining why correctness and output format are checked before testability and documentation",
+          "[low] Add a before/after example pair showing hook improvement (currently only one scored example)",
+          "[low] Strengthen D1 knowledge delta with more non-obvious hook pitfalls beyond the current anti-patterns table"
         ]
       },
       "evaluate-memory": {
-        "file_hash": "2f51fb27",
-        "date": "2026-01-28",
+        "file_hash": "b3f2be72",
+        "date": "2026-03-08",
+        "type": "knowledge",
         "grade": "A-",
-        "score": 105,
+        "score": 103,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 85.8,
         "dimensions": {
           "D1": 16,
-          "D2": 13,
+          "D2": 12,
           "D3": 14,
-          "D4": 13,
-          "D5": 14,
+          "D4": 9,
+          "D5": 13,
           "D6": 13,
-          "D7": 9,
+          "D7": 13,
           "D8": 13
         },
         "top_improvements": [
-          "Add explicit TOC at top for easier navigation in 200+ line file",
-          "Include 'Fix' column in Anti-Patterns table for complete guidance",
-          "Add a contrasting 'failing memory' example alongside the passing example"
+          "[low] Add a failing-case worked example (low-scoring memory) alongside the current high-scoring example to improve D8 calibration",
+          "[low] Consider adding an explicit TOC for navigability as the skill approaches 260 lines",
+          "[low] Reference /evaluate-batch in See Also for completeness with sister evaluators"
         ]
       },
       "list-memories": {

@@ -86,24 +86,24 @@ Memories don't load themselves. Loading is driven by:
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Focused, actionable, no redundancy with other memories |
-| 13-17 | Mostly focused, minor overlap |
-| 7-12 | Too broad or duplicates existing content |
-| 0-6 | Kitchen sink or pure duplication |
+| 18-20 | Single concern, all content actionable, no sentences restated from CLAUDE.md or other memories |
+| 13-17 | Single concern but some content is informational-only (context without guidance) or ≤2 sentences overlap with another memory |
+| 7-12 | Covers 2+ unrelated concerns, or ≥1 paragraph duplicated from CLAUDE.md/other memories |
+| 0-6 | No clear focus, or bulk content copy-pasted from other sources |
 
 **Check:**
-- Does it overlap with CLAUDE.md or other memories?
-- Is content actionable or just informational?
-- Would splitting improve clarity?
+- Does it overlap with CLAUDE.md or other memories? (grep key phrases)
+- Is each section actionable — does it change behavior, or just inform?
+- Would splitting by concern improve clarity?
 
 ### D4: Load Timing Appropriateness (15 pts)
 
 | Score | Criteria |
 |-------|----------|
-| 13-15 | Load timing matches content criticality |
-| 9-12 | Could be more selective about when to load |
-| 4-8 | Loads at wrong time (too early/late) |
-| 0-3 | Always loads but rarely needed, or never loads but critical |
+| 13-15 | Category prefix matches content criticality — essential content auto-loads, reference content is on-demand, temporary content has dates |
+| 9-12 | Category prefix is correct but content criticality is borderline — e.g., relevant- content that arguably should be essential, or essential- content only needed in specific workflows |
+| 4-8 | Mismatch — e.g., essential- memory with content only relevant to one workflow, or relevant- memory with session-critical conventions |
+| 0-3 | Severe mismatch — always loads but rarely needed, or never loads but critical |
 
 **Guidelines:**
 - Session start: Only `essential-` that affect every interaction
@@ -115,10 +115,10 @@ Memories don't load themselves. Loading is driven by:
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Clear sections, tables for comparisons, scannable |
-| 13-17 | Readable but could be more scannable |
-| 7-12 | Wall of text or poor organization |
-| 0-6 | Unreadable or inconsistent formatting |
+| 18-20 | Numbered sections, tables for comparisons, no prose paragraph >4 lines without a list/table/code block break |
+| 13-17 | Sections exist but ≥1 prose block >4 lines that should be a table/list, or inconsistent heading levels |
+| 7-12 | Minimal structure — mostly prose paragraphs, few or no tables/lists |
+| 0-6 | No sections, wall of text, or inconsistent formatting throughout |
 
 ### D6: Integration Quality (15 pts)
 Does it work well within the resource ecosystem?
@@ -172,14 +172,16 @@ Is the memory > 300 lines?
 
 ## Anti-Patterns
 
-| Pattern | Problem | Score Impact |
-|---------|---------|--------------|
-| **Missing Quick Reference** | No load guidance | D2: -20 |
-| **Wrong category** | essential for temporary info | D1: -15 |
-| **No date on branch/idea** | Can't track freshness | D1: -10 |
-| **Overlaps CLAUDE.md** | Duplication, drift risk | D3: -10 |
-| **Always loads, rarely needed** | Context bloat | D4: -10 |
-| **Wall of text** | Unscannable | D5: -10 |
+| Pattern | Problem | Fix | Score Impact |
+|---------|---------|-----|--------------|
+| **Missing Quick Reference** | No load guidance | Add as section 1 with correct pattern for memory type | D2: -20 |
+| **Wrong category** | essential for temporary info | Match prefix to content lifetime (essential=permanent, branch=temporary) | D1: -15 |
+| **No date on branch/idea** | Can't track freshness | Add YYYYMMDD after prefix | D1: -10 |
+| **Overlaps CLAUDE.md** | Duplication, drift risk | Delete duplicated content, add cross-reference instead | D3: -10 |
+| **Always loads, rarely needed** | Context bloat | Downgrade from essential- to relevant- | D4: -10 |
+| **Wall of text** | Unscannable | Break prose into tables, lists, or code blocks | D5: -10 |
+| **Memory that should be a skill** | Procedures masquerading as context | Extract step-by-step content into a skill, keep only guidelines in memory | D3: -10 |
+| **Stale branch memory** | Abandoned context after merge | Delete after branch merges, or promote to relevant- if still useful | D1: -5 |
 
 ## JSON Output Format
 
@@ -241,8 +243,17 @@ Using a separate agent ensures objective assessment without influence from prior
 |-----------|-------|----------|
 | D1: Category & Naming | 19/20 | Correct relevant- prefix for on-demand content, clear context (workflow) |
 | D2: Quick Reference | 24/25 | Section 1, proper "ONLY READ WHEN" bullets, See also cross-refs |
-| D3: Content Scope | 19/20 | Focused on branch workflow, cross-references instead of duplicating |
-| D4: Load Timing | 14/15 | On-demand appropriate for reference material |
-| D5: Structure | 19/20 | Good tables, code blocks, scannable sections |
+| D3: Content Scope | 19/20 | Single concern (branch workflow), cross-references instead of duplicating |
+| D4: Load Timing | 14/15 | On-demand appropriate — not needed every session |
+| D5: Structure | 19/20 | Numbered sections, tables, code blocks, no prose walls |
+| D6: Integration Quality | 13/15 | References related memories, no duplication, consistent terminology |
 
-**Total: 95/100 - Grade A**
+**Total: 108/115 - Grade A**
+
+## See Also
+
+- `/create-memory` — Create memories that this skill evaluates
+- `/evaluate-skill` — Sister evaluator for skills (shared calibration philosophy)
+- `/evaluate-agent` — Sister evaluator for agents
+- `/evaluate-hook` — Sister evaluator for hooks
+- `essential-conventions-memory` — Authoritative naming/category conventions (source of truth for D1/D2)
