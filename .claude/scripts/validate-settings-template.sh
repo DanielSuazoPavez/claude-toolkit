@@ -14,7 +14,12 @@
 
 CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
 SETTINGS="$CLAUDE_DIR/settings.json"
-TEMPLATE="$CLAUDE_DIR/templates/settings.template.json"
+# Check dist/ location first (toolkit), then templates/ (target projects)
+if [ -f "$CLAUDE_DIR/dist/base/templates/settings.template.json" ]; then
+    TEMPLATE="$CLAUDE_DIR/dist/base/templates/settings.template.json"
+else
+    TEMPLATE="$CLAUDE_DIR/templates/settings.template.json"
+fi
 ERRORS=0
 
 # Colors for output

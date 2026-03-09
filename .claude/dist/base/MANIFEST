@@ -62,7 +62,7 @@ memories/relevant-reference-hooks_config.md
 memories/relevant-workflow-task_completion.md
 
 # templates
-templates/
+dist/base/templates/
 
 # scripts
 scripts/backlog-query.sh

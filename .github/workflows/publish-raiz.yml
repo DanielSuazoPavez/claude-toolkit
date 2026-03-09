@@ -1,0 +1,50 @@
+name: Publish Raiz Distribution
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude/skills/**'
+      - '.claude/agents/**'
+      - '.claude/hooks/**'
+      - '.claude/memories/**'
+      - '.claude/dist/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout toolkit
+        uses: actions/checkout@v4
+
+      - name: Build raiz distribution
+        run: bash .claude/dist/raiz/publish.sh dist-output/raiz
+
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+        with:
+          repository: DanielSuazoRaiz/claude-toolkit-raiz
+          ssh-key: ${{ secrets.RAIZ_DEPLOY_KEY }}
+          path: target-repo
+
+      - name: Sync distribution to target
+        run: |
+          # Clear existing .claude/ in target (full replace, not merge)
+          rm -rf target-repo/.claude
+
+          # Copy built distribution
+          cp -r dist-output/raiz/.claude target-repo/.claude
+
+          # Check for changes
+          cd target-repo
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+            exit 0
+          fi
+
+          # Commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "sync: update from claude-toolkit $(date +%Y-%m-%d)"
+          git push

@@ -1,0 +1,48 @@
+# CLAUDE.md
+
+## Project Overview
+
+<!-- One-liner: what this project does. -->
+
+## Commands
+
+```bash
+# Setup
+make install
+
+# Development
+make lint
+make test
+
+# Prefer trash-put over rm for file deletion
+# trash-put <file>
+```
+
+## Structure
+
+```
+<!-- Key directories and files. Keep it short — just enough for orientation. -->
+```
+
+## Conventions
+
+- **Replace, don't deprecate**: Remove old code. No backward-compat shims, re-exports, or `# removed` comments.
+- **Finish the job**: Handle edge cases you can see. Don't leave TODOs for obvious follow-ups.
+- **Zero warnings**: Treat lint/type warnings as errors. Fix or explicitly suppress with justification.
+- **Prefer `trash-put` over `rm`**: Use `trash-put` for file deletion to allow recovery.
+
+## Git Workflow
+
+- Never commit directly to main (enforced by hook).
+- Branch naming: `feature/`, `fix/`, `refactor/`, `chore/`, `docs/` prefixes.
+- Merge to main with `--no-ff` to preserve branch history.
+
+## Toolkit
+
+This project uses claude-toolkit hooks and skills for Claude Code configuration.
+
+- **Hooks**: `.claude/hooks/` — guardrails enforced automatically (dangerous commands, feature branch, secrets)
+- **Skills**: `.claude/skills/` — invoke skills by name (e.g. `/brainstorm-idea`, `/review-changes`)
+- **Memories**: `.claude/memories/` — persistent context loaded at session start
+
+Resources may reference skills or agents from the full toolkit that aren't included here. Ignore any `/skill-name` or agent references you don't recognize — they're not available in this distribution.

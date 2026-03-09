@@ -65,24 +65,22 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills, toolkit`
     - **notes**: Claude Code / VS Code extension flags `type` as unsupported in skill frontmatter. Rename to something like `metadata: X-type` or a different key. Affects: all skills with `type: knowledge|command`, evaluate-skill rubric (references `type` in frontmatter), create-skill template, evaluations.json schema.
 
-- **[TOOLKIT]** Starter pack — shared subset for onboarding coworkers (`toolkit-starter-pack`)
+- **[TOOLKIT]** Rewrite raiz publish trimming logic in Python (`toolkit-raiz-python-trimming`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: Curated slice of the MANIFEST for non-toolkit-users getting Claude Code. 6 skills, 5 hooks, 3 agents, 2 memories (one trimmed), 3 templates. No personal preferences. Design doc: `.claude/output/design/starter-pack.md`
-    - **related**: `toolkit-starter-pack-publish`
-
-- **[TOOLKIT]** Auto-publish starter pack to separate repo (`toolkit-starter-pack-publish`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **depends-on**: `toolkit-starter-pack`
-    - **notes**: GitHub Action on push to main — filters starter manifest files, pushes to target repo (e.g. `claude-toolkit-raiz`). Deploy key for scoped auth. Existing actions like `cpina/github-action-push-to-another-repository` handle the plumbing. Needs: `MANIFEST.starter` (or similar), target repo created, deploy key pair configured.
+    - **notes**: Current bash trimming in `publish.sh` handles bullet items and "See also:" lines but not inline prose refs. Python would make regex/AST-based trimming easier to extend. Convention for now: inline refs are descriptive prose, not trimmed — `CLAUDE.md.template` notes this for raiz users.
 
 ## P3 - Low
 
-- **[SKILLS]** Link `design-db` skill to config-driven schema generation repo (`skill-design-db-backing-repo`)
+- **[SKILLS]** Link `design-db` skill to schema-smith as optional dependency (`skill-design-db-backing-repo`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Tie design-db to the config-driven schema generation repo (once polished). Would establish a new pattern: skills backed by real project code/examples, beyond just expert knowledge in markdown. Wait until the backing repo is stable enough to reference.
+    - **notes**: Wire `design-db` to `schema-smith` (YAML → PostgreSQL DDL/diagrams/SQLAlchemy models). First "skill backed by real project code" pattern. Two options: Python dependency (`uv add --optional`) or CLI invocation. Depends on schema-smith reaching stable state. Path: `personal/training/data-engineering/projects/schema-smith`.
+
+- **[TOOLKIT]** Explore content plugins for external reference repos (`toolkit-content-plugins`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: Mechanism to sync external reference content (`.md` files, domain knowledge) into a known toolkit location. First candidate: `itsmostafa/aws-agent-skills` (weekly-updated AWS service reference, 18 services). Different shape from Python deps — this is content, not code. Could be git-subtree, sparse checkout, or custom sync step. Feeds into `aws-toolkit` item.
 
 ## P100 - Nice to Have
 
