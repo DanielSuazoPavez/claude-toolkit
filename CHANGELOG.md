@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.25.5] - 2026-03-09 - Memory See Also, rubric fix, and re-evaluation
+
+### Changed
+- **memories**: Added See Also cross-references to all 9 memories for ecosystem connectivity
+- **memories**: `essential-conventions-code_style` — merged Core Philosophy into Quick Reference, replaced generic guidelines with project-specific conventions (uv, make, ruff, pathlib)
+- **memories**: `essential-conventions-memory` — switched to MANDATORY Quick Reference pattern, added category summary table
+- **memories**: `essential-preferences-communication_style` — added casual_communication_style cross-reference
+- **skills**: `snap-back` — deduplicated by referencing communication_style memory as source of truth instead of restating 5 content blocks
+- **skills**: `evaluate-memory` — scoped D3/D6 duplication checks to synced resources only (memories, skills, agents), not toolkit-internal files (indexes, CLAUDE.md)
+- **indexes**: `MEMORIES.md` — replaced duplicated category definitions with reference to essential-conventions-memory
+- **memories**: `relevant-reference-hooks_config` — added missing block-config-edits.sh entry
+- **backlog**: Added P3 (Low) priority tier to BACKLOG.md matching schema memory
+- **evaluations**: Re-evaluated all 9 memories — all Grade A (103-110/115)
+
 ## [1.25.4] - 2026-03-09 - Hook evaluations, accuracy fixes, and improvements
 
 ### Changed
