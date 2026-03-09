@@ -149,7 +149,7 @@ Contains:
 ### Example
 
 `create-hook` demonstrates this pattern:
-- `SKILL.md` (100 lines): Process + triggers
+- `SKILL.md` (~165 lines): Process + triggers
 - `HOOKS_API.md` (400 lines): Complete API reference
 
 ## Testing Your Skill
