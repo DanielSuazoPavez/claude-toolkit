@@ -1,0 +1,33 @@
+# Raiz Manifest — scoped subset for claude-toolkit-raiz.
+#
+# Same format as MANIFEST. Only resources listed here are published.
+# Reference-trimming script strips cross-references to anything not listed.
+
+# skills
+skills/brainstorm-idea/
+skills/read-json/
+skills/review-changes/
+skills/review-plan/
+skills/wrap-up/
+skills/write-handoff/
+
+# agents
+agents/code-debugger.md
+agents/code-reviewer.md
+agents/goal-verifier.md
+
+# hooks
+hooks/block-config-edits.sh
+hooks/block-dangerous-commands.sh
+hooks/enforce-feature-branch.sh
+hooks/secrets-guard.sh
+hooks/suggest-read-json.sh
+
+# memories
+memories/essential-conventions-code_style.md
+memories/essential-conventions-memory.md
+
+# templates
+templates/CLAUDE.md.template
+templates/mcp.template.json
+templates/settings.template.json

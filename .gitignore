@@ -24,5 +24,8 @@
 
 .claude/settings.local.json
 
+# Distribution output
+dist-output/
+
 # Cron logs
 scripts/cron.log
