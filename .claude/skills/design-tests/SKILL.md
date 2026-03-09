@@ -1,6 +1,7 @@
 ---
 name: design-tests
-description: Use when writing or reviewing tests. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "test organization", "test gaps", "test audit", or "coverage audit".
+type: knowledge
+description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "test organization", "test gaps", "test audit", or "coverage audit".
 ---
 
 # Test Design Guide
@@ -9,12 +10,7 @@ Consistent pytest patterns for reliable, maintainable tests.
 
 ## Mindset: Tests Are Specifications
 
-Tests are not verification — they are **executable specifications** of behavior contracts. A well-written test suite is the most accurate documentation of what your code promises to do.
-
-This changes how you write them:
-- **Name tests for the behavior**, not the function: `test_expired_token_returns_401` not `test_validate_token`
-- **A broken test means the contract changed** — decide if the contract or the code is wrong before touching either
-- **Missing test = undocumented behavior** — if it's not tested, it's not promised
+Tests are executable behavior contracts. Name them for the behavior (`test_expired_token_returns_401`), not the function (`test_validate_token`). A broken test means the contract changed — decide if the contract or the code is wrong before touching either.
 
 ## Table of Contents
 
@@ -68,7 +64,7 @@ What type of code is this?
 
 ## Audit Mode — Gap Analysis
 
-Use when asked to audit, review, or find gaps in existing test coverage.
+Code-level audit: maps source files to pytest files, flags missing test cases. For test *strategy* (risk-based prioritization, release readiness, QA planning), use `/design-qa` instead.
 
 ### Process
 
@@ -186,16 +182,7 @@ Should I mock this?
 └─ Third-party library internals? → No, mock at your boundary
 ```
 
-**Prefer dependency injection** over `@patch` — it makes dependencies explicit and tests clearer. Use `@patch` only for legacy code without DI.
-
-```python
-# Mock at your boundary, not theirs
-@patch("myapp.service.tax_api.get_rate")  # Good: external boundary
-def test_order_total(mock_api): ...
-
-@patch("myapp.service._calculate_tax")  # Bad: internal detail
-def test_order_total(mock_tax): ...
-```
+**Prefer dependency injection** over `@patch`. Use `@patch` only for legacy code without DI. Always mock at your boundary (`myapp.service.tax_api.get_rate`), never at internals (`myapp.service._calculate_tax`).
 
 ---
 
@@ -405,6 +392,7 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 
 ## See Also
 
-- `/design-qa` — Sister skill for test strategy and planning. Use design-qa for risk-based test prioritization, design-tests for pytest patterns and implementation.
+- `/design-qa` — Test strategy and planning (what to test, risk prioritization, release readiness). This skill covers pytest implementation (how to write the tests). If you need both, start with design-qa for the plan, then come here to write the code.
 - `code-reviewer` agent — May flag missing tests or over-testing during code review.
+- `/design-docker` — Testing containerized services and CI/CD pipeline test configuration.
 - `/refactor` — If test structure needs updating after module reorganization.

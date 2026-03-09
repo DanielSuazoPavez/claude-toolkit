@@ -204,6 +204,6 @@ When you have hours, not days:
 
 ## See Also
 
-- `/design-tests` — Sister skill for pytest implementation. Use design-qa for test strategy and planning, design-tests for writing the actual test code.
+- `/design-tests` — Pytest implementation (fixtures, mocking, async patterns, code-level audits). This skill covers test strategy (what to test, risk assessment, release readiness). If you need both, start here for the plan, then use design-tests to write the code.
 - `code-reviewer` agent — Complements QA with code-level review; may identify test coverage gaps.
 - `code-debugger` agent — For systematic bug investigation after QA identifies failures.
