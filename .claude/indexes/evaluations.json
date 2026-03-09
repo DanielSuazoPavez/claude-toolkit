@@ -269,26 +269,27 @@
         ]
       },
       "evaluate-agent": {
-        "file_hash": "a2adf7fb",
+        "file_hash": "1fd7d1d2",
         "date": "2026-03-08",
+        "type": "knowledge",
         "grade": "A-",
         "score": 104,
         "max": 120,
         "percentage": 86.7,
         "dimensions": {
           "D1": 17,
-          "D2": 13,
-          "D3": 13,
+          "D2": 12,
+          "D3": 14,
           "D4": 9,
           "D5": 14,
-          "D6": 13,
-          "D7": 12,
+          "D6": 12,
+          "D7": 13,
           "D8": 13
         },
         "top_improvements": [
-          "[low] Add evaluation process anti-patterns — include warnings about common evaluator mistakes (anchoring to prior scores, dimension cross-contamination, leniency bias for well-formatted but shallow agents)",
-          "[low] Reference /evaluate-batch in the Related line — the batch evaluation skill orchestrates this one and the connection improves ecosystem discoverability",
-          "[low] Add dimension conflict guidance — when D1 is strong but D2 is weak (or vice versa), provide guidance on whether to weight one dimension more heavily"
+          "[low] Make explicit which aspects are fixed (point scales, grade thresholds, JSON schema) vs flexible (evidence gathering, edge case judgment)",
+          "[low] Add second worked example for a non-standard agent type (e.g., multi-step orchestrator) to demonstrate edge case scoring",
+          "[low] Add integration anti-patterns to D5 inner rubric (e.g., references non-existent resources, duplicates content from another skill)"
         ]
       },
       "evaluate-hook": {
