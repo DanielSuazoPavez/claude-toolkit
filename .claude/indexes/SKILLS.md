@@ -11,7 +11,7 @@ User-invocable skills activated with `/skill-name`.
 | `review-plan` | stable | Review implementation plans against quality criteria |
 | `write-handoff` | stable | Capture context before `/clear` for session continuity |
 | `wrap-up` | stable | Finalize feature branches with changelog, version bump, and backlog updates |
-| `learn` | alpha | Capture lessons from corrections, patterns, conventions, gotchas |
+| `learn` | beta | Capture lessons from corrections, patterns, conventions, gotchas |
 | `list-memories` | stable | List available memories with Quick Reference summaries |
 
 ## Code Quality
@@ -19,7 +19,7 @@ User-invocable skills activated with `/skill-name`.
 | Skill | Status | Description |
 |-------|--------|-------------|
 | `refactor` | alpha | Structural refactoring analysis |
-| `review-changes` | beta | Fast code review focused on blockers |
+| `review-changes` | stable | Fast code review focused on blockers |
 | `design-qa` | alpha | Design test plans, QA strategies, regression suites, bug triage |
 | `design-tests` | beta | Pytest patterns for fixtures, mocking, organization, test prioritization |
 
@@ -39,7 +39,7 @@ User-invocable skills activated with `/skill-name`.
 | `setup-worktree` | beta | Reference for git worktrees - setup, usage, pitfalls |
 | `teardown-worktree` | beta | Safe worktree closure after agent completion |
 | `read-json` | stable | Read and analyze JSON files efficiently using jq |
-| `design-docker` | alpha | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
+| `design-docker` | beta | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
 
 ## Toolkit Development
 

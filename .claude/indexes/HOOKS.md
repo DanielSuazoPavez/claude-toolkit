@@ -8,15 +8,15 @@ Automation hooks configured in `settings.json`.
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
 | `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks plan mode and git commits on main/master |
-| `block-dangerous-commands.sh` | beta | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `block-dangerous-commands.sh` | stable | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
-| `suggest-read-json.sh` | beta | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
-| `enforce-uv-run.sh` | beta | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
-| `enforce-make-commands.sh` | beta | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
+| `suggest-read-json.sh` | stable | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
+| `enforce-uv-run.sh` | stable | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
+| `enforce-make-commands.sh` | stable | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/plans/` |
 
-**Note**: Beta hooks work but have matcher scope limitations (too broad). Hook UX noise is a known issue.
+**Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
 ---
 

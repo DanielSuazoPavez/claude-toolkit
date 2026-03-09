@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.1] - 2026-03-09 - v2 wrap-up cleanup
+
+### Changed
+- **indexes**: Updated resource statuses — promoted 10 resources based on real usage (skills, agents, hooks, memories)
+- **indexes**: Added SCRIPTS.md index for `.claude/scripts/` (7 scripts tracked)
+- **validators**: `validate-resources-indexed.sh` now validates scripts against SCRIPTS.md
+- **hooks**: Fully removed anti-rationalization hook (was partially removed — lingered in settings.json, template, MANIFEST, tests)
+- **README**: Fixed stale counts (skills 26→29, hooks 8→9, memories 9→7), added missing entries, fixed settings.local.json description, removed placeholder links
+- **memories**: Fixed `backlog_schema` tooling section — wrong script path, added full invocations
+- **suggestions-box**: Fixed stale evaluate-agent note
+
 ## [2.0.0] - 2026-03-09 - Full resource re-evaluation baseline
 
 ### Changed

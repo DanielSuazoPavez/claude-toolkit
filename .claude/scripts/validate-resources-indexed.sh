@@ -29,6 +29,7 @@ declare -a MANIFEST_SKILLS=()
 declare -a MANIFEST_AGENTS=()
 declare -a MANIFEST_HOOKS=()
 declare -a MANIFEST_MEMORIES=()
+declare -a MANIFEST_SCRIPTS=()
 
 # MANIFEST mode: only activate when MANIFEST exists but index files don't.
 # The toolkit has both MANIFEST and index files (SKILLS.md etc.) — use full disk mode there.
@@ -62,6 +63,10 @@ if [ -f "$MANIFEST_FILE" ] && [ ! -f "$CLAUDE_DIR/indexes/SKILLS.md" ]; then
                 name="${line#memories/}"
                 name="${name%.md}"
                 MANIFEST_MEMORIES+=("$name")
+                ;;
+            scripts/*.sh)
+                name="${line#scripts/}"
+                MANIFEST_SCRIPTS+=("$name")
                 ;;
         esac
     done < "$MANIFEST_FILE"
@@ -280,6 +285,52 @@ elif $MANIFEST_MODE; then
     echo -e "${GREEN}✓ Skipped: no index files in target project (expected)${NC}"
 else
     echo -e "${YELLOW}Skipped: MEMORIES.md or memories/ not found${NC}"
+fi
+echo ""
+
+# === SCRIPTS ===
+echo "=== Scripts ==="
+SCRIPTS_INDEX="$CLAUDE_DIR/indexes/SCRIPTS.md"
+SCRIPTS_DIR="$CLAUDE_DIR/scripts"
+
+if [ -f "$SCRIPTS_INDEX" ] && [ -d "$SCRIPTS_DIR" ]; then
+    DISK_SCRIPTS=$(find "$SCRIPTS_DIR" -maxdepth 1 -name "*.sh" -exec basename {} \; | sort)
+    INDEX_SCRIPTS=$(grep -oP '\| `\K[^`]+\.sh(?=` \|)' "$SCRIPTS_INDEX" | sort)
+
+    if $MANIFEST_MODE; then
+        while IFS= read -r disk_script; do
+            [ -z "$disk_script" ] && continue
+            if ! in_array "$disk_script" "${MANIFEST_SCRIPTS[@]}"; then
+                echo -e "${YELLOW}Extra file not in MANIFEST: scripts/$disk_script${NC}"
+                WARNINGS=$((WARNINGS + 1))
+            fi
+        done <<< "$DISK_SCRIPTS"
+
+        manifest_count=${#MANIFEST_SCRIPTS[@]}
+        echo -e "${GREEN}✓ $manifest_count scripts from MANIFEST validated${NC}"
+    else
+        MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_SCRIPTS") <(echo "$INDEX_SCRIPTS"))
+        if [ -n "$MISSING_FROM_INDEX" ]; then
+            echo -e "${RED}Not indexed in SCRIPTS.md:${NC}"
+            echo "$MISSING_FROM_INDEX" | sed 's/^/  - /'
+            ERRORS=$((ERRORS + $(echo "$MISSING_FROM_INDEX" | wc -l)))
+        fi
+
+        STALE_IN_INDEX=$(comm -13 <(echo "$DISK_SCRIPTS") <(echo "$INDEX_SCRIPTS"))
+        if [ -n "$STALE_IN_INDEX" ]; then
+            echo -e "${YELLOW}Stale entries in SCRIPTS.md (no file):${NC}"
+            echo "$STALE_IN_INDEX" | sed 's/^/  - /'
+            ERRORS=$((ERRORS + $(echo "$STALE_IN_INDEX" | wc -l)))
+        fi
+
+        if [ -z "$MISSING_FROM_INDEX" ] && [ -z "$STALE_IN_INDEX" ]; then
+            echo -e "${GREEN}✓ All $(echo "$DISK_SCRIPTS" | wc -l) scripts properly indexed${NC}"
+        fi
+    fi
+elif $MANIFEST_MODE; then
+    echo -e "${GREEN}✓ Skipped: no index files in target project (expected)${NC}"
+else
+    echo -e "${YELLOW}Skipped: SCRIPTS.md or scripts/ not found${NC}"
 fi
 echo ""
 
