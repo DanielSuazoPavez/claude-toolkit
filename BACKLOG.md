@@ -18,15 +18,9 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
 
 ## P0 - Critical
 
-- **[SKILLS]** Audit evaluate-* rubrics for non-discriminating dimensions (`skill-eval-self-critique`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: One-time audit: check if any rubric dimensions in evaluate-* skills would score high for both good and bad resources (non-discriminating). Fix weak dimensions. Not a runtime step — a maintenance task. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`. Must complete before `evaluations-refresh`.
-
 - **[TOOLKIT]** Re-evaluate all resources with current rubrics (`evaluations-refresh`)
     - **status**: `idea`
     - **scope**: `skills, agents, hooks, memories`
-    - **depends-on**: `skill-eval-self-critique`
     - **notes**: Scores in `evaluations.json` have drifted — resources have been updated since last evaluation, and skill rubric now includes command-type classification (1.24.0). Re-run `/evaluate-batch` on all resource types (skills, agents, hooks, memories) for a full baseline reset. Command-type skills (snap-back, wrap-up, write-handoff, setup-worktree, teardown-worktree) should benefit most from D1 reinterpretation. Gate for v2 release.
 
 ## P1 - High

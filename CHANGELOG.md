@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.25.2] - 2026-03-08 - Evaluate-* rubric self-critique
+
+### Changed
+- **evaluate-skill**: Added calibration tables for D2, D5, D6, D8 (previously lacked them)
+- **evaluate-agent**: Sharpened D3 (Coherent Persona) — replaced vague "consistent tone" with verifiable criteria (anti-behaviors, voice directives vs job-title-only)
+- **evaluate-hook**: Sharpened D3 (Safety) and D4 (Maintainability) middle bands with verifiable criteria; fixed stale example (was 5/6 dims, now 6/6)
+- **evaluate-memory**: Sharpened D3 (Content Scope), D4 (Load Timing), D5 (Structure) middle bands; added Fix column and 2 new patterns to anti-patterns table; fixed example (was missing D6, wrong total)
+- **evaluate-agent, evaluate-hook, evaluate-memory**: Added See Also sections linking sister evaluators
+
 ## [1.25.1] - 2026-03-08 - Backlog reprioritization for v2
 
 ### Changed
