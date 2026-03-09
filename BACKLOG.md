@@ -18,11 +18,6 @@ Iterating on resources through real usage — fixing issues surfaced from projec
 
 ## P0 - Critical
 
-- **[SKILLS]** Shift examples to copy-and-modify templates in create-* skills (`skill-templates-as-starting-points`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Current examples are reference material. Anthropic's pattern: templates are literal files Claude copies and modifies ("use as LITERAL STARTING POINT, not just inspiration"). More prescriptive = more consistent output. Apply to create-skill, create-agent, and any skill producing structured output. Ref: `.claude/output/reviews/exploration/anthropics_skills/summary.md`.
-
 - **[TOOLKIT]** Explore `.claude/rules/` for path-scoped instructions (`toolkit-rules`)
     - **status**: `idea`
     - **scope**: `toolkit`
