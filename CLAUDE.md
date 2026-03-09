@@ -39,6 +39,11 @@ Summary and status of all resources:
 - `.claude/indexes/MEMORIES.md` - All memories with categories and purposes
 - `.claude/indexes/evaluations.json` - Quality scores, grades, and improvement suggestions
 
+## Changelog
+
+- Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
+- Code/resource changes: version bump + changelog entry under version
+
 ## When You're Done
 
 - Run `make check` to run all tests and validations
