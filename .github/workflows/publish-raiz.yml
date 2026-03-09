@@ -23,7 +23,7 @@ jobs:
       - name: Checkout target repo
         uses: actions/checkout@v4
         with:
-          repository: hata/claude-toolkit-raiz
+          repository: DanielSuazoRaiz/claude-toolkit-raiz
           ssh-key: ${{ secrets.RAIZ_DEPLOY_KEY }}
           path: target-repo
 
