@@ -960,24 +960,24 @@
         ]
       },
       "essential-conventions-memory": {
-        "file_hash": "b1866938",
+        "file_hash": "c575a162",
         "date": "2026-03-09",
         "grade": "B",
-        "score": 97,
+        "score": 99,
         "max": 115,
-        "percentage": 84.3,
+        "percentage": 86.1,
         "dimensions": {
           "D1": 19,
-          "D2": 21,
+          "D2": 20,
           "D3": 18,
-          "D4": 10,
-          "D5": 16,
-          "D6": 13
+          "D4": 12,
+          "D5": 18,
+          "D6": 12
         },
         "top_improvements": [
-          "[high] Downgrade from essential- to relevant- or resolve Quick Reference pattern mismatch — uses ONLY READ WHEN (selective/on-demand) but auto-loads as essential; either switch to Purpose/Read at/MANDATORY pattern, or downgrade to relevant- since memory conventions are only needed when creating/evaluating memories (D2: +3, D4: +3-5)",
-          "[med] Add a summary comparison table to section 2 (Memory Categories) — category | lifetime | load pattern | key rule — before the detailed subsections for faster scanning, similar to the table create-memory already provides (D5: +2-3)",
-          "[low] Expand See Also to include /evaluate-memory (which heavily depends on these conventions for D1/D2 scoring) and flesh out section 4 (Naming Best Practices) beyond 4 bullets (D6: +1-2, D5: +1)"
+          "[med] Align Quick Reference pattern with its own conventions — currently uses a custom MANDATORY format that does not match any of the three patterns defined in section 3; use the Purpose/Read at orientation pattern or the MANDATORY conversational pattern from section 3 special cases (D2: +2-3)",
+          "[med] Add a summary comparison table of all categories (category | lifetime | load pattern | format) before the detailed subsections in section 2 for faster scanning (D5: +1-2)",
+          "[low] Expand See Also to include /evaluate-memory (which depends on this memory for D1/D2 scoring) and add a dedicated See Also section at the end rather than only in Quick Reference (D6: +2-3)"
         ]
       },
       "essential-preferences-communication_style": {
