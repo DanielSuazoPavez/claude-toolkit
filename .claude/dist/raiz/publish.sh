@@ -377,8 +377,6 @@ while IFS= read -r target_path; do
     file_count=$((file_count + 1))
 done < <(resolve_raiz_manifest)
 
-# Copy raiz MANIFEST as the output's MANIFEST
-cp "$MANIFEST" "$OUTPUT_DIR/.claude/MANIFEST"
 
 echo "Copied $file_count files"
 
