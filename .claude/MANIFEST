@@ -44,7 +44,6 @@ agents/pattern-finder.md
 # hooks
 hooks/block-config-edits.sh
 hooks/block-dangerous-commands.sh
-hooks/anti-rationalization.sh
 hooks/copy-plan-to-project.sh
 hooks/enforce-feature-branch.sh
 hooks/enforce-make-commands.sh
