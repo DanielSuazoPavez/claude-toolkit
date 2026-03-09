@@ -962,22 +962,22 @@
       "essential-conventions-memory": {
         "file_hash": "b1866938",
         "date": "2026-03-09",
-        "grade": "C",
-        "score": 84,
+        "grade": "B",
+        "score": 97,
         "max": 115,
-        "percentage": 73.0,
+        "percentage": 84.3,
         "dimensions": {
-          "D1": 17,
-          "D2": 18,
-          "D3": 14,
-          "D4": 8,
-          "D5": 17,
-          "D6": 10
+          "D1": 19,
+          "D2": 21,
+          "D3": 18,
+          "D4": 10,
+          "D5": 16,
+          "D6": 13
         },
         "top_improvements": [
-          "[high] Downgrade from essential- to relevant- — memory conventions are only needed when creating/evaluating memories, not every session; auto-loading wastes context (D4: +5-7)",
-          "[med] Resolve duplication with MEMORIES.md index — the index repeats all six category definitions; make this memory the single source of truth and have the index cross-reference it instead (D3: +4-5)",
-          "[med] Fix Quick Reference pattern mismatch — uses ONLY READ WHEN (selective) but auto-loads as essential; either switch to MANDATORY pattern or downgrade category (D2: +4-5)"
+          "[high] Downgrade from essential- to relevant- or resolve Quick Reference pattern mismatch — uses ONLY READ WHEN (selective/on-demand) but auto-loads as essential; either switch to Purpose/Read at/MANDATORY pattern, or downgrade to relevant- since memory conventions are only needed when creating/evaluating memories (D2: +3, D4: +3-5)",
+          "[med] Add a summary comparison table to section 2 (Memory Categories) — category | lifetime | load pattern | key rule — before the detailed subsections for faster scanning, similar to the table create-memory already provides (D5: +2-3)",
+          "[low] Expand See Also to include /evaluate-memory (which heavily depends on these conventions for D1/D2 scoring) and flesh out section 4 (Naming Best Practices) beyond 4 bullets (D6: +1-2, D5: +1)"
         ]
       },
       "essential-preferences-communication_style": {
@@ -996,7 +996,7 @@
           "D6": 10
         },
         "top_improvements": [
-          "[high] Deduplicate content shared with /snap-back skill — anti-patterns table, pushback handling table, The Test blockquote, politeness table, and not-sycophancy list are nearly verbatim in both; designate this memory as source of truth and have snap-back cross-reference it (D3: +4, D6: +2)",
+          "[high] Deduplicate content shared with /snap-back skill — anti-patterns table, pushback handling table, The Test blockquote, politeness table, and not-sycophancy list are nearly verbatim in both; designate this memory as source of truth and have snap-back cross-reference it, or vice versa (D3: +4, D6: +2)",
           "[low] Add cross-reference to essential-toolkit-identity in See Also for ecosystem connectivity among sibling essential memories (D6: +1-2)",
           "[low] Restructure section 5 (Key Principle) — separate the bold principle statement from the clarification list into a table or clearer visual structure for faster scanning (D5: +1-2)"
         ]
@@ -1046,43 +1046,43 @@
       "relevant-conventions-backlog_schema": {
         "file_hash": "474bd2e3",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 97,
+        "grade": "A",
+        "score": 108,
         "max": 115,
-        "percentage": 84.3,
+        "percentage": 93.9,
         "dimensions": {
           "D1": 19,
-          "D2": 23,
-          "D3": 14,
+          "D2": 24,
+          "D3": 19,
           "D4": 14,
           "D5": 19,
-          "D6": 8
+          "D6": 13
         },
         "top_improvements": [
-          "[high] Remove or reduce section 7 (Tooling) which is nearly verbatim from parent CLAUDE.md; replace with a cross-reference to the canonical source to eliminate duplication (D3: +3, D6: +3)",
-          "[high] Reconcile P3 priority tier — memory defines P3 (Low) but parent CLAUDE.md only lists P0/P1/P2/P100; either remove P3 or document it as a toolkit extension (D3: +2, D6: +1)",
-          "[med] Add a See Also section at end referencing parent CLAUDE.md Backlog Format section and .claude/templates/backlog/ template files for ecosystem connectivity (D6: +3)"
+          "[low] Section 7 (Tooling) is useful reference but could cross-reference the parent project scripts directory more explicitly for ecosystem context (D6: +1)",
+          "[low] Could add a cross-reference to /design-qa skill which references P2/P3 prioritization for a more connected ecosystem (D6: +1)",
+          "[low] Section 3 Entry Format subsection headers (Minimal/Standard) could benefit from a comparison table showing when to use each format (D5: +1)"
         ]
       },
       "relevant-reference-hooks_config": {
-        "file_hash": "ab4f5361",
+        "file_hash": "f006d814",
         "date": "2026-03-09",
-        "grade": "B",
-        "score": 96,
+        "grade": "A",
+        "score": 105,
         "max": 115,
-        "percentage": 83.5,
+        "percentage": 91.3,
         "dimensions": {
-          "D1": 18,
+          "D1": 19,
           "D2": 23,
-          "D3": 13,
+          "D3": 18,
           "D4": 14,
           "D5": 19,
-          "D6": 9
+          "D6": 12
         },
         "top_improvements": [
-          "Remove or cross-reference the hooks listing table — it duplicates HOOKS.md index and is already stale (missing block-config-edits.sh). Replace with a pointer to HOOKS.md as the authoritative source.",
-          "Add HOOKS.md index to See Also as the comprehensive hook reference, since this memory is a configuration-focused subset.",
-          "Add block-config-edits.sh to the hooks table if keeping the listing, or note that the full list lives in HOOKS.md."
+          "[low] Add cross-reference to essential-toolkit-identity which defines hooks as guardrails — strengthens D6 ecosystem awareness",
+          "[low] Add a third ONLY READ WHEN bullet (e.g., adding a new hook to a project) to broaden Quick Reference trigger coverage — D2",
+          "[low] Include hook status (stable/beta) in the Active Hooks tables to match the information available in the full ecosystem — D3"
         ]
       },
       "relevant-philosophy-reducing_entropy": {
