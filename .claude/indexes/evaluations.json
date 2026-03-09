@@ -317,26 +317,27 @@
         ]
       },
       "evaluate-memory": {
-        "file_hash": "2f51fb27",
-        "date": "2026-01-28",
+        "file_hash": "b3f2be72",
+        "date": "2026-03-08",
+        "type": "knowledge",
         "grade": "A-",
-        "score": 105,
+        "score": 103,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 85.8,
         "dimensions": {
           "D1": 16,
-          "D2": 13,
+          "D2": 12,
           "D3": 14,
-          "D4": 13,
-          "D5": 14,
+          "D4": 9,
+          "D5": 13,
           "D6": 13,
-          "D7": 9,
+          "D7": 13,
           "D8": 13
         },
         "top_improvements": [
-          "Add explicit TOC at top for easier navigation in 200+ line file",
-          "Include 'Fix' column in Anti-Patterns table for complete guidance",
-          "Add a contrasting 'failing memory' example alongside the passing example"
+          "[low] Add a failing-case worked example (low-scoring memory) alongside the current high-scoring example to improve D8 calibration",
+          "[low] Consider adding an explicit TOC for navigability as the skill approaches 260 lines",
+          "[low] Reference /evaluate-batch in See Also for completeness with sister evaluators"
         ]
       },
       "list-memories": {
