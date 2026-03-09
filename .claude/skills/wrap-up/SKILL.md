@@ -1,10 +1,12 @@
 ---
 name: wrap-up
 type: command
-description: Use when requests mention "finish feature", "complete branch", "ready to merge", "finalize branch", or "wrap up". Updates changelog, bumps version, updates backlog, and commits changes.
+description: Use when requests mention "finish feature", "complete branch", "ready to merge", "finalize branch", or "wrap up".
 ---
 
 Use when finishing a feature branch.
+
+**See also:** `/write-handoff` (when pausing work instead of finishing), `/draft-pr` (optional: generate PR description after wrap-up)
 
 ## Why Code-Before-Docs Order Matters
 

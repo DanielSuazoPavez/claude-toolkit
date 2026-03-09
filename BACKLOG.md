@@ -25,7 +25,7 @@ Preparing v2 release — audit evaluate-* rubrics, then full resource re-evaluat
     - **progress**: Agents done (1.25.3). Hooks done (1.25.4). Memories done (1.25.5). Remaining: skills.
         - [x] Group 1 — create-*: create-agent, create-hook, create-memory, create-skill
         - [x] Group 2 — evaluate-*: evaluate-agent, evaluate-batch, evaluate-hook, evaluate-memory
-        - [ ] Group 3: brainstorm-idea, analyze-idea, wrap-up, write-handoff, review-plan
+        - [x] Group 3: brainstorm-idea, analyze-idea, wrap-up, write-handoff, review-plan
         - [ ] Group 4: setup-worktree, teardown-worktree, review-changes, refactor, snap-back, list-memories, read-json, draft-pr, write-docs
         - [ ] Group 5 — design-*: design-db, design-diagram, design-docker, design-qa, design-tests
 

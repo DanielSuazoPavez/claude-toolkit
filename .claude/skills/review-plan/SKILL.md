@@ -4,6 +4,8 @@ description: Review a plan against quality criteria before approving. Use when r
 argument-hint: Path to plan file (optional, auto-detected from context)
 ---
 
+**See also:** `/brainstorm-idea` (when the plan reveals requirements are still unclear), `/wrap-up` (finalize branch after implementation), `/review-changes` (post-implementation code review), `goal-verifier` agent (verify feature completeness), `implementation-checker` agent (compare implementation to plan)
+
 ## Your Task
 
 Review the plan and provide structured feedback before the user decides to approve or request changes.

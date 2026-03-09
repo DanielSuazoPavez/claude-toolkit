@@ -1,9 +1,12 @@
 ---
 name: analyze-idea
+type: knowledge
 description: Research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report. Use for feasibility analysis, coverage gaps, codebase audits.
 ---
 
 Use for research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report.
+
+**See also:** `/brainstorm-idea` (when scope is unclear and needs structured dialogue first), `/review-plan` (review plans informed by analysis), `pattern-finder` agent (targeted pattern searches), `codebase-explorer` agent (full codebase mapping)
 
 ## Context
 
@@ -18,7 +21,7 @@ The user provides context after `/analyze-idea` describing what to investigate. 
 
 2. **Explore thoroughly**:
    - Gather concrete evidence (file paths, line counts, patterns found)
-   - Use Task tool with Explore agent for broad codebase questions
+   - Use Agent tool with `pattern-finder` agent for targeted codebase searches
 
 ### Investigation Heuristics
 

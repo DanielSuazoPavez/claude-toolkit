@@ -5,6 +5,8 @@ description: Turn fuzzy ideas into clear designs through structured dialogue. Us
 
 Turns fuzzy ideas into clear designs through structured dialogue. Use BEFORE plan mode.
 
+**See also:** `/analyze-idea` (for research/evidence gathering), `/review-plan` (to review the plan that follows brainstorming)
+
 ## When to Use
 
 - User has an idea but hasn't defined what to build
