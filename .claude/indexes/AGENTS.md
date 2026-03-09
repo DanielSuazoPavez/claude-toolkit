@@ -6,15 +6,15 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-explorer` | beta | Explores codebase and writes structured analysis to `.claude/output/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
-| `pattern-finder` | new | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
+| `codebase-explorer` | stable | Explores codebase and writes structured analysis to `.claude/output/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
+| `pattern-finder` | beta | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
 
 ## Code Quality
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
 | `code-reviewer` | stable | Pragmatic code reviewer focused on real risks, proportional to project scale | Read, Grep, Glob, Bash, Write |
-| `code-debugger` | new | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
+| `code-debugger` | alpha | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
 
 ## Verification
 

@@ -20,7 +20,7 @@ Always loaded at session start:
 | `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
 | `relevant-workflow-branch_development` | stable | Branch-based development workflow |
 | `relevant-workflow-task_completion` | stable | Task completion checklist |
-| `relevant-reference-hooks_config` | beta | Hooks configuration and environment variables |
+| `relevant-reference-hooks_config` | stable | Hooks configuration and environment variables |
 
 ## Philosophy
 
