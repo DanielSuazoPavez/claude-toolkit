@@ -110,4 +110,4 @@ flowchart LR
   a2 --> b1
 ```
 
-**See also:** `/design-db` (ERDs for schema design), `/refactor` (visualizing dependency structure), `/write-docs` (embedding diagrams in documentation)
+**See also:** `/design-db` (ERDs for schema design), `/design-docker` (multi-container architecture diagrams), `/refactor` (visualizing dependency structure), `/write-docs` (embedding diagrams in documentation)

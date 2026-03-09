@@ -182,26 +182,27 @@
         ]
       },
       "design-docker": {
-        "file_hash": "c681a9e5",
-        "date": "2026-01-28",
+        "file_hash": "c1e29f5e",
+        "date": "2026-03-09",
+        "type": "knowledge",
         "grade": "A-",
         "score": 104,
         "max": 120,
         "percentage": 86.7,
         "dimensions": {
-          "D1": 16,
+          "D1": 18,
           "D2": 13,
           "D3": 13,
-          "D4": 12,
+          "D4": 8,
           "D5": 13,
-          "D6": 14,
-          "D7": 9,
+          "D6": 13,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "Reduce redundant basics in .dockerignore section - just reference common excludes without explicit listing",
-          "Add more decision guidance for edge cases like when to use alpine vs slim in practice with concrete criteria",
-          "Add troubleshooting section for common Docker issues (build context too large, layer cache invalidation debugging)"
+          "[low] Add compose-specific anti-patterns (depends_on without conditions, overusing restart: always, missing resource limits) to lift D3",
+          "[low] Narrow 'deployment config' keyword in description to avoid false-positive routing on Kubernetes/Terraform questions",
+          "[low] Add back-reference from design-tests to design-docker for container testing patterns to complete bidirectional link network"
         ]
       },
       "design-qa": {
