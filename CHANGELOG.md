@@ -9,6 +9,16 @@
 - **exploration**: Added `itsmostafa/aws-agent-skills` to exploration queue — weekly-updated AWS service reference, potential plugin pattern
 - **exploration**: Renamed exploration backlog to `BACKLOG.md` for consistency, cross-referenced from main backlog
 
+## [2.0.2] - 2026-03-09 - Transcript backup and insights enhancement
+
+### Added
+- **scripts**: `backup-transcripts.sh` — hourly rsync of `~/.claude/projects/` to `~/backups/claude-transcripts/`, preserves transcripts from Claude Code's ~30-day auto-pruning
+- **scripts**: `--transcripts-dir` flag for `insights.py` — point at backup dir for full history including pruned sessions
+- **backlog**: `insights-subagent-parsing` — parse subagent transcripts for complete usage data
+
+### Fixed
+- **version**: Synced pyproject.toml version with VERSION file (was stuck at 2.0.0)
+
 ## [2.0.1] - 2026-03-09 - v2 wrap-up cleanup
 
 ### Changed

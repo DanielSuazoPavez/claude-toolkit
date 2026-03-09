@@ -117,6 +117,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `toolkit`
     - **notes**: Find repos/configs that emphasize collaborative sessions over autonomous agents. Most ecosystem repos skew "launch and walk away." obra/superpowers and trailofbits are closest matches so far. Theme search tracked in exploration BACKLOG.
 
+- **[TOOLKIT]** Parse subagent transcripts in insights script (`insights-subagent-parsing`)
+    - **status**: `idea`
+    - **scope**: `toolkit`
+    - **notes**: `scripts/insights.py` only reads top-level `.jsonl` files. Subagent transcripts in `<uuid>/subagents/` are ignored — this also means old sessions (pre-Feb) that only survive as subagent files are invisible. Need to decide: count as separate sessions or roll up into parent.
+
 - **[TOOLKIT]** Telegram bot bridge to Claude Code (`telegram-bridge`)
     - **status**: `idea`
     - **scope**: `toolkit`
