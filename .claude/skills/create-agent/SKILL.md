@@ -10,12 +10,13 @@ Use when adding a new agent to `.claude/agents/`.
 1. [When to Use](#when-to-use) - Triggers for agent creation
 2. [Agent vs Skill Decision](#agent-vs-skill-decision) - Decision tree
 3. [Process](#process) - Define, write, evaluate
-4. [Structure Template](#structure-template) - Frontmatter and sections
-5. [Tool Selection Guide](#tool-selection-guide) - Tools by purpose
-6. [First-Attempt Checklist](#first-attempt-checklist) - Pre-evaluation gate
-7. [Edge Cases](#edge-cases) - Overlap, personas, reviewers, abandonment
-8. [Anti-Patterns](#anti-patterns) - Named failures
-9. [Worked Examples](#worked-examples) - Creation and iteration
+4. [Structure Template](#structure-template) - Template reference and persona calibration
+5. [Template Modifications by Type](#template-modifications-by-type) - Type-specific adjustments
+6. [Tool Selection Guide](#tool-selection-guide) - Tools by purpose
+7. [First-Attempt Checklist](#first-attempt-checklist) - Pre-evaluation gate
+8. [Edge Cases](#edge-cases) - Overlap, personas, reviewers, abandonment
+9. [Anti-Patterns](#anti-patterns) - Named failures
+10. [Iteration Reference](#iteration-reference) - Narrowing scope and fixing evaluations
 
 **Related:** `/evaluate-agent` (quality gate — run after creating), `/create-skill` (when a skill fits better than an agent)
 
@@ -75,21 +76,11 @@ Run `/evaluate-agent` on the result:
 
 ## Structure Template
 
-```markdown
----
-name: [name]
-description: [One line]. Use when [trigger].
-tools: [minimal set]
----
+Read `resources/TEMPLATE.md` and use it as the LITERAL STARTING POINT.
+Copy the entire template, then modify every section for the new agent.
+Do not write from scratch — always start from the template.
 
-You are a [role] who [perspective/constraint].
-
-## Focus
-
-[What this agent does - 2-3 bullets max]
-```
-
-### Persona Examples
+### Persona Calibration
 
 | Agent Type | Weak Persona | Strong Persona |
 |------------|--------------|----------------|
@@ -99,23 +90,13 @@ You are a [role] who [perspective/constraint].
 
 The persona should create a **behavioral constraint** that default Claude doesn't have.
 
-```markdown
+## Template Modifications by Type
 
-## What I Don't Do
-
-- [Explicit boundary 1]
-- [Explicit boundary 2]
-- [Hand off to: other-agent or skill]
-
-## Output Format
-
-\```markdown
-# [Title]: [Scope]
-
-## [Section 1]
-...
-\```
-```
+| Agent Type | Modify | Details |
+|------------|--------|---------|
+| Reviewer/Verifier | Add Verdict + Automatic Fails | See [Edge Cases: Reviewer/Verifier Agents](#reviewerverifier-agents) |
+| Read-only cataloger | Remove Output Path, add Rules | Pattern: `pattern-finder.md` |
+| Code modifier | Expand tools, add safety constraints | Pattern: `code-debugger.md` |
 
 ## Tool Selection Guide
 
@@ -207,98 +188,32 @@ Stop and reconsider if:
 | **Missing Boundaries** | No "What I Don't Do" | Always include explicit limits |
 | **Overlapping Scope** | Conflicts with existing agent | Check `.claude/indexes/AGENTS.md` first |
 
-## Worked Examples
+## Iteration Reference
 
-### Example 1: Creating a Focused Agent
+### Narrowing Scope
 
 **Request:** "Create an agent that helps with database work"
 
-**RED FLAG:** Too broad. "Database work" includes schema design, query optimization, migrations, debugging...
-
-**Refinement questions:**
+Too broad. Refinement questions:
 1. What specific database task recurs? → "Reviewing migrations for safety"
-2. What perspective is needed? → "Skeptical - assume migrations break production"
+2. What perspective is needed? → "Skeptical — assume migrations break production"
 3. What does it NOT do? → "Doesn't write migrations, just reviews them"
 
-**Result: `migration-reviewer.md`**
-```markdown
----
-name: migration-reviewer
-description: Reviews database migrations for production safety. Use when checking migrations before deploy.
-tools: Read, Grep, Glob
----
+Result: `migration-reviewer` — focused agent with clear boundaries.
 
-You are a skeptical DBA who assumes every migration will break production until proven safe.
+### Fixing Evaluation Failures
 
-## Focus
-- Check for missing rollback steps
-- Flag destructive operations (DROP, TRUNCATE)
-- Verify index additions won't lock tables
+**`deploy-checker` first attempt:** D (62/115)
+- D1: 8/30 — "checks deployments" too broad → narrowed to "validates deployment checklists"
+- D2: 12/30 — no output format → added Verdict (READY/NOT READY/CONDITIONAL) + Automatic Fails
+- D3: 7/25 — "helpful assistant" → "cautious release engineer who blocks deploys until every item has evidence"
+- D4: 5/15 — every tool listed → trimmed to Read, Grep, Glob
 
-## What I Don't Do
-- Write migrations (use write-migration skill)
-- Optimize queries (use query-optimizer agent)
-- Design schemas (use design-db skill)
-```
-
-**Evaluation:** Run `/evaluate-agent migration-reviewer` → Target B (75+)
-
-### Example 2: Iterating After Evaluation Failure
-
-**First attempt:** `deploy-checker.md` scores D (62/115)
-
-```markdown
----
-name: deploy-checker
-description: Checks deployments.
-tools: Read, Write, Edit, Bash, Grep, Glob
----
-You are a helpful assistant that checks if deployments are ready.
-Provide thorough feedback on deployment readiness.
-```
-
-**Evaluation feedback:**
-- D1: 8/30 — "checks deployments" is too broad
-- D2: 12/30 — No output format, no pass/fail criteria
-- D3: 7/25 — Generic "helpful assistant"
-- D4: 5/15 — Every tool, only needs read access
-
-**Iteration — fix weakest dimensions first (D1, D2):**
-
-```markdown
----
-name: deploy-checker
-description: Validates deployment checklists before production release. Use when reviewing a deploy PR.
-tools: Read, Grep, Glob
----
-
-You are a cautious release engineer who blocks deploys until every checklist item has evidence.
-
-## Focus
-- Verify each deploy checklist item has supporting evidence (test results, approval, config)
-- Flag missing or stale evidence
-
-## What I Don't Do
-- Write deploy scripts (that's the developer)
-- Monitor post-deploy health (that's observability)
-- Approve deploys (that's the tech lead)
-
-## Verdict
-- **READY**: All checklist items have current evidence
-- **NOT READY**: Any automatic fail trigger hit
-- **CONDITIONAL**: Minor gaps, safe with noted actions
-
-## Automatic Fails
-- Missing test evidence for changed services
-- No rollback plan documented
-- Config changes without environment validation
-```
-
-**Re-evaluation:** B+ (95/115) — D1: 26, D2: 26, D3: 22, D4: 14, D5: 7
+**After iteration:** B+ (95/115). Fix weakest dimensions first, one at a time.
 
 ## Reference
 
 See existing agents for patterns:
-- `code-reviewer.md` - Proportional review with calibration questions
-- `pattern-finder.md` - Read-only cataloging, no critique
-- `goal-verifier.md` - Verification levels (L1/L2/L3)
+- `code-reviewer.md` — Proportional review with calibration questions
+- `pattern-finder.md` — Read-only cataloging, no critique
+- `goal-verifier.md` — Verification levels (L1/L2/L3)
