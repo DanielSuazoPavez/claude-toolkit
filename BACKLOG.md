@@ -55,11 +55,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`. Also see CloudSecurityPartners' tool risk matrix and hook severity escalation patterns: `.claude/output/reviews/exploration/cloudsecuritypartners_skills/summary.md`.
 
-- **[TOOLKIT]** Standardize evaluation output to percentages (`evaluation-percentage-normalization`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: evaluate-skill uses /120 max, evaluate-agent uses /115 max — different scales confuse agents running evaluations. Standardize all evaluation outputs to percentages so 85% means the same thing everywhere. Affects: evaluate-skill rubric, evaluate-agent rubric, evaluations.json schema, evaluate-batch prompts.
-
 - **[TOOLKIT]** Rewrite raiz publish trimming logic in Python (`toolkit-raiz-python-trimming`)
     - **status**: `idea`
     - **scope**: `toolkit`
