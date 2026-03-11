@@ -9,6 +9,11 @@
 ### Changed
 - **backlog**: Promoted 3 shape-proposal/proposal-reviewer improvement tasks to P1
 
+## [2.5.1] - 2026-03-11 - draft-pr template detection
+
+### Improved
+- **skills**: `draft-pr` now checks for PR templates in `.github/` before generating — uses project template when found, falls back to default format
+
 ## [2.5.0] - 2026-03-11 - remove letter grades from evaluation system
 
 ### Changed

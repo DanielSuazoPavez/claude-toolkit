@@ -22,7 +22,16 @@ Generate a pull request description for the current branch.
 - Check changed files: `git diff main --stat`
 - Read CHANGELOG.md for the latest entry (created by `/wrap-up`)
 
-### 2. Check PR size
+### 2. Check for PR template
+
+Look for a pull request template in the project:
+- `.github/pull_request_template.md`
+- `.github/PULL_REQUEST_TEMPLATE.md`
+- `.github/PULL_REQUEST_TEMPLATE/` (directory with multiple templates)
+
+If a template exists, use it as the output format in step 5 instead of the default format. Fill in the template sections with the branch analysis.
+
+### 3. Check PR size
 
 | Lines Changed | Action |
 |---------------|--------|
@@ -41,7 +50,7 @@ Generate a pull request description for the current branch.
 | **Security fixes** | Ship immediately regardless of size; note urgency in summary |
 | **Large-scale rename/refactor** | Acceptable if purely mechanical — document the transformation clearly |
 
-### 3. Split if needed
+### 4. Split if needed
 
 ```
 Is the PR >400 lines (excluding generated files)?
@@ -62,9 +71,11 @@ Is the PR >400 lines (excluding generated files)?
 4. Merge bottom-up: PR1 first, rebase PR2 onto `main`, then merge PR2
 5. Keep each slice independently reviewable — the reviewer should not need PR1 context to evaluate PR2's diff
 
-### 4. Generate PR description
+### 5. Generate PR description
 
 Tell the story of WHY, not the chronology of HOW. Synthesize commits into a coherent narrative.
+
+If a PR template was found in step 2, use it as the structure. Otherwise, use this default format:
 
 ```markdown
 ## Summary
@@ -82,7 +93,7 @@ Tell the story of WHY, not the chronology of HOW. Synthesize commits into a cohe
 - Explain non-obvious decisions in the summary
 - If PR exceeds sizing guidelines, explain why it cannot be split
 
-### 5. Output
+### 6. Output
 
 Output the PR description to console, ready to copy/paste.
 
