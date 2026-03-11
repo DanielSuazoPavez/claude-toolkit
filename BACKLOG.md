@@ -110,10 +110,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: CI/CD pipeline patterns, caching, matrix builds. Build when encountering real CI/CD need.
 
-- **[TOOLKIT]** Explore human-in-the-loop Claude Code repos (`explore-hitl-repos`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: Find repos/configs that emphasize collaborative sessions over autonomous agents. Most ecosystem repos skew "launch and walk away." obra/superpowers and trailofbits are closest matches so far. Theme search tracked in exploration BACKLOG.
 
 - **[TOOLKIT]** Parse subagent transcripts in insights script (`insights-subagent-parsing`)
     - **status**: `idea`
