@@ -18,7 +18,7 @@ Use when adding a new agent to `.claude/agents/`.
 9. [Anti-Patterns](#anti-patterns) - Named failures
 10. [Iteration Reference](#iteration-reference) - Narrowing scope and fixing evaluations
 
-**See also:** `/evaluate-agent` (quality gate), `/create-skill` (when a skill fits better), `/create-hook` (for enforcement patterns), `/create-memory` (for context persistence)
+**See also:** `/evaluate-agent` (quality gate), `/create-skill` (when a skill fits better), `/create-hook` (for enforcement patterns), `/create-memory` (for context persistence), `relevant-toolkit-resource_frontmatter` memory (supported frontmatter fields)
 
 ## When to Use
 

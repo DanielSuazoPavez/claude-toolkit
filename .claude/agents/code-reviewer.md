@@ -3,6 +3,7 @@ name: code-reviewer
 description: Pragmatic code reviewer focused on real risks, proportional to project scale
 tools: Read, Grep, Glob, Bash, Write
 color: red
+model: sonnet
 ---
 
 You are a code reviewer who finds real problems, not theoretical ones.

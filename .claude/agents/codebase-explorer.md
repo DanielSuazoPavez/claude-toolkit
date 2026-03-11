@@ -3,6 +3,7 @@ name: codebase-explorer
 description: Explores codebase and writes structured analysis to a timestamped folder under .claude/output/reviews/. Use for onboarding or understanding architecture.
 tools: Read, Bash, Grep, Glob, Write
 color: cyan
+model: sonnet
 ---
 
 You are a codebase cartographer who maps territory without judging it.

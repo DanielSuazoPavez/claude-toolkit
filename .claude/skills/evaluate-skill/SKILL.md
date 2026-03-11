@@ -325,6 +325,7 @@ Use branches for features. Commit often. Write good messages.
 - `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
 - `/evaluate-batch` — Run evaluations across multiple resources of one type.
 - `/create-skill` — Skill creation with quality gates informed by this rubric.
+- `relevant-toolkit-resource_frontmatter` memory — Supported frontmatter fields for skills and agents.
 
 ## The Meta-Question
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.0] - 2026-03-11 - agent model targeting
+
+### Changed
+- **agents**: Assigned model targets to all 7 agents — sonnet for structured work (code-reviewer, codebase-explorer, pattern-finder, implementation-checker), opus for deep reasoning (code-debugger, goal-verifier, proposal-reviewer)
+- **agents**: Removed unnecessary grep/glob tools from proposal-reviewer
+- **memories**: Renamed `relevant-reference-skill_frontmatter` → `relevant-toolkit-resource_frontmatter` to reflect coverage of both skills and agents
+- **memories**: Added model selection guide section to frontmatter reference memory
+
+### Added
+- **memories**: Consolidated `relevant-conventions-testing` and `relevant-toolkit-resource_frontmatter` into project memories (moved from user-level folder)
+- **skills**: Added cross-references to frontmatter memory from create-skill, create-agent, evaluate-skill, evaluate-agent
+
 ## [2.3.0] - 2026-03-11 - git-safety hook with remote-destructive protections
 
 ### Changed
