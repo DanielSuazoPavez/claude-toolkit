@@ -518,27 +518,27 @@
         ]
       },
       "wrap-up": {
-        "file_hash": "5f04967c",
-        "date": "2026-03-09",
+        "file_hash": "300007e7",
+        "date": "2026-03-11",
         "type": "command",
         "grade": "A-",
-        "score": 107,
+        "score": 102,
         "max": 120,
-        "percentage": 89.2,
+        "percentage": 85.0,
         "dimensions": {
-          "D1": 17,
-          "D2": 14,
+          "D1": 16,
+          "D2": 12,
           "D3": 13,
           "D4": 9,
           "D5": 14,
-          "D6": 13,
+          "D6": 12,
           "D7": 13,
-          "D8": 14
+          "D8": 13
         },
         "top_improvements": [
-          "[low] Add monorepo/multi-package version bump guidance to When NOT to bump list — non-obvious edge case that would strengthen D1",
-          "[low] Reference Keep a Changelog standard or a changelog memory if available — tighten ecosystem integration for D7",
-          "[low] Add Version Drift anti-pattern for multi-file version inconsistency (e.g., pyproject.toml vs __init__.py) — strengthens D3"
+          "[high] D1: Add non-obvious items to steps 5-8 (e.g., version consistency checks across multiple files, lock file implications) to elevate routine steps",
+          "[low] D6: Explicitly mark which steps are flexible vs fixed — e.g., can steps 5-7 be reordered? Must step 2 always precede step 3?",
+          "[low] D8: Add guidance for handling make check / test failures during wrap-up (revert docs commit? fix and re-commit?)"
         ]
       },
       "write-handoff": {

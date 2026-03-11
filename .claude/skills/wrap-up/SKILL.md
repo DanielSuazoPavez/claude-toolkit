@@ -17,14 +17,18 @@ Commit code changes separately from version/changelog updates because:
 
 ## Instructions
 
-### 1. Check for uncommitted code changes
+### 1. Ensure you're on a feature branch
+- If on main/master, create a feature branch before proceeding
+- Name it based on the work done (e.g., `feat/...`, `fix/...`, `docs/...`)
+
+### 2. Check for uncommitted code changes
 - If uncommitted code changes exist (src/, tests/, etc.), commit them first
 - Skip if only docs files are modified
 
-### 2. Analyze the branch
+### 3. Analyze the branch
 Review commits since branching from main to understand what was done.
 
-### 3. Determine version bump
+### 4. Determine version bump
 
 ```
 What changed?
@@ -54,21 +58,21 @@ What changed?
 - If branch will be **merged with commits**: Changelog can reference individual commits
 - When unsure, write changelog as if squashed (cleaner history)
 
-### 4. Update `CHANGELOG.md`
+### 5. Update `CHANGELOG.md`
 Add new entry at the top following existing project style.
 
-### 5. Update version file
+### 6. Update version file
 Bump the version in the appropriate file (VERSION, pyproject.toml, package.json, etc.).
 
-### 6. Update `BACKLOG.md`
+### 7. Update `BACKLOG.md`
 - Remove completed items (they're now in CHANGELOG)
 - Exception: If item is part of a larger task, keep checked until parent task is fully done
 - Add any new backlog items discovered
 
-### 7. Commit documentation changes
+### 8. Commit documentation changes
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 
-### 8. Report summary
+### 9. Report summary
 Output what was updated.
 
 ## Edge Cases

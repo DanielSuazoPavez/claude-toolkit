@@ -2,9 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- **skills**: `wrap-up` now checks for feature branch as step 1 — previously assumed branch existed, causing work on main
+
 ### Changed
 - **memories**: Added cross-references to `relevant-conventions-testing` (links to code_style, task_completion, /design-tests)
-- **evaluations**: Updated scores for `relevant-conventions-testing` (102 → 106) and `relevant-toolkit-resource_frontmatter` (104)
+- **evaluations**: Updated scores for `relevant-conventions-testing` (102 → 106), `relevant-toolkit-resource_frontmatter` (104), and `wrap-up` (102)
 
 ## [2.4.0] - 2026-03-11 - agent model targeting
 
