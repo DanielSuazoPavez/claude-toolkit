@@ -10,7 +10,7 @@
 
 **Core rule:** Never commit directly to main/master. Always use feature branches.
 
-**See also:** CLAUDE.md for `--no-ff` merge policy, `/setup-worktree` for parallel work, `relevant-workflow-task_completion` for completion checklist, `relevant-reference-hooks_config` for enforce-feature-branch hook
+**See also:** CLAUDE.md for `--no-ff` merge policy, `/setup-worktree` for parallel work, `relevant-workflow-task_completion` for completion checklist, `relevant-reference-hooks_config` for git-safety hook
 
 ---
 

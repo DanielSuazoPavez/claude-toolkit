@@ -131,7 +131,7 @@ Automation hooks configured in `settings.json`:
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | `session-start.sh` | SessionStart | Loads essential memories and git context |
-| `enforce-feature-branch.sh` | PreToolUse (EnterPlanMode\|Bash) | Blocks plan mode and git commits on main/master |
+| `git-safety.sh` | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branches + remote-destructive commands |
 | `block-dangerous-commands.sh` | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, etc.) |
 | `block-config-edits.sh` | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
 | `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |

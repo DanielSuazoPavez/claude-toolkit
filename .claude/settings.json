@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/enforce-feature-branch.sh"
+            "command": ".claude/hooks/git-safety.sh"
           }
         ]
       },

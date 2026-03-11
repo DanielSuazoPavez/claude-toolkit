@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.3.0] - 2026-03-11 - git-safety hook with remote-destructive protections
+
+### Changed
+- **hooks**: Renamed `enforce-feature-branch` → `git-safety` — reflects expanded scope beyond branch enforcement
+- **hooks**: Added remote-destructive protections: force push, `--mirror`, branch deletion (`--delete` and `:branch`), cross-branch push (`HEAD:other-branch`)
+- **hooks**: Two severity tiers — severe (irreversible: force push to protected, mirror, delete protected) and soft (risky: force push non-protected, delete any branch, cross-branch)
+- **docs**: Updated all references across settings, templates, MANIFEST, indexes, memories, and README
+
+### Fixed
+- **tests**: Fixed git-safety test — broken path from rename and lost subshell counters
+
+### Added
+- **tests**: Expanded git-safety test coverage from 20 → 43 tests: severity verification (`expect_contains`), detached HEAD blocking, non-git directory passthrough, master branch protection, same-branch refspec allow, tool passthrough
+
 ## [2.2.0] - 2026-03-11 - shape-proposal skill and proposal-reviewer agent
 
 ### Added
