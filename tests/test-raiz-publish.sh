@@ -231,7 +231,7 @@ local_settings="$OUTPUT_DIR/.claude/templates/settings.template.json"
 # Should have raiz hooks
 assert_file_contains "has block-dangerous-commands" "$local_settings" "block-dangerous-commands.sh"
 assert_file_contains "has block-config-edits" "$local_settings" "block-config-edits.sh"
-assert_file_contains "has enforce-feature-branch" "$local_settings" "enforce-feature-branch.sh"
+assert_file_contains "has git-safety" "$local_settings" "git-safety.sh"
 assert_file_contains "has secrets-guard" "$local_settings" "secrets-guard.sh"
 assert_file_contains "has suggest-read-json" "$local_settings" "suggest-read-json.sh"
 
