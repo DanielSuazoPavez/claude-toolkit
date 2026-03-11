@@ -1195,6 +1195,27 @@
           "[low] Add See Also links to /create-skill and /create-agent skills that consume this frontmatter information (D6)",
           "[low] Consider whether Model Selection Guide (section 5) should be its own memory to keep this strictly about frontmatter field definitions (D3)"
         ]
+      },
+      "relevant-conventions-testing": {
+        "file_hash": "a9c6aeb2",
+        "date": "2026-03-11",
+        "grade": "A",
+        "score": 106,
+        "max": 115,
+        "percentage": 92.2,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 18,
+          "D6": 13
+        },
+        "top_improvements": [
+          "[low] Quick Reference See also references /design-tests (pytest-focused) — clarify it covers test design methodology for pytest, distinct from the bash tests here (D2: +1)",
+          "[low] Sections 4-6 are thin (2-4 bullets each) — add a brief example command with expected output for each test type to increase actionability (D3: +1-2)",
+          "[low] Section 3 notes helpers are defined per test file, not shared — add brief rationale for this design choice (D3: +1)"
+        ]
       }
     }
   },
