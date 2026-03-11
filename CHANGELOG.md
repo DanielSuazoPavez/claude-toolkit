@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **analysis**: Shape-proposal skill improvement analysis from real usage session — 6 findings with priorities
+- **output**: Two shaped proposal versions (export-doc-extraction v2 and revised) + two proposal-reviewer reports
+
+### Changed
+- **backlog**: Promoted 3 shape-proposal/proposal-reviewer improvement tasks to P1
+
 ## [2.5.0] - 2026-03-11 - remove letter grades from evaluation system
 
 ### Changed
