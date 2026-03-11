@@ -19,7 +19,7 @@ agents/goal-verifier.md
 # hooks
 hooks/block-config-edits.sh
 hooks/block-dangerous-commands.sh
-hooks/enforce-feature-branch.sh
+hooks/git-safety.sh
 hooks/secrets-guard.sh
 hooks/suggest-read-json.sh
 

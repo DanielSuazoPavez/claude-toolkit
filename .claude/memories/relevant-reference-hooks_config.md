@@ -8,7 +8,7 @@
 
 Reference for hook triggers, environment variables, and customization options.
 
-**See also:** `/create-hook` skill, `relevant-workflow-branch_development` for enforce-feature-branch hook context
+**See also:** `/create-hook` skill, `relevant-workflow-branch_development` for git-safety hook context
 
 ---
 
@@ -44,7 +44,7 @@ Reference for hook triggers, environment variables, and customization options.
 ### PreToolUse (EnterPlanMode|Bash)
 | Hook | Purpose |
 |------|---------|
-| `enforce-feature-branch.sh` | Warns when on main/master branch |
+| `git-safety.sh` | Blocks unsafe git operations: protected branches + remote-destructive commands |
 
 ### PostToolUse (Write)
 | Hook | Purpose |

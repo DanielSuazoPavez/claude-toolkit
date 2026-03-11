@@ -849,27 +849,6 @@
           "Add test cases for edge cases in header comments: empty title (fallback slug), special characters in title, and cp failure scenarios -- D2"
         ]
       },
-      "enforce-feature-branch": {
-        "file_hash": "8f7a84b2",
-        "date": "2026-03-09",
-        "grade": "A",
-        "score": 104,
-        "max": 115,
-        "percentage": 90.43,
-        "dimensions": {
-          "D1": 23,
-          "D2": 18,
-          "D3": 18,
-          "D4": 17,
-          "D5": 14,
-          "D6": 14
-        },
-        "top_improvements": [
-          "Extract branch-checking logic (git repo check, get branch, detached HEAD check, protected branch check) into a shared function to eliminate duplication between EnterPlanMode and Bash handlers -- D4 +2",
-          "Move the git commit grep pattern into a named variable (e.g., GIT_COMMIT_PATTERN) for consistency with the PROTECTED_BRANCHES variable pattern -- D4 +1",
-          "Add stderr logging (>&2) when blocking actions so administrators can audit hook activity in CI/debug scenarios -- D3 +2"
-        ]
-      },
       "session-start": {
         "file_hash": "dcd76469",
         "date": "2026-03-09",
@@ -952,6 +931,27 @@
           "[med] Fix Bash regex false positives and missing single-redirect -- APPEND_RE's greedy `>>.*HOME_CONFIG` matches jq/heredoc commands containing config paths in string literals (confirmed live: hook blocked a jq command writing evaluations.json because the JSON payload contained .bashrc), and single `>` redirect is not caught at all (D1/D3)",
           "[low] Unify BLOCKED_CONFIGS array and Bash CONFIGS regex into a single source of truth -- currently two independent lists that can drift when adding new config files (D4)",
           "[low] Add documented test cases in header comments (block and allow examples) matching the pattern in block-dangerous-commands.sh -- currently no inline test commands (D2/D5)"
+        ]
+      },
+      "git-safety": {
+        "file_hash": "b2905abd",
+        "date": "2026-03-11",
+        "grade": "B",
+        "score": 96,
+        "max": 115,
+        "percentage": 83.5,
+        "dimensions": {
+          "D1": 22,
+          "D2": 19,
+          "D3": 16,
+          "D4": 15,
+          "D5": 14,
+          "D6": 10
+        },
+        "top_improvements": [
+          "Update HOOKS.md index to replace stale enforce-feature-branch.sh entry with git-safety.sh, and differentiate block_severe/block_soft implementations so the two-tier severity model is reflected in actual output (D6, D4)",
+          "Add stderr logging (>&2 echo) when blocks fire to enable audit trails and production debugging (D3)",
+          "Unify push-target extraction into a single parse pass instead of re-grepping COMMAND multiple times for --delete, :branch, and cross-branch patterns (D4)"
         ]
       }
     }

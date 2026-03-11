@@ -7,7 +7,7 @@ Automation hooks configured in `settings.json`.
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
-| `enforce-feature-branch.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks plan mode and git commits on main/master |
+| `git-safety.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `block-dangerous-commands.sh` | stable | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
@@ -32,19 +32,29 @@ Loads essential memories and git context at the start of each session.
 - Loads recent lessons from `learned.json`
 - Outputs guidance text for memory usage
 
-### enforce-feature-branch.sh
+### git-safety.sh
 
 **Trigger**: PreToolUse (EnterPlanMode|Bash)
 
-Blocks plan mode and git commits on main/master branch.
+Blocks unsafe git operations — protected branch enforcement and remote-destructive commands.
 
+**Protected branch enforcement:**
 - Blocks: `EnterPlanMode` when on `main` or `master`
 - Blocks: `git commit` commands when on `main` or `master`
 - Handles: detached HEAD state (blocks with branch creation suggestion)
-- Config: `PROTECTED_BRANCHES` env var (regex, default: `^(main|master)$`)
-- Message: Suggests creating feature branch with prefix options
 
-Why: Non-trivial work should happen on feature branches.
+**Remote-destructive (severe — irreversible):**
+- Blocks: Force push (`--force`, `-f`, `--force-with-lease`) to protected branches
+- Blocks: `git push --mirror`
+- Blocks: Deleting protected branches on remote (`--delete` or `:branch` syntax)
+
+**Remote-destructive (soft — risky):**
+- Blocks: Force push to non-protected branches
+- Blocks: Deleting any remote branch
+- Blocks: Cross-branch push (`HEAD:other-branch`)
+
+- Config: `PROTECTED_BRANCHES` env var (regex, default: `^(main|master)$`)
+- All blocks suggest running the command manually outside Claude
 
 ### block-dangerous-commands.sh
 
@@ -133,7 +143,7 @@ Hooks are configured in `settings.json`:
       {
         "matcher": "EnterPlanMode",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/enforce-feature-branch.sh"}
+          {"type": "command", "command": ".claude/hooks/git-safety.sh"}
         ]
       },
       {

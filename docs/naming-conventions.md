@@ -114,6 +114,6 @@ See `essential-conventions-memory.md` for full documentation.
 
 Detailed conventions to be defined. Current examples follow this loose pattern:
 
-- `enforce-feature-branch` - functionality: enforce, context: feature-branch
+- `git-safety` - functionality: git, context: safety
 - `secrets-guard` - functionality: guard, context: secrets
 - `track-skill-usage` - functionality: track, context: skill-usage
