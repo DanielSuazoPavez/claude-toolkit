@@ -73,7 +73,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 - **[SKILLS]** Add worked example to `shape-proposal` skill (`skill-shape-proposal-example`)
     - **status**: `idea`
     - **scope**: `skills`
-    - **notes**: Reshape v5 (`suggestions-box/claude-meta/shape-proposal-SKILL/20260311_1600__brainstorm-idea__export-doc-extraction-v5.md`) through the skill to produce a proper example output with framing block, template sections, and status markers. Save as `resources/EXAMPLE.md`. Current v5 was shaped manually before the skill existed.
+    - **notes**: Reshape v5 (`.claude/drafts/shape-proposal/20260311_1600__brainstorm-idea__export-doc-extraction-v5.md`) through the skill to produce a proper example output with framing block, template sections, and status markers. Save as `resources/EXAMPLE.md`. Current v5 was shaped manually before the skill existed.
 
 ## P3 - Low
 
