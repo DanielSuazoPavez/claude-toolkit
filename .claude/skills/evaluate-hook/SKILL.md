@@ -12,8 +12,7 @@ Evaluate hook quality against hook-specific best practices.
 1. [When to Use](#when-to-use) - Triggers
 2. [Core Philosophy](#core-philosophy) - What makes a good hook
 3. [Evaluation Dimensions](#evaluation-dimensions-115-points) - 6-dimension rubric
-4. [Grading Scale](#grading-scale) - Score-to-grade mapping
-5. [JSON Output Format](#json-output-format) - Required output structure
+4. [JSON Output Format](#json-output-format) - Required output structure
 6. [Invocation](#invocation) - How to run evaluations
 7. [Evaluation Protocol](#evaluation-protocol) - Step-by-step process
 8. [Anti-Patterns](#anti-patterns) - Named failures with fixes
@@ -122,23 +121,12 @@ Does it work well within the resource ecosystem?
 - **Convention alignment** — follows toolkit hook patterns (naming, output format)
 - **Terminology consistency** — uses same terms as hook documentation
 
-## Grading Scale
-
-| Grade | Score | Description |
-|-------|-------|-------------|
-| A | 103+ | Production-ready |
-| B | 86-102 | Good, minor improvements needed |
-| C | 69-85 | Functional but notable gaps |
-| D | 46-68 | Significant issues |
-| F | <46 | Not safe to deploy |
-
 ## JSON Output Format
 
 ```json
 {
   "file_hash": "<first 8 chars of MD5>",
   "date": "YYYY-MM-DD",
-  "grade": "A/B/C/D/F",
   "score": <total>,
   "max": 115,
   "percentage": <score/max * 100>,

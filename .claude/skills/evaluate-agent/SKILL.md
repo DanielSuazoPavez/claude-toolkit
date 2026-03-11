@@ -11,8 +11,7 @@ Evaluate agent design quality against behavioral effectiveness.
 
 1. [Core Philosophy](#core-philosophy) - Behavioral delta formula
 2. [Evaluation Dimensions](#evaluation-dimensions-115-points) - 5 dimensions
-3. [Grading Scale](#grading-scale) - Grade thresholds
-4. [Common Failures](#common-failures) - Named failure patterns
+3. [Common Failures](#common-failures) - Named failure patterns
 5. [Anti-Pattern Detection](#anti-pattern-detection) - Textual signals
 6. [Edge Cases](#edge-cases) - Type-specific adjustments
 7. [JSON Output Format](#json-output-format) - Result schema
@@ -111,19 +110,6 @@ Does it work well within the resource ecosystem?
 - **Ecosystem awareness** — knows what tools and resources are available
 - **Terminology consistency** — uses same terms as connected resources
 
-## Grading Scale
-
-| Grade | Score | Description |
-|-------|-------|-------------|
-| A | 103+ | Exemplary - use as reference |
-| A- | 98-102 | Excellent - minor polish |
-| B+ | 92-97 | Solid - small improvements |
-| B | 86-91 | Good - clear path forward |
-| B- | 80-85 | Functional - needs attention |
-| C | 69-79 | Needs work - notable gaps |
-| D | 57-68 | Significant issues |
-| F | <57 | Needs redesign |
-
 ## Common Failures
 
 | Failure | How to Recognize | How to Fix |
@@ -160,7 +146,6 @@ Does it work well within the resource ecosystem?
 {
   "file_hash": "<first 8 chars of MD5>",
   "date": "YYYY-MM-DD",
-  "grade": "A/A-/B+/B/B-/C/D/F",
   "score": <total>,
   "max": 115,
   "percentage": <score/max * 100>,
@@ -197,7 +182,7 @@ Using a separate agent ensures objective assessment without influence from prior
 1. Read completely, noting scope boundaries and output format
 2. Check frontmatter: name, description, tools
 3. Score each dimension with evidence
-4. Calculate total, assign grade
+4. Calculate total and percentage
 5. Generate report with JSON output including file_hash and top improvements
 6. Update `.claude/indexes/evaluations.json` using jq:
    ```bash
@@ -206,7 +191,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 ## Example Evaluation
 
-**Before (D - 52/115):**
+**Before (45% - 52/115):**
 ```markdown
 ---
 name: code-helper
@@ -222,7 +207,7 @@ Provide thorough and comprehensive feedback.
 - D4: 5/15 - Every tool, no justification
 - D5: 3/15 - No references, island agent
 
-**After (A- - 98/115):**
+**After (85% - 98/115):**
 ```markdown
 ---
 name: test-coverage-analyzer

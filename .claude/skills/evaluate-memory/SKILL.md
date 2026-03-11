@@ -140,16 +140,6 @@ Does it work well within the resource ecosystem?
 - **Ecosystem awareness** — knows what other memories cover similar topics
 - **Terminology consistency** — uses same terms as connected memories
 
-## Grading Scale
-
-| Grade | Score | Description |
-|-------|-------|-------------|
-| A | 103+ | Exemplary - use as template |
-| B | 86-102 | Good - minor improvements needed |
-| C | 69-85 | Functional but notable gaps |
-| D | 46-68 | Significant issues |
-| F | <46 | Needs rewrite |
-
 ## Edge Cases
 
 | Situation | Guidance |
@@ -191,7 +181,6 @@ Is the memory > 300 lines?
 {
   "file_hash": "<first 8 chars of MD5>",
   "date": "YYYY-MM-DD",
-  "grade": "A/B/C/D/F",
   "score": <total>,
   "max": 115,
   "percentage": <score/max * 100>,

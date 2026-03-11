@@ -38,7 +38,7 @@ After each batch, check results before continuing:
 | Pattern | Action |
 |---------|--------|
 | 3+ resources with same D1 issue | Pause - fix systematic problem first |
-| All grades C or below | Stop - fundamental quality issue needs addressing |
+| All percentages below 60% | Stop - fundamental quality issue needs addressing |
 | Same `top_improvement` repeated | Fix that issue across resources before continuing |
 
 ## Parameters
@@ -91,7 +91,6 @@ Return results in JSON format:
 {
   "name": "...",
   "file_hash": "...",
-  "grade": "...",
   "score": ...,
   "max": ...,
   "percentage": ...,
@@ -109,7 +108,6 @@ Return results in JSON format:
 {
   "name": "create-hook",
   "file_hash": "985a90a3",
-  "grade": "...",
   "score": ...,
   "max": 120,
   "percentage": ...,
@@ -134,7 +132,6 @@ Add each result to `.claude/indexes/evaluations.json` under `{type}.resources.{n
 {
   "file_hash": "...",
   "date": "YYYY-MM-DD",
-  "grade": "...",
   "score": ...,
   "max": ...,
   "percentage": ...,
@@ -146,10 +143,10 @@ Add each result to `.claude/indexes/evaluations.json` under `{type}.resources.{n
 **3d. Report batch summary:**
 ```
 Batch 1/3 complete:
-| Resource | Grade | Score |
-|----------|-------|-------|
-| name-1   | A     | 108/120 (90.0%) |
-| name-2   | A-    | 105/120 (87.5%) |
+| Resource | Score | % |
+|----------|-------|---|
+| name-1   | 108/120 | 90.0% |
+| name-2   | 105/120 | 87.5% |
 ```
 
 **Why write after each batch:** If later batches fail or timeout, earlier results are already saved. Re-running the command will skip already-evaluated resources.
@@ -159,10 +156,10 @@ Batch 1/3 complete:
 After all batches complete:
 
 ```
-| Resource | Grade | Score |
-|----------|-------|-------|
-| name-1   | A     | 108/120 (90.0%) |
-| name-2   | A-    | 105/120 (87.5%) |
+| Resource | Score | % |
+|----------|-------|---|
+| name-1   | 108/120 | 90.0% |
+| name-2   | 105/120 | 87.5% |
 ...
 
 Added N evaluations to .claude/indexes/evaluations.json
@@ -255,10 +252,10 @@ Re-run → Filter finds only 5 remaining → single batch needed
 
 **Step 6 - Report:**
 ```
-| Resource      | Grade | Score   |
-|---------------|-------|---------|
-| secrets-guard | A-    | 95/115 (82.6%)  |
-| session-start | A     | 103/115 (89.6%) |
+| Resource      | Score | % |
+|---------------|-------|---|
+| secrets-guard | 95/115  | 82.6% |
+| session-start | 103/115 | 89.6% |
 
 Added 2 evaluations to .claude/indexes/evaluations.json
 ```
