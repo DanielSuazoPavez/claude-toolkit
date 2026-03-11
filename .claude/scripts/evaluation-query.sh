@@ -6,7 +6,7 @@
 #     evaluation-query.sh                    # List all evaluated resources
 #     evaluation-query.sh stale              # Resources modified since evaluation
 #     evaluation-query.sh unevaluated        # Resources not yet evaluated
-#     evaluation-query.sh grade <min>        # Filter by minimum grade (A, B, C, D)
+#     evaluation-query.sh above <min%>       # Filter by minimum percentage (default: 85)
 #     evaluation-query.sh type <type>        # Filter by type (skills, hooks, memories, agents)
 #     evaluation-query.sh -v ...             # Verbose output (show dimensions)
 
@@ -88,52 +88,26 @@ list_resources() {
     esac
 }
 
-# Convert percentage to grade
-percent_to_grade() {
-    local percent="$1"
-    if (( percent >= 90 )); then echo "A"
-    elif (( percent >= 80 )); then echo "B"
-    elif (( percent >= 70 )); then echo "C"
-    elif (( percent >= 60 )); then echo "D"
-    else echo "F"
-    fi
-}
-
-# Grade to minimum percentage
-grade_to_min_percent() {
-    local grade="${1^^}"
-    case "$grade" in
-        A) echo 90 ;;
-        B) echo 80 ;;
-        C) echo 70 ;;
-        D) echo 60 ;;
-        F) echo 0 ;;
-        *) echo 0 ;;
-    esac
-}
-
 # Display evaluated resource
 display_resource() {
     local type="$1"
     local name="$2"
     local score="$3"
     local max="$4"
-    local grade="$5"
+    local percentage="$5"
     local date="$6"
 
-    local percent=$((score * 100 / max))
+    # Color based on percentage thresholds
+    local pct_color
+    local pct_int=${percentage%.*}
+    if (( pct_int >= 85 )); then pct_color="$GREEN"
+    elif (( pct_int >= 70 )); then pct_color="$CYAN"
+    elif (( pct_int >= 60 )); then pct_color="$YELLOW"
+    else pct_color="$RED"
+    fi
 
-    # Color grade
-    local grade_color
-    case "$grade" in
-        A*) grade_color="$GREEN" ;;
-        B*) grade_color="$CYAN" ;;
-        C*) grade_color="$YELLOW" ;;
-        *) grade_color="$RED" ;;
-    esac
-
-    printf "[%-8s] %-40s ${grade_color}%s${NC} (%d/%d) %s\n" \
-        "$type" "$name" "$grade" "$score" "$max" "$date"
+    printf "[%-8s] %-40s ${pct_color}%5.1f%%${NC} (%d/%d) %s\n" \
+        "$type" "$name" "$percentage" "$score" "$max" "$date"
 
     if [[ "$VERBOSE" == "1" ]]; then
         # Show dimension scores
@@ -159,11 +133,11 @@ cmd_list() {
         for name in $resources; do
             local data
             data=$(jq -r --arg t "$type" --arg n "$name" \
-                '.[$t].resources[$n] | "\(.score)\t\(.max)\t\(.grade)\t\(.date)"' \
+                '.[$t].resources[$n] | "\(.score)\t\(.max)\t\(.percentage)\t\(.date)"' \
                 "$EVAL_FILE")
 
-            IFS=$'\t' read -r score max grade date <<< "$data"
-            display_resource "$type" "$name" "$score" "$max" "$grade" "$date"
+            IFS=$'\t' read -r score max percentage date <<< "$data"
+            display_resource "$type" "$name" "$score" "$max" "$percentage" "$date"
             ((count++)) || true
         done
     done
@@ -246,11 +220,9 @@ cmd_unevaluated() {
     fi
 }
 
-# Command: filter by grade
-cmd_grade() {
-    local min_grade="${1:-C}"
-    local min_percent
-    min_percent=$(grade_to_min_percent "$min_grade")
+# Command: filter by minimum percentage
+cmd_above() {
+    local min_percent="${1:-85}"
     local count=0
 
     for type in skills hooks memories agents; do
@@ -260,21 +232,21 @@ cmd_grade() {
         for name in $resources; do
             local data
             data=$(jq -r --arg t "$type" --arg n "$name" \
-                '.[$t].resources[$n] | "\(.score)\t\(.max)\t\(.grade)\t\(.date)"' \
+                '.[$t].resources[$n] | "\(.score)\t\(.max)\t\(.percentage)\t\(.date)"' \
                 "$EVAL_FILE")
 
-            IFS=$'\t' read -r score max grade date <<< "$data"
-            local percent=$((score * 100 / max))
+            IFS=$'\t' read -r score max percentage date <<< "$data"
+            local pct_int=${percentage%.*}
 
-            if (( percent >= min_percent )); then
-                display_resource "$type" "$name" "$score" "$max" "$grade" "$date"
+            if (( pct_int >= min_percent )); then
+                display_resource "$type" "$name" "$score" "$max" "$percentage" "$date"
                 ((count++)) || true
             fi
         done
     done
 
     echo ""
-    echo "Found $count resource(s) with grade >= $min_grade"
+    echo "Found $count resource(s) with percentage >= ${min_percent}%"
 }
 
 # Main
@@ -297,7 +269,7 @@ main() {
         "") cmd_list ;;
         stale) cmd_stale ;;
         unevaluated) cmd_unevaluated ;;
-        grade) cmd_grade "${args[1]:-C}" ;;
+        above) cmd_above "${args[1]:-85}" ;;
         type) cmd_list "${args[1]:-}" ;;
         *)
             echo "Unknown command: ${args[0]}" >&2

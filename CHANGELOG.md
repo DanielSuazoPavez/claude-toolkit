@@ -1,6 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [2.5.0] - 2026-03-11 - remove letter grades from evaluation system
+
+### Changed
+- **evaluations**: Removed letter grades (A/A-/B+/etc.) from all evaluate-* skills — percentage is now the sole quality indicator alongside raw scores
+- **evaluations**: Removed `"grade"` field from evaluations.json (all 56 entries)
+- **evaluations**: Removed grading scale sections from evaluate-skill, evaluate-agent, evaluate-hook, evaluate-memory
+- **scripts**: `evaluation-query.sh` — replaced `grade` command with `above` (percentage threshold, default 85%), display shows percentage with color thresholds
+- **skills**: evaluate-batch reporting tables use `%` column instead of `Grade`
 
 ### Fixed
 - **skills**: `wrap-up` now checks for feature branch as step 1 — previously assumed branch existed, causing work on main

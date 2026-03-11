@@ -22,4 +22,4 @@ Internal utility scripts in `.claude/scripts/`.
 
 | Script | Status | Synced | Description |
 |--------|--------|--------|-------------|
-| `evaluation-query.sh` | stable | no | Query evaluation status: stale, unevaluated, by grade |
+| `evaluation-query.sh` | stable | no | Query evaluation status: stale, unevaluated, by percentage |

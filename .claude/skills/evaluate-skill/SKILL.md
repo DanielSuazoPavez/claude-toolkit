@@ -13,8 +13,7 @@ Evaluate skill design quality against best practices.
 2. [Skill Types](#skill-types) - Knowledge vs command classification
 3. [Evaluation Dimensions](#evaluation-dimensions-120-points) - 8 dimensions (D4 revised, D7 replaced)
 4. [Scoring Calibration](#scoring-calibration) - Score-to-criteria mapping
-5. [Grading Scale](#grading-scale) - Grade thresholds
-6. [JSON Output Format](#json-output-format) - Result schema
+5. [JSON Output Format](#json-output-format) - Result schema
 7. [Invocation](#invocation) - How to run evaluations
 8. [Example Evaluation](#example-evaluation) - Complete worked example
 
@@ -195,20 +194,6 @@ Decision trees, working examples, error handling, edge cases?
 | **Navigation** | `knowledge` | Minimal is correct; penalize bloat, not brevity |
 | **Wrapper/Utility** | `command` | D1 judged on curation: does it cover the right steps? |
 
-## Grading Scale
-
-| Grade | Score | Description |
-|-------|-------|-------------|
-| A | 108+ (90%) | Exemplary - reference quality |
-| A- | 102-107 (85-89%) | Excellent - minimal polish needed |
-| B+ | 96-101 (80-84%) | Solid - minor improvements |
-| B | 90-95 (75-79%) | Good - clear path forward |
-| B- | 84-89 (70-74%) | Functional - needs attention |
-| C+ | 78-83 (65-69%) | Adequate - notable gaps |
-| C | 72-77 (60-64%) | Needs work |
-| D | 60-71 (50-59%) | Significant issues |
-| F | <60 (<50%) | Needs redesign |
-
 ## Common Failures
 
 | Failure | How to Recognize | How to Fix |
@@ -225,7 +210,6 @@ Decision trees, working examples, error handling, edge cases?
   "file_hash": "<first 8 chars of MD5>",
   "date": "YYYY-MM-DD",
   "type": "knowledge|command",
-  "grade": "A/A-/B+/B/B-/C+/C/D/F",
   "score": <total>,
   "max": 120,
   "percentage": <score/max * 100>,
@@ -264,7 +248,7 @@ Using a separate agent ensures objective assessment without influence from prior
 2. Determine type from frontmatter (`type: knowledge|command`, default: `knowledge`). Apply dimension adjustments from [Skill Types](#skill-types) accordingly.
 3. Analyze structure: frontmatter, line count, pattern
 4. Score each dimension with evidence
-5. Calculate total, assign grade
+5. Calculate total and percentage
 6. Generate report with JSON output including file_hash, type, and top 3 improvements (tag each with `[high]` or `[low]` priority)
 7. Update `.claude/indexes/evaluations.json` using jq:
    ```bash
@@ -275,7 +259,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 **Skill:** `git-workflow` (hypothetical)
 
-**Before (F - 45/120):**
+**Before (38% - 45/120):**
 ```markdown
 # Git Workflow
 Use branches for features. Commit often. Write good messages.
@@ -292,7 +276,7 @@ Use branches for features. Commit often. Write good messages.
 | D7 | 3/15 | No references to other resources, island skill |
 | D8 | 4/15 | No decision trees, no examples |
 
-**After (A- - 109/120):**
+**After (91% - 109/120):**
 ```markdown
 # Git Workflow
 ## Branch Naming Decision Tree
