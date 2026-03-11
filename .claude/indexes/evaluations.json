@@ -613,14 +613,14 @@
         ]
       },
       "create-agent": {
-        "file_hash": "21c5e9cc",
+        "file_hash": "93d6f5f8",
         "date": "2026-03-11",
         "type": "knowledge",
-        "score": 109,
+        "score": 110,
         "max": 120,
-        "percentage": 90.8,
+        "percentage": 91.7,
         "dimensions": {
-          "D1": 17,
+          "D1": 18,
           "D2": 14,
           "D3": 14,
           "D4": 9,
@@ -630,9 +630,9 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] D7: Update the Fixing Evaluation Failures example (lines 206-212) to use current evaluate-agent dimension names and scale (120 pts) instead of stale 30/30/25/15 scoring on 115 pts",
-          "[low] D1: Tool Selection Guide is mostly activation knowledge — consider trimming or replacing with a decision heuristic",
-          "[low] D8: Add a brief end-to-end walkthrough showing a complete agent creation from user request to final .md file"
+          "[low] D1: The Reference section at the bottom is pure activation — consider merging agent pointers into the Template Modifications table",
+          "[low] D6: Be more explicit about which parts of the template are mandatory structure vs. adaptable content",
+          "[low] D3: Add a rationalization table for common excuses during agent creation (e.g., it needs all tools to be flexible)"
         ]
       },
       "create-hook": {
