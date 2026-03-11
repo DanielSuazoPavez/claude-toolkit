@@ -16,6 +16,12 @@ Specialized agents for complex, multi-step tasks.
 | `code-reviewer` | stable | Pragmatic code reviewer focused on real risks, proportional to project scale | Read, Grep, Glob, Bash, Write |
 | `code-debugger` | alpha | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
 
+## Document Review
+
+| Agent | Status | Description | Tools |
+|-------|--------|-------------|-------|
+| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots | Read, Grep, Glob, Write |
+
 ## Verification
 
 | Agent | Status | Description | Tools |

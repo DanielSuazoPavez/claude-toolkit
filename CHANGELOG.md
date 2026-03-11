@@ -1,11 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [2.2.0] - 2026-03-11 - shape-proposal skill and proposal-reviewer agent
 
 ### Added
+- **skill**: `shape-proposal` — shapes validated designs into audience-aware proposals with template-based structure, tone calibration, and contextual section selection
+- **skill**: `resources/PROPOSAL_TEMPLATE.md` — 8 core + 9 contextual sections, status markers, section ordering guidance
+- **agent**: `proposal-reviewer` — reviews proposals for audience fit, tone consistency, blind spots, and dismissive language. Three-tier verdict (CLEAN/ISSUES/REVISE) with automatic-fail triggers
 - **exploration**: Added `itsmostafa/aws-agent-skills` to exploration queue — weekly-updated AWS service reference, potential plugin pattern
 - **exploration**: Renamed exploration backlog to `BACKLOG.md` for consistency, cross-referenced from main backlog
 - **exploration**: Reviewed `CloudSecurityPartners/skills` — security audit skill for vetting plugins. Useful patterns: tool risk matrix, hook severity escalation. Cross-referenced from `agent-security-reviewer` backlog item
+- **backlog**: `skill-shape-proposal-example` — reshape v5 through the skill to produce a proper worked example
 
 ## [2.1.0] - 2026-03-09 - Raiz distribution and dist/ restructure
 

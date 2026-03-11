@@ -44,7 +44,7 @@
         "grade": "A",
         "score": 108,
         "max": 120,
-        "percentage": 90.0,
+        "percentage": 90,
         "dimensions": {
           "D1": 18,
           "D2": 14,
@@ -140,7 +140,7 @@
         "grade": "A-",
         "score": 102,
         "max": 120,
-        "percentage": 85.0,
+        "percentage": 85,
         "dimensions": {
           "D1": 16,
           "D2": 12,
@@ -164,7 +164,7 @@
         "grade": "A",
         "score": 108,
         "max": 120,
-        "percentage": 90.0,
+        "percentage": 90,
         "dimensions": {
           "D1": 17,
           "D2": 13,
@@ -308,7 +308,7 @@
         "grade": "A-",
         "score": 102,
         "max": 120,
-        "percentage": 85.0,
+        "percentage": 85,
         "dimensions": {
           "D1": 16,
           "D2": 12,
@@ -332,7 +332,7 @@
         "grade": "A-",
         "score": 102,
         "max": 120,
-        "percentage": 85.0,
+        "percentage": 85,
         "dimensions": {
           "D1": 16,
           "D2": 12,
@@ -404,7 +404,7 @@
         "grade": "A",
         "score": 108,
         "max": 120,
-        "percentage": 90.0,
+        "percentage": 90,
         "dimensions": {
           "D1": 17,
           "D2": 14,
@@ -708,6 +708,30 @@
           "[low] Add explicit failure/recovery path in validation — what to do when /evaluate-memory returns below 85% beyond generic iterate",
           "[low] Minor duplication in Instructions section (lines 50-56) restating categories already shown in decision tree — collapse or cross-reference"
         ]
+      },
+      "shape-proposal": {
+        "file_hash": "82a64066",
+        "date": "2026-03-11",
+        "type": "knowledge",
+        "grade": "A-",
+        "score": 107,
+        "max": 120,
+        "percentage": 89.2,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 9,
+          "D5": 13,
+          "D6": 13,
+          "D7": 14,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] Add a brief worked example showing source-to-proposal reshaping for a specific audience (D8)",
+          "[low] Add a TOC to PROPOSAL_TEMPLATE.md for navigation at 270 lines (D5)",
+          "[low] Merge Phase 2 steps 1-2 to tighten the derivable content-mapping instruction (D1)"
+        ]
       }
     }
   },
@@ -747,7 +771,7 @@
         "grade": "B",
         "score": 100,
         "max": 115,
-        "percentage": 87.0,
+        "percentage": 87,
         "dimensions": {
           "D1": 22,
           "D2": 18,
@@ -1297,6 +1321,26 @@
           "[low] Add explicit voice directive (\"be X, not Y\") to persona statement to strengthen D3 beyond the metaphor",
           "[low] Add templates for INTEGRATIONS.md and STRUCTURE.md to match the completeness of STACK.md and ARCHITECTURE.md templates",
           "[low] Fix output path inconsistency between AGENTS.md index (reviews/codebase/) and agent file (reviews/{timestamp}__codebase-explorer/)"
+        ]
+      },
+      "proposal-reviewer": {
+        "file_hash": "cfa73b18",
+        "date": "2026-03-11",
+        "grade": "A",
+        "score": 107,
+        "max": 115,
+        "percentage": 93,
+        "dimensions": {
+          "D1": 28,
+          "D2": 28,
+          "D3": 24,
+          "D4": 13,
+          "D5": 14
+        },
+        "top_improvements": [
+          "[low] Consider whether Grep/Glob are truly needed -- if the agent only reviews a single document passed to it, Read+Write might suffice; if cross-referencing is expected, document that use case explicitly",
+          "[low] Add a reference to goal-verifier in See Also to complete the ecosystem map for verification-type agents",
+          "[low] The 6 focus dimensions could benefit from priority ordering -- which dimensions should trigger REVISE vs just ISSUES"
         ]
       }
     }
