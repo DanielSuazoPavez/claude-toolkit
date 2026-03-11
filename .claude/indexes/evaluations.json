@@ -38,49 +38,49 @@
     },
     "resources": {
       "evaluate-skill": {
-        "file_hash": "eb1dd4f3",
-        "date": "2026-03-08",
+        "file_hash": "8fd4800a",
+        "date": "2026-03-11",
         "type": "knowledge",
-        "score": 108,
+        "score": 106,
         "max": 120,
-        "percentage": 90,
-        "dimensions": {
-          "D1": 18,
-          "D2": 14,
-          "D3": 14,
-          "D4": 9,
-          "D5": 13,
-          "D6": 14,
-          "D7": 12,
-          "D8": 14
-        },
-        "top_improvements": [
-          "[low] Connect to indexes system and memory conventions in See Also or body — D7 still has room",
-          "[low] Trim activation knowledge in Core Philosophy section — the formula is expert but surrounding explanation is partly redundant",
-          "[low] Add evaluator anti-patterns — common mistakes like conflating activation with redundant, or over-penalizing brevity"
-        ]
-      },
-      "evaluate-batch": {
-        "file_hash": "3382de14",
-        "date": "2026-03-09",
-        "type": "command",
-        "score": 107,
-        "max": 120,
-        "percentage": 89.2,
+        "percentage": 88.3,
         "dimensions": {
           "D1": 17,
           "D2": 14,
           "D3": 13,
           "D4": 9,
-          "D5": 14,
+          "D5": 13,
           "D6": 13,
-          "D7": 14,
-          "D8": 13
+          "D7": 13,
+          "D8": 14
         },
         "top_improvements": [
-          "[low] Add explicit See Also section linking to sibling evaluators and create-* skills for full ecosystem navigation — D7",
-          "[low] Trim the Why Batch introductory bullets which state somewhat obvious benefits (standardization, consistency) — D1",
-          "[low] Include a concrete jq merge command example in the Process section rather than deferring entirely to individual evaluators — D8"
+          "[low] Consolidate Scoring Calibration section into dimension definitions to eliminate partial duplication (D1, D3, D7 tables repeated)",
+          "[low] Add a worked example of a command-type skill evaluation to strengthen dual-type guidance in D8",
+          "[low] Add negative trigger guidance in description (e.g., not for agent/hook/memory files) to sharpen D4"
+        ]
+      },
+      "evaluate-batch": {
+        "file_hash": "23d711f2",
+        "date": "2026-03-11",
+        "type": "command",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 8,
+          "D5": 13,
+          "D6": 13,
+          "D7": 14,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[low] D1: Token economics section could add concrete timing data (how long each agent typically takes) to make batch-size recommendations more evidence-based",
+          "[low] D4: Description could explicitly mention orchestration role — orchestrates parallel evaluation agents would differentiate from individual evaluate-* skills more clearly",
+          "[low] D5: Add a brief table of contents at the top for quick navigation given 271 lines with many subsections"
         ]
       },
       "analyze-idea": {
@@ -268,72 +268,72 @@
         ]
       },
       "evaluate-agent": {
-        "file_hash": "1fd7d1d2",
-        "date": "2026-03-09",
+        "file_hash": "9a03e981",
+        "date": "2026-03-11",
         "type": "knowledge",
-        "score": 105,
+        "score": 101,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 84.2,
         "dimensions": {
-          "D1": 17,
-          "D2": 13,
-          "D3": 14,
+          "D1": 16,
+          "D2": 11,
+          "D3": 13,
           "D4": 8,
-          "D5": 13,
+          "D5": 14,
           "D6": 13,
-          "D7": 13,
-          "D8": 14
+          "D7": 14,
+          "D8": 12
         },
         "top_improvements": [
-          "[low] Add a mid-range (60-70%) worked example to help calibrate scoring in the muddier middle of the scale — D8",
-          "[low] Add fix suggestions to the Anti-Pattern Detection table (Common Failures has fixes but the textual signal table does not) — D3",
-          "[low] Be explicit about what is flexible (evidence weighting within a range) vs fixed (percentage thresholds, JSON format) — D6"
+          "[high] D2: Add deeper procedural insight — e.g., why score D1 before D3, when to revisit D2 after seeing tool list, sequencing traps in agent evaluation",
+          "[low] D1: Trim activation knowledge (Skill vs Agent table, basic invocation pattern) to sharpen expert-only content ratio",
+          "[low] D8: Add a branching decision tree for ambiguous agent types (e.g., agent that is both runner and orchestrator, or read-only analyzer that needs Bash for test execution)"
         ]
       },
       "evaluate-hook": {
-        "file_hash": "0cb6c2e4",
-        "date": "2026-03-09",
-        "type": "knowledge",
-        "score": 102,
+        "file_hash": "c8d29d5f",
+        "date": "2026-03-11",
+        "type": "command",
+        "score": 104,
         "max": 120,
-        "percentage": 85,
+        "percentage": 86.7,
         "dimensions": {
-          "D1": 16,
+          "D1": 17,
           "D2": 12,
           "D3": 14,
-          "D4": 8,
+          "D4": 9,
           "D5": 14,
           "D6": 13,
           "D7": 12,
           "D8": 13
         },
         "top_improvements": [
-          "[low] Reference .claude/indexes/HOOKS.md in body or See Also to strengthen ecosystem integration — D7 has room for a natural connection",
-          "[low] Add an example evaluation of a logging-only or edge-case hook type to match the Edge Cases section — D8 would benefit from non-standard examples",
-          "[low] D5 Documentation dimension criteria feel generic — consider adding hook-specific documentation expectations (e.g., test fixtures, event/matcher docs)"
+          "[low] Reference .claude/indexes/HOOKS.md in See Also to strengthen ecosystem integration — D7",
+          "[low] Add guidance for ambiguous hook classifications (e.g., hooks that both block and log) — D8",
+          "[low] Add a logging-only or edge-case hook type example evaluation to complement the Edge Cases section — D8"
         ]
       },
       "evaluate-memory": {
-        "file_hash": "151a8623",
-        "date": "2026-03-09",
+        "file_hash": "6331fff9",
+        "date": "2026-03-11",
         "type": "knowledge",
-        "score": 102,
+        "score": 104,
         "max": 120,
-        "percentage": 85,
+        "percentage": 86.7,
         "dimensions": {
           "D1": 16,
-          "D2": 12,
+          "D2": 13,
           "D3": 14,
           "D4": 8,
           "D5": 14,
           "D6": 13,
-          "D7": 12,
+          "D7": 13,
           "D8": 13
         },
         "top_improvements": [
-          "[low] Add a failing-case worked example (low-scoring memory) to calibrate the low end of grading — currently only one high-scoring example",
-          "[low] Add explicit Keywords field and type field in frontmatter for consistency with sibling evaluators",
-          "[low] Acknowledge shared pattern with evaluate-skill D7 in the Integration Quality dimension to reduce restated criteria"
+          "[high] Add frontmatter type and keywords fields to improve routing and specification compliance (D4)",
+          "[low] Add a second worked example showing evaluation of a poor-quality memory to strengthen practical usability (D8)",
+          "[low] Reference list-memories skill for discovery workflow and clarify why D2 is weighted highest at 25 pts (D2/D7)"
         ]
       },
       "list-memories": {
@@ -590,49 +590,49 @@
         ]
       },
       "create-skill": {
-        "file_hash": "af8ec1f9",
-        "date": "2026-03-09",
+        "file_hash": "d8caf720",
+        "date": "2026-03-11",
         "type": "knowledge",
-        "score": 105,
+        "score": 104,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 86.7,
         "dimensions": {
-          "D1": 16,
+          "D1": 17,
           "D2": 13,
-          "D3": 13,
+          "D3": 14,
+          "D4": 9,
+          "D5": 13,
+          "D6": 12,
+          "D7": 13,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] D6: Be more explicit about which parts are fixed (template structure) vs flexible (section content) — boundary between mandatory and adaptable is implicit",
+          "[low] D8: Expand the iteration example into a fuller red-green-refactor walkthrough showing each phase with concrete artifacts",
+          "[low] D1: Trim the Token Efficiency section — mostly activation knowledge that Claude already applies"
+        ]
+      },
+      "create-agent": {
+        "file_hash": "21c5e9cc",
+        "date": "2026-03-11",
+        "type": "knowledge",
+        "score": 109,
+        "max": 120,
+        "percentage": 90.8,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
           "D4": 9,
           "D5": 14,
           "D6": 13,
           "D7": 14,
-          "D8": 13
+          "D8": 14
         },
         "top_improvements": [
-          "[low] Trim Token Efficiency section — targets are useful but compression techniques are mostly activation knowledge Claude already knows (D1)",
-          "[low] Add a brief note on common pitfalls for reference/lookup type skills in Anti-Patterns table (D3)",
-          "[low] Consider referencing relevant memories that skill authors should be aware of when creating skills (D7)"
-        ]
-      },
-      "create-agent": {
-        "file_hash": "0c0e6c57",
-        "date": "2026-03-09",
-        "type": "knowledge",
-        "score": 105,
-        "max": 120,
-        "percentage": 87.5,
-        "dimensions": {
-          "D1": 17,
-          "D2": 12,
-          "D3": 14,
-          "D4": 8,
-          "D5": 14,
-          "D6": 13,
-          "D7": 14,
-          "D8": 13
-        },
-        "top_improvements": [
-          "[high] D2: Strengthen the core process section — the 3-step procedure is somewhat standard. Add expert sequencing insight",
-          "[low] D8: Add a full end-to-end worked example showing the complete journey from vague request to finished agent file",
-          "[low] D4: Consider adding type: knowledge explicitly to frontmatter for consistency"
+          "[low] D7: Update the Fixing Evaluation Failures example (lines 206-212) to use current evaluate-agent dimension names and scale (120 pts) instead of stale 30/30/25/15 scoring on 115 pts",
+          "[low] D1: Tool Selection Guide is mostly activation knowledge — consider trimming or replacing with a decision heuristic",
+          "[low] D8: Add a brief end-to-end walkthrough showing a complete agent creation from user request to final .md file"
         ]
       },
       "create-hook": {
@@ -1029,8 +1029,8 @@
         ]
       },
       "relevant-workflow-branch_development": {
-        "file_hash": "dfd83431",
-        "date": "2026-03-09",
+        "file_hash": "646ac712",
+        "date": "2026-03-11",
         "score": 108,
         "max": 115,
         "percentage": 93.91,
@@ -1044,33 +1044,13 @@
         },
         "top_improvements": [
           "[low] Section 5 (Exceptions) could use a table format (Condition/Acceptable columns) instead of prose+bullets for visual consistency with sections 2 and 4 (D5: +1)",
-          "[low] The --no-ff merge command in Section 3 overlaps with CLAUDE.md line 18 — consider replacing the inline command with a comment referencing CLAUDE.md to fully avoid duplication (D3: +1)",
-          "[low] Could add a brief note about branch cleanup after merge in a remote context (git push origin --delete) for completeness (D3: minor)"
+          "[low] Consider adding remote branch cleanup command (git push origin --delete) in Section 3 finish step for completeness (D3: +1)",
+          "[low] The See Also references CLAUDE.md which is toolkit-internal — could add a brief inline note about the --no-ff policy so synced copies remain self-contained (D6: +1)"
         ]
       },
       "relevant-conventions-backlog_schema": {
-        "file_hash": "474bd2e3",
-        "date": "2026-03-09",
-        "score": 108,
-        "max": 115,
-        "percentage": 93.9,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 19,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "[low] Section 7 (Tooling) is useful reference but could cross-reference the parent project scripts directory more explicitly for ecosystem context (D6: +1)",
-          "[low] Could add a cross-reference to /design-qa skill which references P2/P3 prioritization for a more connected ecosystem (D6: +1)",
-          "[low] Section 3 Entry Format subsection headers (Minimal/Standard) could benefit from a comparison table showing when to use each format (D5: +1)"
-        ]
-      },
-      "relevant-reference-hooks_config": {
-        "file_hash": "f006d814",
-        "date": "2026-03-09",
+        "file_hash": "0ab3ed08",
+        "date": "2026-03-11",
         "score": 105,
         "max": 115,
         "percentage": 91.3,
@@ -1083,9 +1063,29 @@
           "D6": 12
         },
         "top_improvements": [
-          "[low] Add cross-reference to essential-toolkit-identity which defines hooks as guardrails — strengthens D6 ecosystem awareness",
-          "[low] Add a third ONLY READ WHEN bullet (e.g., adding a new hook to a project) to broaden Quick Reference trigger coverage — D2",
-          "[low] Include hook status (stable/beta) in the Active Hooks tables to match the information available in the full ecosystem — D3"
+          "[low] Reconcile P3 tier inclusion with distributed BACKLOG-standard.md template which omits P3 — either add P3 to the template or note it as an optional extension in the memory (D3: +1)",
+          "[low] Add cross-reference to /design-qa skill which uses priority tiers, and to relevant-toolkit-resource_frontmatter for related structured metadata conventions (D6: +1-2)",
+          "[low] Section 7 Tooling could add a brief note about when to use backlog-query vs backlog-validate to increase actionability (D3: +1)"
+        ]
+      },
+      "relevant-reference-hooks_config": {
+        "file_hash": "99489b6f",
+        "date": "2026-03-11",
+        "score": 106,
+        "max": 115,
+        "percentage": 92.2,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 12
+        },
+        "top_improvements": [
+          "[low] Add cross-reference to essential-toolkit-identity which defines hooks as guardrails — strengthens D6 ecosystem awareness (+1)",
+          "[low] Add a third ONLY READ WHEN bullet (e.g., adding a new hook to a project) to broaden Quick Reference trigger coverage (D2: +1)",
+          "[low] Include hook status (stable/beta) in the Active Hooks tables to match ecosystem information available in HOOKS.md index (D3: +1)"
         ]
       },
       "relevant-philosophy-reducing_entropy": {
@@ -1197,27 +1197,27 @@
     },
     "resources": {
       "implementation-checker": {
-        "file_hash": "7d4113e4",
-        "date": "2026-03-08",
-        "score": 103,
+        "file_hash": "f6b74a44",
+        "date": "2026-03-11",
+        "score": 101,
         "max": 115,
-        "percentage": 89.6,
+        "percentage": 87.8,
         "dimensions": {
-          "D1": 28,
+          "D1": 27,
           "D2": 28,
           "D3": 22,
-          "D4": 12,
+          "D4": 11,
           "D5": 13
         },
         "top_improvements": [
-          "[med] Add Bash to tools — Output Requirements section requires git and date commands but Bash is not in the tool list (D4)",
-          "[low] Add explicit voice directives ('be X, not Y') to strengthen the drift detective persona beyond beliefs and anti-patterns (D3)",
-          "[low] Add self-calibration questions before starting (e.g., plan size, system complexity) to formalize the Token Efficiency guidance (D1)"
+          "[med] Add Bash to tools frontmatter — Output Requirements references git and date shell commands that require Bash tool access",
+          "[low] Strengthen persona voice with explicit be X, not Y directives in Communication Style",
+          "[low] Add calibration guidance for plan complexity — when to do lightweight vs deep investigation based on plan size"
         ]
       },
       "pattern-finder": {
-        "file_hash": "9705413c",
-        "date": "2026-03-08",
+        "file_hash": "206dee16",
+        "date": "2026-03-11",
         "score": 99,
         "max": 115,
         "percentage": 86.1,
@@ -1229,104 +1229,104 @@
           "D5": 12
         },
         "top_improvements": [
-          "[med] Add a summary/conclusion format to the output template and explicit handoff instructions for downstream agents — D2: +3-4pts",
-          "[low] Replace raw grep bash examples in Search Strategy with Grep/Glob tool references to match toolkit conventions — D5: +1-2pts, D1: +1pt",
-          "[low] Reference relevant memories or skills to deepen ecosystem integration — D5: +1-2pts"
+          "[med] Add a summary/handoff template at the end of output to strengthen D2",
+          "[low] Connect to relevant memories or skills to improve ecosystem integration (D5)",
+          "[low] Replace bash grep examples in Search Strategy with Grep tool syntax since the agent has the Grep tool (D4 consistency)"
         ]
       },
       "goal-verifier": {
-        "file_hash": "64f2c06c",
-        "date": "2026-03-08",
-        "score": 105,
-        "max": 115,
-        "percentage": 91.3,
-        "dimensions": {
-          "D1": 28,
-          "D2": 28,
-          "D3": 21,
-          "D4": 15,
-          "D5": 13
-        },
-        "top_improvements": [
-          "[med] Strengthen persona voice throughout the body — opening is first-person skeptic but mid-sections shift to neutral instructional tone; add 1-2 voice reminders in key sections (D3)",
-          "[low] Reference relevant memory files or additional skills beyond /wrap-up to deepen ecosystem integration (D5)",
-          "[low] Consolidate redundant L1/L2/L3 presentations — Verification Levels table, Goal-Backward Process, Verification Checklist, and Compact Checklist all re-explain the same framework (D1)"
-        ]
-      },
-      "code-reviewer": {
-        "file_hash": "92d8b56e",
-        "date": "2026-03-08",
-        "score": 105,
-        "max": 115,
-        "percentage": 91.3,
-        "dimensions": {
-          "D1": 28,
-          "D2": 27,
-          "D3": 23,
-          "D4": 14,
-          "D5": 13
-        },
-        "top_improvements": [
-          "[low] Clarify input scope — explicitly state whether the agent reviews a diff, file set, or directory to reduce ambiguity on invocation — D1",
-          "[low] Add file:line reference format to the output template findings (e.g., `src/foo.py:42`) so findings are directly navigable — D2",
-          "[low] Add a See Also reference to `review-changes` skill to clarify when to use the lightweight skill vs the full agent — D5"
-        ]
-      },
-      "code-debugger": {
-        "file_hash": "7e364213",
-        "date": "2026-03-08",
-        "score": 97,
-        "max": 115,
-        "percentage": 84.3,
-        "dimensions": {
-          "D1": 25,
-          "D2": 27,
-          "D3": 21,
-          "D4": 12,
-          "D5": 12
-        },
-        "top_improvements": [
-          "[med] Sharpen persona voice: add a vivid voice directive ('be X, not Y') and fix pronoun inconsistency ('You are... I follow'). E.g., 'Voice: I am a detective, not a mechanic. I build a case before I touch anything.' — D3",
-          "[low] Link to post-fix skills: reference design-qa or design-tests for regression tests after fixes, and learn for capturing debugging lessons — D5",
-          "[low] Consider splitting investigation vs fix modes: clarify tool usage per phase (Read/Grep/Glob/Bash for investigation, Edit for fixing) to justify the full tool set — D4"
-        ]
-      },
-      "codebase-explorer": {
-        "file_hash": "75fa73dd",
-        "date": "2026-03-08",
+        "file_hash": "76f3a82f",
+        "date": "2026-03-11",
         "score": 103,
         "max": 115,
         "percentage": 89.6,
         "dimensions": {
           "D1": 27,
           "D2": 28,
-          "D3": 22,
+          "D3": 21,
           "D4": 14,
+          "D5": 13
+        },
+        "top_improvements": [
+          "[low] Strengthen persona voice with a metaphor or 'be X, not Y' framing to match the distinctiveness of code-reviewer (D3: 21->23)",
+          "[low] Remove redundant Verification Checklist (Compact) table at end — it repeats the main checklist without adding value (D1: tighter doc)",
+          "[low] Reference relevant memories or additional skills in See Also to deepen ecosystem connectivity (D5: 13->14)"
+        ]
+      },
+      "code-reviewer": {
+        "file_hash": "27e19e5a",
+        "date": "2026-03-11",
+        "score": 105,
+        "max": 115,
+        "percentage": 91.3,
+        "dimensions": {
+          "D1": 27,
+          "D2": 28,
+          "D3": 23,
+          "D4": 14,
+          "D5": 13
+        },
+        "top_improvements": [
+          "[low] Add more \"be X, not Y\" voice pairs to strengthen persona beyond the mechanic metaphor (D3)",
+          "[low] Add explicit calibration examples for maintainability findings alongside the security example (D2)",
+          "[low] Reference ecosystem resources like CLAUDE.md or project-level conventions to deepen integration (D5)"
+        ]
+      },
+      "code-debugger": {
+        "file_hash": "39079145",
+        "date": "2026-03-11",
+        "score": 99,
+        "max": 115,
+        "percentage": 86.1,
+        "dimensions": {
+          "D1": 27,
+          "D2": 27,
+          "D3": 20,
+          "D4": 13,
           "D5": 12
         },
         "top_improvements": [
-          "[low] Add explicit voice directive (\"be X, not Y\") to persona statement to strengthen D3 beyond the metaphor",
-          "[low] Add templates for INTEGRATIONS.md and STRUCTURE.md to match the completeness of STACK.md and ARCHITECTURE.md templates",
-          "[low] Fix output path inconsistency between AGENTS.md index (reviews/codebase/) and agent file (reviews/{timestamp}__codebase-explorer/)"
+          "[med] Fix pronoun inconsistency — line 9 uses first person while rest uses second person; pick one voice consistently to strengthen persona (D3)",
+          "[low] Add cross-references to relevant skills like design-qa or design-tests for post-fix test strategy, expanding ecosystem integration (D5)",
+          "[low] Add explicit voice directives in be X, not Y format to further differentiate from default Claude (D3)"
+        ]
+      },
+      "codebase-explorer": {
+        "file_hash": "0432e537",
+        "date": "2026-03-11",
+        "score": 101,
+        "max": 115,
+        "percentage": 87.8,
+        "dimensions": {
+          "D1": 26,
+          "D2": 26,
+          "D3": 22,
+          "D4": 14,
+          "D5": 13
+        },
+        "top_improvements": [
+          "[med] Add document templates for INTEGRATIONS.md and STRUCTURE.md — listed in focus areas table but missing templates, creating ambiguity about expected output format (D2)",
+          "[low] Add explicit voice directives ('state facts not opinions', 'describe structure not quality') to strengthen the cartographer persona beyond the role statement (D3)",
+          "[low] Add a calibration step to detect project size/type at exploration start, adjusting depth and document sections accordingly (D1)"
         ]
       },
       "proposal-reviewer": {
-        "file_hash": "cfa73b18",
+        "file_hash": "a45ffab7",
         "date": "2026-03-11",
         "score": 107,
         "max": 115,
-        "percentage": 93,
+        "percentage": 93.0,
         "dimensions": {
           "D1": 28,
           "D2": 28,
           "D3": 24,
-          "D4": 13,
-          "D5": 14
+          "D4": 14,
+          "D5": 13
         },
         "top_improvements": [
-          "[low] Consider whether Grep/Glob are truly needed -- if the agent only reviews a single document passed to it, Read+Write might suffice; if cross-referencing is expected, document that use case explicitly",
-          "[low] Add a reference to goal-verifier in See Also to complete the ecosystem map for verification-type agents",
-          "[low] The 6 focus dimensions could benefit from priority ordering -- which dimensions should trigger REVISE vs just ISSUES"
+          "[low] Add a calibration question for proposal length/complexity — how depth of review scales with document size (D1)",
+          "[low] Reference relevant memories for terminology consistency across proposal ecosystem (D5)",
+          "[low] Add an example finding to illustrate the Location/Problem/Suggestion format in practice (D2)"
         ]
       }
     }
