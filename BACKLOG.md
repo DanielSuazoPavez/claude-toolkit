@@ -20,7 +20,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
-(none)
+- **[HOOKS]** Subagents bypass all safety hooks (`hooks-subagent-gap`)
+    - **status**: `idea`
+    - **scope**: `hooks`
+    - **notes**: Subagents inherit no hooks — no SessionStart, no PreToolUse guards. This means subagents bypass secrets-guard, block-dangerous-commands, git-safety, etc. Discovered during hard gate experiment (2026-03-11). Needs investigation: is this a Claude Code limitation or configurable? If not configurable, consider workarounds (e.g., injecting rules into subagent prompts via agent definitions).
 
 ## P1 - High
 
@@ -61,11 +64,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **status**: `idea`
     - **scope**: `skills`
     - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
-
-- **[TOOLKIT]** Evaluate hard gate pattern for premature-action skills (`toolkit-hard-gate-pattern`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **notes**: obra/superpowers uses `<HARD-GATE>` XML tags as explicit do-not-proceed markers (e.g., brainstorming blocks implementation before design approval). Test whether Claude Code respects XML-tag-based gates better than prose instructions. If effective, add as a convention for skills where premature action is a known failure mode. Ref: `.claude/output/reviews/exploration/obra_superpowers/summary.md`.
 
 - **[AGENTS]** Create dedicated `security-reviewer` agent (`agent-security-reviewer`)
     - **status**: `idea`
