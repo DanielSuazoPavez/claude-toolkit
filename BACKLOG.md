@@ -60,11 +60,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `toolkit`
     - **notes**: evaluate-skill uses /120 max, evaluate-agent uses /115 max — different scales confuse agents running evaluations. Standardize all evaluation outputs to percentages so 85% means the same thing everywhere. Affects: evaluate-skill rubric, evaluate-agent rubric, evaluations.json schema, evaluate-batch prompts.
 
-- **[SKILLS]** Rename frontmatter `type` field to avoid conflicts (`skill-frontmatter-type-rename`)
-    - **status**: `idea`
-    - **scope**: `skills, toolkit`
-    - **notes**: Claude Code / VS Code extension flags `type` as unsupported in skill frontmatter. Rename to something like `metadata: X-type` or a different key. Affects: all skills with `type: knowledge|command`, evaluate-skill rubric (references `type` in frontmatter), create-skill template, evaluations.json schema.
-
 - **[TOOLKIT]** Rewrite raiz publish trimming logic in Python (`toolkit-raiz-python-trimming`)
     - **status**: `idea`
     - **scope**: `toolkit`
