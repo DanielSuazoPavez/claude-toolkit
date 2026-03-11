@@ -1174,6 +1174,27 @@
           "Add cross-reference to .claude/indexes/ system and CLAUDE.md Structure section to strengthen ecosystem integration -- D6",
           "Minor: the one-line toolkit description in Section 2 echoes CLAUDE.md project overview line -- consider a cross-reference instead of restating -- D3"
         ]
+      },
+      "relevant-toolkit-resource_frontmatter": {
+        "file_hash": "f34b8027",
+        "date": "2026-03-11",
+        "grade": "A",
+        "score": 104,
+        "max": 115,
+        "percentage": 90.4,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 10
+        },
+        "top_improvements": [
+          "[med] Improve discoverability — add cross-references from /create-skill, /create-agent, and /evaluate-skill skills back to this memory so users know it exists (D6)",
+          "[low] Add See Also links to /create-skill and /create-agent skills that consume this frontmatter information (D6)",
+          "[low] Consider whether Model Selection Guide (section 5) should be its own memory to keep this strictly about frontmatter field definitions (D3)"
+        ]
       }
     }
   },

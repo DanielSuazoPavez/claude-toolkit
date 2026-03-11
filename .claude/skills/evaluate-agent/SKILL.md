@@ -265,6 +265,7 @@ Find code paths without test coverage. Don't review test quality or suggest impl
 - `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
 - `/evaluate-batch` — Run evaluations across multiple resources of one type.
 - `/create-agent` — Agent creation workflow that feeds into this evaluator.
+- `relevant-toolkit-resource_frontmatter` memory — Supported frontmatter fields for agents and skills.
 
 ## The Meta-Question
 
