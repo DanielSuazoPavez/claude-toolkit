@@ -9,6 +9,8 @@
 
 All tests are bash scripts in `tests/`. Run via Makefile targets. No Python test framework.
 
+**See also:** `essential-conventions-code_style` for make-target conventions, `/design-tests` for test design methodology
+
 ---
 
 ## 2. Test Runner
@@ -100,3 +102,5 @@ Tests whether natural language prompts correctly trigger skills via `claude -p`.
 - **New CLI command:** Add test group to `tests/test-cli.sh`
 - **New skill:** Create `eval-triggers.json` with should/shouldn't trigger queries
 - **New validation:** Add to `validate-all.sh` and ensure it follows exit code conventions
+
+**See also:** `essential-conventions-code_style` (make-target conventions), `relevant-workflow-task_completion` (test-passing as completion criterion), `/design-tests` skill (test design methodology)
