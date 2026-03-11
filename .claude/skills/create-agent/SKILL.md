@@ -12,7 +12,7 @@ Use when adding a new agent to `.claude/agents/`.
 3. [Process](#process) - Define, write, evaluate
 4. [Structure Template](#structure-template) - Template reference and persona calibration
 5. [Template Modifications by Type](#template-modifications-by-type) - Type-specific adjustments
-6. [Tool Selection Guide](#tool-selection-guide) - Tools by purpose
+6. [Tool Selection Heuristic](#tool-selection-heuristic) - Tool decision tree
 7. [First-Attempt Checklist](#first-attempt-checklist) - Pre-evaluation gate
 8. [Edge Cases](#edge-cases) - Overlap, personas, reviewers, abandonment
 9. [Anti-Patterns](#anti-patterns) - Named failures
@@ -98,14 +98,18 @@ The persona should create a **behavioral constraint** that default Claude doesn'
 | Read-only cataloger | Remove Output Path, add Rules | Pattern: `pattern-finder.md` |
 | Code modifier | Expand tools, add safety constraints | Pattern: `code-debugger.md` |
 
-## Tool Selection Guide
+## Tool Selection Heuristic
 
-| Agent Purpose | Recommended Tools |
-|---------------|-------------------|
-| Read-only analysis | Read, Grep, Glob |
-| Verification/testing | Read, Bash, Grep, Glob |
-| Code modification | Read, Write, Edit, Bash, Grep, Glob |
-| Documentation | Read, Write, Grep, Glob |
+```
+Start with Read, Grep, Glob (every agent needs to read code).
+Then ask:
+├─ Does it run tests or commands? → Add Bash
+├─ Does it modify existing files? → Add Edit
+├─ Does it create new files or reports? → Add Write
+└─ Does it need both Edit and Write? → Probably too broad — split or narrow scope
+```
+
+**Key judgment:** If you're adding more than 4 tools, revisit scope. Most well-focused agents need 3-4.
 
 ## First-Attempt Checklist
 
@@ -203,13 +207,35 @@ Result: `migration-reviewer` — focused agent with clear boundaries.
 
 ### Fixing Evaluation Failures
 
-**`deploy-checker` first attempt:** D (62/115)
+**`deploy-checker` first attempt:** 54% (62/115)
 - D1: 8/30 — "checks deployments" too broad → narrowed to "validates deployment checklists"
 - D2: 12/30 — no output format → added Verdict (READY/NOT READY/CONDITIONAL) + Automatic Fails
 - D3: 7/25 — "helpful assistant" → "cautious release engineer who blocks deploys until every item has evidence"
 - D4: 5/15 — every tool listed → trimmed to Read, Grep, Glob
 
-**After iteration:** B+ (95/115). Fix weakest dimensions first, one at a time.
+**After iteration:** 83% (95/115). Fix weakest dimensions first, one at a time.
+
+### End-to-End Walkthrough
+
+**Request:** "I keep getting unfocused code reviews. Create an agent for it."
+
+**Step 1 — Define behavioral delta:**
+- Default Claude reviews everything at equal depth
+- Needed: proportional review that scales criticism to project size
+- Persona: "pragmatic mechanic, not perfectionist inspector"
+
+**Step 2 — Write agent from template:**
+- Name: `code-reviewer` (context-role format)
+- Tools: Read, Grep, Glob, Bash (verification only), Write (reports)
+- Added: Calibration Questions section, "What to Skip" for low-risk items
+- Added: Verdict with PASS/BLOCKERS/RISKS tiers + automatic fail triggers
+
+**Step 3 — Evaluate:**
+- First attempt: 78% — D3 weak (persona too generic), D2 missing rejection criteria
+- Added mechanic metaphor, explicit anti-behaviors, severity-tiered output
+- Second attempt: 91% — all dimensions above threshold
+
+**Result:** `.claude/agents/code-reviewer.md` (105/115)
 
 ## Reference
 
