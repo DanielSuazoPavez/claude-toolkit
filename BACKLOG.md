@@ -70,6 +70,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `toolkit`
     - **notes**: Current bash trimming in `publish.sh` handles bullet items and "See also:" lines but not inline prose refs. Python would make regex/AST-based trimming easier to extend. Convention for now: inline refs are descriptive prose, not trimmed — `CLAUDE.md.template` notes this for raiz users.
 
+- **[SKILLS]** Add worked example to `shape-proposal` skill (`skill-shape-proposal-example`)
+    - **status**: `idea`
+    - **scope**: `skills`
+    - **notes**: Reshape v5 (`suggestions-box/claude-meta/shape-proposal-SKILL/20260311_1600__brainstorm-idea__export-doc-extraction-v5.md`) through the skill to produce a proper example output with framing block, template sections, and status markers. Save as `resources/EXAMPLE.md`. Current v5 was shaped manually before the skill existed.
+
 ## P3 - Low
 
 - **[SKILLS]** Link `design-db` skill to schema-smith as optional dependency (`skill-design-db-backing-repo`)

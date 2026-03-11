@@ -14,6 +14,7 @@
 # skills
 skills/analyze-idea/
 skills/brainstorm-idea/
+skills/shape-proposal/
 skills/design-db/
 skills/design-diagram/
 skills/design-docker/
@@ -34,6 +35,7 @@ skills/write-handoff/
 skills/write-docs/
 
 # agents
+agents/proposal-reviewer.md
 agents/code-debugger.md
 agents/code-reviewer.md
 agents/codebase-explorer.md
