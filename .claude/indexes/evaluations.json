@@ -285,9 +285,9 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] Add a mid-range (B/C grade) worked example to help calibrate scoring in the muddier middle of the scale — D8",
+          "[low] Add a mid-range (60-70%) worked example to help calibrate scoring in the muddier middle of the scale — D8",
           "[low] Add fix suggestions to the Anti-Pattern Detection table (Common Failures has fixes but the textual signal table does not) — D3",
-          "[low] Be explicit about what is flexible (evidence weighting within a range) vs fixed (grade thresholds, JSON format) — D6"
+          "[low] Be explicit about what is flexible (evidence weighting within a range) vs fixed (percentage thresholds, JSON format) — D6"
         ]
       },
       "evaluate-hook": {

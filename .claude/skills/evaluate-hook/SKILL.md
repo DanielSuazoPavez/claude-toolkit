@@ -203,7 +203,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 ## Example Evaluations
 
-### Good Hook (Grade B)
+### Good Hook (78.3%)
 
 **Hook:** `enforce-make-commands.sh` (blocks direct pytest/ruff, suggests make targets)
 
@@ -216,9 +216,9 @@ Using a separate agent ensures objective assessment without influence from prior
 | D5: Documentation | 10/15 | Purpose clear from comments, no settings.json example |
 | D6: Integration | 10/15 | Follows toolkit hook patterns, no conflicts with other hooks |
 
-**Total: 90/115 (78.3%) - Grade B**
+**Total: 90/115 (78.3%)**
 
-### Before/After: F → B
+### Before/After: 15.7% → 71.3%
 
 **First attempt** of a secrets-guard hook — blocks commits containing secrets:
 
@@ -236,7 +236,7 @@ cat | grep -q "password\|secret\|key" && echo "blocked" && exit 1
 | D4 | 4/20 | Single line, no structure, unmaintainable patterns |
 | D5 | 2/15 | One comment, no test cases or config |
 | D6 | 2/15 | Ignores toolkit patterns entirely |
-| **Total** | **18/115 (15.7%) - F** | |
+| **Total** | **18/115 (15.7%)** | |
 
 **After iteration:**
 
@@ -267,6 +267,6 @@ exit 0
 | D4 | 15/20 | Patterns in variables, easy to extend arrays |
 | D5 | 8/15 | Purpose clear, but no settings.json example |
 | D6 | 10/15 | Follows toolkit conventions, no conflicts |
-| **Total** | **82/115 (71.3%) - B** | |
+| **Total** | **82/115 (71.3%)** | |
 
 **Key fixes:** JSON output format, early exit by tool_name, allowlist array, targeted regex instead of broad keyword match.

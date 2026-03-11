@@ -239,7 +239,7 @@ Using a separate agent ensures objective assessment without influence from prior
 | D5: Structure | 19/20 | Numbered sections, tables, code blocks, no prose walls |
 | D6: Integration Quality | 13/15 | References related memories, no duplication, consistent terminology |
 
-**Total: 108/115 - Grade A**
+**Total: 108/115 (93.9%)**
 
 ## See Also
 
