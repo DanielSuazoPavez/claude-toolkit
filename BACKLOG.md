@@ -18,13 +18,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ---
 
-## P0 - Critical
-
-- **[HOOKS]** Subagents bypass all safety hooks (`hooks-subagent-gap`)
-    - **status**: `idea`
-    - **scope**: `hooks`
-    - **notes**: Subagents inherit no hooks — no SessionStart, no PreToolUse guards. This means subagents bypass secrets-guard, block-dangerous-commands, git-safety, etc. Discovered during hard gate experiment (2026-03-11). Needs investigation: is this a Claude Code limitation or configurable? If not configurable, consider workarounds (e.g., injecting rules into subagent prompts via agent definitions).
-
 ## P1 - High
 
 - **[SKILLS]** Add worked example to `shape-proposal` skill (`skill-shape-proposal-example`)
