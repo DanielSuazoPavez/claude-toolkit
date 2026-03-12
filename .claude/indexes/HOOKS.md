@@ -29,7 +29,8 @@ Loads essential memories and git context at the start of each session.
 - Outputs all `essential-*.md` memories
 - Lists other available memories (with category counts)
 - Shows current git branch and main branch
-- Loads recent lessons from `learned.json`
+- Loads lessons from `learned.json`: key tier (all), recent (last 5), branch-flagged (current branch)
+- Nudges `/manage-lessons` when recent count ≥ 10 or recurring flags exist
 - Outputs guidance text for memory usage
 
 ### git-safety.sh

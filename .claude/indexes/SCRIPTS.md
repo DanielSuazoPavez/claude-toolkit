@@ -18,6 +18,12 @@ Internal utility scripts in `.claude/scripts/`.
 | `backlog-query.sh` | stable | yes | Query BACKLOG.md by status, priority, ID, scope |
 | `backlog-validate.sh` | stable | yes | Validate BACKLOG.md format and structure |
 
+## Lessons
+
+| Script | Status | Synced | Description |
+|--------|--------|--------|-------------|
+| `lessons-query.sh` | beta | yes | Query lessons by tier, category, flag, branch, project, ID, or text search |
+
 ## Toolkit Only
 
 | Script | Status | Synced | Description |
