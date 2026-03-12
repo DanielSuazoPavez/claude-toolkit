@@ -9,6 +9,7 @@ on:
       - '.claude/hooks/**'
       - '.claude/memories/**'
       - '.claude/dist/**'
+      - 'scripts/publish.py'
 
 jobs:
   publish:
@@ -17,8 +18,13 @@ jobs:
       - name: Checkout toolkit
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Build raiz distribution
-        run: bash .claude/dist/raiz/publish.sh dist-output/raiz
+        run: python scripts/publish.py raiz dist-output/raiz
 
       - name: Checkout target repo
         uses: actions/checkout@v4
