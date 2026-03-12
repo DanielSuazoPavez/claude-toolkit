@@ -205,7 +205,27 @@ def _parse_subagent(jsonl_path: Path, meta_path: Path | None) -> SubagentInfo:
                 if not info.last_timestamp or ts > info.last_timestamp:
                     info.last_timestamp = ts
 
-            if record.get("type") != "assistant":
+            record_type = record.get("type", "")
+
+            # Hook events
+            if record_type == "progress":
+                data = record.get("data", {})
+                if data.get("type") == "hook_progress":
+                    info.hook_events.append(
+                        HookEvent(
+                            hook_event=data.get("hookEvent", ""),
+                            hook_name=data.get("hookName", ""),
+                            timestamp=ts,
+                        )
+                    )
+                continue
+
+            # User turns (tool result round-trips)
+            if record_type == "user":
+                info.user_turns += 1
+                continue
+
+            if record_type != "assistant":
                 continue
 
             info.assistant_turns += 1
@@ -225,17 +245,43 @@ def _parse_subagent(jsonl_path: Path, meta_path: Path | None) -> SubagentInfo:
                     "cache_read_input_tokens", 0
                 )
 
+            # Tool calls, skill detection, output token attribution
+            turn_output_tokens = usage.get("output_tokens", 0)
             content = msg.get("content", [])
             if isinstance(content, list):
+                tool_uses_in_turn = []
                 for block in content:
-                    if isinstance(block, dict) and block.get("type") == "tool_use":
-                        info.tool_calls.append(
-                            ToolCall(
-                                name=block.get("name", "unknown"),
-                                timestamp=ts,
-                                output_tokens=0,
+                    if not isinstance(block, dict):
+                        continue
+                    if block.get("type") == "tool_use":
+                        tool_name = block.get("name", "unknown")
+                        tool_uses_in_turn.append(tool_name)
+
+                        # Detect skills (Skill tool)
+                        if tool_name == "Skill":
+                            inp = block.get("input", {})
+                            info.skill_calls.append(
+                                SkillCall(
+                                    name=inp.get("skill", "unknown"),
+                                    timestamp=ts,
+                                    invoked_by="agent",
+                                )
                             )
+
+                # Attribute output tokens proportionally across tool calls
+                per_tool_tokens = (
+                    turn_output_tokens // len(tool_uses_in_turn)
+                    if tool_uses_in_turn
+                    else 0
+                )
+                for tool_name in tool_uses_in_turn:
+                    info.tool_calls.append(
+                        ToolCall(
+                            name=tool_name,
+                            timestamp=ts,
+                            output_tokens=per_tool_tokens,
                         )
+                    )
 
     return info
 
