@@ -1,4 +1,14 @@
 [project]
 name = "claude-toolkit-scripts"
-version = "2.2.0"
+version = "2.6.1"
 requires-python = ">=3.12"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+pythonpath = ["."]

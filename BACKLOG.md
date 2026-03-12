@@ -63,11 +63,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`. Also see CloudSecurityPartners' tool risk matrix and hook severity escalation patterns: `.claude/output/reviews/exploration/cloudsecuritypartners_skills/summary.md`.
 
-- **[TOOLKIT]** Add tests for `insights.py` (`insights-tests`)
-    - **status**: `idea`
-    - **scope**: `tests`
-    - **notes**: No test coverage for `scripts/insights.py`. Key areas: `_parse_subagent()` (hook events, user turns, skill detection, output token attribution), `_process_record()` (all record types), display commands with/without subagents (conditional column logic), `extract_project_name()` edge cases. Use synthetic JSONL fixtures rather than real transcripts. Flagged by goal-verifier during `insights-subagent-detail` review.
-
 - **[TOOLKIT]** Rewrite raiz publish trimming logic in Python (`toolkit-raiz-python-trimming`)
     - **status**: `idea`
     - **scope**: `toolkit`

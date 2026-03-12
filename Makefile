@@ -1,4 +1,7 @@
-.PHONY: test test-hooks test-cli test-backlog test-raiz validate check backlog help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-insights validate check backlog help
+
+install:
+	@uv sync --dev
 
 help:
 	@echo "Available targets:"
@@ -11,7 +14,7 @@ help:
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
-test: test-hooks test-cli test-backlog test-raiz
+test: test-hooks test-cli test-backlog test-raiz test-insights
 
 test-hooks:
 	@bash tests/test-hooks.sh
@@ -24,6 +27,9 @@ test-backlog:
 
 test-raiz:
 	@bash tests/test-raiz-publish.sh
+
+test-insights:
+	@uv run pytest tests/test_insights.py -q
 
 backlog:
 	@bash .claude/scripts/backlog-query.sh
