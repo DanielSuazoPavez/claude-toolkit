@@ -7,6 +7,7 @@ User-invocable skills activated with `/skill-name`.
 | Skill | Status | Description |
 |-------|--------|-------------|
 | `brainstorm-idea` | stable | Turn fuzzy ideas into clear designs through structured dialogue |
+| `shape-project` | beta | Define project identity, scope, and boundaries as a memory |
 | `shape-proposal` | beta | Shape validated designs into audience-aware proposals |
 | `analyze-idea` | stable | Research tasks - investigate topics, gather evidence, generate reports |
 | `review-plan` | stable | Review implementation plans against quality criteria |

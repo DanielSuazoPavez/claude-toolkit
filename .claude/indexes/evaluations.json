@@ -749,6 +749,29 @@
           "[high] D8: Add a worked example showing the full flow and a decision tree for edge cases",
           "[low] D1: Add expert guidance on when to promote lessons from recent to key, retention/pruning strategy"
         ]
+      },
+      "shape-project": {
+        "file_hash": "87402c5b",
+        "date": "2026-03-12",
+        "type": "knowledge",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 12,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[low] Add a complete worked example showing the full identity memory output, not just the traits table",
+          "[low] Reference /shape-proposal as a natural successor in See Also",
+          "[low] Add anti-pattern for over-constraining scope too early in a project lifecycle"
+        ]
       }
     }
   },
