@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-03-12 - shape-project skill
+
+### Added
+- **skills**: `shape-project` — define project identity, scope, and boundaries as a `relevant-project-identity` memory. Hybrid approach: reads repo first, asks targeted questions, drafts through dialogue
+
 ## [2.9.1] - 2026-03-12 - deprecate backlog graveyard, backlog triage
 
 ### Changed
