@@ -862,20 +862,38 @@ def cmd_agents(sessions: list[Session], as_json: bool) -> None:
 
 def cmd_hooks(sessions: list[Session], as_json: bool) -> None:
     """Hook event counts."""
-    hooks: dict[str, dict[str, int]] = {}  # hookName -> {hookEvent: count}
-    event_totals: dict[str, int] = {}
+    has_subagents = any(s.subagents for s in sessions)
+
+    # Aggregate: event_type -> {main, subagent, total}
+    event_agg: dict[str, dict[str, int]] = {}
+    # Aggregate: hook_name -> {main, subagent, total}
+    hook_agg: dict[str, dict[str, int]] = {}
+
+    def _add_hook(he: HookEvent, source: str) -> None:
+        e = event_agg.setdefault(he.hook_event, {"main": 0, "subagent": 0, "total": 0})
+        e[source] += 1
+        e["total"] += 1
+        h = hook_agg.setdefault(he.hook_name, {"main": 0, "subagent": 0, "total": 0})
+        h[source] += 1
+        h["total"] += 1
+
     for s in sessions:
         for he in s.hook_events:
-            h = hooks.setdefault(he.hook_name, {})
-            h[he.hook_event] = h.get(he.hook_event, 0) + 1
-            event_totals[he.hook_event] = event_totals.get(he.hook_event, 0) + 1
+            _add_hook(he, "main")
+        for sa in s.subagents:
+            for he in sa.hook_events:
+                _add_hook(he, "subagent")
 
     if as_json:
         print(
             json.dumps(
                 {
-                    "by_hook": hooks,
-                    "by_event": event_totals,
+                    "by_event": {
+                        name: data for name, data in sorted(event_agg.items(), key=lambda x: -x[1]["total"])
+                    },
+                    "by_hook": {
+                        name: data for name, data in sorted(hook_agg.items(), key=lambda x: -x[1]["total"])
+                    },
                 },
                 indent=2,
             )
@@ -887,16 +905,29 @@ def cmd_hooks(sessions: list[Session], as_json: bool) -> None:
 
     # By event type
     print(f"  {c['bold']}By Event Type{c['reset']}")
-    sorted_events = sorted(event_totals.items(), key=lambda x: -x[1])
-    rows = [[name, str(count)] for name, count in sorted_events]
-    print(_table(["Event", "Count"], rows, c))
+    sorted_events = sorted(event_agg.items(), key=lambda x: -x[1]["total"])
+    if has_subagents:
+        rows = [
+            [name, str(d["main"]), str(d["subagent"]), str(d["total"])]
+            for name, d in sorted_events
+        ]
+        print(_table(["Event", "Main", "Subagent", "Total"], rows, c))
+    else:
+        rows = [[name, str(d["total"])] for name, d in sorted_events]
+        print(_table(["Event", "Count"], rows, c))
 
     # By hook name
     print(f"  {c['bold']}By Hook Name{c['reset']}")
-    hook_totals = [(name, sum(evts.values())) for name, evts in hooks.items()]
-    hook_totals.sort(key=lambda x: -x[1])
-    rows = [[name, str(count)] for name, count in hook_totals]
-    print(_table(["Hook", "Count"], rows, c))
+    sorted_hooks = sorted(hook_agg.items(), key=lambda x: -x[1]["total"])
+    if has_subagents:
+        rows = [
+            [name, str(d["main"]), str(d["subagent"]), str(d["total"])]
+            for name, d in sorted_hooks
+        ]
+        print(_table(["Hook", "Main", "Subagent", "Total"], rows, c))
+    else:
+        rows = [[name, str(d["total"])] for name, d in sorted_hooks]
+        print(_table(["Hook", "Count"], rows, c))
 
 
 def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
