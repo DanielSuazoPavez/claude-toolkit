@@ -53,6 +53,7 @@ Read the source document and `resources/PROPOSAL_TEMPLATE.md`.
    - Budget matters → Cost Estimation
    - Sensitive data or compliance → Security & Compliance
    - Stakeholder input needed → Validation Checklist
+     - When the audience mediates between you and stakeholders, suggest splitting the checklist: client/stakeholder questions vs internal/team questions
    - Technology decisions open → Framework Comparison
 3. **Determine section order** — what the audience cares about most goes first
 4. **Present proposed structure to the user** for confirmation before writing
@@ -62,7 +63,10 @@ Read the source document and `resources/PROPOSAL_TEMPLATE.md`.
 Restructure source content into the confirmed structure:
 
 - Add **framing block**: what this document is, scope boundaries, what was/wasn't reviewed, purpose
+- **Look for the core insight** — the one sentence that reframes the problem in a way that makes the architecture feel inevitable. If the source has one, surface it prominently (before Project Context). If it doesn't emerge naturally, don't force it — not every proposal has one.
 - **Reshape, don't rewrite**: reorder sections, adjust framing and tone, add audience context — but preserve the source author's technical substance and voice
+  - **Source is already a proposal** → reshape structure and tone, preserve text
+  - **Source is a design doc / brainstorm output** → content needs restructuring into proposal form. The constraint becomes: preserve technical conclusions and the author's reasoning, even when the words change significantly
 - Flag structural gaps to the user rather than inventing content
 - Apply status markers for incomplete items: `[TBD]`, `[TO VALIDATE]`, `[MISSING INFO]`, `[ASSUMED]`
 
@@ -88,6 +92,8 @@ Spawn a `proposal-reviewer` agent with the shaped document and the target audien
 
 Fix issues flagged by the agent. Re-run only if changes were significant.
 
+After fixing reviewer issues, do a **source fidelity check**: scan the source document for technical substance (specific claims, caveats, design rationale, edge case handling) that didn't make it into the shaped output. Flag any dropped content to the user — they can decide whether it was intentionally omitted or accidentally lost.
+
 ### Phase 5: Output
 
 Save to `.claude/output/proposals/{YYYYMMDD}_{HHMM}__shape-proposal__{topic}.md`
@@ -102,7 +108,7 @@ Report to user:
 
 - **Confident, not apologetic.** Frame scope honestly but don't ask for forgiveness. Proposals with conviction land better than hedged ones.
 - **Fair to existing work.** Acknowledge what works, what you haven't reviewed, and where the existing approach may have advantages you don't fully understand.
-- **Separate "what must happen" from "how I'd do it."** Non-negotiable requirements are easier to align on than architectural preferences.
+- **Separate "what must happen" from "how I'd do it."** Non-negotiable requirements are easier to align on than architectural preferences. When the audience is technical and the purpose is architectural alignment, implementation detail can ground the discussion. When the audience is deciding *whether* to proceed, it's premature. If including implementation specifics, acknowledge it in the framing block.
 - **Reshape, don't rewrite.** Structure, framing, and tone change. Technical conclusions and the author's voice don't.
 - **30/70 rule.** Design may be 30% of the effort. Making it land with the audience is the other 70%.
 
@@ -112,7 +118,7 @@ Report to user:
 |---------|---------|-----|
 | **Full Rewrite** | Rewrites source from scratch, loses author's voice and precision | Reshape structure and tone, preserve technical substance |
 | **Missing Framing Block** | Jumps into architecture without setting expectations | Always start with what this is, scope, and purpose |
-| **One-Sided Comparison** | "Why" column instead of "Tradeoff" column when comparing | Acknowledge strengths of alternatives, use balanced framing |
+| **One-Sided Comparison** | "Why" column instead of "Tradeoff" column when comparing | Acknowledge strengths of alternatives, use balanced framing. **Tradeoff column test**: read only the Tradeoff column top-to-bottom — if every row lands the same side, the table is one-sided regardless of the words used |
 | **Kitchen Sink Sections** | Includes all 17 possible sections regardless of audience | Select sections based on what this audience needs, not what's available |
 | **Inventing Content** | Fills template gaps with fabricated details | Flag gaps to user, use status markers, ask don't assume |
 | **Skipping Structure Confirmation** | Writes full proposal before user confirms section selection | Phase 2 ends with user confirmation — don't skip it |
