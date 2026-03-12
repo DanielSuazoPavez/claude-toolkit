@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-03-12 - review-security skill
+
+### Added
+- **skill**: `review-security` — targeted security audit of files/modules with trace-based vulnerability analysis (entry → sink), 8 vulnerability domains, trust boundary calibration, false-positive filtering (80% confidence rule), worked example
+- **skill**: `review-security` `resources/DOMAINS.md` — safe/vulnerable code comparisons across Python, Node, Django, Go for injection, auth, secrets, crypto, SSRF, deserialization
+- **evaluations**: batch re-evaluated 5 stale/unevaluated resources (draft-pr, evaluate-hook, learn, relevant-conventions-testing, code-reviewer)
+
+### Changed
+- **agent**: `code-reviewer` — added escalation path to `/review-security` in See Also
+- **backlog**: replaced `skill-learn-quality-gate` with broader `lessons-ecosystem` item; updated `agent-security-reviewer` → `skill-review-security` (in-progress)
+
 ## [2.7.0] - 2026-03-12 - proposal shaping improvements
 
 ### Added
