@@ -727,25 +727,25 @@
         ]
       },
       "learn": {
-        "file_hash": "2a5fcf99",
+        "file_hash": "ac086bfb",
         "date": "2026-03-12",
-        "score": 95,
+        "score": 106,
         "max": 120,
-        "percentage": 79.2,
+        "percentage": 88.3,
         "dimensions": {
-          "D1": 15,
-          "D2": 12,
-          "D3": 12,
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
           "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 8,
-          "D8": 12
+          "D7": 14,
+          "D8": 14
         },
         "top_improvements": [
-          "[high] D7: Reference sibling manage-lessons skill and clarify handoff boundary — learn captures, manage-lessons handles promotion/archival/deletion",
-          "[low] D8: Add error handling for malformed JSON and missing dependencies (jq), and specify behavior on user rejection",
-          "[low] D1: Add guidance on edge-case category decisions (e.g., correction+gotcha overlap, pattern vs convention boundary)"
+          "[low] D1: Add guidance on edge-case category decisions (e.g., correction+gotcha overlap, pattern vs convention boundary)",
+          "[low] D8: Add explicit error handling for jq failures or malformed learned.json",
+          "[low] D2: Document what happens if user objects to the proposal (edit flow vs full restart)"
         ]
       },
       "shape-project": {
@@ -772,25 +772,25 @@
         ]
       },
       "manage-lessons": {
-        "file_hash": "8e2f9e0b",
+        "file_hash": "2e148975",
         "date": "2026-03-12",
-        "score": 94,
+        "score": 96,
         "max": 120,
-        "percentage": 78,
+        "percentage": 80,
         "dimensions": {
           "D1": 14,
           "D2": 12,
-          "D3": 12,
+          "D3": 11,
           "D4": 8,
           "D5": 14,
-          "D6": 13,
-          "D7": 9,
+          "D6": 11,
+          "D7": 14,
           "D8": 12
         },
         "top_improvements": [
-          "[high] D7: Add explicit cross-references to learn skill, session-start hook, lesson schema, and where absorbed lessons go (memories/CLAUDE.md)",
-          "[low] D1: Add decision criteria for promote vs archive vs delete — currently users must infer when each action is appropriate",
-          "[low] D8: Add error handling for missing learned.json and guidance for partial completion (user quits mid-review)"
+          "[high] D6: Add heuristics for when to recommend promote vs archive vs delete",
+          "[low] D8: Add edge-case handling for missing learned.json or zero recent lessons",
+          "[low] D3: Add a non-obvious anti-pattern such as archiving recurring lessons instead of promoting them"
         ]
       }
     }
