@@ -7,6 +7,8 @@ description: Review and manage lesson lifecycle. Use when the user says "manage 
 
 Review `recent` lessons and decide their fate: promote, archive, delete, or flag.
 
+**See also:** `/learn` (capture new lessons), `.claude/scripts/lessons-query.sh` (filter/list lessons), `.claude/schemas/lesson.schema.json` (field definitions), `session-start.sh` hook (nudge that triggers this skill), `/create-memory` (when absorbing a key lesson into a memory)
+
 ## When to Use
 
 - Session-start nudge suggests it (10+ recent, recurring flags)

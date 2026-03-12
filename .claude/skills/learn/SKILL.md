@@ -7,6 +7,8 @@ description: Capture a lesson from this session. Use when the user says "remembe
 
 Capture a lesson from the current session. Lightweight — identify, format, write.
 
+**See also:** `/manage-lessons` (lifecycle: promote, archive, delete after capture), `.claude/scripts/lessons-query.sh` (filter/list lessons), `.claude/schemas/lesson.schema.json` (field definitions), `session-start.sh` hook (surfaces key + branch-flagged lessons)
+
 ## When to Use
 
 - User explicitly asks to remember/save something
