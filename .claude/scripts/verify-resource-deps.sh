@@ -111,7 +111,7 @@ is_allowlisted() {
 }
 
 # Built-in Claude Code slash commands (not toolkit skills)
-BUILTIN_COMMANDS="clear commit review-pr help init login logout"
+BUILTIN_COMMANDS="clear commit review-pr help init login logout security-review"
 
 is_builtin_command() {
     local name="$1"
