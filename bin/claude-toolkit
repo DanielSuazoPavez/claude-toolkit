@@ -10,7 +10,7 @@ set -euo pipefail
 #
 # Run 'claude-toolkit <command> --help' for command-specific help.
 
-TOOLKIT_DIR="${TOOLKIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+TOOLKIT_DIR="${TOOLKIT_DIR:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"
 
 # Detect project name from cwd: git repo name > directory name
 detect_project_name() {
