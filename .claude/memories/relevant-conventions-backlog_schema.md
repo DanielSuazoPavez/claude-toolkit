@@ -34,10 +34,6 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 ## P3 - Low
 ## P100 - Nice to Have
 
----
-
-## Graveyard
-<!-- Abandoned items with reason: - description — reason -->
 ```
 
 ---
@@ -66,7 +62,7 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 - Every item **must** have a kebab-case id in backtick-parens at end of title
 - Ids are manual, short, descriptive (e.g., `cli-validation`, `type-registry`)
 - No Completed section — done items are removed from the backlog
-- Graveyard keeps abandoned items with a reason
+- Abandoned/dropped items are simply removed (no graveyard — if it doesn't earn its place, it goes)
 - All metadata fields are optional
 - `scope` values should match entries in Scope Definitions table (when present)
 
@@ -109,7 +105,6 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 | P2 | Important but not urgent, clear scope |
 | P3 | Low priority, maintenance or refinement tasks |
 | P100 | Nice-to-have, future improvements |
-| Graveyard | Abandoned or superseded (with reason) |
 
 ---
 

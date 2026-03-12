@@ -28,8 +28,3 @@
 
 ## P100 - Nice to Have
 
----
-
-## Graveyard
-
-<!-- Abandoned items with reason. Format: - item description — reason it was killed -->
