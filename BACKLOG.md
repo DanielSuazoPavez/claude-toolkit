@@ -109,18 +109,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: CI/CD pipeline patterns, caching, matrix builds. Build when encountering real CI/CD need.
 
 
-- **[TOOLKIT]** Parse subagent transcripts in insights script (`insights-subagent-parsing`)
-    - **status**: `in-progress`
-    - **scope**: `toolkit`
-    - **branch**: `feat/insights-subagent-parsing`
-    - **notes**: Basic parsing done — subagents rolled up into parent sessions with agent type, model, tokens, tool calls, turns. Follow-up in `insights-subagent-detail`.
-
-- **[TOOLKIT]** Detailed subagent metrics in insights script (`insights-subagent-detail`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **depends-on**: `insights-subagent-parsing`
-    - **notes**: Separate sections for subagent activity (not rolled into main agent totals). Missing extractions: (1) hook events from subagent transcripts, (2) tool output token attribution (currently all 0), (3) user turns in subagents (tool results), (4) skill invocations within subagents. New display sections in `cmd_tools` and `cmd_hooks` for subagent vs main breakdown.
-
 - **[TOOLKIT]** Telegram bot bridge to Claude Code (`telegram-bridge`)
     - **status**: `idea`
     - **scope**: `toolkit`

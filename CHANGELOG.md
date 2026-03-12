@@ -9,6 +9,15 @@
 ### Changed
 - **backlog**: Promoted 3 shape-proposal/proposal-reviewer improvement tasks to P1
 
+## [2.6.0] - 2026-03-12 - detailed subagent metrics in insights
+
+### Added
+- **scripts**: `insights.py` — parse hook events, skill calls, user turns, and output token attribution from subagent transcripts
+- **scripts**: `insights.py tools` — Main/Subagent/Total columns when subagents are present
+- **scripts**: `insights.py hooks` — aggregate hook events from both main session and subagents with breakdown columns
+- **scripts**: `insights.py overview` — Subagent Detail section showing tool calls, hook events, skill calls, user turns
+- **scripts**: `insights.py sessions --json` — extended subagent entries with hook_events, skill_calls, user_turns
+
 ## [2.5.1] - 2026-03-11 - draft-pr template detection
 
 ### Improved
