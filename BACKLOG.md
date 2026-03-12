@@ -110,9 +110,16 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 
 - **[TOOLKIT]** Parse subagent transcripts in insights script (`insights-subagent-parsing`)
+    - **status**: `in-progress`
+    - **scope**: `toolkit`
+    - **branch**: `feat/insights-subagent-parsing`
+    - **notes**: Basic parsing done — subagents rolled up into parent sessions with agent type, model, tokens, tool calls, turns. Follow-up in `insights-subagent-detail`.
+
+- **[TOOLKIT]** Detailed subagent metrics in insights script (`insights-subagent-detail`)
     - **status**: `idea`
     - **scope**: `toolkit`
-    - **notes**: `scripts/insights.py` only reads top-level `.jsonl` files. Subagent transcripts in `<uuid>/subagents/` are ignored — this also means old sessions (pre-Feb) that only survive as subagent files are invisible. Need to decide: count as separate sessions or roll up into parent.
+    - **depends-on**: `insights-subagent-parsing`
+    - **notes**: Separate sections for subagent activity (not rolled into main agent totals). Missing extractions: (1) hook events from subagent transcripts, (2) tool output token attribution (currently all 0), (3) user turns in subagents (tool results), (4) skill invocations within subagents. New display sections in `cmd_tools` and `cmd_hooks` for subagent vs main breakdown.
 
 - **[TOOLKIT]** Telegram bot bridge to Claude Code (`telegram-bridge`)
     - **status**: `idea`
