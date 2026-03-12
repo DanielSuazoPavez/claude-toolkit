@@ -36,15 +36,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: Add `resources/EXAMPLES.md` with: (1) one worked example per lens (coupling, API surface — dependency direction and cohesion already exist inline), (2) a full end-to-end Python example showing triage → measure → four-lens → document flow on a real codebase. Gate on real usage: only build when the skill passes alpha from use in actual projects.
 
-- **[SKILLS]** Add quality gate rubric to `/learn` skill (`skill-learn-quality-gate`)
+- **[SKILLS/HOOKS]** Fix lessons ecosystem — `/learn` skill + capture workflow (`lessons-ecosystem`)
     - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Before saving a lesson, self-evaluate on 5 dimensions (Specificity, Actionability, Scope Fit, Non-redundancy, Coverage) scored 1-5. Must improve anything scoring 1-2 before saving. Prevents thin or duplicate lessons from accumulating. ECC's `/learn-eval` command does this — show scores table to user for transparency. Adapt to our lesson format (pattern/gotcha/convention categories). Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`.
-
-- **[AGENTS]** Create dedicated `security-reviewer` agent (`agent-security-reviewer`)
-    - **status**: `idea`
-    - **scope**: `agents`
-    - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`. Also see CloudSecurityPartners' tool risk matrix and hook severity escalation patterns: `.claude/output/reviews/exploration/cloudsecuritypartners_skills/summary.md`.
+    - **scope**: `skills, hooks`
+    - **notes**: Three problems: (1) `/learn` skill scored 71.7% — weak D7 (island, no ecosystem refs) and D8 (no worked example, no edge case handling). (2) The `capture-lesson` hook was attempted and dropped — too much friction or too unreliable. (3) Need something between "automatic capture that produces garbage" and "manual invocation that never happens." Prior art: ECC's instinct system (confidence scoring, auto-observation) is overengineered for our needs; their `/learn-eval` quality gate (5 dimensions scored 1-5) is closer. Subsumes former `skill-learn-quality-gate` item. Key constraint: low friction without sacrificing lesson quality.
 
 - **[TOOLKIT]** Rewrite raiz publish trimming logic in Python (`toolkit-raiz-python-trimming`)
     - **status**: `idea`

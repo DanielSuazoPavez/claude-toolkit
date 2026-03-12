@@ -245,26 +245,26 @@
         ]
       },
       "draft-pr": {
-        "file_hash": "06209e03",
-        "date": "2026-03-09",
+        "file_hash": "dc0999f5",
+        "date": "2026-03-12",
         "type": "command",
-        "score": 105,
+        "score": 103,
         "max": 120,
-        "percentage": 87.5,
+        "percentage": 85.8,
         "dimensions": {
           "D1": 16,
-          "D2": 13,
+          "D2": 12,
           "D3": 13,
           "D4": 9,
-          "D5": 14,
+          "D5": 15,
           "D6": 13,
-          "D7": 14,
+          "D7": 12,
           "D8": 13
         },
         "top_improvements": [
-          "[low] D1: Trim or elevate the PR template — Summary/Changes/Testing is standard knowledge; either remove or add expert annotations showing good vs bad examples",
-          "[low] D8: Add failure path handling — what to do when branch has merge conflicts or when split is needed but commits are entangled",
-          "[low] D1: Strengthen Analyze step with expert heuristics — e.g. spotting scope creep in diff, checking test-to-code change ratio"
+          "[high] D2: Clarify what happens after splitting — does the user invoke draft-pr once per sub-PR? Make the split-then-regenerate loop explicit",
+          "[low] D1: Add guidance on calibrating sizing thresholds per team/project and handling the common test+implementation seam",
+          "[low] D7: Reference CHANGELOG.md conventions or relevant memory files to strengthen ecosystem integration"
         ]
       },
       "evaluate-agent": {
@@ -291,14 +291,14 @@
         ]
       },
       "evaluate-hook": {
-        "file_hash": "c8d29d5f",
-        "date": "2026-03-11",
-        "type": "command",
-        "score": 104,
+        "file_hash": "30b03a68",
+        "date": "2026-03-12",
+        "type": "knowledge",
+        "score": 103,
         "max": 120,
-        "percentage": 86.7,
+        "percentage": 85.8,
         "dimensions": {
-          "D1": 17,
+          "D1": 16,
           "D2": 12,
           "D3": 14,
           "D4": 9,
@@ -308,9 +308,9 @@
           "D8": 13
         },
         "top_improvements": [
-          "[low] Reference .claude/indexes/HOOKS.md in See Also to strengthen ecosystem integration — D7",
-          "[low] Add guidance for ambiguous hook classifications (e.g., hooks that both block and log) — D8",
-          "[low] Add a logging-only or edge-case hook type example evaluation to complement the Edge Cases section — D8"
+          "[high] D1: Deepen knowledge delta — add more non-obvious insights about hook evaluation",
+          "[low] D7: Reference HOOKS.md index and relevant memories to strengthen ecosystem integration",
+          "[low] D2: Add branching logic to the evaluation protocol for different hook types"
         ]
       },
       "evaluate-memory": {
@@ -702,6 +702,52 @@
           "[high] Add type: knowledge explicitly to frontmatter for routing clarity and ecosystem consistency",
           "[low] Add error/edge-case handling for Phase 4 when reviewer flags fundamental structural issues vs minor fixes",
           "[low] Strengthen thin-source boundary guidance in Phase 2 for borderline cases (1-2 pages)"
+        ]
+      },
+      "review-security": {
+        "file_hash": "51175490",
+        "date": "2026-03-12",
+        "type": "knowledge",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 17,
+          "D2": 14,
+          "D3": 14,
+          "D4": 9,
+          "D5": 13,
+          "D6": 14,
+          "D7": 9,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[high] D7: Add review-security to SKILLS.md index and create inbound references from code-reviewer agent and review-changes skill",
+          "[low] D1: Trim redundant Key insight lines in DOMAINS.md that restate what Claude already knows",
+          "[low] D7: Add reverse reference in code-reviewer.md for escalation path to review-security"
+        ]
+      },
+      "learn": {
+        "file_hash": "b159e11a",
+        "date": "2026-03-12",
+        "type": "knowledge",
+        "score": 86,
+        "max": 120,
+        "percentage": 71.7,
+        "dimensions": {
+          "D1": 11,
+          "D2": 10,
+          "D3": 12,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 7,
+          "D8": 10
+        },
+        "top_improvements": [
+          "[high] D7: Add references to session-start hook and create-memory skill to connect the skill to its ecosystem",
+          "[high] D8: Add a worked example showing the full flow and a decision tree for edge cases",
+          "[low] D1: Add expert guidance on when to promote lessons from recent to key, retention/pruning strategy"
         ]
       }
     }
@@ -1149,23 +1195,23 @@
         ]
       },
       "relevant-conventions-testing": {
-        "file_hash": "a9c6aeb2",
-        "date": "2026-03-11",
-        "score": 106,
+        "file_hash": "86757f48",
+        "date": "2026-03-12",
+        "score": 107,
         "max": 115,
-        "percentage": 92.2,
+        "percentage": 93.0,
         "dimensions": {
           "D1": 19,
           "D2": 24,
           "D3": 18,
           "D4": 14,
-          "D5": 18,
+          "D5": 19,
           "D6": 13
         },
         "top_improvements": [
-          "[low] Quick Reference See also references /design-tests (pytest-focused) — clarify it covers test design methodology for pytest, distinct from the bash tests here (D2: +1)",
-          "[low] Sections 4-6 are thin (2-4 bullets each) — add a brief example command with expected output for each test type to increase actionability (D3: +1-2)",
-          "[low] Section 3 notes helpers are defined per test file, not shared — add brief rationale for this design choice (D3: +1)"
+          "Cross-reference relevant-workflow-branch_development",
+          "Sections 4-6 describe specific test files — consider keeping memory at convention/pattern level",
+          "Add a brief note about test naming conventions"
         ]
       }
     }
@@ -1254,22 +1300,22 @@
         ]
       },
       "code-reviewer": {
-        "file_hash": "27e19e5a",
-        "date": "2026-03-11",
-        "score": 105,
+        "file_hash": "d8167f23",
+        "date": "2026-03-12",
+        "score": 103,
         "max": 115,
-        "percentage": 91.3,
+        "percentage": 89.6,
         "dimensions": {
           "D1": 27,
-          "D2": 28,
+          "D2": 27,
           "D3": 23,
-          "D4": 14,
+          "D4": 13,
           "D5": 13
         },
         "top_improvements": [
-          "[low] Add more \"be X, not Y\" voice pairs to strengthen persona beyond the mechanic metaphor (D3)",
-          "[low] Add explicit calibration examples for maintainability findings alongside the security example (D2)",
-          "[low] Reference ecosystem resources like CLAUDE.md or project-level conventions to deepen integration (D5)"
+          "D1: Add explicit guidance on how to determine review scope when invoked",
+          "D2: Add a severity-rating rubric so Blockers vs Risks vs Nice-to-haves are defined by criteria",
+          "D3: Strengthen the mechanic persona with more voice examples"
         ]
       },
       "code-debugger": {
