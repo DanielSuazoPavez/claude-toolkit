@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.10.2] - 2026-03-12 - create-memory portability
+
+### Fixed
+- **skills**: `create-memory` no longer requires `.claude/indexes/MEMORIES.md` — falls back to listing `.claude/memories/` for duplicate checking
+
+### Changed
+- **sync**: added `create-memory` to MANIFEST (dependency of `shape-project`)
+
 ## [2.10.1] - 2026-03-12 - fix symlink resolution
 
 ### Fixed
