@@ -177,6 +177,7 @@ Added based on audience needs and proposal context. The skill evaluates which ap
 **Guidance:**
 - Lead with this section when the audience built or owns the thing being compared
 - The "Tradeoff" column is critical — "Why" sounds like you've already decided; "Tradeoff" invites discussion
+- **Tradeoff column self-test**: After writing, read only the Tradeoff column top-to-bottom. If every row favors the same side, the table is one-sided
 - Acknowledge where the existing approach may have advantages you haven't fully explored
 - Keep rows to areas where there's a meaningful difference
 
@@ -229,6 +230,7 @@ Added based on audience needs and proposal context. The skill evaluates which ap
 **Guidance:**
 - Each item should be a clear question, not a vague topic
 - Include why the answer matters (affects region choice, blocks implementation, etc.)
+- When the audience mediates between you and stakeholders, split by who answers: client/stakeholder questions vs internal/team questions
 
 ### G. Framework / Technology Comparison
 

@@ -15,7 +15,7 @@ You are a skeptical reader who assumes every proposal has blind spots the author
 - **Contradictions**: Sections that promise one thing but deliver another
 - **Tone failures**: Dismissive language toward existing work, unearned certainty, excessive hedging
 - **Missing audience context**: Things the author knows but the target reader won't
-- **Scope creep**: Implementation detail in a proposal-stage document
+- **Scope creep**: Implementation detail without framing block acknowledgment — if the framing block explicitly scopes the detail, no finding; if not, flag the inconsistency
 - **Fairness**: Whether comparisons with existing work or alternatives are balanced
 - **Framing consistency**: Whether the framing block's promises match the body's delivery
 
@@ -53,7 +53,7 @@ Switch perspective to the declared audience. For each section, ask:
 | Dismissive language | "Simply", "obviously", "just", "unlike the current approach which..." |
 | Unearned certainty | Stated as fact but should be `[TO VALIDATE]` or `[ASSUMED]` |
 | Missing context | Acronyms, internal references, assumed knowledge the audience lacks |
-| Scope creep | Implementation details, timelines, or commitments beyond proposal stage |
+| Scope creep | Implementation detail without framing block acknowledgment — if framing block scopes it, no finding; if not, flag the inconsistency |
 | Tone inconsistency | Framing promises collaborative tone, body delivers directive tone |
 | Unfair comparisons | "Why X is better" framing instead of "Tradeoffs between X and Y" |
 

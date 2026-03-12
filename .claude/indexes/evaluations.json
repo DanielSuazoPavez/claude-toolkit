@@ -682,26 +682,26 @@
         ]
       },
       "shape-proposal": {
-        "file_hash": "82a64066",
-        "date": "2026-03-11",
+        "file_hash": "dfdedf90",
+        "date": "2026-03-12",
         "type": "knowledge",
-        "score": 107,
+        "score": 108,
         "max": 120,
-        "percentage": 89.2,
+        "percentage": 90.0,
         "dimensions": {
-          "D1": 17,
+          "D1": 18,
           "D2": 14,
           "D3": 14,
           "D4": 9,
-          "D5": 13,
-          "D6": 13,
+          "D5": 11,
+          "D6": 14,
           "D7": 14,
-          "D8": 13
+          "D8": 14
         },
         "top_improvements": [
-          "[low] Add a brief worked example showing source-to-proposal reshaping for a specific audience (D8)",
-          "[low] Add a TOC to PROPOSAL_TEMPLATE.md for navigation at 270 lines (D5)",
-          "[low] Merge Phase 2 steps 1-2 to tighten the derivable content-mapping instruction (D1)"
+          "[high] Add type: knowledge explicitly to frontmatter for routing clarity and ecosystem consistency",
+          "[low] Add error/edge-case handling for Phase 4 when reviewer flags fundamental structural issues vs minor fixes",
+          "[low] Strengthen thin-source boundary guidance in Phase 2 for borderline cases (1-2 pages)"
         ]
       }
     }
@@ -1311,22 +1311,22 @@
         ]
       },
       "proposal-reviewer": {
-        "file_hash": "a45ffab7",
-        "date": "2026-03-11",
+        "file_hash": "2caa9fb2",
+        "date": "2026-03-12",
         "score": 107,
         "max": 115,
         "percentage": 93.0,
         "dimensions": {
           "D1": 28,
-          "D2": 28,
+          "D2": 29,
           "D3": 24,
-          "D4": 14,
+          "D4": 13,
           "D5": 13
         },
         "top_improvements": [
-          "[low] Add a calibration question for proposal length/complexity — how depth of review scales with document size (D1)",
-          "[low] Reference relevant memories for terminology consistency across proposal ecosystem (D5)",
-          "[low] Add an example finding to illustrate the Location/Problem/Suggestion format in practice (D2)"
+          "[low] Add Bash to tools frontmatter — Output Path references date shell command requiring Bash tool access",
+          "[low] Add be X, not Y voice directive to sharpen persona contrast with default Claude behavior",
+          "[low] Add re-review workflow guidance — clarify feedback loop after REVISE verdict"
         ]
       }
     }

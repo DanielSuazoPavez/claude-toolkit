@@ -20,23 +20,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS]** Add worked example to `shape-proposal` skill (`skill-shape-proposal-example`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Reshape v5 (`.claude/drafts/shape-proposal/20260311_1600__brainstorm-idea__export-doc-extraction-v5.md`) through the skill to produce a proper example output with framing block, template sections, and status markers. Save as `resources/EXAMPLE.md`. Current v5 was shaped manually before the skill existed.
-
-- **[SKILLS]** Improve `shape-proposal` skill from real usage analysis (`skill-shape-proposal-improvements`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Six improvements identified from real usage session (shaping export-doc-extraction v2). Three high-priority: (1) validation checklist audience-based split guidance, (2) core insight surfacing step, (3) comparison table self-test heuristic. Three medium: source-type awareness for reshape vs rewrite, source fidelity check after reviewer, scope creep decision framework. Also update `PROPOSAL_TEMPLATE.md` for items 1 and 6.
-    - **plan**: `.claude/output/reviews/20260311_1300__analysis__shape-proposal-skill-improvements.md`
-
-- **[AGENTS]** Improve `proposal-reviewer` agent from real usage analysis (`agent-proposal-reviewer-improvements`)
-    - **status**: `idea`
-    - **scope**: `agents`
-    - **notes**: Two improvements from real usage: (1) scope creep check should verify if framing block acknowledges implementation detail before flagging — if acknowledged, no finding; if not, flag the inconsistency. (2) Consider whether the agent should receive the source document alongside the shaped output for content fidelity checking (current assessment: keep agent focused on audience fit, handle source fidelity at skill level instead).
-    - **plan**: `.claude/output/reviews/20260311_1300__analysis__shape-proposal-skill-improvements.md` (findings #4 and #5)
-
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `idea`
     - **scope**: `agents, skills`
