@@ -797,6 +797,11 @@ def cmd_skills(sessions: list[Session], as_json: bool) -> None:
             sk = skills.setdefault(sc.name, {"user": 0, "agent": 0, "total": 0})
             sk[sc.invoked_by] += 1
             sk["total"] += 1
+        for sa in s.subagents:
+            for sc in sa.skill_calls:
+                sk = skills.setdefault(sc.name, {"user": 0, "agent": 0, "total": 0})
+                sk[sc.invoked_by] += 1
+                sk["total"] += 1
 
     sorted_skills = sorted(skills.items(), key=lambda x: -x[1]["total"])
 
