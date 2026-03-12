@@ -102,6 +102,7 @@ After writing, return a brief summary: "Report written to {path}. Status: {PASS|
 - `code-debugger` — investigates specific bugs (you surface risks, they dig into root causes)
 - `goal-verifier` — verifies features work end-to-end (you review code quality, they verify completeness)
 - `/refactor` — structural refactoring analysis (when your review identifies coupling or duplication worth addressing)
+- `/review-security` — deeper vulnerability analysis (when you flag a security concern worth tracing from entry to sink)
 
 When no issues found:
 
