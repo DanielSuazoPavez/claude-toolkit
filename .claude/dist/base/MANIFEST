@@ -24,6 +24,7 @@ skills/design-qa/
 skills/design-tests/
 skills/draft-pr/
 skills/learn/
+skills/manage-lessons/
 skills/list-memories/
 skills/read-json/
 skills/refactor/
@@ -69,8 +70,12 @@ memories/relevant-workflow-task_completion.md
 # templates
 dist/base/templates/
 
+# schemas
+schemas/lesson.schema.json
+
 # scripts
 scripts/backlog-query.sh
+scripts/lessons-query.sh
 scripts/backlog-validate.sh
 scripts/validate-all.sh
 scripts/validate-resources-indexed.sh

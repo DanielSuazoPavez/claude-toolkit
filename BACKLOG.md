@@ -20,11 +20,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS/HOOKS]** Fix lessons ecosystem — `/learn` skill + capture workflow (`lessons-ecosystem`)
-    - **status**: `idea`
-    - **scope**: `skills, hooks`
-    - **notes**: Three problems: (1) `/learn` skill scored 71.7% — weak D7 (island, no ecosystem refs) and D8 (no worked example, no edge case handling). (2) The `capture-lesson` hook was attempted and dropped — too much friction or too unreliable. (3) Need something between "automatic capture that produces garbage" and "manual invocation that never happens." Prior art: ECC's instinct system (confidence scoring, auto-observation) is overengineered for our needs; their `/learn-eval` quality gate (5 dimensions scored 1-5) is closer. Subsumes former `skill-learn-quality-gate` item. Key constraint: low friction without sacrificing lesson quality.
-
 ## P2 - Medium
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)

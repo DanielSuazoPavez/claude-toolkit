@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.11.0] - 2026-03-12 - lessons ecosystem
+
+### Added
+- **skills**: `/manage-lessons` — review and manage lesson lifecycle (promote, archive, delete, flag)
+- **scripts**: `lessons-query.sh` — query lessons by tier, category, flag, branch, project, ID, or text search
+- **schemas**: `lesson.schema.json` — lesson entry schema with tiers, flags, and lifecycle fields
+
+### Changed
+- **skills**: `/learn` rewritten — lighter capture flow with auto-metadata, duplicate/recurring detection, and ecosystem cross-references
+- **hooks**: `session-start.sh` — surfaces key tier (all), recent (last 5), and branch-flagged lessons; nudges `/manage-lessons` when 10+ recent or recurring flags exist
+- **data**: `learned.json` migrated from `{recent: [], key: []}` to `{lessons: [...]}` flat array with tier/flags/id fields
+
 ## [2.10.2] - 2026-03-12 - create-memory portability
 
 ### Fixed

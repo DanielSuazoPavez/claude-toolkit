@@ -13,7 +13,8 @@ User-invocable skills activated with `/skill-name`.
 | `review-plan` | stable | Review implementation plans against quality criteria |
 | `write-handoff` | stable | Capture context before `/clear` for session continuity |
 | `wrap-up` | stable | Finalize feature branches with changelog, version bump, and backlog updates |
-| `learn` | beta | Capture lessons from corrections, patterns, conventions, gotchas |
+| `learn` | beta | Lightweight lesson capture with auto-metadata and duplicate detection |
+| `manage-lessons` | beta | Review and manage lesson lifecycle: promote, archive, delete, flag |
 | `list-memories` | stable | List available memories with Quick Reference summaries |
 
 ## Code Quality

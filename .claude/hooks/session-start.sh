@@ -66,15 +66,32 @@ echo "Main: $MAIN_BRANCH"
 # === LESSONS ===
 LEARNED_FILE=".claude/learned.json"
 if [ -f "$LEARNED_FILE" ]; then
-    KEY_LESSONS=$(jq -r '.key[]? | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
-    RECENT_LESSONS=$(jq -r '.recent[-5:][]? | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+
+    KEY_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "key")] | .[] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    RECENT_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "recent")] | .[-5:][] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    BRANCH_LESSONS=$(jq -r --arg b "$CURRENT_BRANCH" '[.lessons[]? | select(.tier == "recent" and (.flags | index("branch")) and .branch == $b)] | .[] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+
     if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
         echo ""
         echo "=== LESSONS ==="
         [ -n "$KEY_LESSONS" ] && echo "Key:" && echo "$KEY_LESSONS"
         [ -n "$RECENT_LESSONS" ] && echo "Recent:" && echo "$RECENT_LESSONS"
-        echo ""
+        [ -n "$BRANCH_LESSONS" ] && echo "This branch:" && echo "$BRANCH_LESSONS"
     fi
+
+    # Nudge logic
+    RECENT_COUNT=$(jq '[.lessons[]? | select(.tier == "recent")] | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+    RECURRING_COUNT=$(jq '[.lessons[]? | select(.tier == "recent" and (.flags | index("recurring")))] | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+    NUDGE=""
+    if [ "$RECENT_COUNT" -ge 10 ] 2>/dev/null; then
+        NUDGE="$RECENT_COUNT recent lessons"
+    fi
+    if [ "$RECURRING_COUNT" -gt 0 ] 2>/dev/null; then
+        [ -n "$NUDGE" ] && NUDGE="$NUDGE, $RECURRING_COUNT flagged recurring" || NUDGE="$RECURRING_COUNT flagged recurring"
+    fi
+    [ -n "$NUDGE" ] && echo "⚠ $NUDGE. Consider running /manage-lessons"
+    echo ""
 fi
 
 # === MEMORY GUIDANCE ===
@@ -85,9 +102,7 @@ echo "If the user's request relates to a non-essential memory topic, use /list-m
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
 LESSON_COUNT=0
 if [ -f "$LEARNED_FILE" ]; then
-    KEY_COUNT=$(jq -r '.key | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
-    RECENT_COUNT=$(jq -r '.recent | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
-    LESSON_COUNT=$((KEY_COUNT + RECENT_COUNT))
+    LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
 fi
 echo ""
 echo "=== SESSION START ==="

@@ -659,26 +659,25 @@
         ]
       },
       "create-memory": {
-        "file_hash": "02ad374a",
-        "date": "2026-03-09",
-        "type": "command",
-        "score": 107,
+        "file_hash": "856e398c",
+        "date": "2026-03-12",
+        "score": 102,
         "max": 120,
-        "percentage": 89.2,
+        "percentage": 85,
         "dimensions": {
-          "D1": 17,
+          "D1": 14,
           "D2": 13,
-          "D3": 14,
+          "D3": 13,
           "D4": 9,
-          "D5": 13,
+          "D5": 14,
           "D6": 13,
-          "D7": 14,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "[low] Reduce category definition redundancy — the quick reference table (lines 37-43) partially restates the decision tree and conventions memory; consider deferring entirely to conventions memory",
-          "[low] Add explicit failure/recovery path in validation — what to do when /evaluate-memory returns below 85% beyond generic iterate",
-          "[low] Minor duplication in Instructions section (lines 50-56) restating categories already shown in decision tree — collapse or cross-reference"
+          "[low] Remove category duplication — the quick reference table and Instructions step 2 restate the decision tree and conventions memory, creating sync risk",
+          "[low] Add explicit type: command to frontmatter — skill value is consistent execution, matching command type",
+          "[low] Add a complete happy-path example showing full output file, not just filename and summary bullets"
         ]
       },
       "shape-proposal": {
@@ -728,26 +727,25 @@
         ]
       },
       "learn": {
-        "file_hash": "b159e11a",
+        "file_hash": "ac086bfb",
         "date": "2026-03-12",
-        "type": "knowledge",
-        "score": 86,
+        "score": 106,
         "max": 120,
-        "percentage": 71.7,
+        "percentage": 88.3,
         "dimensions": {
-          "D1": 11,
-          "D2": 10,
-          "D3": 12,
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
           "D4": 9,
           "D5": 14,
           "D6": 13,
-          "D7": 7,
-          "D8": 10
+          "D7": 14,
+          "D8": 14
         },
         "top_improvements": [
-          "[high] D7: Add references to session-start hook and create-memory skill to connect the skill to its ecosystem",
-          "[high] D8: Add a worked example showing the full flow and a decision tree for edge cases",
-          "[low] D1: Add expert guidance on when to promote lessons from recent to key, retention/pruning strategy"
+          "[low] D1: Add guidance on edge-case category decisions (e.g., correction+gotcha overlap, pattern vs convention boundary)",
+          "[low] D8: Add explicit error handling for jq failures or malformed learned.json",
+          "[low] D2: Document what happens if user objects to the proposal (edit flow vs full restart)"
         ]
       },
       "shape-project": {
@@ -771,6 +769,28 @@
           "[low] Add a complete worked example showing the full identity memory output, not just the traits table",
           "[low] Reference /shape-proposal as a natural successor in See Also",
           "[low] Add anti-pattern for over-constraining scope too early in a project lifecycle"
+        ]
+      },
+      "manage-lessons": {
+        "file_hash": "2e148975",
+        "date": "2026-03-12",
+        "score": 96,
+        "max": 120,
+        "percentage": 80,
+        "dimensions": {
+          "D1": 14,
+          "D2": 12,
+          "D3": 11,
+          "D4": 8,
+          "D5": 14,
+          "D6": 11,
+          "D7": 14,
+          "D8": 12
+        },
+        "top_improvements": [
+          "[high] D6: Add heuristics for when to recommend promote vs archive vs delete",
+          "[low] D8: Add edge-case handling for missing learned.json or zero recent lessons",
+          "[low] D3: Add a non-obvious anti-pattern such as archiving recurring lessons instead of promoting them"
         ]
       }
     }
@@ -1118,23 +1138,23 @@
         ]
       },
       "relevant-conventions-backlog_schema": {
-        "file_hash": "0ab3ed08",
-        "date": "2026-03-11",
-        "score": 105,
+        "file_hash": "fd39b2e1",
+        "date": "2026-03-12",
+        "score": 107,
         "max": 115,
-        "percentage": 91.3,
+        "percentage": 93.0,
         "dimensions": {
           "D1": 19,
-          "D2": 23,
+          "D2": 24,
           "D3": 18,
           "D4": 14,
           "D5": 19,
-          "D6": 12
+          "D6": 13
         },
         "top_improvements": [
-          "[low] Reconcile P3 tier inclusion with distributed BACKLOG-standard.md template which omits P3 — either add P3 to the template or note it as an optional extension in the memory (D3: +1)",
-          "[low] Add cross-reference to /design-qa skill which uses priority tiers, and to relevant-toolkit-resource_frontmatter for related structured metadata conventions (D6: +1-2)",
-          "[low] Section 7 Tooling could add a brief note about when to use backlog-query vs backlog-validate to increase actionability (D3: +1)"
+          "Reconcile P3 priority tier and graveyard policy with parent CLAUDE.md conventions to avoid divergence",
+          "Split Rules list in section 3 to separate format rules from lifecycle rules (removal policy)",
+          "Add broader ecosystem cross-references to other convention memories for discoverability"
         ]
       },
       "relevant-reference-hooks_config": {
