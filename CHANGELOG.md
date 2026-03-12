@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-03-12 - publish script rewrite in Python
+
+### Added
+- **scripts**: `publish.py` — generalized distribution publish script, accepts any dist name as argument (replaces raiz-only bash script), no jq dependency
+
+### Changed
+- **CI**: `publish-raiz.yml` workflow updated to use `publish.py` with `setup-python` step
+- **tests**: `test-raiz-publish.sh` calls `publish.py` instead of bash script
+
+### Fixed
+- **validation**: added `/security-review` to builtin commands allowlist in `verify-resource-deps.sh`
+
+### Removed
+- **scripts**: `.claude/dist/raiz/publish.sh` — replaced by `scripts/publish.py`
+
 ## [2.8.0] - 2026-03-12 - review-security skill
 
 ### Added
