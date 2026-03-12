@@ -74,22 +74,25 @@ class AgentCall:
 
 
 @dataclass
+class HookEvent:
+    hook_event: str  # SessionStart, PreToolUse, PostToolUse, etc.
+    hook_name: str
+    timestamp: str
+
+
+@dataclass
 class SubagentInfo:
     agent_id: str
     agent_type: str
     model: str = ""
     tokens: TokenUsage = field(default_factory=TokenUsage)
     tool_calls: list[ToolCall] = field(default_factory=list)
+    hook_events: list[HookEvent] = field(default_factory=list)
+    skill_calls: list[SkillCall] = field(default_factory=list)
     assistant_turns: int = 0
+    user_turns: int = 0
     first_timestamp: str = ""
     last_timestamp: str = ""
-
-
-@dataclass
-class HookEvent:
-    hook_event: str  # SessionStart, PreToolUse, PostToolUse, etc.
-    hook_name: str
-    timestamp: str
 
 
 @dataclass
