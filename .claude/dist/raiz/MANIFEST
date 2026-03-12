@@ -15,6 +15,7 @@ skills/write-handoff/
 agents/code-debugger.md
 agents/code-reviewer.md
 agents/goal-verifier.md
+agents/implementation-checker.md
 
 # hooks
 hooks/block-config-edits.sh
