@@ -45,7 +45,7 @@ If any parameter is ambiguous, ask **one** targeted follow-up. Not a form.
 
 ### Phase 2: Analyze Source & Select Structure
 
-Read the source document and `resources/PROPOSAL_TEMPLATE.md`.
+Read the source document, `resources/PROPOSAL_TEMPLATE.md`, and `resources/EXAMPLE.md` (annotated shaping techniques).
 
 1. **Map source content** to the template's 8 core sections — identify what's covered and what's missing
 2. **Select contextual sections** based on audience and context:
@@ -87,7 +87,7 @@ Spawn a `proposal-reviewer` agent with the shaped document and the target audien
 - Dismissive language toward existing work
 - Assumptions presented as facts (should be `[TO VALIDATE]`)
 - Missing context the audience needs but the author takes for granted
-- Scope creep (implementation detail in a proposal-stage document)
+- Scope creep (implementation detail without framing block acknowledgment)
 - Tone inconsistency (framing block promises one tone, body delivers another)
 
 Fix issues flagged by the agent. Re-run only if changes were significant.
