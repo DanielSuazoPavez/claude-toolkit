@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.10.1] - 2026-03-12 - fix symlink resolution
+
+### Fixed
+- **CLI**: `claude-toolkit send` wrote to `~/.local/suggestions-box/` instead of the toolkit's `suggestions-box/` when invoked via symlink — `TOOLKIT_DIR` now resolves symlinks before computing path
+
 ## [2.10.0] - 2026-03-12 - shape-project skill
 
 ### Added
