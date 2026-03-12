@@ -13,7 +13,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PUBLISH_SCRIPT="$TOOLKIT_DIR/.claude/dist/raiz/publish.sh"
+PUBLISH_SCRIPT="$TOOLKIT_DIR/scripts/publish.py"
 VERBOSE="${VERBOSE:-0}"
 TESTS_RUN=0
 TESTS_PASSED=0
@@ -43,7 +43,7 @@ OUTPUT_DIR=""
 setup() {
     OUTPUT_DIR=$(mktemp -d)
     log_verbose "Output dir: $OUTPUT_DIR"
-    bash "$PUBLISH_SCRIPT" "$OUTPUT_DIR" > /dev/null 2>&1
+    uv run "$PUBLISH_SCRIPT" raiz "$OUTPUT_DIR" > /dev/null 2>&1
 }
 
 teardown() {
