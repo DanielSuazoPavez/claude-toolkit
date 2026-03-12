@@ -7,15 +7,14 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 ## Quick Start
 
 ```bash
-claude-toolkit sync /path/to/project  # Sync config into a project
+make check                             # Run all tests and validations (use check-quiet for less output)
+make test                              # Run tests only
+make backlog                           # Query backlog (prefer over reading BACKLOG.md directly)
 ```
 
 ## Key Principles
 
-1. **Read before modifying**: Understand existing skills/agents before changes
-2. **Test skills**: After modifying a skill, test it with a real invocation
-3. **Follow conventions**: Use existing patterns from similar skills/agents
-4. **Merge with --no-ff**: Always use `git merge --no-ff` to preserve branch history
+- **Merge with --no-ff**: Always use `git merge --no-ff` to preserve branch history
 
 ## Structure
 
@@ -55,5 +54,6 @@ Summary and status of all resources:
 
 ## See Also
 
-- `README.md` - Full documentation
-- `.claude/memories/` - Memory templates
+- `README.md` — Full documentation, CLI usage, sync workflow
+- `make backlog` — Query current priorities (use instead of reading BACKLOG.md directly)
+- `.claude/indexes/` — Resource indexes (skills, agents, hooks, memories, evaluations)

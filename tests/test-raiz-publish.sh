@@ -159,7 +159,7 @@ assert_file_exists "code-debugger included" "$OUTPUT_DIR/.claude/agents/code-deb
 assert_file_exists "code-reviewer included" "$OUTPUT_DIR/.claude/agents/code-reviewer.md"
 assert_file_exists "goal-verifier included" "$OUTPUT_DIR/.claude/agents/goal-verifier.md"
 assert_file_not_exists "pattern-finder excluded" "$OUTPUT_DIR/.claude/agents/pattern-finder.md"
-assert_file_not_exists "implementation-checker excluded" "$OUTPUT_DIR/.claude/agents/implementation-checker.md"
+assert_file_exists "implementation-checker included" "$OUTPUT_DIR/.claude/agents/implementation-checker.md"
 
 # Hooks
 assert_file_exists "block-config-edits included" "$OUTPUT_DIR/.claude/hooks/block-config-edits.sh"
@@ -210,8 +210,8 @@ assert_file_not_contains "brainstorm-idea: /analyze-idea removed" \
 assert_file_contains "brainstorm-idea: /review-plan kept" \
     "$OUTPUT_DIR/.claude/skills/brainstorm-idea/SKILL.md" "/review-plan"
 
-# review-plan: implementation-checker removed, others kept
-assert_file_not_contains "review-plan: implementation-checker removed" \
+# review-plan: implementation-checker kept, others kept
+assert_file_contains "review-plan: implementation-checker kept" \
     "$OUTPUT_DIR/.claude/skills/review-plan/SKILL.md" "implementation-checker"
 assert_file_contains "review-plan: /brainstorm-idea kept" \
     "$OUTPUT_DIR/.claude/skills/review-plan/SKILL.md" "/brainstorm-idea"

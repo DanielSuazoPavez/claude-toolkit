@@ -230,5 +230,7 @@ Use color and visual emphasis to make the review scannable at a glance:
 When the verdict is **APPROVE**, append these steps to the plan if they're not already present:
 
 1. **Commit after each step** — each step in the plan should produce a commit. If the plan doesn't mention this, add it.
-2. **Post-implementation verification** — add a final step: "Launch `goal-verifier` agent to confirm the feature works (L1→L2→L3 verification)."
-3. **Wrap up** — add a closing step: "Run `/wrap-up` to update changelog, bump version, and finalize the branch."
+2. **Implementation check** (plans with 5+ steps only) — add: "Launch `implementation-checker` agent to compare implementation against the plan."
+3. **Goal verification** — add: "Launch `goal-verifier` agent to confirm the feature works (L1→L2→L3 verification)."
+4. **Code review** — add: "Launch `code-reviewer` agent to review changes on this branch."
+5. **Wrap up** — add a closing step: "Run `/wrap-up` to update changelog, bump version, and finalize the branch."
