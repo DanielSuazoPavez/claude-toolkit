@@ -20,12 +20,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS/HOOKS]** Fix lessons ecosystem — `/learn` skill + capture workflow (`lessons-ecosystem`)
-    - **status**: `in-progress`
-    - **scope**: `skills, hooks, scripts`
-    - **branch**: `feature/lessons-ecosystem`
-    - **notes**: New data model (schema + tiers), rewritten `/learn`, new `/manage-lessons`, `lessons-query.sh`, updated session-start surfacing with nudge logic.
-
 ## P2 - Medium
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
