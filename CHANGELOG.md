@@ -9,6 +9,12 @@
 ### Changed
 - **backlog**: Promoted 3 shape-proposal/proposal-reviewer improvement tasks to P1
 
+## [2.6.1] - 2026-03-12 - insights.py test coverage
+
+### Added
+- **tests**: 56 pytest tests for `insights.py` — unit tests (parsing, formatting), record processing, subagent parsing, and integration tests for all commands
+- **infra**: pytest infrastructure (`pyproject.toml` config, `make test-insights`, `make install`)
+
 ## [2.6.0] - 2026-03-12 - detailed subagent metrics in insights
 
 ### Added
