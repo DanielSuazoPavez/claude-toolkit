@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.11.1] - 2026-03-12 - review-plan pipeline and CLAUDE.md cleanup
+
+### Changed
+- **skills**: `review-plan` post-approval pipeline expanded — adds `implementation-checker` (5+ step plans) and `code-reviewer` between `goal-verifier` and `/wrap-up`
+- **docs**: `CLAUDE.md` trimmed redundant key principles, added common make targets to Quick Start, sharpened See Also with actionable pointers
+
 ## [2.11.0] - 2026-03-12 - lessons ecosystem
 
 ### Added
