@@ -74,6 +74,18 @@ class AgentCall:
 
 
 @dataclass
+class SubagentInfo:
+    agent_id: str
+    agent_type: str
+    model: str = ""
+    tokens: TokenUsage = field(default_factory=TokenUsage)
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    assistant_turns: int = 0
+    first_timestamp: str = ""
+    last_timestamp: str = ""
+
+
+@dataclass
 class HookEvent:
     hook_event: str  # SessionStart, PreToolUse, PostToolUse, etc.
     hook_name: str
@@ -95,6 +107,7 @@ class Session:
     skill_calls: list[SkillCall] = field(default_factory=list)
     agent_calls: list[AgentCall] = field(default_factory=list)
     hook_events: list[HookEvent] = field(default_factory=list)
+    subagents: list[SubagentInfo] = field(default_factory=list)
     assistant_turns: int = 0
     user_turns: int = 0
 
@@ -159,6 +172,71 @@ def find_session_files(
             yield jsonl_file
 
 
+def _parse_subagent(jsonl_path: Path, meta_path: Path | None) -> SubagentInfo:
+    """Parse a subagent transcript into a SubagentInfo."""
+    agent_id = jsonl_path.stem.removeprefix("agent-")
+    agent_type = "unknown"
+    if meta_path and meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            agent_type = meta.get("agentType", "unknown")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    info = SubagentInfo(agent_id=agent_id, agent_type=agent_type)
+
+    with open(jsonl_path, "r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            ts = record.get("timestamp", "")
+            if ts:
+                if not info.first_timestamp or ts < info.first_timestamp:
+                    info.first_timestamp = ts
+                if not info.last_timestamp or ts > info.last_timestamp:
+                    info.last_timestamp = ts
+
+            if record.get("type") != "assistant":
+                continue
+
+            info.assistant_turns += 1
+            msg = record.get("message", {})
+            model = msg.get("model", "")
+            if model:
+                info.model = model
+
+            usage = msg.get("usage", {})
+            if usage:
+                info.tokens.input_tokens += usage.get("input_tokens", 0)
+                info.tokens.output_tokens += usage.get("output_tokens", 0)
+                info.tokens.cache_creation_input_tokens += usage.get(
+                    "cache_creation_input_tokens", 0
+                )
+                info.tokens.cache_read_input_tokens += usage.get(
+                    "cache_read_input_tokens", 0
+                )
+
+            content = msg.get("content", [])
+            if isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "tool_use":
+                        info.tool_calls.append(
+                            ToolCall(
+                                name=block.get("name", "unknown"),
+                                timestamp=ts,
+                                output_tokens=0,
+                            )
+                        )
+
+    return info
+
+
 def parse_session(file_path: Path) -> Session:
     """Parse a single JSONL session file into a Session object. Streams line by line."""
     project = extract_project_name(file_path.parent.name)
@@ -179,6 +257,15 @@ def parse_session(file_path: Path) -> Session:
                 continue
 
             _process_record(session, record)
+
+    # Parse subagent transcripts if they exist
+    subagents_dir = file_path.parent / file_path.stem / "subagents"
+    if subagents_dir.is_dir():
+        for sa_file in sorted(subagents_dir.glob("agent-*.jsonl")):
+            meta_file = sa_file.with_suffix(".meta.json")
+            info = _parse_subagent(sa_file, meta_file)
+            if info.assistant_turns > 0:
+                session.subagents.append(info)
 
     return session
 
@@ -432,6 +519,19 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     total_assistant = sum(s.assistant_turns for s in sessions)
     total_user = sum(s.user_turns for s in sessions)
 
+    # Subagent aggregation
+    total_subagents = sum(len(s.subagents) for s in sessions)
+    sa_input = sum(sa.tokens.input_tokens for s in sessions for sa in s.subagents)
+    sa_output = sum(sa.tokens.output_tokens for s in sessions for sa in s.subagents)
+    sa_cache_create = sum(
+        sa.tokens.cache_creation_input_tokens for s in sessions for sa in s.subagents
+    )
+    sa_cache_read = sum(
+        sa.tokens.cache_read_input_tokens for s in sessions for sa in s.subagents
+    )
+    sa_tokens_all = sa_input + sa_output + sa_cache_create + sa_cache_read
+    sa_tools = sum(len(sa.tool_calls) for s in sessions for sa in s.subagents)
+
     # Top projects by total tokens
     project_tokens: dict[str, int] = {}
     for s in sessions:
@@ -460,6 +560,11 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
                     "assistant_turns": total_assistant,
                     "user_turns": total_user,
                     "tool_calls": total_tools,
+                    "subagents": {
+                        "count": total_subagents,
+                        "tokens": sa_tokens_all,
+                        "tool_calls": sa_tools,
+                    },
                     "top_projects": [
                         {"project": p, "tokens": t} for p, t in top_projects
                     ],
@@ -477,6 +582,7 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     print(f"  Assistant turns: {total_assistant}")
     print(f"  User turns:      {total_user}")
     print(f"  Tool calls:      {total_tools}")
+    print(f"  Subagents:       {total_subagents}")
     print()
     print(f"  {c['bold']}Tokens{c['reset']}")
     print(f"    Input:          {_fmt_tokens(total_input):>8}")
@@ -484,6 +590,8 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     print(f"    Cache create:   {_fmt_tokens(total_cache_create):>8}")
     print(f"    Cache read:     {_fmt_tokens(total_cache_read):>8}")
     print(f"    {c['bold']}Total:          {_fmt_tokens(total_all):>8}{c['reset']}")
+    if sa_tokens_all:
+        print(f"    {c['dim']}(subagents:     {_fmt_tokens(sa_tokens_all):>8}){c['reset']}")
     print()
 
     if top_projects:
@@ -623,28 +731,34 @@ def cmd_skills(sessions: list[Session], as_json: bool) -> None:
 
 
 def cmd_agents(sessions: list[Session], as_json: bool) -> None:
-    """Sub-agent usage patterns."""
-    agents: dict[str, int] = {}
-    descriptions: dict[str, list[str]] = {}
+    """Sub-agent usage patterns from transcript data."""
+    agents: dict[str, dict] = {}
     for s in sessions:
-        for ac in s.agent_calls:
-            agents[ac.agent_type] = agents.get(ac.agent_type, 0) + 1
-            descs = descriptions.setdefault(ac.agent_type, [])
-            if ac.description and len(descs) < 3:
-                descs.append(ac.description)
+        for sa in s.subagents:
+            a = agents.setdefault(
+                sa.agent_type,
+                {"count": 0, "tokens": 0, "tool_calls": 0, "models": {}},
+            )
+            a["count"] += 1
+            sa_total = (
+                sa.tokens.input_tokens
+                + sa.tokens.output_tokens
+                + sa.tokens.cache_creation_input_tokens
+                + sa.tokens.cache_read_input_tokens
+            )
+            a["tokens"] += sa_total
+            a["tool_calls"] += len(sa.tool_calls)
+            if sa.model:
+                a["models"][sa.model] = a["models"].get(sa.model, 0) + 1
 
-    sorted_agents = sorted(agents.items(), key=lambda x: -x[1])
+    sorted_agents = sorted(agents.items(), key=lambda x: -x[1]["count"])
 
     if as_json:
         print(
             json.dumps(
                 [
-                    {
-                        "agent_type": name,
-                        "count": count,
-                        "example_descriptions": descriptions.get(name, []),
-                    }
-                    for name, count in sorted_agents
+                    {"agent_type": name, **data}
+                    for name, data in sorted_agents
                 ],
                 indent=2,
             )
@@ -652,12 +766,22 @@ def cmd_agents(sessions: list[Session], as_json: bool) -> None:
         return
 
     c = _c(COLORS)
-    print(f"\n{c['bold']}{c['cyan']}Agent Usage{c['reset']}\n")
-    headers = ["Agent Type", "Count", "Examples"]
-    rows = [
-        [name, str(count), "; ".join(descriptions.get(name, [])[:2])]
-        for name, count in sorted_agents
-    ]
+    print(f"\n{c['bold']}{c['cyan']}Agent Usage (from transcripts){c['reset']}\n")
+    headers = ["Agent Type", "Count", "Tokens", "Tools", "Primary Model"]
+    rows = []
+    for name, d in sorted_agents:
+        # Pick most-used model
+        primary_model = ""
+        if d["models"]:
+            primary_model = max(d["models"], key=d["models"].get)
+            primary_model = primary_model.replace("claude-", "").replace("-20251001", "").replace("-20250929", "")
+        rows.append([
+            name,
+            str(d["count"]),
+            _fmt_tokens(d["tokens"]),
+            str(d["tool_calls"]),
+            primary_model,
+        ])
     print(_table(headers, rows, c))
 
 
@@ -725,6 +849,15 @@ def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
                         },
                         "assistant_turns": s.assistant_turns,
                         "tool_calls": len(s.tool_calls),
+                        "subagents": [
+                            {
+                                "agent_type": sa.agent_type,
+                                "model": sa.model,
+                                "turns": sa.assistant_turns,
+                                "tool_calls": len(sa.tool_calls),
+                            }
+                            for sa in s.subagents
+                        ],
                     }
                     for s in sorted_sessions
                 ],
@@ -735,7 +868,7 @@ def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
 
     c = _c(COLORS)
     print(f"\n{c['bold']}{c['cyan']}Sessions{c['reset']}\n")
-    headers = ["Date", "Project", "Branch", "Duration", "Tokens", "Tools", "Model"]
+    headers = ["Date", "Project", "Branch", "Duration", "Tokens", "Tools", "Agents", "Model"]
     rows = []
     for s in sorted_sessions:
         date = s.first_timestamp[:10] if s.first_timestamp else "?"
@@ -748,6 +881,7 @@ def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
             _fmt_duration(s.duration_minutes),
             _fmt_tokens(s.total_tokens),
             str(len(s.tool_calls)),
+            str(len(s.subagents)) if s.subagents else "-",
             model_short,
         ])
     print(_table(headers, rows, c))
