@@ -7,7 +7,7 @@
 - Creating new testable resources (hooks, CLI commands, skills)
 - Running `make test` or `make check` and need to understand what's being tested
 
-All tests are bash scripts in `tests/`. Run via Makefile targets. No Python test framework.
+Tests are bash scripts in `tests/` plus pytest for Python modules. Run via Makefile targets.
 
 **See also:** `essential-conventions-code_style` for make-target conventions, `/design-tests` for test design methodology
 
@@ -19,10 +19,11 @@ All tests are bash scripts in `tests/`. Run via Makefile targets. No Python test
 
 | Target | What it runs | Speed |
 |--------|-------------|-------|
-| `make test` | hooks + cli + backlog tests | Fast |
+| `make test` | hooks + cli + backlog + insights tests | Fast |
 | `make test-hooks` | Hook behavior tests | Fast |
 | `make test-cli` | CLI (sync/send) tests | Fast |
 | `make test-backlog` | backlog-query.sh tests | Fast |
+| `make test-insights` | insights.py pytest suite | Fast |
 | `make test-triggers` | Skill trigger eval (uses `claude -p`) | Slow |
 | `make validate` | Resource index + dependency validation | Fast |
 | `make check` | `test` + `validate` | Fast |
@@ -33,12 +34,20 @@ All tests are bash scripts in `tests/`. Run via Makefile targets. No Python test
 
 ## 3. Test Structure
 
-All test files follow a consistent pattern:
+### Bash tests
 
 - **Location:** `tests/test-*.sh`
 - **Shell options:** `set -uo pipefail` (no `set -e` — tests check failure cases)
 - **Args:** `-v` for verbose, optional filter arg for specific test group
 - **Exit codes:** 0 = all pass, 1 = failures
+
+### Python tests (pytest)
+
+- **Location:** `tests/test_*.py`
+- **Config:** `pyproject.toml` — `testpaths`, `pythonpath = ["."]` for `from scripts.x import ...`
+- **Dev dep:** `pytest>=8.0` in `[dependency-groups] dev`
+- **Install:** `make install` (`uv sync --dev`)
+- **Pattern:** synthetic JSONL fixtures via `tmp_path`/`tmp_path_factory`, module-scoped where read-only
 
 ### Common helpers (defined per test file, not shared):
 
