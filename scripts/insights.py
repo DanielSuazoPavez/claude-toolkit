@@ -718,14 +718,27 @@ def cmd_projects(sessions: list[Session], as_json: bool) -> None:
 
 def cmd_tools(sessions: list[Session], as_json: bool) -> None:
     """Tool usage distribution."""
+    has_subagents = any(s.subagents for s in sessions)
     tools: dict[str, dict] = {}
     for s in sessions:
         for tc in s.tool_calls:
-            t = tools.setdefault(tc.name, {"count": 0, "output_tokens": 0})
-            t["count"] += 1
+            t = tools.setdefault(
+                tc.name, {"main": 0, "subagent": 0, "total": 0, "output_tokens": 0}
+            )
+            t["main"] += 1
+            t["total"] += 1
             t["output_tokens"] += tc.output_tokens
+        for sa in s.subagents:
+            for tc in sa.tool_calls:
+                t = tools.setdefault(
+                    tc.name,
+                    {"main": 0, "subagent": 0, "total": 0, "output_tokens": 0},
+                )
+                t["subagent"] += 1
+                t["total"] += 1
+                t["output_tokens"] += tc.output_tokens
 
-    sorted_tools = sorted(tools.items(), key=lambda x: -x[1]["count"])
+    sorted_tools = sorted(tools.items(), key=lambda x: -x[1]["total"])
 
     if as_json:
         print(
@@ -741,11 +754,24 @@ def cmd_tools(sessions: list[Session], as_json: bool) -> None:
 
     c = _c(COLORS)
     print(f"\n{c['bold']}{c['cyan']}Tool Usage{c['reset']}\n")
-    headers = ["Tool", "Calls", "Output Tokens"]
-    rows = [
-        [name, str(d["count"]), _fmt_tokens(d["output_tokens"])]
-        for name, d in sorted_tools
-    ]
+    if has_subagents:
+        headers = ["Tool", "Main", "Subagent", "Total", "Output Tokens"]
+        rows = [
+            [
+                name,
+                str(d["main"]),
+                str(d["subagent"]),
+                str(d["total"]),
+                _fmt_tokens(d["output_tokens"]),
+            ]
+            for name, d in sorted_tools
+        ]
+    else:
+        headers = ["Tool", "Calls", "Output Tokens"]
+        rows = [
+            [name, str(d["total"]), _fmt_tokens(d["output_tokens"])]
+            for name, d in sorted_tools
+        ]
     print(_table(headers, rows, c))
 
 
