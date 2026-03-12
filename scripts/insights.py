@@ -974,7 +974,13 @@ def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
                                 "agent_type": sa.agent_type,
                                 "model": sa.model,
                                 "turns": sa.assistant_turns,
+                                "user_turns": sa.user_turns,
                                 "tool_calls": len(sa.tool_calls),
+                                "hook_events": len(sa.hook_events),
+                                "skill_calls": [
+                                    {"name": sc.name, "invoked_by": sc.invoked_by}
+                                    for sc in sa.skill_calls
+                                ],
                             }
                             for sa in s.subagents
                         ],
