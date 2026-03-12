@@ -90,12 +90,6 @@ create_test_backlog() {
     - **scope**: `toolkit`
     - **branch**: `feature/toolkit-task`
 
----
-
-## Graveyard
-
-- **[OLD]** Abandoned task
-    - **status**: `abandoned`
 EOF
 }
 
@@ -251,8 +245,7 @@ test_list_all() {
     expect_output "shows P0 task" "Critical test task"
     expect_output "shows P1 task" "High priority skill"
     expect_output "shows P2 task" "Medium toolkit task"
-    expect_not_output "excludes Graveyard" "Abandoned task"
-    expect_count "finds 4 tasks (excludes graveyard)" "4"
+    expect_count "finds 4 tasks" "4"
 
     teardown_test_env
 }

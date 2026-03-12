@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-03-12 - deprecate backlog graveyard, backlog triage
+
+### Changed
+- **conventions**: removed Graveyard section from backlog schema — dropped items are just removed, no archive needed
+- **scripts**: simplified `backlog-query.sh` and `backlog-validate.sh` (no more Graveyard-specific parsing/filtering)
+- **templates**: removed Graveyard from `BACKLOG-minimal.md` and `BACKLOG-standard.md`
+- **backlog**: triage pass — promoted `lessons-ecosystem` to P1, demoted `aws-toolkit` to P2 (blocked), promoted `skill-design-db-backing-repo` and `toolkit-content-plugins` to P2, dropped `skill-refactor-examples` and `hook-context-suggest`
+
 ## [2.9.0] - 2026-03-12 - publish script rewrite in Python
 
 ### Added

@@ -26,7 +26,6 @@ REQUIRED_HEADINGS=(
     "## P1 - High"
     "## P2 - Medium"
     "## P100 - Nice to Have"
-    "## Graveyard"
 )
 
 # Colors (disabled if not a terminal)
@@ -66,7 +65,6 @@ validate() {
     local lineno=0
     local in_task=false
     local in_priority=false
-    local in_graveyard=false
     local in_scope_defs=false
     local current_section=""
     local headings_found=()
@@ -88,16 +86,12 @@ validate() {
 
             headings_found+=("$trimmed")
             in_task=false
-            in_graveyard=false
             in_priority=false
             in_scope_defs=false
 
             if [[ "$trimmed" =~ ^##\ (P[0-9]+) ]]; then
                 in_priority=true
                 current_section="${BASH_REMATCH[1]}"
-            elif [[ "$trimmed" =~ ^##\ Graveyard ]]; then
-                in_graveyard=true
-                current_section="Graveyard"
             elif [[ "$trimmed" == "## Scope Definitions" ]]; then
                 in_scope_defs=true
                 has_scope_table=true
@@ -123,13 +117,8 @@ validate() {
         # Skip blank lines and horizontal rules
         [[ -z "$line" || "$line" == "---" ]] && continue
 
-        # Skip content outside priority/graveyard sections
-        [[ "$in_priority" != true && "$in_graveyard" != true ]] && continue
-
-        # Graveyard items don't need ids
-        if [[ "$in_graveyard" == true ]]; then
-            continue
-        fi
+        # Skip content outside priority sections
+        [[ "$in_priority" != true ]] && continue
 
         # Task item with category tag: - **[TAG]** text (`id`)
         if [[ "$line" =~ ^-\ \*\*\[([^\]]+)\]\*\*\ (.+)$ ]]; then

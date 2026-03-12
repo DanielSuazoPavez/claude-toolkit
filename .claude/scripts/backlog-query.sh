@@ -58,13 +58,9 @@ parse_backlog() {
             continue
         fi
 
-        # Graveyard and other non-priority sections stop task parsing
+        # Non-priority sections stop task parsing
         if [[ "$line" =~ ^##\  ]]; then
-            if [[ "$line" =~ ^##\ Graveyard ]]; then
-                priority="Graveyard"
-            else
-                priority=""
-            fi
+            priority=""
             continue
         fi
 
@@ -239,8 +235,8 @@ main() {
 
     case "${args[0]:-}" in
         "")
-            # All tasks except Graveyard
-            filter_cmd="grep -v ^Graveyard || true"
+            # All tasks
+            filter_cmd="cat"
             ;;
         id)
             local task_id="${args[1]:-}"
@@ -288,7 +284,7 @@ main() {
             filter_cmd="awk -F'\t' '\$7 != \"\"'"
             ;;
         summary)
-            parse_backlog "$backlog" | grep -v "^Graveyard" | display_summary
+            parse_backlog "$backlog" | display_summary
             return
             ;;
         validate)
