@@ -2,12 +2,15 @@
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-03-12 - proposal shaping improvements
+
 ### Added
-- **analysis**: Shape-proposal skill improvement analysis from real usage session — 6 findings with priorities
-- **output**: Two shaped proposal versions (export-doc-extraction v2 and revised) + two proposal-reviewer reports
+- **skills**: `shape-proposal` — 6 improvements from real usage analysis: validation checklist audience-based splitting, source-type awareness for reshape, core insight surfacing step, source fidelity check post-reviewer, scope creep decision framework, comparison table tradeoff column self-test
+- **skills**: `shape-proposal` worked example (`resources/EXAMPLE.md`) — 7 annotated shaping techniques with `<!-- WHY -->` comments
+- **skills**: `PROPOSAL_TEMPLATE.md` — tradeoff column self-test (section A), audience-based validation split (section F)
 
 ### Changed
-- **backlog**: Promoted 3 shape-proposal/proposal-reviewer improvement tasks to P1
+- **agents**: `proposal-reviewer` scope creep dimension — checks framing block acknowledgment instead of always flagging implementation detail
 
 ## [2.6.1] - 2026-03-12 - insights.py test coverage
 
