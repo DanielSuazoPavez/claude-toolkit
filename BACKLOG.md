@@ -63,6 +63,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `agents`
     - **notes**: Separate from `code-reviewer` — focused exclusively on vulnerability patterns: injection (SQL, command, XSS), auth/authz gaps, secrets exposure, input validation, CSRF, rate limiting, error message leakage. `code-reviewer` stays focused on quality/structure/correctness. Could reference ECC's 530-line security-review skill (10 security domains with concrete code examples) as starting material. Ref: `.claude/output/reviews/exploration/affaan-m_everything-claude-code/summary.md`. Also see CloudSecurityPartners' tool risk matrix and hook severity escalation patterns: `.claude/output/reviews/exploration/cloudsecuritypartners_skills/summary.md`.
 
+- **[TOOLKIT]** Add tests for `insights.py` (`insights-tests`)
+    - **status**: `idea`
+    - **scope**: `tests`
+    - **notes**: No test coverage for `scripts/insights.py`. Key areas: `_parse_subagent()` (hook events, user turns, skill detection, output token attribution), `_process_record()` (all record types), display commands with/without subagents (conditional column logic), `extract_project_name()` edge cases. Use synthetic JSONL fixtures rather than real transcripts. Flagged by goal-verifier during `insights-subagent-detail` review.
+
 - **[TOOLKIT]** Rewrite raiz publish trimming logic in Python (`toolkit-raiz-python-trimming`)
     - **status**: `idea`
     - **scope**: `toolkit`
@@ -108,18 +113,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: CI/CD pipeline patterns, caching, matrix builds. Build when encountering real CI/CD need.
 
-
-- **[TOOLKIT]** Parse subagent transcripts in insights script (`insights-subagent-parsing`)
-    - **status**: `in-progress`
-    - **scope**: `toolkit`
-    - **branch**: `feat/insights-subagent-parsing`
-    - **notes**: Basic parsing done — subagents rolled up into parent sessions with agent type, model, tokens, tool calls, turns. Follow-up in `insights-subagent-detail`.
-
-- **[TOOLKIT]** Detailed subagent metrics in insights script (`insights-subagent-detail`)
-    - **status**: `idea`
-    - **scope**: `toolkit`
-    - **depends-on**: `insights-subagent-parsing`
-    - **notes**: Separate sections for subagent activity (not rolled into main agent totals). Missing extractions: (1) hook events from subagent transcripts, (2) tool output token attribution (currently all 0), (3) user turns in subagents (tool results), (4) skill invocations within subagents. New display sections in `cmd_tools` and `cmd_hooks` for subagent vs main breakdown.
 
 - **[TOOLKIT]** Telegram bot bridge to Claude Code (`telegram-bridge`)
     - **status**: `idea`

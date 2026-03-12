@@ -74,22 +74,25 @@ class AgentCall:
 
 
 @dataclass
+class HookEvent:
+    hook_event: str  # SessionStart, PreToolUse, PostToolUse, etc.
+    hook_name: str
+    timestamp: str
+
+
+@dataclass
 class SubagentInfo:
     agent_id: str
     agent_type: str
     model: str = ""
     tokens: TokenUsage = field(default_factory=TokenUsage)
     tool_calls: list[ToolCall] = field(default_factory=list)
+    hook_events: list[HookEvent] = field(default_factory=list)
+    skill_calls: list[SkillCall] = field(default_factory=list)
     assistant_turns: int = 0
+    user_turns: int = 0
     first_timestamp: str = ""
     last_timestamp: str = ""
-
-
-@dataclass
-class HookEvent:
-    hook_event: str  # SessionStart, PreToolUse, PostToolUse, etc.
-    hook_name: str
-    timestamp: str
 
 
 @dataclass
@@ -202,7 +205,27 @@ def _parse_subagent(jsonl_path: Path, meta_path: Path | None) -> SubagentInfo:
                 if not info.last_timestamp or ts > info.last_timestamp:
                     info.last_timestamp = ts
 
-            if record.get("type") != "assistant":
+            record_type = record.get("type", "")
+
+            # Hook events
+            if record_type == "progress":
+                data = record.get("data", {})
+                if data.get("type") == "hook_progress":
+                    info.hook_events.append(
+                        HookEvent(
+                            hook_event=data.get("hookEvent", ""),
+                            hook_name=data.get("hookName", ""),
+                            timestamp=ts,
+                        )
+                    )
+                continue
+
+            # User turns (tool result round-trips)
+            if record_type == "user":
+                info.user_turns += 1
+                continue
+
+            if record_type != "assistant":
                 continue
 
             info.assistant_turns += 1
@@ -222,17 +245,43 @@ def _parse_subagent(jsonl_path: Path, meta_path: Path | None) -> SubagentInfo:
                     "cache_read_input_tokens", 0
                 )
 
+            # Tool calls, skill detection, output token attribution
+            turn_output_tokens = usage.get("output_tokens", 0)
             content = msg.get("content", [])
             if isinstance(content, list):
+                tool_uses_in_turn = []
                 for block in content:
-                    if isinstance(block, dict) and block.get("type") == "tool_use":
-                        info.tool_calls.append(
-                            ToolCall(
-                                name=block.get("name", "unknown"),
-                                timestamp=ts,
-                                output_tokens=0,
+                    if not isinstance(block, dict):
+                        continue
+                    if block.get("type") == "tool_use":
+                        tool_name = block.get("name", "unknown")
+                        tool_uses_in_turn.append(tool_name)
+
+                        # Detect skills (Skill tool)
+                        if tool_name == "Skill":
+                            inp = block.get("input", {})
+                            info.skill_calls.append(
+                                SkillCall(
+                                    name=inp.get("skill", "unknown"),
+                                    timestamp=ts,
+                                    invoked_by="agent",
+                                )
                             )
+
+                # Attribute output tokens proportionally across tool calls
+                per_tool_tokens = (
+                    turn_output_tokens // len(tool_uses_in_turn)
+                    if tool_uses_in_turn
+                    else 0
+                )
+                for tool_name in tool_uses_in_turn:
+                    info.tool_calls.append(
+                        ToolCall(
+                            name=tool_name,
+                            timestamp=ts,
+                            output_tokens=per_tool_tokens,
                         )
+                    )
 
     return info
 
@@ -531,6 +580,9 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     )
     sa_tokens_all = sa_input + sa_output + sa_cache_create + sa_cache_read
     sa_tools = sum(len(sa.tool_calls) for s in sessions for sa in s.subagents)
+    sa_hooks = sum(len(sa.hook_events) for s in sessions for sa in s.subagents)
+    sa_skills = sum(len(sa.skill_calls) for s in sessions for sa in s.subagents)
+    sa_user_turns = sum(sa.user_turns for s in sessions for sa in s.subagents)
 
     # Top projects by total tokens
     project_tokens: dict[str, int] = {}
@@ -564,6 +616,9 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
                         "count": total_subagents,
                         "tokens": sa_tokens_all,
                         "tool_calls": sa_tools,
+                        "hook_events": sa_hooks,
+                        "skill_calls": sa_skills,
+                        "user_turns": sa_user_turns,
                     },
                     "top_projects": [
                         {"project": p, "tokens": t} for p, t in top_projects
@@ -593,6 +648,14 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     if sa_tokens_all:
         print(f"    {c['dim']}(subagents:     {_fmt_tokens(sa_tokens_all):>8}){c['reset']}")
     print()
+    if total_subagents:
+        print(f"  {c['bold']}Subagent Detail{c['reset']}")
+        print(f"    Spawned:        {total_subagents}")
+        print(f"    Tool calls:     {sa_tools}")
+        print(f"    Hook events:    {sa_hooks}")
+        print(f"    Skill calls:    {sa_skills}")
+        print(f"    User turns:     {sa_user_turns}")
+        print()
 
     if top_projects:
         print(f"  {c['bold']}Top Projects (by tokens){c['reset']}")
@@ -669,14 +732,27 @@ def cmd_projects(sessions: list[Session], as_json: bool) -> None:
 
 def cmd_tools(sessions: list[Session], as_json: bool) -> None:
     """Tool usage distribution."""
+    has_subagents = any(s.subagents for s in sessions)
     tools: dict[str, dict] = {}
     for s in sessions:
         for tc in s.tool_calls:
-            t = tools.setdefault(tc.name, {"count": 0, "output_tokens": 0})
-            t["count"] += 1
+            t = tools.setdefault(
+                tc.name, {"main": 0, "subagent": 0, "total": 0, "output_tokens": 0}
+            )
+            t["main"] += 1
+            t["total"] += 1
             t["output_tokens"] += tc.output_tokens
+        for sa in s.subagents:
+            for tc in sa.tool_calls:
+                t = tools.setdefault(
+                    tc.name,
+                    {"main": 0, "subagent": 0, "total": 0, "output_tokens": 0},
+                )
+                t["subagent"] += 1
+                t["total"] += 1
+                t["output_tokens"] += tc.output_tokens
 
-    sorted_tools = sorted(tools.items(), key=lambda x: -x[1]["count"])
+    sorted_tools = sorted(tools.items(), key=lambda x: -x[1]["total"])
 
     if as_json:
         print(
@@ -692,11 +768,24 @@ def cmd_tools(sessions: list[Session], as_json: bool) -> None:
 
     c = _c(COLORS)
     print(f"\n{c['bold']}{c['cyan']}Tool Usage{c['reset']}\n")
-    headers = ["Tool", "Calls", "Output Tokens"]
-    rows = [
-        [name, str(d["count"]), _fmt_tokens(d["output_tokens"])]
-        for name, d in sorted_tools
-    ]
+    if has_subagents:
+        headers = ["Tool", "Main", "Subagent", "Total", "Output Tokens"]
+        rows = [
+            [
+                name,
+                str(d["main"]),
+                str(d["subagent"]),
+                str(d["total"]),
+                _fmt_tokens(d["output_tokens"]),
+            ]
+            for name, d in sorted_tools
+        ]
+    else:
+        headers = ["Tool", "Calls", "Output Tokens"]
+        rows = [
+            [name, str(d["total"]), _fmt_tokens(d["output_tokens"])]
+            for name, d in sorted_tools
+        ]
     print(_table(headers, rows, c))
 
 
@@ -708,6 +797,11 @@ def cmd_skills(sessions: list[Session], as_json: bool) -> None:
             sk = skills.setdefault(sc.name, {"user": 0, "agent": 0, "total": 0})
             sk[sc.invoked_by] += 1
             sk["total"] += 1
+        for sa in s.subagents:
+            for sc in sa.skill_calls:
+                sk = skills.setdefault(sc.name, {"user": 0, "agent": 0, "total": 0})
+                sk[sc.invoked_by] += 1
+                sk["total"] += 1
 
     sorted_skills = sorted(skills.items(), key=lambda x: -x[1]["total"])
 
@@ -787,20 +881,38 @@ def cmd_agents(sessions: list[Session], as_json: bool) -> None:
 
 def cmd_hooks(sessions: list[Session], as_json: bool) -> None:
     """Hook event counts."""
-    hooks: dict[str, dict[str, int]] = {}  # hookName -> {hookEvent: count}
-    event_totals: dict[str, int] = {}
+    has_subagents = any(s.subagents for s in sessions)
+
+    # Aggregate: event_type -> {main, subagent, total}
+    event_agg: dict[str, dict[str, int]] = {}
+    # Aggregate: hook_name -> {main, subagent, total}
+    hook_agg: dict[str, dict[str, int]] = {}
+
+    def _add_hook(he: HookEvent, source: str) -> None:
+        e = event_agg.setdefault(he.hook_event, {"main": 0, "subagent": 0, "total": 0})
+        e[source] += 1
+        e["total"] += 1
+        h = hook_agg.setdefault(he.hook_name, {"main": 0, "subagent": 0, "total": 0})
+        h[source] += 1
+        h["total"] += 1
+
     for s in sessions:
         for he in s.hook_events:
-            h = hooks.setdefault(he.hook_name, {})
-            h[he.hook_event] = h.get(he.hook_event, 0) + 1
-            event_totals[he.hook_event] = event_totals.get(he.hook_event, 0) + 1
+            _add_hook(he, "main")
+        for sa in s.subagents:
+            for he in sa.hook_events:
+                _add_hook(he, "subagent")
 
     if as_json:
         print(
             json.dumps(
                 {
-                    "by_hook": hooks,
-                    "by_event": event_totals,
+                    "by_event": {
+                        name: data for name, data in sorted(event_agg.items(), key=lambda x: -x[1]["total"])
+                    },
+                    "by_hook": {
+                        name: data for name, data in sorted(hook_agg.items(), key=lambda x: -x[1]["total"])
+                    },
                 },
                 indent=2,
             )
@@ -812,16 +924,29 @@ def cmd_hooks(sessions: list[Session], as_json: bool) -> None:
 
     # By event type
     print(f"  {c['bold']}By Event Type{c['reset']}")
-    sorted_events = sorted(event_totals.items(), key=lambda x: -x[1])
-    rows = [[name, str(count)] for name, count in sorted_events]
-    print(_table(["Event", "Count"], rows, c))
+    sorted_events = sorted(event_agg.items(), key=lambda x: -x[1]["total"])
+    if has_subagents:
+        rows = [
+            [name, str(d["main"]), str(d["subagent"]), str(d["total"])]
+            for name, d in sorted_events
+        ]
+        print(_table(["Event", "Main", "Subagent", "Total"], rows, c))
+    else:
+        rows = [[name, str(d["total"])] for name, d in sorted_events]
+        print(_table(["Event", "Count"], rows, c))
 
     # By hook name
     print(f"  {c['bold']}By Hook Name{c['reset']}")
-    hook_totals = [(name, sum(evts.values())) for name, evts in hooks.items()]
-    hook_totals.sort(key=lambda x: -x[1])
-    rows = [[name, str(count)] for name, count in hook_totals]
-    print(_table(["Hook", "Count"], rows, c))
+    sorted_hooks = sorted(hook_agg.items(), key=lambda x: -x[1]["total"])
+    if has_subagents:
+        rows = [
+            [name, str(d["main"]), str(d["subagent"]), str(d["total"])]
+            for name, d in sorted_hooks
+        ]
+        print(_table(["Hook", "Main", "Subagent", "Total"], rows, c))
+    else:
+        rows = [[name, str(d["total"])] for name, d in sorted_hooks]
+        print(_table(["Hook", "Count"], rows, c))
 
 
 def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
@@ -854,7 +979,13 @@ def cmd_sessions(sessions: list[Session], as_json: bool) -> None:
                                 "agent_type": sa.agent_type,
                                 "model": sa.model,
                                 "turns": sa.assistant_turns,
+                                "user_turns": sa.user_turns,
                                 "tool_calls": len(sa.tool_calls),
+                                "hook_events": len(sa.hook_events),
+                                "skill_calls": [
+                                    {"name": sc.name, "invoked_by": sc.invoked_by}
+                                    for sc in sa.skill_calls
+                                ],
                             }
                             for sa in s.subagents
                         ],
