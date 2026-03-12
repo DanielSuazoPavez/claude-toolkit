@@ -580,6 +580,9 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     )
     sa_tokens_all = sa_input + sa_output + sa_cache_create + sa_cache_read
     sa_tools = sum(len(sa.tool_calls) for s in sessions for sa in s.subagents)
+    sa_hooks = sum(len(sa.hook_events) for s in sessions for sa in s.subagents)
+    sa_skills = sum(len(sa.skill_calls) for s in sessions for sa in s.subagents)
+    sa_user_turns = sum(sa.user_turns for s in sessions for sa in s.subagents)
 
     # Top projects by total tokens
     project_tokens: dict[str, int] = {}
@@ -613,6 +616,9 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
                         "count": total_subagents,
                         "tokens": sa_tokens_all,
                         "tool_calls": sa_tools,
+                        "hook_events": sa_hooks,
+                        "skill_calls": sa_skills,
+                        "user_turns": sa_user_turns,
                     },
                     "top_projects": [
                         {"project": p, "tokens": t} for p, t in top_projects
@@ -642,6 +648,14 @@ def cmd_overview(sessions: list[Session], as_json: bool) -> None:
     if sa_tokens_all:
         print(f"    {c['dim']}(subagents:     {_fmt_tokens(sa_tokens_all):>8}){c['reset']}")
     print()
+    if total_subagents:
+        print(f"  {c['bold']}Subagent Detail{c['reset']}")
+        print(f"    Spawned:        {total_subagents}")
+        print(f"    Tool calls:     {sa_tools}")
+        print(f"    Hook events:    {sa_hooks}")
+        print(f"    Skill calls:    {sa_skills}")
+        print(f"    User turns:     {sa_user_turns}")
+        print()
 
     if top_projects:
         print(f"  {c['bold']}Top Projects (by tokens){c['reset']}")
