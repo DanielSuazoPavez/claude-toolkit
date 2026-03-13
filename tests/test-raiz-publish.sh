@@ -184,6 +184,10 @@ assert_file_contains "raiz CLAUDE.md.template used (has toolkit note)" \
     "$OUTPUT_DIR/.claude/templates/CLAUDE.md.template" \
     "Resources may reference skills or agents"
 
+# Docs (output at project root, not inside .claude/)
+assert_file_exists "getting-started.md included" "$OUTPUT_DIR/docs/getting-started.md"
+assert_file_not_exists "getting-started.md not inside .claude" "$OUTPUT_DIR/.claude/docs/getting-started.md"
+
 # MANIFEST should NOT be included (no validation scripts in raiz)
 assert_file_not_exists "MANIFEST not included" "$OUTPUT_DIR/.claude/MANIFEST"
 
