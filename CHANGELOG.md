@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **docs**: `docs/getting-started.md` — standalone orientation guide for raiz distribution recipients
+
 ## [2.11.1] - 2026-03-12 - review-plan pipeline and CLAUDE.md cleanup
 
 ### Changed
