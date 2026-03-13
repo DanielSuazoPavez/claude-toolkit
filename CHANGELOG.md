@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
+## [2.12.0] - 2026-03-12 - getting-started guide and docs distribution
+
 ### Added
 - **docs**: `docs/getting-started.md` — standalone orientation guide for raiz distribution recipients
+- **publish**: `docs/` support in publish pipeline — files sourced from repo root, output outside `.claude/`
 
 ## [2.11.1] - 2026-03-12 - review-plan pipeline and CLAUDE.md cleanup
 
