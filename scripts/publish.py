@@ -33,9 +33,12 @@ NC = "\033[0m"
 def resolve_source_file(target_path: str, claude_dir: Path, dist_dir: Path) -> Path:
     """Resolve a target path to its source file location.
 
-    templates/* → dist-specific override if exists, else dist/base/templates/
+    docs/*       → repo root (outside .claude/)
+    templates/*  → dist-specific override if exists, else dist/base/templates/
     everything else → claude_dir/{target_path}
     """
+    if target_path.startswith("docs/"):
+        return claude_dir.parent / target_path
     if target_path.startswith("templates/"):
         basename = target_path.removeprefix("templates/")
         override = dist_dir / "templates" / basename
@@ -48,10 +51,13 @@ def resolve_source_file(target_path: str, claude_dir: Path, dist_dir: Path) -> P
 def resolve_source_dir(target_path: str, claude_dir: Path, dist_dir: Path) -> Path:
     """Resolve a target directory path to its source directory.
 
-    templates/* directories → always from dist/base/ (dist only has file-level overrides)
+    docs/*       → repo root (outside .claude/)
+    templates/*  → always from dist/base/ (dist only has file-level overrides)
     everything else → claude_dir/{target_path}
     """
     clean = target_path.rstrip("/")
+    if clean.startswith("docs/"):
+        return claude_dir.parent / clean
     if clean.startswith("templates/"):
         return claude_dir / "dist" / "base" / clean
     return claude_dir / clean
@@ -302,7 +308,11 @@ def main() -> None:
     targets = resolve_manifest(manifest_path, CLAUDE_DIR, dist_dir)
     for target_path in targets:
         source = resolve_source_file(target_path, CLAUDE_DIR, dist_dir)
-        dest = claude_output / target_path
+        # docs/ files go to output root, everything else to .claude/
+        if target_path.startswith("docs/"):
+            dest = output_dir / target_path
+        else:
+            dest = claude_output / target_path
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, dest)
 
@@ -310,7 +320,7 @@ def main() -> None:
 
     # Trim cross-references in markdown files
     print("Trimming cross-references...")
-    for md_file in claude_output.rglob("*.md"):
+    for md_file in output_dir.rglob("*.md"):
         content = md_file.read_text()
         trimmed = trim_markdown(content, resources)
         md_file.write_text(trimmed)
@@ -331,6 +341,12 @@ def main() -> None:
     print("Contents:")
     for category in ("skills", "agents", "hooks", "memories", "templates"):
         cat_dir = claude_output / category
+        if cat_dir.is_dir():
+            count = sum(1 for f in cat_dir.rglob("*") if f.is_file())
+            print(f"  {category}: {count} files")
+    # Root-level directories (docs/, etc.)
+    for category in ("docs",):
+        cat_dir = output_dir / category
         if cat_dir.is_dir():
             count = sum(1 for f in cat_dir.rglob("*") if f.is_file())
             print(f"  {category}: {count} files")

@@ -28,6 +28,9 @@ hooks/suggest-read-json.sh
 memories/essential-conventions-code_style.md
 memories/essential-conventions-memory.md
 
+# docs (copied to project root, outside .claude/)
+docs/getting-started.md
+
 # templates
 templates/CLAUDE.md.template
 templates/mcp.template.json
