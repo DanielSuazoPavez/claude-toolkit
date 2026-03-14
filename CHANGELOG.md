@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- **backlog**: Pruned 5 speculative items (multi-model, ci-discovery, mcp-developer, gh-actions, telegram-bridge); unblocked aws-toolkit by removing separate-repo dependency
+- **indexes**: Promoted `design-qa` and `refactor` to beta; flagged `review-changes`, `setup-worktree`, `teardown-worktree` for removal consideration
+
 ## [2.13.0] - 2026-03-14 - schema-smith integration for design-db
 
 ### Added
