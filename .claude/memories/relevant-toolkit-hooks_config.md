@@ -49,7 +49,7 @@ Reference for hook triggers, environment variables, and customization options.
 ### PostToolUse (Write)
 | Hook | Purpose |
 |------|---------|
-| `copy-plan-to-project.sh` | Copies plans from scratchpad to .claude/plans |
+| `copy-plan-to-project.sh` | Copies plans from scratchpad to .claude/output/plans |
 
 ---
 
@@ -61,7 +61,7 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
-| `CLAUDE_PLANS_DIR` | `.claude/plans` | Plan copies destination |
+| `CLAUDE_PLANS_DIR` | `.claude/output/plans` | Plan copies destination |
 
 ### Thresholds & Configuration
 | Variable | Default | Purpose |

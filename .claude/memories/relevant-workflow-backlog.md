@@ -54,7 +54,7 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
     - **scope**: `Area1, Area2`
     - **branch**: `feat/branch-name`
     - **depends-on**: `other-task-id`
-    - **plan**: `.claude/plans/plan-file.md`
+    - **plan**: `.claude/output/plans/plan-file.md`
     - **notes**: Additional context
 ```
 
