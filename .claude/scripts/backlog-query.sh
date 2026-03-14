@@ -52,7 +52,7 @@ parse_backlog() {
     }
 
     while IFS= read -r line; do
-        # Priority headers (P0, P1, P2, P100, etc.)
+        # Priority headers (P0, P1, P2, P99, etc.)
         if [[ "$line" =~ ^##\ (P[0-9]+) ]]; then
             priority="${BASH_REMATCH[1]}"
             continue
@@ -266,7 +266,7 @@ main() {
         priority)
             local prio="${args[1]:-}"
             if [[ -z "$prio" ]]; then
-                echo "Usage: $0 priority <P0|P1|P2|P100>" >&2
+                echo "Usage: $0 priority <P0|P1|P2|P3|P99>" >&2
                 exit 1
             fi
             prio="${prio^^}"  # uppercase

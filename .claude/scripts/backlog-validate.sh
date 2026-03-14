@@ -25,7 +25,8 @@ REQUIRED_HEADINGS=(
     "## P0 - Critical"
     "## P1 - High"
     "## P2 - Medium"
-    "## P100 - Nice to Have"
+    "## P3 - Low"
+    "## P99 - Nice to Have"
 )
 
 # Colors (disabled if not a terminal)
