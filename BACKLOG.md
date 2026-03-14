@@ -18,6 +18,8 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ---
 
+## P0 - Critical
+
 ## P1 - High
 
 ## P2 - Medium
@@ -31,4 +33,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
-## P100 - Nice to Have
+## P3 - Low
+
+## P99 - Nice to Have
