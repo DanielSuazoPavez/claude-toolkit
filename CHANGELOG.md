@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.13.0] - 2026-03-14 - schema-smith integration for design-db
+
+### Added
+- **skills**: `design-db` schema-smith integration — detects CLI availability, outputs YAML instead of raw DDL, runs `schema-smith generate` for validation and SQL generation
+- **skills**: `design-db/schema-smith-input-spec.md` — bundled input format reference for YAML schema authoring
+
 ## [2.12.0] - 2026-03-12 - getting-started guide and docs distribution
 
 ### Added

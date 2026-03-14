@@ -157,4 +157,24 @@ CREATE UNIQUE INDEX idx_users_email_active ON users(email)
 - [ ] Migrations are reversible (UP + DOWN)
 - [ ] No unnecessary indexes on low-cardinality or write-heavy columns
 
+## Schema Smith Integration
+
+If `schema-smith` is available (`which schema-smith`), generate schemas as YAML instead of raw DDL.
+
+1. **Read the input spec** at `schema-smith-input-spec.md` (in this skill's directory) before writing any YAML
+2. **Design first** — use the knowledge sections above to make schema decisions (normalization, indexing, types)
+3. **Output as schema-smith YAML** — structure the design as YAML files following the input spec
+4. **Generate DDL** — run schema-smith to produce the SQL:
+
+```bash
+schema-smith generate <project> --input-dir <path>/input --output-dir <path>/output --json
+```
+
+Useful flags:
+- `--validate-only` — check YAML without generating files
+- `--strict` — treat warnings as errors
+- `--json` — structured output for programmatic use
+
+If `schema-smith` is not available, fall back to raw SQL as usual.
+
 **See also:** `/design-diagram` (ER diagrams and relationship visualization), `/design-tests` (test database fixtures and factory patterns), `/refactor` (restructuring data access layers), `/design-docker` (database containers for local dev)
