@@ -112,4 +112,4 @@ Tests whether natural language prompts correctly trigger skills via `claude -p`.
 - **New skill:** Create `eval-triggers.json` with should/shouldn't trigger queries
 - **New validation:** Add to `validate-all.sh` and ensure it follows exit code conventions
 
-**See also:** `essential-conventions-code_style` (make-target conventions), `relevant-workflow-task_completion` (test-passing as completion criterion), `/design-tests` skill (test design methodology)
+**See also:** `essential-conventions-code_style` (make-target conventions), `/design-tests` skill (test design methodology)

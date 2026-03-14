@@ -143,7 +143,7 @@ Configuration:
 
 ## Real-World Reference
 
-See `relevant-reference-hooks_config` memory for 9 production hooks in this toolkit, covering safety (secrets-guard, enforce-uv-run), automation (session-start), and notification patterns.
+See `relevant-toolkit-hooks_config` memory for 9 production hooks in this toolkit, covering safety (secrets-guard, enforce-uv-run), automation (session-start), and notification patterns.
 
 ## Best Patterns
 

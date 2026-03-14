@@ -59,7 +59,7 @@ What changed?
 - When unsure, write changelog as if squashed (cleaner history)
 
 ### 5. Update `CHANGELOG.md`
-Add new entry at the top following existing project style.
+Add new entry at the top following existing project style. **Never modify older entries** — they are historical record. Only add the current version's entry.
 
 ### 6. Update version file
 Bump the version in the appropriate file (VERSION, pyproject.toml, package.json, etc.).

@@ -17,10 +17,8 @@ Always loaded at session start:
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `relevant-conventions-backlog_schema` | stable | BACKLOG.md schema: priority, categories, status values |
-| `relevant-workflow-branch_development` | stable | Branch-based development workflow |
-| `relevant-workflow-task_completion` | stable | Task completion checklist |
-| `relevant-reference-hooks_config` | stable | Hooks configuration and environment variables |
+| `relevant-workflow-backlog` | stable | BACKLOG.md schema: priority, categories, status values |
+| `relevant-toolkit-hooks_config` | stable | Hooks configuration and environment variables |
 | `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
 
