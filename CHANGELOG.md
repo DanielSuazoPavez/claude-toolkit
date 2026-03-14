@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.13.2] - 2026-03-14 - move plan output to .claude/output/plans
+
+### Changed
+- **hooks**: `copy-plan-to-project.sh` default destination changed from `.claude/plans/` to `.claude/output/plans/`
+- **config**: Updated all references across settings, gitignore, README, memories, skills, agents, and dist templates
+
 ## [2.13.1] - 2026-03-14 - memory cleanup and resource housekeeping
 
 ### Changed
