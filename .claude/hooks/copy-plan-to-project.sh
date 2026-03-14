@@ -1,11 +1,11 @@
 #!/bin/bash
-# PostToolUse hook: copy plan files from ~/.claude/plans/ to project
+# PostToolUse hook: copy plan files from ~/.claude/plans/ to project output
 #
 # Settings.json:
 #   "PostToolUse": [{"matcher": "Write", "hooks": [{"type": "command", "command": "bash .claude/hooks/copy-plan-to-project.sh"}]}]
 #
 # Environment:
-#   CLAUDE_PLANS_DIR - target directory (default: .claude/plans)
+#   CLAUDE_PLANS_DIR - target directory (default: .claude/output/plans)
 #
 # Triggers on Write in plan mode for files in any .claude/plans/ path
 # Renames files based on plan title using slug generation:
@@ -19,7 +19,7 @@
 #
 #   echo '{"permission_mode":"plan","tool_name":"Write","tool_input":{"file_path":"/tmp/.claude/plans/test.md"}}' | \
 #     bash copy-plan-to-project.sh
-#   # Expected output: Plan copied to project: .claude/plans/YYYY-MM-DD_HHMM__plan__test-title.md (if file exists)
+#   # Expected output: Plan copied to project: .claude/output/plans/YYYY-MM-DD_HHMM__plan__test-title.md (if file exists)
 #
 #   echo '{"permission_mode":"default","tool_name":"Write","tool_input":{"file_path":"/tmp/other.md"}}' | ./copy-plan-to-project.sh
 #   # Expected: (empty - not plan mode)
@@ -42,7 +42,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || 
 [[ "$FILE_PATH" != *"/.claude/plans/"* ]] && exit 0
 
 # Configuration
-PLANS_DIR="${CLAUDE_PLANS_DIR:-.claude/plans}"
+PLANS_DIR="${CLAUDE_PLANS_DIR:-.claude/output/plans}"
 
 # Check source file exists
 if [[ ! -f "$FILE_PATH" ]]; then

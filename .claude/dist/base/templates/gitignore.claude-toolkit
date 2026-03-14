@@ -3,7 +3,7 @@
 
 # Claude Code session artifacts
 .claude/usage.log
-.claude/plans/
+.claude/output/plans/
 
 # Local settings (not committed)
 .claude/settings.local.json

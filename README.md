@@ -138,7 +138,7 @@ Automation hooks configured in `settings.json`:
 | `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
 | `secrets-guard.sh` | PreToolUse (Read\|Bash) | Blocks reading .env files and credential files |
 | `suggest-read-json.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
-| `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.claude/plans/` |
+| `copy-plan-to-project.sh` | PostToolUse (Write) | Copies plan files to `.claude/output/plans/` |
 
 **Note:** `enforce-uv-run.sh` and `enforce-make-commands.sh` are Python-specific. Remove or modify for non-Python projects.
 

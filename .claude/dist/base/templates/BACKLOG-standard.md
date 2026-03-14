@@ -21,7 +21,7 @@
     - **scope**: `Scope`
     - **branch**: `feat/branch-name`
     - **depends-on**: `other-task-id`
-    - **plan**: `.claude/plans/plan-file.md`
+    - **plan**: `.claude/output/plans/plan-file.md`
     - **notes**: Additional context
 
 ## P2 - Medium

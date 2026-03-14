@@ -19,7 +19,7 @@ __pycache__/
 
 # Claude session artifacts
 .claude/usage.log
-.claude/plans/
+.claude/output/plans/
 .claude/output/reviews/
 .claude/output/analysis/
 .claude/output/design/
