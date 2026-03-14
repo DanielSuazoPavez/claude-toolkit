@@ -2,9 +2,17 @@
 
 ## [Unreleased]
 
+## [2.13.1] - 2026-03-14 - memory cleanup and resource housekeeping
+
 ### Changed
-- **backlog**: Pruned 5 speculative items (multi-model, ci-discovery, mcp-developer, gh-actions, telegram-bridge); unblocked aws-toolkit by removing separate-repo dependency
+- **memories**: Renamed `relevant-conventions-backlog_schema` → `relevant-workflow-backlog`, `relevant-reference-hooks_config` → `relevant-toolkit-hooks_config`
+- **skills**: `wrap-up` — added rule to never modify older changelog entries
+- **backlog**: Pruned 5 speculative items; unblocked aws-toolkit by removing separate-repo dependency
 - **indexes**: Promoted `design-qa` and `refactor` to beta; flagged `review-changes`, `setup-worktree`, `teardown-worktree` for removal consideration
+
+### Removed
+- **memories**: `relevant-workflow-branch_development` (redundant with git-safety hook + CLAUDE.md template)
+- **memories**: `relevant-workflow-task_completion` (superseded by review-plan pipeline + code_style conventions)
 
 ## [2.13.0] - 2026-03-14 - schema-smith integration for design-db
 

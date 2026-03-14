@@ -151,10 +151,10 @@ Synced to target projects as starting points in `.claude/memories/`:
 | `essential-conventions-code_style` | Coding conventions and style guide |
 | `essential-conventions-memory` | Memory naming conventions |
 | `essential-preferences-communication_style` | Communication style preferences |
-| `relevant-conventions-backlog_schema` | Standardized BACKLOG.md format |
+| `relevant-workflow-backlog` | Standardized BACKLOG.md format |
 | `relevant-philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
-| `relevant-reference-hooks_config` | Hook environment variables reference |
-| `relevant-workflow-task_completion` | Task completion checklist |
+| `relevant-toolkit-hooks_config` | Hook environment variables reference |
+| `relevant-conventions-testing` | Test structure, runners, and conventions |
 
 ## Configuration
 

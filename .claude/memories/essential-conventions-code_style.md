@@ -9,7 +9,7 @@
 - Env vars for config, not custom credential classes
 - Minimal interfaces — only essential parameters
 
-**See also:** `relevant-workflow-task_completion` for completion checklist, `relevant-philosophy-reducing_entropy` for code minimalism
+**See also:** `relevant-philosophy-reducing_entropy` for code minimalism
 
 ---
 

@@ -62,10 +62,10 @@ hooks/suggest-read-json.sh
 memories/essential-conventions-code_style.md
 memories/essential-conventions-memory.md
 memories/essential-preferences-communication_style.md
-memories/relevant-conventions-backlog_schema.md
+memories/relevant-workflow-backlog.md
 memories/relevant-philosophy-reducing_entropy.md
-memories/relevant-reference-hooks_config.md
-memories/relevant-workflow-task_completion.md
+memories/relevant-toolkit-hooks_config.md
+memories/relevant-conventions-testing.md
 
 # templates
 dist/base/templates/

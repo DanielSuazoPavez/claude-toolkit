@@ -8,7 +8,7 @@
 
 Reference for hook triggers, environment variables, and customization options.
 
-**See also:** `/create-hook` skill, `relevant-workflow-branch_development` for git-safety hook context
+**See also:** `/create-hook` skill
 
 ---
 

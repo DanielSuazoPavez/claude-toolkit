@@ -12,7 +12,7 @@ Official supported YAML frontmatter fields for Claude Code skills and agents.
 
 **Last verified:** 2026-03-11
 
-**See also:** `relevant-reference-hooks_config` for hook configuration
+**See also:** `relevant-toolkit-hooks_config` for hook configuration
 
 ---
 

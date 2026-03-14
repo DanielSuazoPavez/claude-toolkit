@@ -1,4 +1,4 @@
-# Backlog Schema Conventions
+# Backlog Workflow
 
 ## 1. Quick Reference
 
@@ -9,7 +9,7 @@
 
 Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadata fields, and status values.
 
-**See also:** `/wrap-up` skill for backlog updates, `relevant-workflow-task_completion` for completion checklist
+**See also:** `/wrap-up` skill for backlog updates
 
 ---
 
