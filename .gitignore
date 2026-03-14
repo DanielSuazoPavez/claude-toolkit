@@ -30,5 +30,6 @@ __pycache__/
 # Distribution output
 dist-output/
 
-# Cron logs
+# Logs
+logs/
 scripts/cron.log

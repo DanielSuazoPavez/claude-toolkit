@@ -32,11 +32,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
-- **[SKILLS]** Link `design-db` skill to schema-smith as optional dependency (`skill-design-db-backing-repo`)
-    - **status**: `idea`
-    - **scope**: `skills`
-    - **notes**: Wire `design-db` to `schema-smith` (YAML → PostgreSQL DDL/diagrams/SQLAlchemy models). First "skill backed by real project code" pattern. Two options: Python dependency (`uv add --optional`) or CLI invocation. Schema-smith is functional, in cleanup phase. Path: `personal/training/data-engineering/projects/schema-smith`.
-
 - **[TOOLKIT]** Explore content plugins for external reference repos (`toolkit-content-plugins`)
     - **status**: `idea`
     - **scope**: `toolkit`
