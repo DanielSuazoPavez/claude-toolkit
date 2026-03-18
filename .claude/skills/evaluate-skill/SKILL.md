@@ -1,6 +1,7 @@
 ---
 name: evaluate-skill
 description: Use when reviewing, auditing, or scoring a SKILL.md file. Keywords: skill evaluation, skill audit, skill quality, evaluate skill, score skill, review skill.
+argument-hint: "[skill-name-or-path]"
 ---
 
 # Skill Judge

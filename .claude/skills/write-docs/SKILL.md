@@ -2,6 +2,7 @@
 name: write-docs
 type: knowledge
 description: Use when writing or updating project documentation. Keywords: docs, documentation, README, docstrings, API docs, write docs, update docs, document.
+argument-hint: "[target-file-or-module]"
 ---
 
 Write or update project documentation based on actual code. Gap analysis first, then write.

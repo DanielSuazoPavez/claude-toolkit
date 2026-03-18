@@ -1,6 +1,7 @@
 ---
 name: evaluate-agent
 description: Evaluate agent design quality against behavioral effectiveness. Use when reviewing, auditing, or improving agent .md files. Keywords: agent quality, agent review, evaluate agent.
+argument-hint: "[agent-name-or-path]"
 ---
 
 # Agent Judge

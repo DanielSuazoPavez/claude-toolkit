@@ -2,9 +2,19 @@
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-03-18 - skill argument-hint audit
+
+### Added
+- **skills**: `argument-hint` frontmatter added to 10 skills: `evaluate-batch`, `evaluate-skill`, `evaluate-agent`, `evaluate-hook`, `evaluate-memory`, `learn`, `analyze-idea`, `brainstorm-idea`, `write-docs`, `read-json`
+- **skills**: `create-skill` — new Arguments section covering `argument-hint` frontmatter, `$ARGUMENTS` usage, positional access (`$0`, `$1`), and empty-case handling
+- **skills**: `create-skill` template — commented `argument-hint` example in frontmatter
+
 ### Changed
 - **templates**: Renamed `feature/` to `feat/` branch prefix in CLAUDE.md dist templates
 - **drafts**: Archived stale aws-toolkit and skill-refactor drafts
+
+### Fixed
+- **docs**: Removed stale `check-quiet` reference from CLAUDE.md
 
 ## [2.13.4] - 2026-03-18 - fix copy-plan test path
 

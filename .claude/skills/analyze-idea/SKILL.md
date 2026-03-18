@@ -2,6 +2,7 @@
 name: analyze-idea
 type: knowledge
 description: Research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report. Use for feasibility analysis, coverage gaps, codebase audits.
+argument-hint: "[topic]"
 ---
 
 Use for research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report.
@@ -10,7 +11,7 @@ Use for research and exploration tasks. Investigates a topic, gathers evidence, 
 
 ## Context
 
-The user provides context after `/analyze-idea` describing what to investigate. Examples:
+`$ARGUMENTS` describes what to investigate. Examples:
 - `/analyze-idea feasibility of adding real-time alerts`
 - `/analyze-idea current test coverage gaps`
 - `/analyze-idea over-engineering in the codebase`
