@@ -588,7 +588,7 @@ test_copy_plan_to_project() {
     local temp_dir
     temp_dir=$(mktemp -d)
     local source_file="$temp_dir/.claude/plans/test.md"
-    local target_dir="$temp_dir/project/.claude/plans"
+    local target_dir="$temp_dir/project/.claude/output/plans"
 
     mkdir -p "$(dirname "$source_file")"
     mkdir -p "$target_dir"
@@ -597,10 +597,11 @@ test_copy_plan_to_project() {
     echo "# Plan: Test Feature" > "$source_file"
     echo "Some plan content" >> "$source_file"
 
-    # Run hook
+    # Run hook (export CLAUDE_PLANS_DIR so the piped hook process sees it)
     (
         cd "$temp_dir/project"
-        CLAUDE_PLANS_DIR="$target_dir" echo "{\"permission_mode\":\"plan\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$source_file\"}}" | "$OLDPWD/$HOOKS_DIR/$hook" 2>/dev/null
+        export CLAUDE_PLANS_DIR="$target_dir"
+        echo "{\"permission_mode\":\"plan\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$source_file\"}}" | "$OLDPWD/$HOOKS_DIR/$hook" 2>/dev/null
     ) || true
 
     TESTS_RUN=$((TESTS_RUN + 1))
