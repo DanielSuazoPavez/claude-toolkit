@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.13.3] - 2026-03-18 - professional profile memory and curated resource
+
+### Added
+- **memories**: `relevant-context-professional_profile` — data engineering role, stack, tools, and current trajectory
+- **curated-resources**: AbsolutelySkilled color-theory skill — OKLCH color systems, semantic tokens, palette recipes
+
 ## [2.13.2] - 2026-03-14 - move plan output to .claude/output/plans
 
 ### Changed
