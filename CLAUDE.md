@@ -7,7 +7,7 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 ## Quick Start
 
 ```bash
-make check                             # Run all tests and validations (use check-quiet for less output)
+make check                             # Run all tests and validations
 make test                              # Run tests only
 make backlog                           # Query backlog (prefer over reading BACKLOG.md directly)
 ```

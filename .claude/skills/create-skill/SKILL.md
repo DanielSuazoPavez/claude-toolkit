@@ -86,6 +86,17 @@ The first line (description) must:
 
 **Why this matters:** Claude's tool routing uses the description to decide whether to load the skill. If the description contains workflow steps (e.g., "Updates changelog, bumps version"), Claude may execute those steps directly from the description without reading the full SKILL.md body—missing nuances, anti-patterns, and edge cases. Keep descriptions as pure triggers.
 
+### Arguments
+
+If the skill accepts input (file paths, modes, targets):
+1. Add `argument-hint` to frontmatter — shown in autocomplete (e.g., `argument-hint: "[file-path] [format]"`)
+2. Reference `$ARGUMENTS` in the body where input is needed
+3. Handle the empty case — what happens when no args are passed?
+
+Positional access: `$0`, `$1`, `$2` (or `$ARGUMENTS[0]`, `$ARGUMENTS[1]`, etc.)
+
+If `$ARGUMENTS` isn't referenced anywhere in the skill body, Claude Code auto-appends `ARGUMENTS: <value>` at the end.
+
 ## Token Efficiency
 
 | Skill Type | Target |
