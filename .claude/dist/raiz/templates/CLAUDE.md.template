@@ -34,7 +34,7 @@ make test
 ## Git Workflow
 
 - Never commit directly to main (enforced by hook).
-- Branch naming: `feature/`, `fix/`, `refactor/`, `chore/`, `docs/` prefixes.
+- Branch naming: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/` prefixes.
 - Merge to main with `--no-ff` to preserve branch history.
 
 ## Toolkit
