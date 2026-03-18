@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- **templates**: Renamed `feature/` to `feat/` branch prefix in CLAUDE.md dist templates
+- **drafts**: Archived stale aws-toolkit and skill-refactor drafts
+
 ## [2.13.4] - 2026-03-18 - fix copy-plan test path
 
 ### Fixed

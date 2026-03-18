@@ -31,7 +31,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
         - `aws-security-auditor` agent: Security review, least-privilege IAM validation
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
-    - **drafts**: `.claude/output/drafts/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
+    - **drafts**: `.claude/output/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P3 - Low
 
