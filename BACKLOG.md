@@ -36,8 +36,4 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SKILLS]** Check all optional arguments for skills
-    - **status**: `todo`
-    - **scope**: `skills`
-
 ## P99 - Nice to Have
