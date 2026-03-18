@@ -25,8 +25,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 ## P2 - Medium
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
-    - **status**: `idea`
+    - **status**: `in-progress`
     - **scope**: `agents, skills`
+    - **repo**: `~/projects/personal/aws-toolkit`
     - **notes**: Base model struggles with real-world IAM policies and service-specific config. Three sub-items:
         - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
         - `aws-security-auditor` agent: Security review, least-privilege IAM validation
@@ -34,5 +35,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **drafts**: `.claude/output/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P3 - Low
+
+- **[SKILLS]** Check all optional arguments for skills
+    - **status**: `todo`
+    - **scope**: `skills`
 
 ## P99 - Nice to Have
