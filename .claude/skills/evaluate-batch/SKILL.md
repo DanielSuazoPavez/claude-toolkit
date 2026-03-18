@@ -1,6 +1,7 @@
 ---
 name: evaluate-batch
 description: Use when evaluating multiple resources of one type. Keywords: batch evaluation, parallel evaluation, bulk evaluate, evaluate all, mass evaluation.
+argument-hint: "[type] [re-evaluate]"
 ---
 
 Use when evaluating multiple resources of a single type in parallel.
@@ -42,6 +43,8 @@ After each batch, check results before continuing:
 | Same `top_improvement` repeated | Fix that issue across resources before continuing |
 
 ## Parameters
+
+Parse from `$ARGUMENTS` (e.g., `/evaluate-batch skills re-evaluate`):
 
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|

@@ -2,6 +2,7 @@
 name: read-json
 type: command
 description: Use when reading, querying, or analyzing JSON files. Keywords: .json, jq, JSON file, read JSON, parse JSON, query JSON, inspect JSON, extract from JSON.
+argument-hint: "[file-path]"
 ---
 
 # JSON Reader Skill
