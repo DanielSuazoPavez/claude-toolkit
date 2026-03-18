@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.13.4] - 2026-03-18 - fix copy-plan test path
+
+### Fixed
+- **tests**: `copy-plan-to-project` test updated to use `.claude/output/plans/` path (matching v2.13.2 hook change) and properly export `CLAUDE_PLANS_DIR` env var
+
 ## [2.13.3] - 2026-03-18 - professional profile memory and curated resource
 
 ### Added
