@@ -21,6 +21,7 @@ Always loaded at session start:
 | `relevant-toolkit-hooks_config` | stable | Hooks configuration and environment variables |
 | `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
+| `relevant-context-professional_profile` | stable | Data engineering role, stack, tools, and current trajectory |
 
 ## Philosophy
 

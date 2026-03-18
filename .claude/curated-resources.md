@@ -4,6 +4,7 @@ Quality domain-specific skills, tools, and references discovered during explorat
 
 ## Frontend / Design
 
+- **[AbsolutelySkilled — color-theory](https://github.com/AbsolutelySkilled/AbsolutelySkilled/tree/main/skills/color-theory)** — Production color systems with OKLCH. Perceptual uniformity over HSL, semantic token architecture, full light/dark patterns, `color-mix()` gotchas, 4 palette recipes by archetype. [Local summary](output/reviews/exploration/absolutelyskilled_absolutelyskilled/curated-color-theory.md).
 - **[Leonxlnx/taste-skill — redesign-skill](https://github.com/Leonxlnx/taste-skill)** — Frontend design audit. Anti-pattern checklist for "generic AI design" (purple gradients, Inter font, three-card columns). Specific CSS fixes, prioritized fix order. Works with existing stack, no migrations.
 - **[Leonxlnx/taste-skill — output-skill](https://github.com/Leonxlnx/taste-skill)** — Completeness enforcement. Banned truncation patterns (`// ...`, "for brevity"), `[PAUSED — X of Y complete]` protocol for token-limit splits.
 
