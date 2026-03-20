@@ -3,6 +3,7 @@ name: setup-worktree
 type: command
 description: Set up a git worktree with full Claude configuration. Use when working on multiple branches simultaneously or setting up parallel agent workflows. Keywords: worktree, parallel, branch isolation.
 argument-hint: Path to plan file (e.g. .claude/output/plans/2026-02-04_my-plan.md)
+allowed-tools: Bash(git:*), Bash(ln:*), Bash(ls:*), Bash(mkdir:*), Read
 ---
 
 Set up a worktree with full Claude configuration. Worktrees live in `.worktrees/` (gitignored, inside project).

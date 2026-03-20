@@ -2,6 +2,7 @@
 name: evaluate-memory
 description: Evaluate memory file quality against conventions. Use when reviewing, auditing, or improving memory files.
 argument-hint: "[memory-name-or-path]"
+allowed-tools: Read, Write, Glob, Agent, Bash(jq:*)
 ---
 
 # Memory Judge

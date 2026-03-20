@@ -2,6 +2,7 @@
 name: teardown-worktree
 type: command
 description: Verify and close out a worktree after an agent reports plan completion. Keywords: agent done, worktree complete, close worktree, teardown, agent finished.
+allowed-tools: Bash(git:*), Bash(cp:*), Bash(rm:*), Read, Agent
 ---
 
 Use when an agent working in a worktree reports the plan is fully implemented.

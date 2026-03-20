@@ -1,6 +1,7 @@
 ---
 name: create-agent
 description: Create new agents for specialized tasks. Use when adding behavioral specialists to `.claude/agents/`. Keywords: agent creation, new agent, behavioral specialist, subagent, Task tool, spawned agent.
+allowed-tools: Read, Write, Glob, Skill
 ---
 
 Use when adding a new agent to `.claude/agents/`.

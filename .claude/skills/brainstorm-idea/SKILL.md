@@ -2,6 +2,7 @@
 name: brainstorm-idea
 description: Turn fuzzy ideas into clear designs through structured dialogue. Use BEFORE plan mode when requirements are unclear. Keywords: fuzzy, unclear, ideation, requirements, vague, explore, figure out.
 argument-hint: "[topic]"
+allowed-tools: Read, Write, AskUserQuestion
 ---
 
 Turns fuzzy ideas into clear designs through structured dialogue. Use BEFORE plan mode.

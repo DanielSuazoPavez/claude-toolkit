@@ -2,6 +2,7 @@
 name: draft-pr
 type: command
 description: Use when requests mention "PR description", "pull request", "open PR", "create PR", or "draft PR". Analyzes branch commits and generates PR title and description.
+allowed-tools: Bash(git diff:*), Bash(git log:*), Bash(git status:*), Read, Glob, Write
 ---
 
 # Draft PR

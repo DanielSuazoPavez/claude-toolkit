@@ -2,6 +2,7 @@
 name: write-handoff
 type: command
 description: Use before /clear when you have uncommitted changes, partial work, or context needed for next session. Keywords: session handoff, save context, continuation file, preserve state, resume work.
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git stash:*), Read, Write
 ---
 
 Use before /clear to preserve context. Generates a continuation file for resuming work in a new session.

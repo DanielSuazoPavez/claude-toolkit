@@ -1,6 +1,7 @@
 ---
 name: manage-lessons
 description: Review and manage lesson lifecycle. Use when the user says "manage lessons", "review lessons", "promote lessons", "clean up lessons", "prune lessons", or when session-start nudge suggests it.
+allowed-tools: Bash(.claude/scripts/lessons-query.sh:*), Bash(jq:*), Read, Write
 ---
 
 # Manage Lessons

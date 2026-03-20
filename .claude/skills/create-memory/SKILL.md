@@ -1,6 +1,7 @@
 ---
 name: create-memory
 description: Create a new memory file following project conventions. Use when user asks to save/write/create a memory. Keywords: remember this, save context, create memory, persist information.
+allowed-tools: Read, Write, Glob
 ---
 
 # Write Memory Skill

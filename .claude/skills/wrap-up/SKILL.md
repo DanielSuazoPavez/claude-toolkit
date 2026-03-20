@@ -2,6 +2,7 @@
 name: wrap-up
 type: command
 description: Use when requests mention "finish feature", "complete branch", "ready to merge", "finalize branch", or "wrap up".
+allowed-tools: Bash(git:*), Read, Write, Edit
 ---
 
 Use when finishing a feature branch.
