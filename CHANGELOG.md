@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.14.1] - 2026-03-20 - draft-pr file output
+
+### Fixed
+- **skills**: `draft-pr` — write PR description to `.claude/output/pr-descriptions/` instead of console (console copy/paste loses markdown formatting)
+
 ## [2.14.0] - 2026-03-18 - skill argument-hint audit
 
 ### Added

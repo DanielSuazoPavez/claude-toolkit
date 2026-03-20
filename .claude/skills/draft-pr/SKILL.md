@@ -95,7 +95,9 @@ If a PR template was found in step 2, use it as the structure. Otherwise, use th
 
 ### 6. Output
 
-Output the PR description to console, ready to copy/paste.
+Write the PR description to `.claude/output/pr-descriptions/{timestamp}_{branch-name}.md` (e.g., `20260320_feat-add-auth.md`). Include the PR title as an H1 heading at the top of the file.
+
+Tell the user the file path so they can review and use it.
 
 ## Anti-Patterns
 
