@@ -14,8 +14,6 @@ Automation hooks configured in `settings.json`.
 | `suggest-read-json.sh` | stable | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
 | `enforce-uv-run.sh` | stable | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
 | `enforce-make-commands.sh` | stable | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
-| `copy-plan-to-project.sh` | stable | PostToolUse (Write) | Copies plans to `.claude/output/plans/` |
-
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
 ---
@@ -123,15 +121,6 @@ Blocks bare tool invocations, suggests Make targets.
 - Blocks: `uv run ruff`, `uv run pre-commit`, bare `pre-commit`, `ruff check/format`
 - Blocks: `uv sync`, `docker up/down/build`
 - Suggests: `make test`, `make lint`, `make install`, etc.
-
-### copy-plan-to-project.sh
-
-**Trigger**: PostToolUse (Write)
-
-Copies plan files to `.claude/output/plans/` directory.
-
-- Watches for plan file writes
-- Maintains planning documentation in project
 
 ## Configuration
 

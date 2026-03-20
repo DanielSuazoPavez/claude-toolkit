@@ -46,11 +46,6 @@ Reference for hook triggers, environment variables, and customization options.
 |------|---------|
 | `git-safety.sh` | Blocks unsafe git operations: protected branches + remote-destructive commands |
 
-### PostToolUse (Write)
-| Hook | Purpose |
-|------|---------|
-| `copy-plan-to-project.sh` | Copies plans from scratchpad to .claude/output/plans |
-
 ---
 
 ## 3. Environment Variables
@@ -61,7 +56,6 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
-| `CLAUDE_PLANS_DIR` | `.claude/output/plans` | Plan copies destination |
 
 ### Thresholds & Configuration
 | Variable | Default | Purpose |

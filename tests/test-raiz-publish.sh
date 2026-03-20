@@ -167,8 +167,6 @@ assert_file_exists "secrets-guard included" "$OUTPUT_DIR/.claude/hooks/secrets-g
 assert_file_not_exists "session-start excluded" "$OUTPUT_DIR/.claude/hooks/session-start.sh"
 assert_file_not_exists "enforce-uv-run excluded" "$OUTPUT_DIR/.claude/hooks/enforce-uv-run.sh"
 assert_file_not_exists "enforce-make-commands excluded" "$OUTPUT_DIR/.claude/hooks/enforce-make-commands.sh"
-assert_file_not_exists "copy-plan-to-project excluded" "$OUTPUT_DIR/.claude/hooks/copy-plan-to-project.sh"
-
 # Memories
 assert_file_exists "code_style memory included" "$OUTPUT_DIR/.claude/memories/essential-conventions-code_style.md"
 assert_file_exists "memory conventions included" "$OUTPUT_DIR/.claude/memories/essential-conventions-memory.md"
@@ -243,8 +241,6 @@ assert_file_contains "has suggest-read-json" "$local_settings" "suggest-read-jso
 assert_file_not_contains "no session-start" "$local_settings" "session-start.sh"
 assert_file_not_contains "no enforce-uv-run" "$local_settings" "enforce-uv-run.sh"
 assert_file_not_contains "no enforce-make-commands" "$local_settings" "enforce-make-commands.sh"
-assert_file_not_contains "no copy-plan-to-project" "$local_settings" "copy-plan-to-project.sh"
-
 # Should NOT have statusLine
 assert_file_not_contains "no statusLine" "$local_settings" "statusLine"
 
