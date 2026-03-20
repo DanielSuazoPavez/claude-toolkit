@@ -6,6 +6,15 @@
 - **backlog**: 8 new items from Claude Code features triage (allowed-tools audit, CLAUDE_SKILL_DIR, PermissionRequest hooks, native directory settings, prompt/agent hook types, agent frontmatter, user-invocable:false, last_assistant_message)
 - **analysis**: Claude Code features triage report
 
+## [2.17.0] - 2026-03-20 - Native plansDirectory setting
+
+### Added
+- **settings**: `plansDirectory: ".claude/output/plans"` — native Claude Code setting replaces custom hook
+
+### Removed
+- **hooks**: `copy-plan-to-project.sh` — replaced by native `plansDirectory` setting (75-line hook → 1 JSON key)
+- **settings**: `CLAUDE_PLANS_DIR` env var — no longer needed
+
 ## [2.16.0] - 2026-03-20 - PermissionRequest hook context
 
 ### Added

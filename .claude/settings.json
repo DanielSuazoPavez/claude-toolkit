@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "enableAllProjectMcpServers": false,
+  "plansDirectory": ".claude/output/plans",
   "hooks": {
     "SessionStart": [
       {
@@ -66,17 +67,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/copy-plan-to-project.sh"
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -86,7 +76,6 @@
   "_env_config": {
     "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
     "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
-    "CLAUDE_PLANS_DIR": "Directory for plan copies (default: .claude/output/plans)",
     "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
     "PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"
   }

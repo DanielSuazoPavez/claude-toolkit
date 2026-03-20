@@ -23,8 +23,8 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 ## P1 - High
 
 
-- **[TOOLKIT]** Native directory settings — adopt `plansDirectory` (deprecate copy-plan hook) + `autoMemoryDirectory` (project-scoped in `.claude/memories/auto/`, gitignored) (`toolkit-native-dirs`)
-    - **scope**: `toolkit, hooks`
+- **[TOOLKIT]** Native `autoMemoryDirectory` setting — research path resolution behavior (relative vs absolute, per-project scoping), adopt for `.claude/memories/auto/` (gitignored) (`toolkit-auto-memory-dir`)
+    - **scope**: `toolkit`
 
 ## P2 - Medium
 

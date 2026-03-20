@@ -578,46 +578,6 @@ test_git_safety() {
     rm -rf "$nogit_dir" "$nogit_counters"
 }
 
-# === COPY PLAN TO PROJECT ===
-test_copy_plan_to_project() {
-    echo ""
-    echo "=== copy-plan-to-project.sh ==="
-    local hook="copy-plan-to-project.sh"
-
-    # Create temp directories
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    local source_file="$temp_dir/.claude/plans/test.md"
-    local target_dir="$temp_dir/project/.claude/output/plans"
-
-    mkdir -p "$(dirname "$source_file")"
-    mkdir -p "$target_dir"
-
-    # Create test plan file
-    echo "# Plan: Test Feature" > "$source_file"
-    echo "Some plan content" >> "$source_file"
-
-    # Run hook (export CLAUDE_PLANS_DIR so the piped hook process sees it)
-    (
-        cd "$temp_dir/project"
-        export CLAUDE_PLANS_DIR="$target_dir"
-        echo "{\"permission_mode\":\"plan\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$source_file\"}}" | "$OLDPWD/$HOOKS_DIR/$hook" 2>/dev/null
-    ) || true
-
-    TESTS_RUN=$((TESTS_RUN + 1))
-    if ls "$target_dir"/*test-feature*.md >/dev/null 2>&1; then
-        echo -e "  ${GREEN}PASS${NC}: copies plan with slugified name"
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-    else
-        echo -e "  ${RED}FAIL${NC}: copies plan with slugified name"
-        echo "    Expected file matching *test-feature*.md in $target_dir"
-        echo "    Contents: $(ls -la "$target_dir" 2>&1)"
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-    fi
-
-    rm -rf "$temp_dir"
-}
-
 # === RUN TESTS ===
 echo "Running hook tests..."
 echo "Hooks directory: $HOOKS_DIR"
@@ -631,7 +591,6 @@ if [ -z "$FILTER" ]; then
     test_enforce_make_commands
     test_suggest_json_reader
     test_git_safety
-    test_copy_plan_to_project
 else
     # Run specific test
     case "$FILTER" in
@@ -642,7 +601,6 @@ else
         make*|enforce-make*) test_enforce_make_commands ;;
         json*|suggest-json*) test_suggest_json_reader ;;
         git*|safety*|branch*|feature*) test_git_safety ;;
-        plan*|copy-plan*) test_copy_plan_to_project ;;
         capture*|lesson*) echo "capture-lesson hook removed (failed experiment)" ;;
         *) echo "Unknown hook: $FILTER"; exit 1 ;;
     esac
