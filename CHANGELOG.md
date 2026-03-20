@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2.15.0] - 2026-03-20 - allowed-tools audit
+
+### Added
+- **skills**: `allowed-tools` frontmatter added to 25 command skills (only 2 of 33 had it before). 6 knowledge-only skills exempt
+- **skills**: `evaluate-skill` D4 — tool scoping sub-criterion: checks `allowed-tools` presence and proper scoping for command skills (2-3 pt deduction if missing)
+
+### Changed
+- **memories**: `relevant-toolkit-resource_frontmatter` — `allowed-tools` now documented as required for command skills, with pattern examples
+
 ## [2.14.1] - 2026-03-20 - draft-pr file output
 
 ### Fixed
