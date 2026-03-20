@@ -23,9 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 ## P1 - High
 
 
-- **[TOOLKIT]** Native `autoMemoryDirectory` setting — research path resolution behavior (relative vs absolute, per-project scoping), adopt for `.claude/memories/auto/` (gitignored) (`toolkit-auto-memory-dir`)
-    - **scope**: `toolkit`
-
 ## P2 - Medium
 
 - **[HOOKS]** `prompt`/`agent` hook types — LLM-based judgment in hooks for nuanced decisions (`hook-llm-types`)
@@ -56,3 +53,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 - **[SKILLS]** Adopt `${CLAUDE_SKILL_DIR}` — use in skills that reference bundled resources (`skill-claude-skill-dir`)
     - **scope**: `skills`
+
+- **[TOOLKIT]** Native `autoMemoryDirectory` setting — unclear if it actually changes write behavior vs just `/memory` UI folder (`toolkit-auto-memory-dir`)
+    - **scope**: `toolkit`
+    - **notes**: Tested 2026-03-20. Setting `autoMemoryDirectory` in user settings only affects the "Open auto-memory folder" option in `/memory` UI — didn't observe it redirecting where Claude writes auto-memories. Needs more investigation if Claude Code documents this further.
