@@ -6,6 +6,14 @@
 - **backlog**: 8 new items from Claude Code features triage (allowed-tools audit, CLAUDE_SKILL_DIR, PermissionRequest hooks, native directory settings, prompt/agent hook types, agent frontmatter, user-invocable:false, last_assistant_message)
 - **analysis**: Claude Code features triage report
 
+## [2.16.0] - 2026-03-20 - PermissionRequest hook context
+
+### Added
+- **skills**: `create-hook` — PermissionRequest added to decision tree, full example with allowlist pattern matching, settings.json config, and guidance on PermissionRequest vs `allowed-tools`
+
+### Changed
+- **backlog**: Removed completed items, added missing IDs, reprioritized `CLAUDE_SKILL_DIR` to P99
+
 ## [2.15.0] - 2026-03-20 - allowed-tools audit
 
 ### Added
