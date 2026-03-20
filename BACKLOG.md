@@ -22,7 +22,22 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
+- **[SKILLS]** `allowed-tools` audit — add allowed-tools frontmatter to all 33 skills (only 2 have it)
+    - **scope**: `skills`
+
+- **[SKILLS]** Adopt `${CLAUDE_SKILL_DIR}` — use in skills that reference bundled resources
+    - **scope**: `skills`
+
+- **[HOOKS]** `PermissionRequest` hooks — replace PreToolUse auto-approve patterns, reduce hook noise
+    - **scope**: `hooks`
+
+- **[TOOLKIT]** Native directory settings — adopt `plansDirectory` (deprecate copy-plan hook) + `autoMemoryDirectory` (project-scoped in `.claude/memories/auto/`, gitignored)
+    - **scope**: `toolkit, hooks`
+
 ## P2 - Medium
+
+- **[HOOKS]** `prompt`/`agent` hook types — LLM-based judgment in hooks for nuanced decisions
+    - **scope**: `hooks`
 
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `in-progress`
@@ -36,4 +51,13 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[AGENTS]** Agent frontmatter exploration — `background: true`, `SendMessage` for iterative cycles, `effort` per agent
+    - **scope**: `agents`
+
+- **[SKILLS]** `user-invocable: false` — background knowledge skills, add to `create-skill` workflow context
+    - **scope**: `skills`
+
 ## P99 - Nice to Have
+
+- **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation
+    - **scope**: `hooks`

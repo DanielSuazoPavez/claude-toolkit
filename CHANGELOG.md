@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- **backlog**: 8 new items from Claude Code features triage (allowed-tools audit, CLAUDE_SKILL_DIR, PermissionRequest hooks, native directory settings, prompt/agent hook types, agent frontmatter, user-invocable:false, last_assistant_message)
+- **analysis**: Claude Code features triage report
+
 ## [2.14.1] - 2026-03-20 - draft-pr file output
 
 ### Fixed
