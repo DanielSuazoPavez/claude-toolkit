@@ -22,7 +22,8 @@ Use `verb-noun.sh` format for hook names. See `docs/naming-conventions.md`.
 ### 1. Choose Hook Event
 
 **Decision tree:**
-- Want to **block/prevent** an action? → `PreToolUse` (only one that can block)
+- Want to **block/prevent** an action? → `PreToolUse` (block before execution)
+- Want to **auto-approve** a permission prompt? → `PermissionRequest`
 - Want to **react after** something happens? → `PostToolUse`
 - Want **alerts when Claude waits**? → `Notification`
 
@@ -141,6 +142,65 @@ Configuration:
   }
 }
 ```
+
+### PermissionRequest Example
+
+A hook that auto-approves specific Bash commands from the permission prompt:
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+
+if [ "$TOOL_NAME" != "Bash" ]; then
+    exit 0
+fi
+
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
+
+# Allowlist: auto-approve safe commands
+ALLOWED_PATTERNS=(
+    "^make (test|check|lint|format)"
+    "^npm (test|run lint)"
+    "^uv run (pytest|ruff)"
+)
+
+for pattern in "${ALLOWED_PATTERNS[@]}"; do
+    if [[ "$COMMAND" =~ $pattern ]]; then
+        # GOTCHA: hookEventName must be "PreToolUse" even for PermissionRequest hooks
+        echo '{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow", "permissionDecisionReason": "Auto-approved by allowlist"}}'
+        exit 0
+    fi
+done
+
+# No match — fall through to normal permission prompt
+exit 0
+```
+
+Configuration:
+```json
+{
+  "hooks": {
+    "PermissionRequest": [{
+      "matcher": "Bash",
+      "hooks": [{"type": "command", "command": "/path/to/auto-approve.sh"}]
+    }]
+  }
+}
+```
+
+Test:
+```bash
+# Should auto-approve
+echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | ./auto-approve.sh
+# Expected: {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow",...}}
+
+# Should fall through (no output)
+echo '{"tool_name":"Bash","tool_input":{"command":"npm publish"}}' | ./auto-approve.sh
+# Expected: (empty)
+```
+
+**PermissionRequest vs `allowed-tools`:** Use `allowed-tools` in settings.json for static, all-or-nothing tool approval (e.g., allow all `Bash` commands). Use a `PermissionRequest` hook when you need conditional logic — approve `npm test` but not `npm publish`, or approve `rm` only in certain directories.
 
 ## Real-World Reference
 
