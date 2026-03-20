@@ -40,9 +40,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[AGENTS]** Agent frontmatter exploration — `background: true`, `SendMessage` for iterative cycles, `effort` per agent (`agent-frontmatter`)
-    - **scope**: `agents`
-
 - **[SKILLS]** `user-invocable: false` — background knowledge skills, add to `create-skill` workflow context (`skill-user-invocable-false`)
     - **scope**: `skills`
 
