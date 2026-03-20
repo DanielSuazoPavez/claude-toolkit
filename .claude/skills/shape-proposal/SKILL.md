@@ -1,6 +1,7 @@
 ---
 name: shape-proposal
 description: Shape a validated design into a presentable proposal for a specific audience. Use AFTER brainstorm-idea when the design is solid but needs to be shared with a team, client, or stakeholder. Keywords: proposal, present, audience, share, reframe, pitch, stakeholder, client.
+allowed-tools: Read, Write, Agent
 ---
 
 Shape a validated design into a presentable proposal. Use AFTER `brainstorm-idea`, BEFORE plan mode.

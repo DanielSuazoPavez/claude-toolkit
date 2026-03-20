@@ -2,6 +2,7 @@
 name: review-security
 description: Targeted security audit of specific files or modules. Use when requests mention "security review", "vulnerability check", "security audit", "attack surface", or "pen test review".
 argument-hint: File paths, module names, or leave empty for recent changes
+allowed-tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*)
 ---
 
 Use for on-demand security review of specific files or modules. Complements CC's built-in `/security-review` (PR-level diffs) by supporting targeted, pre-commit, and existing-code audits.

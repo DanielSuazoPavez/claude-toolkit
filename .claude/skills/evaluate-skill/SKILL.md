@@ -2,6 +2,7 @@
 name: evaluate-skill
 description: Use when reviewing, auditing, or scoring a SKILL.md file. Keywords: skill evaluation, skill audit, skill quality, evaluate skill, score skill, review skill.
 argument-hint: "[skill-name-or-path]"
+allowed-tools: Read, Write, Glob, Agent, Bash(jq:*)
 ---
 
 # Skill Judge
@@ -94,6 +95,8 @@ Are anti-patterns specific with reasoning, not vague warnings?
 
 ### D4: Specification Compliance (10 pts)
 Is the description clear about WHAT and WHEN? Keywords should be precise — penalize over-broad trigger lists that cause false-positive routing.
+
+**Tool scoping (command skills only):** Does the skill declare `allowed-tools` in frontmatter? Are the tools appropriately scoped — not too broad (e.g. `Bash` without pattern) and not missing tools it actually uses? Knowledge skills are exempt. Deduct 2-3 pts if missing or misconfigured.
 
 ### D5: Progressive Disclosure (15 pts)
 - Metadata: Always in memory

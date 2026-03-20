@@ -10,7 +10,7 @@
 
 Official supported YAML frontmatter fields for Claude Code skills and agents.
 
-**Last verified:** 2026-03-11
+**Last verified:** 2026-03-20
 
 **See also:** `relevant-toolkit-hooks_config` for hook configuration
 
@@ -31,7 +31,7 @@ Claude Code skills implement the [Agent Skills open standard](https://agentskill
 | `license` | No | License name or file reference |
 | `compatibility` | No | Environment requirements |
 | `metadata` | No | Arbitrary string-to-string map (author, version, tags). Informational only — no behavioral effect. |
-| `allowed-tools` | No | Space-delimited tool list (experimental in spec) |
+| `allowed-tools` | No* | Comma-separated tool list. Required for command skills in this toolkit. Supports patterns: `Bash(git:*)`, `Bash(jq:*)`. Knowledge skills don't need it. |
 
 ### Claude Code Skill Extension Fields
 

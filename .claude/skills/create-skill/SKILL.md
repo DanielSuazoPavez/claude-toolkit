@@ -1,6 +1,7 @@
 ---
 name: create-skill
 description: Use when adding a new skill, improving an unreliable skill, or extracting a repeatable pattern. Keywords: create skill, new skill, skill template, SKILL.md.
+allowed-tools: Read, Write, Glob, Bash(mkdir:*), Skill
 ---
 
 Create new skills using test-driven documentation. No skill without a failing test first.

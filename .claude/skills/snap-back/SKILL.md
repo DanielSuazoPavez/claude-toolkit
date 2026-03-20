@@ -2,6 +2,7 @@
 name: snap-back
 type: command
 description: Use when tone drifts into sycophancy, excessive agreement, or customer-service voice. Also use after user praise or long sessions where style degrades.
+allowed-tools: Read
 ---
 
 Re-read `essential-preferences-communication_style` — that's your baseline. Then use this skill's reset protocol to course-correct.

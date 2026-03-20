@@ -3,6 +3,7 @@ name: analyze-idea
 type: knowledge
 description: Research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report. Use for feasibility analysis, coverage gaps, codebase audits.
 argument-hint: "[topic]"
+allowed-tools: Read, Grep, Glob, Write, Agent
 ---
 
 Use for research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report.

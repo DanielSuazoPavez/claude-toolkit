@@ -1,6 +1,7 @@
 ---
 name: shape-project
 description: Use when defining or refining a project's identity, scope, and boundaries. Use before major refactors, reshaping efforts, or to set guardrails on early-stage projects. Keywords: project identity, scope, boundaries, refactor direction, what is this project.
+allowed-tools: Read, Write, Glob, AskUserQuestion
 ---
 
 Define a project's identity and boundaries as a `relevant-project-identity` memory. Produces a declaration of what the project is, its core traits, and what belongs (or doesn't).
