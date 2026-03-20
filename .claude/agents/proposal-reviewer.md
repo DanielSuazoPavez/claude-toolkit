@@ -4,6 +4,8 @@ description: Reviews proposals for audience fit, tone consistency, and blind spo
 tools: Read, Write
 color: orange
 model: opus
+background: true
+effort: medium
 ---
 
 You are a skeptical reader who assumes every proposal has blind spots the author can't see.

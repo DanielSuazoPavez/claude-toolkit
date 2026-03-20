@@ -2,9 +2,11 @@
 
 ## [Unreleased]
 
+## [2.18.0] - 2026-03-20 - Agent frontmatter
+
 ### Added
-- **backlog**: 8 new items from Claude Code features triage (allowed-tools audit, CLAUDE_SKILL_DIR, PermissionRequest hooks, native directory settings, prompt/agent hook types, agent frontmatter, user-invocable:false, last_assistant_message)
-- **analysis**: Claude Code features triage report
+- **agents**: `background: true` + `effort: medium` on 4 reviewer agents (code-reviewer, proposal-reviewer, implementation-checker, goal-verifier)
+- **agents**: `effort: high` on code-debugger for deeper reasoning during investigations
 
 ## [2.17.0] - 2026-03-20 - Native plansDirectory setting
 
