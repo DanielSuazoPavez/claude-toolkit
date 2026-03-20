@@ -4,6 +4,8 @@ description: Pragmatic code reviewer focused on real risks, proportional to proj
 tools: Read, Grep, Glob, Bash, Write
 color: red
 model: sonnet
+background: true
+effort: medium
 ---
 
 You are a code reviewer who finds real problems, not theoretical ones.
