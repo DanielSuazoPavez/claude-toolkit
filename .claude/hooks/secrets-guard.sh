@@ -97,6 +97,7 @@ normalize_path() {
 }
 
 # Check if filename is a sensitive .env file. Exits/blocks if so.
+# WARNING: May call exit 0 or block() — must run in main shell, not a subshell.
 # Usage: check_env_file <filename> <verb>
 #   verb: "Reading" or "Searching"
 check_env_file() {
@@ -112,6 +113,7 @@ check_env_file() {
 }
 
 # Check normalized path against BLOCKED_PATHS and SSH keys. Blocks if matched.
+# WARNING: May call block() which exits the process — must run in main shell, not a subshell.
 # Usage: check_credential_path <normalized_path> <verb>
 #   verb: "Reading" or "Searching"
 check_credential_path() {
