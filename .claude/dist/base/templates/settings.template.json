@@ -4,7 +4,7 @@
   "_instructions": "Copy this to .claude/settings.json and customize for your project. Shared permissions are included below — for project-specific trust (skills, MCP tools, etc.), create .claude/settings.local.json (not committed to git).",
 
   "enableAllProjectMcpServers": false,
-  "plansDirectory": ".claude/output/plans",
+  "plansDirectory": "output/claude-toolkit/plans",
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -37,8 +37,8 @@
       "Bash(.claude/scripts/*)",
       "Bash(./scripts/*)",
       "Read(/**)",
-      "Write(/.claude/output/**)",
-      "Edit(/.claude/output/**)"
+      "Write(/output/claude-toolkit/**)",
+      "Edit(/output/claude-toolkit/**)"
     ]
   },
   "hooks": {
