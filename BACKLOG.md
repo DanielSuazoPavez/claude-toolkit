@@ -25,10 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[TOOLKIT]** Permission design — research and document how to craft tighter allow/deny permissions + PreToolUse approve patterns (`permission-design`)
-    - **scope**: `toolkit`
-    - **notes**: Two layers — (1) static allow/deny permissions (regex patterns, path scoping, command prefixes) and (2) PreToolUse hooks that return `approve` for context-dependent safe operations. Together these minimize permission prompts, enabling unattended workflows (Channels, background agents). Research granularity available, document best practices, possibly create a skill or memory for designing permission sets per project.
-
 - **[HOOKS]** `prompt`/`agent` hook types — LLM-based judgment in hooks for nuanced decisions (`hook-llm-types`)
     - **scope**: `hooks`
 
@@ -43,6 +39,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **drafts**: `.claude/output/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P3 - Low
+
+- **[TOOLKIT]** Move generated output outside `.claude/` — `.claude/` has built-in protection that can interfere with permission patterns; moving `output/` to project root (e.g., `claude-output/`) would avoid ambiguity and make Write/Edit permissions work predictably (`output-outside-dotclaude`)
+    - **scope**: `toolkit`
+    - **notes**: Affects all projects and the sync template. During permission design testing (2026-03-23), Write/Edit to `.claude/output/**` worked but may be session-scoped rather than permission-scoped. Bash commands (touch, rm) inside `.claude/` hit built-in protection regardless of allow list.
 
 ## P99 - Nice to Have
 

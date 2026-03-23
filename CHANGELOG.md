@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.20.0] - 2026-03-23 - Shared permission allow list
+
+### Added
+- **settings**: shared `permissions.allow` in `settings.json` — universally safe patterns (read-only commands, safe git subcommands, hook/script execution, output writes) synced to all projects
+- **settings**: matching permissions in `settings.template.json` for new project setup
+- **scripts**: `validate-settings-template.sh` — permissions.allow sync check between settings.json and template
+
 ## [2.19.0] - 2026-03-23 - Knowledge skills + validation fixes
 
 ### Added

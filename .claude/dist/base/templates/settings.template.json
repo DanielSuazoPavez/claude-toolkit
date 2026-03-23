@@ -1,10 +1,47 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "_comment": "Claude Toolkit - Reference settings.json template",
-  "_instructions": "Copy this to .claude/settings.json and customize for your project. For permissions, create a separate .claude/settings.local.json (not committed to git).",
+  "_instructions": "Copy this to .claude/settings.json and customize for your project. Shared permissions are included below — for project-specific trust (skills, MCP tools, etc.), create .claude/settings.local.json (not committed to git).",
 
   "enableAllProjectMcpServers": false,
   "plansDirectory": ".claude/output/plans",
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(jq:*)",
+      "Bash(make:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git commit:*)",
+      "Bash(./.claude/hooks/*)",
+      "Bash(.claude/scripts/*)",
+      "Bash(./scripts/*)",
+      "Read(/**)",
+      "Write(/.claude/output/**)",
+      "Edit(/.claude/output/**)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

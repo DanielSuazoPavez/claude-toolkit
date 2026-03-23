@@ -103,6 +103,40 @@ elif [ "$SETTINGS_NESTED" -ne "$TEMPLATE_NESTED" ]; then
 fi
 echo ""
 
+# === Permission allow rules ===
+echo "=== Permission Allow Rules ==="
+
+extract_permissions() {
+    jq -r '.permissions.allow // [] | .[]' "$1" 2>/dev/null | sort
+}
+
+SETTINGS_PERMS=$(extract_permissions "$SETTINGS")
+TEMPLATE_PERMS=$(extract_permissions "$TEMPLATE")
+
+if [ -z "$SETTINGS_PERMS" ] && [ -z "$TEMPLATE_PERMS" ]; then
+    echo -e "${GREEN}✓ No permission rules in either file${NC}"
+else
+    MISSING_FROM_TEMPLATE=$(comm -23 <(echo "$SETTINGS_PERMS") <(echo "$TEMPLATE_PERMS"))
+    if [ -n "$MISSING_FROM_TEMPLATE" ]; then
+        echo -e "${RED}In settings.json but missing from template:${NC}"
+        echo "$MISSING_FROM_TEMPLATE" | sed 's/^/  - /'
+        ERRORS=$((ERRORS + $(echo "$MISSING_FROM_TEMPLATE" | wc -l)))
+    fi
+
+    EXTRA_IN_TEMPLATE=$(comm -13 <(echo "$SETTINGS_PERMS") <(echo "$TEMPLATE_PERMS"))
+    if [ -n "$EXTRA_IN_TEMPLATE" ]; then
+        echo -e "${YELLOW}In template but not in settings.json:${NC}"
+        echo "$EXTRA_IN_TEMPLATE" | sed 's/^/  - /'
+        ERRORS=$((ERRORS + $(echo "$EXTRA_IN_TEMPLATE" | wc -l)))
+    fi
+
+    if [ -z "$MISSING_FROM_TEMPLATE" ] && [ -z "$EXTRA_IN_TEMPLATE" ]; then
+        PERM_COUNT=$(echo "$SETTINGS_PERMS" | wc -l)
+        echo -e "${GREEN}✓ All $PERM_COUNT permission rules match${NC}"
+    fi
+fi
+echo ""
+
 # === Summary ===
 if [ $ERRORS -eq 0 ]; then
     echo -e "${GREEN}Settings template is in sync.${NC}"
