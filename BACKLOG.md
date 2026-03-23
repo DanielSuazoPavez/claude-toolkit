@@ -40,8 +40,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- ~~**[TOOLKIT]** Move generated output outside `.claude/`~~ — **DONE** (`fix/output-outside-dotclaude`). Moved to `output/claude-toolkit/`.
-
 ## P99 - Nice to Have
 
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
