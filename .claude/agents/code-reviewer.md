@@ -72,7 +72,7 @@ Same finding, different severity — because the context is different.
 
 ## Output Path
 
-Write the report to `.claude/output/reviews/{YYYYMMDD}_{HHMM}__code-reviewer__{branch}.md`
+Write the report to `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__code-reviewer__{branch}.md`
 
 - Use `git branch --show-current` for the branch name (replace `/` with `-`)
 - Use `date +%Y%m%d_%H%M` for the timestamp

@@ -1,6 +1,6 @@
 ---
 name: codebase-explorer
-description: Explores codebase and writes structured analysis to a timestamped folder under .claude/output/reviews/. Use for onboarding or understanding architecture.
+description: Explores codebase and writes structured analysis to a timestamped folder under output/claude-toolkit/reviews/. Use for onboarding or understanding architecture.
 tools: Read, Bash, Grep, Glob, Write
 color: cyan
 model: sonnet
@@ -38,7 +38,7 @@ Invoke with a focus area:
 
 Determine the output directory at the start of each run:
 1. Get current timestamp: `date +%Y%m%d_%H%M`
-2. Output directory: `.claude/output/reviews/{YYYYMMDD}_{HHMM}__codebase-explorer/`
+2. Output directory: `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__codebase-explorer/`
 
 Write documents to that timestamped directory:
 
@@ -114,8 +114,8 @@ Write documents to the timestamped directory. Return only a brief confirmation:
 
 **Focus**: {area}
 **Documents written**:
-- `.claude/output/reviews/20260308_1430__codebase-explorer/STACK.md`
-- `.claude/output/reviews/20260308_1430__codebase-explorer/INTEGRATIONS.md`
+- `output/claude-toolkit/reviews/20260308_1430__codebase-explorer/STACK.md`
+- `output/claude-toolkit/reviews/20260308_1430__codebase-explorer/INTEGRATIONS.md`
 
 **Key findings**:
 - Python 3.12 + FastAPI
