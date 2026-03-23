@@ -25,6 +25,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
+- **[TOOLKIT]** Permission design — research and document how to craft tighter allow/deny permissions + PreToolUse approve patterns (`permission-design`)
+    - **scope**: `toolkit`
+    - **notes**: Two layers — (1) static allow/deny permissions (regex patterns, path scoping, command prefixes) and (2) PreToolUse hooks that return `approve` for context-dependent safe operations. Together these minimize permission prompts, enabling unattended workflows (Channels, background agents). Research granularity available, document best practices, possibly create a skill or memory for designing permission sets per project.
+
 - **[HOOKS]** `prompt`/`agent` hook types — LLM-based judgment in hooks for nuanced decisions (`hook-llm-types`)
     - **scope**: `hooks`
 
@@ -39,9 +43,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **drafts**: `.claude/output/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P3 - Low
-
-- **[SKILLS]** `user-invocable: false` — background knowledge skills, add to `create-skill` workflow context (`skill-user-invocable-false`)
-    - **scope**: `skills`
 
 ## P99 - Nice to Have
 
