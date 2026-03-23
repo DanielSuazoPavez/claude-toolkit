@@ -290,6 +290,26 @@ test_secrets_guard() {
         "allows grep targeting known_hosts"
     expect_allow "$hook" "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"host\",\"path\":\"$HOME/.ssh/id_rsa.pub\"}}" \
         "allows grep targeting SSH public key"
+
+    # Should block Bash - grep/rg/awk/sed reading .env files
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep SECRET .env"}}' \
+        "blocks grep .env"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep -r password .env.local"}}' \
+        "blocks grep .env.local"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"rg password .env"}}' \
+        "blocks rg .env"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"awk -F= \"{print}\" .env"}}' \
+        "blocks awk .env"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"sed -n \"s/KEY=//p\" .env"}}' \
+        "blocks sed .env"
+
+    # Should allow Bash - grep/rg with safe targets
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep TODO src/main.js"}}' \
+        "allows grep on normal files"
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep KEY .env.example"}}' \
+        "allows grep .env.example"
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"rg pattern src/"}}' \
+        "allows rg on normal directory"
 }
 
 # === BLOCK CONFIG EDITS ===

@@ -214,6 +214,14 @@ if [ "$TOOL_NAME" = "Bash" ]; then
         fi
     fi
 
+    # grep/rg/awk/sed .env*
+    if [[ "$COMMAND" =~ (grep|rg|awk|sed)[[:space:]]+(.*[[:space:]])?${ENV_FILE_RE}([[:space:]]|$) ]]; then
+        MATCHED="${BASH_REMATCH[0]}"
+        if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
+            block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+        fi
+    fi
+
     # source .env* or . .env*
     if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*${ENV_FILE_RE}([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
