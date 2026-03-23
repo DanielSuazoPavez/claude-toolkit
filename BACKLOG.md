@@ -4,7 +4,7 @@
 
 Post-v2 — improve resources through real usage, expand into AWS and security domains.
 
-**See also:** `.claude/output/reviews/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
+**See also:** `output/claude-toolkit/reviews/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
 
 ## Scope Definitions
 
@@ -36,13 +36,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
         - `aws-security-auditor` agent: Security review, least-privilege IAM validation
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
-    - **drafts**: `.claude/output/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
+    - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P3 - Low
 
-- **[TOOLKIT]** Move generated output outside `.claude/` — `.claude/` has built-in protection that can interfere with permission patterns; moving `output/` to project root (e.g., `claude-output/`) would avoid ambiguity and make Write/Edit permissions work predictably (`output-outside-dotclaude`)
-    - **scope**: `toolkit`
-    - **notes**: Affects all projects and the sync template. During permission design testing (2026-03-23), Write/Edit to `.claude/output/**` worked but may be session-scoped rather than permission-scoped. Bash commands (touch, rm) inside `.claude/` hit built-in protection regardless of allow list.
+- ~~**[TOOLKIT]** Move generated output outside `.claude/`~~ — **DONE** (`fix/output-outside-dotclaude`). Moved to `output/claude-toolkit/`.
 
 ## P99 - Nice to Have
 
