@@ -224,6 +224,10 @@ test_secrets_guard() {
         "blocks reading SSH private key (id_ed25519)"
     expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/config\"}}" \
         "blocks reading SSH config"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.gnupg/private-keys-v1.d/key.key\"}}" \
+        "blocks reading GPG private key (subpath)"
+    expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.gnupg\"}}" \
+        "blocks reading GPG directory (no trailing slash)"
     expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.aws/credentials\"}}" \
         "blocks reading AWS credentials"
     expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.config/gh/hosts.yml\"}}" \
@@ -276,6 +280,10 @@ test_secrets_guard() {
         "blocks grep with *.env glob"
 
     # Should block Grep - credential files
+    expect_block "$hook" "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.gnupg\"}}" \
+        "blocks grep targeting GPG directory (no trailing slash)"
+    expect_block "$hook" "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.gnupg/trustdb.gpg\"}}" \
+        "blocks grep targeting GPG subpath"
     expect_block "$hook" "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.aws/credentials\"}}" \
         "blocks grep targeting AWS credentials"
     expect_block "$hook" "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.ssh/id_rsa\"}}" \

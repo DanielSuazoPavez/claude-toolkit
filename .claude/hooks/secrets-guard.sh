@@ -112,7 +112,7 @@ if [ "$TOOL_NAME" = "Read" ]; then
         pattern="${entry%%:::*}"
         message="${entry##*:::}"
         # Exact match or prefix match (for directory patterns ending in /)
-        if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && "$NORM_PATH" == "$pattern"* ]]; then
+        if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && ( "$NORM_PATH" == "$pattern"* || "$NORM_PATH/" == "$pattern" ) ]]; then
             block "BLOCKED: $message."
         fi
     done
@@ -167,7 +167,7 @@ if [ "$TOOL_NAME" = "Grep" ]; then
         for entry in "${BLOCKED_PATHS[@]}"; do
             pattern="${entry%%:::*}"
             message="${entry##*:::}"
-            if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && "$NORM_PATH" == "$pattern"* ]]; then
+            if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && ( "$NORM_PATH" == "$pattern"* || "$NORM_PATH/" == "$pattern" ) ]]; then
                 block "BLOCKED: $message."
             fi
         done
