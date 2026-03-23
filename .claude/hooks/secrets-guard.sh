@@ -201,21 +201,22 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
     [ -z "$COMMAND" ] && exit 0
 
-    # Block commands that read .env files (.env, .env.local, .env.production, etc.)
+    # Block commands that read .env files (.env, .env.local, .env.production, prod.env, etc.)
     # Allow: .env.example, .env.template
     ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'
+    ENV_SUFFIX_RE='[a-zA-Z0-9_]+\.env'
     ENV_ALLOW_RE='\.(example|template)$'
 
-    # cat/less/head/tail/more .env*
-    if [[ "$COMMAND" =~ (cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?${ENV_FILE_RE}([[:space:]]|$) ]]; then
+    # cat/less/head/tail/more .env* or *.env
+    if [[ "$COMMAND" =~ (cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?(${ENV_FILE_RE}|${ENV_SUFFIX_RE})([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
             block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
         fi
     fi
 
-    # grep/rg/awk/sed .env*
-    if [[ "$COMMAND" =~ (grep|rg|awk|sed)[[:space:]]+(.*[[:space:]])?${ENV_FILE_RE}([[:space:]]|$) ]]; then
+    # grep/rg/awk/sed .env* or *.env
+    if [[ "$COMMAND" =~ (grep|rg|awk|sed)[[:space:]]+(.*[[:space:]])?(${ENV_FILE_RE}|${ENV_SUFFIX_RE})([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
             block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
@@ -223,7 +224,7 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     fi
 
     # source .env* or . .env*
-    if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*${ENV_FILE_RE}([[:space:]]|$) ]]; then
+    if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*(${ENV_FILE_RE}|${ENV_SUFFIX_RE})([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
             block "BLOCKED: Sourcing .env file may expose secrets. Use the .example version as a reference instead."
@@ -231,7 +232,7 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     fi
 
     # export $(cat .env*) or similar patterns
-    if [[ "$COMMAND" =~ export[[:space:]]+.*\$\(.*${ENV_FILE_RE} ]]; then
+    if [[ "$COMMAND" =~ export[[:space:]]+.*\$\(.*(${ENV_FILE_RE}|${ENV_SUFFIX_RE}) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
             block "BLOCKED: Exporting from .env file may expose secrets. Use the .example version as a reference instead."

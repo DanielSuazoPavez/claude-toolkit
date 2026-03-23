@@ -196,6 +196,12 @@ test_secrets_guard() {
         "blocks cat .env.local"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env.production"}}' \
         "blocks cat .env.production"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat prod.env"}}' \
+        "blocks cat prod.env (*.env pattern)"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat staging.env"}}' \
+        "blocks cat staging.env (*.env pattern)"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep SECRET prod.env"}}' \
+        "blocks grep prod.env (*.env pattern)"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"source .env"}}' \
         "blocks source .env"
     expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"source .env.local"}}' \
