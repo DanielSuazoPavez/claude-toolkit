@@ -310,6 +310,14 @@ test_secrets_guard() {
         "allows grep .env.example"
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"rg pattern src/"}}' \
         "allows rg on normal directory"
+
+    # Should block Bash - grep/rg reading credential files
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep key ~/.aws/credentials"}}' \
+        "blocks grep ~/.aws/credentials"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"rg token ~/.config/gh/hosts.yml"}}' \
+        "blocks rg ~/.config/gh/hosts.yml"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep key ~/.ssh/id_rsa"}}' \
+        "blocks grep ~/.ssh/id_rsa"
 }
 
 # === BLOCK CONFIG EDITS ===

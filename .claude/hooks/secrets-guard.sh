@@ -251,37 +251,39 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     fi
 
     # Block commands reading credential files
-    # Use [^[:space:]]* to match within a single path argument (prevents matching across heredocs)
-    SSH_KEY_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.ssh/id_([^[:space:]]*)'
+    # (.*[[:space:]])? allows intermediate args (e.g., grep -r KEY ~/.aws/credentials)
+    # [^[:space:]]* matches within a single path argument (prevents matching across heredocs)
+    READ_CMDS='(cat|less|head|tail|more|grep|rg|awk|sed)'
+    SSH_KEY_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.ssh/id_([^[:space:]]*)"
     if [[ "$COMMAND" =~ $SSH_KEY_RE ]]; then
-        MATCHED="${BASH_REMATCH[2]}"
+        MATCHED="${BASH_REMATCH[3]}"
         if [[ "$MATCHED" != *".pub" ]]; then
             block "BLOCKED: Reading SSH private key via shell. Private keys should never be exposed."
         fi
     fi
 
-    AWS_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.aws/(credentials|config)'
+    AWS_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.aws/(credentials|config)"
     if [[ "$COMMAND" =~ $AWS_RE ]]; then
         block "BLOCKED: Reading AWS credentials via shell may expose access keys."
     fi
 
-    KUBE_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.kube/config'
+    KUBE_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.kube/config"
     if [[ "$COMMAND" =~ $KUBE_RE ]]; then
         block "BLOCKED: Reading kubeconfig via shell may expose cluster credentials."
     fi
 
-    GH_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.config/gh/hosts\.yml'
+    GH_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.config/gh/hosts\.yml"
     if [[ "$COMMAND" =~ $GH_RE ]]; then
         block "BLOCKED: Reading GitHub CLI tokens via shell."
     fi
 
-    DOCKER_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.docker/config\.json'
+    DOCKER_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.docker/config\.json"
     if [[ "$COMMAND" =~ $DOCKER_RE ]]; then
         block "BLOCKED: Reading Docker registry auth via shell."
     fi
 
-    PKG_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.(npmrc|pypirc)'
-    GEM_RE='(cat|less|head|tail|more)[[:space:]]+[^[:space:]]*\.gem/credentials'
+    PKG_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.(npmrc|pypirc)"
+    GEM_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.gem/credentials"
     if [[ "$COMMAND" =~ $PKG_RE ]] || [[ "$COMMAND" =~ $GEM_RE ]]; then
         block "BLOCKED: Reading package manager tokens via shell."
     fi
