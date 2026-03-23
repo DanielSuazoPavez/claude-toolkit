@@ -22,9 +22,10 @@ Commit code changes separately from version/changelog updates because:
 - If on main/master, create a feature branch before proceeding
 - Name it based on the work done (e.g., `feat/...`, `fix/...`, `docs/...`)
 
-### 2. Check for uncommitted code changes
+### 2. Check for uncommitted changes and non-branch artifacts
 - If uncommitted code changes exist (src/, tests/, etc.), commit them first
 - Skip if only docs files are modified
+- **Check for non-branch artifacts**: Run `git status` and look for untracked or modified files that aren't part of the branch work (e.g., files from earlier sessions, pre-existing fixes, idea memories). Don't silently ignore them — ask the user: "These changes are outside the branch scope — want to include them in this branch, or leave them for later?"
 
 ### 3. Analyze the branch
 Review commits since branching from main to understand what was done.
@@ -68,7 +69,7 @@ Bump the version in the appropriate file (VERSION, pyproject.toml, package.json,
 ### 7. Update `BACKLOG.md`
 - Remove completed items (they're now in CHANGELOG)
 - Exception: If item is part of a larger task, keep checked until parent task is fully done
-- Add any new backlog items discovered
+- **Surface new issues**: Review the session for any problems discovered, gaps identified, or TODOs that surfaced during the work. Check whether they're already documented in the backlog — if not, propose adding them. Don't dismiss issues just because they're outside the current branch scope.
 
 ### 8. Commit documentation changes
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
@@ -122,6 +123,7 @@ Output what was updated.
 | **Empty Changelog** | "Updated stuff" | Describe what changed and why |
 | **Stale Backlog** | Completed items still in TODO | Remove them (CHANGELOG is the record) |
 | **Bump Everything** | Version bump for CI-only changes | Skip bump for non-user-facing changes |
+| **Scope Tunnel Vision** | Ignoring non-branch artifacts and issues | Check git status for loose ends; ask user about unrelated changes |
 
 ## Notes
 

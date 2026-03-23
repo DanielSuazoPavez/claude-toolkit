@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.20.1] - 2026-03-23 - Wrap-up scope awareness
+
+### Fixed
+- **skills**: `wrap-up` — address scope tunnel vision: now checks for non-branch artifacts and actively surfaces session issues for backlog consideration
+
 ## [2.20.0] - 2026-03-23 - Shared permission allow list
 
 ### Added
