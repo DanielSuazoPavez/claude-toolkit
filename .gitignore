@@ -18,7 +18,6 @@ __pycache__/
 .claude/learned.json
 
 # Claude session artifacts
-.claude/usage.log
 output/claude-toolkit/
 
 .claude/settings.local.json
