@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.19.0] - 2026-03-23 - Knowledge skills + validation fixes
+
+### Added
+- **skills**: `create-skill` — knowledge skill type with `user-invocable: false` guidance and template frontmatter
+- **skills**: `evaluate-skill` — D4 criteria for `user-invocable: false` skills (description quality, keyword specificity)
+
+### Fixed
+- **scripts**: `validate-resources-indexed.sh` — exclude `idea-*` and `personal-*` memories from index validation
+- **scripts**: `verify-resource-deps.sh` — exclude `idea-*` and `personal-*` memories from dependency checks
+
 ## [2.18.0] - 2026-03-20 - Agent frontmatter
 
 ### Added
