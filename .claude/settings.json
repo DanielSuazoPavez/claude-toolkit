@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "enableAllProjectMcpServers": false,
-  "plansDirectory": ".claude/output/plans",
+  "plansDirectory": "output/claude-toolkit/plans",
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -34,8 +34,8 @@
       "Bash(.claude/scripts/*)",
       "Bash(./scripts/*)",
       "Read(/**)",
-      "Write(/.claude/output/**)",
-      "Edit(/.claude/output/**)"
+      "Write(/output/claude-toolkit/**)",
+      "Edit(/output/claude-toolkit/**)"
     ]
   },
   "hooks": {

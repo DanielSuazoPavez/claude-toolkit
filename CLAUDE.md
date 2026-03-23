@@ -24,8 +24,9 @@ make backlog                           # Query backlog (prefer over reading BACK
 ├── agents/     # Specialized task agents
 ├── hooks/      # Automation hooks
 ├── memories/   # Memory templates
-├── indexes/    # Resource indexes and evaluation scores
-└── output/     # Generated artifacts (analysis, reviews, sessions, etc.)
+└── indexes/    # Resource indexes and evaluation scores
+output/
+└── claude-toolkit/  # Generated artifacts (analysis, reviews, sessions, plans, etc.)
 ```
 
 ## Resource Indexes

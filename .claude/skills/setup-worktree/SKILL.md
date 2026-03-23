@@ -2,7 +2,7 @@
 name: setup-worktree
 type: command
 description: Set up a git worktree with full Claude configuration. Use when working on multiple branches simultaneously or setting up parallel agent workflows. Keywords: worktree, parallel, branch isolation.
-argument-hint: Path to plan file (e.g. .claude/output/plans/2026-02-04_my-plan.md)
+argument-hint: Path to plan file (e.g. output/claude-toolkit/plans/2026-02-04_my-plan.md)
 allowed-tools: Bash(git:*), Bash(ln:*), Bash(ls:*), Bash(mkdir:*), Read
 ---
 
@@ -43,7 +43,7 @@ git worktree add .worktrees/<name> <branch-name>
 WORKTREE=.worktrees/<name>
 MAIN=$(pwd)
 
-mkdir -p "$WORKTREE/.claude/output/plans"
+mkdir -p "$WORKTREE/output/claude-toolkit/plans"
 
 # Directories
 ln -s "$MAIN/.claude/agents"   "$WORKTREE/.claude/agents"
@@ -56,7 +56,7 @@ ln -s "$MAIN/.claude/settings.json" "$WORKTREE/.claude/settings.json"
 
 # Plan file — verify path exists first
 PLAN="$ARGUMENTS"
-[ -f "$MAIN/$PLAN" ] && ln -s "$MAIN/$PLAN" "$WORKTREE/.claude/output/plans/$(basename "$PLAN")"
+[ -f "$MAIN/$PLAN" ] && ln -s "$MAIN/$PLAN" "$WORKTREE/output/claude-toolkit/plans/$(basename "$PLAN")"
 ```
 
 **On retry** (partial setup): `ln -s` fails if the symlink already exists. Use `ln -sf` to overwrite, or remove the `.claude/` directory in the worktree and start fresh.
@@ -68,7 +68,7 @@ PLAN="$ARGUMENTS"
 ls -la "$WORKTREE/.claude/agents" "$WORKTREE/.claude/skills" "$WORKTREE/.claude/settings.json"
 
 # Plan is linked
-ls -la "$WORKTREE/.claude/output/plans/"
+ls -la "$WORKTREE/output/claude-toolkit/plans/"
 ```
 
 ## Common Pitfalls
@@ -111,7 +111,7 @@ git branch -d feature-x  # now works
 The worktree is ready but nothing is running in it yet. To start implementation:
 
 1. **Launch a Claude instance** in the worktree using the Agent tool with `isolation: "worktree"`, or by running `claude` manually from the worktree directory
-2. **The plan is the entry point** — the agent's first action should be reading the symlinked plan in `.claude/output/plans/`
+2. **The plan is the entry point** — the agent's first action should be reading the symlinked plan in `output/claude-toolkit/plans/`
 3. **When the agent reports done**, use `/teardown-worktree` to verify and close out
 
 ## Multi-Agent Workflow

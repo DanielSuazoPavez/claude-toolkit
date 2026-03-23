@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.20.2] - 2026-03-23 - Move output outside .claude/
+
+### Changed
+- **settings**: output path moved from `.claude/output/` to `output/claude-toolkit/` — eliminates built-in `.claude/` directory protection causing permission prompts on every Write/Edit
+- **settings**: `plansDirectory` updated to `output/claude-toolkit/plans`
+- **settings**: Write/Edit permission grants updated to `output/claude-toolkit/**`
+- **gitignore**: single `output/claude-toolkit/` entry replaces per-subdirectory `.claude/output/` entries
+
+### Fixed
+- **agents/skills/memories**: all output path references updated (25 files across 6 agents, 10 skills, 2 memories, 1 index)
+- **templates**: synced settings template and gitignore template updated for new path
+
 ## [2.20.1] - 2026-03-23 - Wrap-up scope awareness
 
 ### Fixed

@@ -1,6 +1,6 @@
 ---
 name: implementation-checker
-description: Compares implementation to planning docs. Use after completing a phase or before marking milestone done. Writes report to branch's .claude/output/reviews/ folder.
+description: Compares implementation to planning docs. Use after completing a phase or before marking milestone done. Writes report to branch's output/claude-toolkit/reviews/ folder.
 tools: Read, Grep, Glob, Write
 color: yellow
 model: sonnet
@@ -31,7 +31,7 @@ Investigate plan-vs-implementation gaps. File a written report. Let stakeholders
 
 ### 1. Plan Alignment
 
-- Read the relevant planning documents (`.claude/output/plans/` or as specified)
+- Read the relevant planning documents (`output/claude-toolkit/plans/` or as specified)
 - Compare completed work to planned approach
 - Identify deviations - are they improvements or drift?
 - Confirm all planned functionality exists
@@ -65,8 +65,8 @@ Investigate plan-vs-implementation gaps. File a written report. Let stakeholders
 
 1. Determine the branch name: `git branch --show-current` (replace slashes with dashes)
 2. Get current timestamp: `date +%Y%m%d_%H%M`
-3. Write your report to: `.claude/output/reviews/{YYYYMMDD}_{HHMM}__implementation-checker__{branch}.md`
-   - Example: `.claude/output/reviews/20260127_1430__implementation-checker__feature-auth.md`
+3. Write your report to: `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__implementation-checker__{branch}.md`
+   - Example: `output/claude-toolkit/reviews/20260127_1430__implementation-checker__feature-auth.md`
    - Double underscores (`__`) separate timestamp, source, and context
    - The Write tool creates directories as needed
 

@@ -110,7 +110,7 @@ Proposal is well-framed for the intended audience. No contradictions, tone issue
 
 ## Output Path
 
-Write the report to `.claude/output/reviews/{YYYYMMDD}_{HHMM}__proposal-reviewer__{topic}.md`
+Write the report to `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__proposal-reviewer__{topic}.md`
 
 - Use `date +%Y%m%d_%H%M` for the timestamp
 - Use a short topic descriptor (e.g., `export-doc-extraction`, `api-migration`)
