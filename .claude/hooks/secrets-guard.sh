@@ -70,112 +70,90 @@ block() {
     exit 0
 }
 
-# Handle Read tool
-if [ "$TOOL_NAME" = "Read" ]; then
-    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || exit 0
-    [ -z "$FILE_PATH" ] && exit 0
+# --- Shared data and helpers (used by Read and Grep handlers) ---
 
-    FILENAME=$(basename "$FILE_PATH")
+# Blocked credential paths: "pattern:::description"
+# Description is verb-neutral; callers prefix with "Reading"/"Searching"
+BLOCKED_PATHS=(
+    "$HOME/.ssh/config:::SSH config may expose hostnames, key paths, and proxy settings"
+    "$HOME/.gnupg/:::GPG directory may expose private keys and trust data"
+    "$HOME/.aws/credentials:::AWS credentials may expose access keys and secrets"
+    "$HOME/.aws/config:::AWS config may expose access keys and secrets"
+    "$HOME/.config/gh/hosts.yml:::GitHub CLI config may expose authentication tokens"
+    "$HOME/.docker/config.json:::Docker config may expose registry authentication tokens"
+    "$HOME/.kube/config:::kubeconfig may expose cluster credentials and tokens"
+    "$HOME/.npmrc:::.npmrc may expose npm authentication tokens"
+    "$HOME/.pypirc:::.pypirc may expose PyPI authentication tokens"
+    "$HOME/.gem/credentials:::gem credentials may expose RubyGems API keys"
+)
 
-    # Allow .example and .template files (.env.example, .env.template, etc.)
-    if [[ "$FILENAME" =~ \.(example|template)$ ]]; then
+# Normalize ~ to $HOME
+normalize_path() {
+    local p="$1"
+    if [[ "$p" == "~/"* ]]; then
+        p="$HOME/${p#\~/}"
+    fi
+    echo "$p"
+}
+
+# Check if filename is a sensitive .env file. Exits/blocks if so.
+# WARNING: May call exit 0 or block() — must run in main shell, not a subshell.
+# Usage: check_env_file <filename> <verb>
+#   verb: "Reading" or "Searching"
+check_env_file() {
+    local filename="$1" verb="$2"
+    # Allow .example and .template files
+    if [[ "$filename" =~ \.(example|template)$ ]]; then
         exit 0
     fi
-
     # Block .env, .env.*, or *.env files
-    if [[ "$FILENAME" = ".env" ]] || [[ "$FILENAME" =~ ^\.env\. ]] || [[ "$FILENAME" =~ \.env$ ]]; then
-        block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+    if [[ "$filename" = ".env" ]] || [[ "$filename" =~ ^\.env\. ]] || [[ "$filename" =~ \.env$ ]]; then
+        block "BLOCKED: $verb .env file may expose secrets. Use the .example version as a reference instead."
     fi
+}
 
-    # Normalize ~ to $HOME for path matching
-    NORM_PATH="$FILE_PATH"
-    if [[ "$NORM_PATH" == "~/"* ]]; then
-        NORM_PATH="$HOME/${NORM_PATH#\~/}"
-    fi
-
-    # Blocked credential paths: "pattern:::message"
-    # Patterns use bash glob syntax matched against $NORM_PATH
-    BLOCKED_PATHS=(
-        "$HOME/.ssh/config:::Reading SSH config may expose hostnames, key paths, and proxy settings"
-        "$HOME/.gnupg/:::Reading GPG directory may expose private keys and trust data"
-        "$HOME/.aws/credentials:::Reading AWS credentials may expose access keys and secrets"
-        "$HOME/.aws/config:::Reading AWS config may expose access keys and secrets"
-        "$HOME/.config/gh/hosts.yml:::Reading GitHub CLI config may expose authentication tokens"
-        "$HOME/.docker/config.json:::Reading Docker config may expose registry authentication tokens"
-        "$HOME/.kube/config:::Reading kubeconfig may expose cluster credentials and tokens"
-        "$HOME/.npmrc:::Reading .npmrc may expose npm authentication tokens"
-        "$HOME/.pypirc:::Reading .pypirc may expose PyPI authentication tokens"
-        "$HOME/.gem/credentials:::Reading gem credentials may expose RubyGems API keys"
-    )
+# Check normalized path against BLOCKED_PATHS and SSH keys. Blocks if matched.
+# WARNING: May call block() which exits the process — must run in main shell, not a subshell.
+# Usage: check_credential_path <normalized_path> <verb>
+#   verb: "Reading" or "Searching"
+check_credential_path() {
+    local norm_path="$1" verb="$2"
 
     for entry in "${BLOCKED_PATHS[@]}"; do
-        pattern="${entry%%:::*}"
-        message="${entry##*:::}"
-        # Exact match or prefix match (for directory patterns ending in /)
-        if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && ( "$NORM_PATH" == "$pattern"* || "$NORM_PATH/" == "$pattern" ) ]]; then
-            block "BLOCKED: $message."
+        local pattern="${entry%%:::*}"
+        local message="${entry##*:::}"
+        if [[ "$norm_path" == "$pattern" ]] || [[ "$pattern" == */ && ( "$norm_path" == "$pattern"* || "$norm_path/" == "$pattern" ) ]]; then
+            block "BLOCKED: $verb $message."
         fi
     done
 
     # SSH private keys (allow .pub files)
-    if [[ "$NORM_PATH" == "$HOME/.ssh/id_"* ]] && [[ "$NORM_PATH" != *".pub" ]]; then
-        block "BLOCKED: Reading SSH private key. Private keys should never be exposed to AI tools."
+    if [[ "$norm_path" == "$HOME/.ssh/id_"* ]] && [[ "$norm_path" != *".pub" ]]; then
+        block "BLOCKED: $verb SSH private key. Private keys should never be exposed to AI tools."
     fi
+}
+
+# --- Handler: Read tool ---
+
+if [ "$TOOL_NAME" = "Read" ]; then
+    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || exit 0
+    [ -z "$FILE_PATH" ] && exit 0
+
+    check_env_file "$(basename "$FILE_PATH")" "Reading"
+    check_credential_path "$(normalize_path "$FILE_PATH")" "Reading"
 
     exit 0
 fi
 
-# Handle Grep tool
+# --- Handler: Grep tool ---
+
 if [ "$TOOL_NAME" = "Grep" ]; then
     GREP_PATH=$(echo "$INPUT" | jq -r '.tool_input.path // ""' 2>/dev/null) || exit 0
     GREP_GLOB=$(echo "$INPUT" | jq -r '.tool_input.glob // ""' 2>/dev/null) || exit 0
 
-    # Check if path targets a sensitive file directly
     if [ -n "$GREP_PATH" ]; then
-        FILENAME=$(basename "$GREP_PATH")
-
-        # Allow .example and .template files
-        if [[ "$FILENAME" =~ \.(example|template)$ ]]; then
-            exit 0
-        fi
-
-        # Block .env, .env.*, or *.env files
-        if [[ "$FILENAME" = ".env" ]] || [[ "$FILENAME" =~ ^\.env\. ]] || [[ "$FILENAME" =~ \.env$ ]]; then
-            block "BLOCKED: Searching .env file may expose secrets. Use the .example version as a reference instead."
-        fi
-
-        # Normalize ~ to $HOME for path matching
-        NORM_PATH="$GREP_PATH"
-        if [[ "$NORM_PATH" == "~/"* ]]; then
-            NORM_PATH="$HOME/${NORM_PATH#\~/}"
-        fi
-
-        # Blocked credential paths: "pattern:::message"
-        BLOCKED_PATHS=(
-            "$HOME/.ssh/config:::Searching SSH config may expose hostnames, key paths, and proxy settings"
-            "$HOME/.gnupg/:::Searching GPG directory may expose private keys and trust data"
-            "$HOME/.aws/credentials:::Searching AWS credentials may expose access keys and secrets"
-            "$HOME/.aws/config:::Searching AWS config may expose access keys and secrets"
-            "$HOME/.config/gh/hosts.yml:::Searching GitHub CLI config may expose authentication tokens"
-            "$HOME/.docker/config.json:::Searching Docker config may expose registry authentication tokens"
-            "$HOME/.kube/config:::Searching kubeconfig may expose cluster credentials and tokens"
-            "$HOME/.npmrc:::Searching .npmrc may expose npm authentication tokens"
-            "$HOME/.pypirc:::Searching .pypirc may expose PyPI authentication tokens"
-            "$HOME/.gem/credentials:::Searching gem credentials may expose RubyGems API keys"
-        )
-
-        for entry in "${BLOCKED_PATHS[@]}"; do
-            pattern="${entry%%:::*}"
-            message="${entry##*:::}"
-            if [[ "$NORM_PATH" == "$pattern" ]] || [[ "$pattern" == */ && ( "$NORM_PATH" == "$pattern"* || "$NORM_PATH/" == "$pattern" ) ]]; then
-                block "BLOCKED: $message."
-            fi
-        done
-
-        # SSH private keys (allow .pub files)
-        if [[ "$NORM_PATH" == "$HOME/.ssh/id_"* ]] && [[ "$NORM_PATH" != *".pub" ]]; then
-            block "BLOCKED: Searching SSH private key. Private keys should never be exposed to AI tools."
-        fi
+        check_env_file "$(basename "$GREP_PATH")" "Searching"
+        check_credential_path "$(normalize_path "$GREP_PATH")" "Searching"
     fi
 
     # Check if glob pattern targets .env files

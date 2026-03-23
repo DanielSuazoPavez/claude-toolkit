@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.20.4] - 2026-03-23 - Deduplicate secrets-guard hook
+
+### Changed
+- **hooks**: `secrets-guard` — extracted shared helpers (`BLOCKED_PATHS`, `normalize_path`, `check_env_file`, `check_credential_path`) to eliminate duplicated logic across Read and Grep handlers; adding new credential paths now requires updating one array instead of three
+
 ## [2.20.3] - 2026-03-23 - Close grep bypass in secrets-guard hook
 
 ### Fixed
