@@ -248,8 +248,12 @@ MEMORIES_INDEX="$CLAUDE_DIR/indexes/MEMORIES.md"
 MEMORIES_DIR="$CLAUDE_DIR/memories"
 
 if [ -f "$MEMORIES_INDEX" ] && [ -d "$MEMORIES_DIR" ]; then
-    DISK_MEMORIES=$(find "$MEMORIES_DIR" -maxdepth 1 -name "*.md" -exec basename {} .md \; | sort)
-    INDEX_MEMORIES=$(grep -oP '\| `\K[^`]+(?=` \|)' "$MEMORIES_INDEX" | sort)
+    # Exclude idea-* and personal-* memories (ephemeral/private, not indexed)
+    DISK_MEMORIES=$(find "$MEMORIES_DIR" -maxdepth 1 -name "*.md" \
+        ! -name "idea-*.md" ! -name "personal-*.md" \
+        -exec basename {} .md \; | sort)
+    # Also exclude idea-* and personal-* from index side (they're allowed in index but not required)
+    INDEX_MEMORIES=$(grep -oP '\| `\K[^`]+(?=` \|)' "$MEMORIES_INDEX" | grep -v '^idea-\|^personal-' | sort)
 
     if $MANIFEST_MODE; then
         while IFS= read -r disk_memory; do
