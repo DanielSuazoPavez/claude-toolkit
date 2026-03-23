@@ -76,6 +76,7 @@ Do not write from scratch — always start from the template.
 |------------|--------|---------|
 | Discipline-enforcing | Add Rationalization table | See [Rationalization Tables](#rationalization-tables-vs-anti-pattern-tables) |
 | Reference/lookup | Split to resources/ | See [Progressive Disclosure](#progressive-disclosure-pattern) |
+| Knowledge (background) | Add `user-invocable: false` | See [Knowledge Skills](#knowledge-skills) |
 | Minimal | Trim to <150 words | Remove anti-patterns, keep process only |
 
 ### Description Rules
@@ -97,6 +98,21 @@ If the skill accepts input (file paths, modes, targets):
 Positional access: `$0`, `$1`, `$2` (or `$ARGUMENTS[0]`, `$ARGUMENTS[1]`, etc.)
 
 If `$ARGUMENTS` isn't referenced anywhere in the skill body, Claude Code auto-appends `ARGUMENTS: <value>` at the end.
+
+## Knowledge Skills
+
+Use `user-invocable: false` for skills that provide background knowledge Claude should auto-load, but that users don't invoke directly via `/`.
+
+**When to use:**
+- Domain-specific context (API conventions, codebase patterns, compliance rules)
+- Skills where the description triggers Claude to load it contextually, not on user command
+
+**Frontmatter:**
+```yaml
+user-invocable: false
+```
+
+The skill's description stays loaded in context (so Claude knows when to read the full body), but it won't appear in the `/` autocomplete menu. No `allowed-tools` needed if the skill is pure knowledge with no tool use.
 
 ## Token Efficiency
 
