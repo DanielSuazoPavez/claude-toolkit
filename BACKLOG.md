@@ -45,6 +45,15 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P99 - Nice to Have
 
+- **[HOOKS]** `secrets-guard` — gnupg path without trailing slash bypasses directory check in Read and Grep handlers (`hook-secrets-guard-gnupg-slash`)
+    - **scope**: `hooks`
+    - **notes**: `BLOCKED_PATHS` entry is `$HOME/.gnupg/` (trailing slash). Path `~/.gnupg` (no slash) doesn't match exact or prefix check. Pre-existing in Read handler, now also in Grep handler.
+
+- **[HOOKS]** `secrets-guard` — refactor duplicated logic across Read/Grep/Bash handlers (`hook-secrets-guard-dedup`)
+    - **scope**: `hooks`
+    - **notes**: BLOCKED_PATHS array, path normalization, and SSH key logic appear in both Read and Grep handlers. New credential paths require updates in three places. Consider shared helper functions.
+
+
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`
 

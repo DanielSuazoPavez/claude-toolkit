@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.20.3] - 2026-03-23 - Close grep bypass in secrets-guard hook
+
+### Fixed
+- **hooks**: `secrets-guard` — Grep tool could search secret and credential file contents unblocked; added Grep tool handler with path and glob checks
+- **hooks**: `secrets-guard` — Bash `grep`/`rg`/`awk`/`sed` commands could read secret and credential files unblocked; added regex checks matching the same patterns as cat/less/head/tail
+- **hooks**: `secrets-guard` — suffix-named env files (e.g., `prod`, `staging`) were not caught by Bash handler; added ENV_SUFFIX_RE pattern
+
+### Changed
+- **hooks**: `secrets-guard` — credential file regexes now use shared `READ_CMDS` variable with intermediate-arg matching for commands that take patterns before file paths
+
 ## [2.20.2] - 2026-03-23 - Move output outside .claude/
 
 ### Changed
