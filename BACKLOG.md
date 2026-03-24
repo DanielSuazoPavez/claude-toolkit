@@ -37,8 +37,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[TOOLKIT]** Improve permission guardrails for auto-approve safe chained commands (`permission-safe-chained-commands`)
-    - **scope**: `toolkit`
 
 ## P99 - Nice to Have
 
@@ -48,6 +46,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 - **[SKILLS]** Adopt `${CLAUDE_SKILL_DIR}` — use in skills that reference bundled resources (`skill-claude-skill-dir`)
     - **scope**: `skills`
+
+- **[TOOLKIT]** Move `.claude/dist/` to project root `dist/` (`dist-to-root`)
+    - **scope**: `toolkit`
+    - **notes**: Distribution configs (base/raiz MANIFESTs, templates) are under `.claude/dist/` but aren't Claude Code config — they're build artifacts. Moving to `dist/` at project root would be cleaner.
 
 - **[TOOLKIT]** Native `autoMemoryDirectory` setting — unclear if it actually changes write behavior vs just `/memory` UI folder (`toolkit-auto-memory-dir`)
     - **scope**: `toolkit`
