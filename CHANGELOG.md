@@ -4,6 +4,7 @@
 
 ### Changed
 - **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
+- **ci**: Raiz publish workflow now stamps `.claude-toolkit-version` in target repo and includes version in commit message
 
 ## [2.21.6] - 2026-03-24 - Permissions config convention memory
 

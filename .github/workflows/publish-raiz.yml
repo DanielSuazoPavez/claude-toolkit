@@ -41,6 +41,9 @@ jobs:
           # Copy built distribution
           cp -r dist-output/raiz/.claude target-repo/.claude
 
+          # Stamp toolkit version (same as `claude-toolkit sync` does)
+          cp VERSION target-repo/.claude-toolkit-version
+
           # Check for changes
           cd target-repo
           git add -A
@@ -52,5 +55,5 @@ jobs:
           # Commit and push
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "sync: update from claude-toolkit $(date +%Y-%m-%d)"
+          git commit -m "sync: update from claude-toolkit v$(cat .claude-toolkit-version) ($(date +%Y-%m-%d))"
           git push
