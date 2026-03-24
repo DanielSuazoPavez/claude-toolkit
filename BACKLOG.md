@@ -25,9 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[HOOKS]** `prompt`/`agent` hook types — LLM-based judgment in hooks for nuanced decisions (`hook-llm-types`)
-    - **scope**: `hooks`
-
 - **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
     - **status**: `in-progress`
     - **scope**: `agents, skills`
@@ -47,6 +44,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`
+    - **notes**: HOOKS_API updated with `last_assistant_message` field and `prompt`/`agent` hook types. Concrete use case: lesson-detection Stop hook (regex-based detection proved unreliable — consider `prompt`-type hook instead).
 
 - **[SKILLS]** Adopt `${CLAUDE_SKILL_DIR}` — use in skills that reference bundled resources (`skill-claude-skill-dir`)
     - **scope**: `skills`

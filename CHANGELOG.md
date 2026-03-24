@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.20.5] - 2026-03-23 - Document prompt/agent hook types in HOOKS_API
+
+### Added
+- **skills**: `create-hook` — HOOKS_API reference now documents `prompt` and `agent` hook types (configuration, response format, examples)
+- **skills**: `create-hook` — HOOKS_API Stop hook schema now includes `last_assistant_message` field
+- **skills**: `create-hook` — HOOKS_API events table updated with 10 newer hook events (StopFailure, PostCompact, InstructionsLoaded, ConfigChange, TaskCompleted, TeammateIdle, Worktree*, Elicitation*)
+
 ## [2.20.4] - 2026-03-23 - Deduplicate secrets-guard hook
 
 ### Changed
