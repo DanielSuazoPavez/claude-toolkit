@@ -1,111 +1,70 @@
 ---
 name: teardown-worktree
 type: command
-description: Verify and close out a worktree after an agent reports plan completion. Keywords: agent done, worktree complete, close worktree, teardown, agent finished.
-allowed-tools: Bash(git:*), Bash(cp:*), Bash(rm:*), Read, Agent
+description: Close out a worktree after work is complete. Checks for uncommitted changes, copies artifacts, removes worktree, and checks out the branch. Keywords: worktree complete, close worktree, teardown, done.
+allowed-tools: Bash(git:*), Bash(cp:*), Bash(rm:*), Bash(ls:*), Read
 ---
 
-Use when an agent working in a worktree reports the plan is fully implemented.
+Mechanical teardown of a worktree. Run from the **parent** project directory (not inside the worktree).
+
+**See also:** `/setup-worktree` (create worktrees)
 
 ## Process
 
-### 0. Validate Worktree Path
+### 1. Identify the Worktree
 
-If no worktree path provided or path doesn't exist:
+If no worktree path provided:
 1. Run `git worktree list` to show available worktrees
-2. Ask user: "Which worktree should I tear down?"
-3. Wait for selection before proceeding
+2. Ask: "Which worktree should I tear down?"
+3. Wait for selection
 
-### 1. Check for Uncommitted Changes
-
-**Why?** Uncommitted changes represent work that will be permanently lost when the worktree is removed. No recovery path exists.
+### 2. Check for Uncommitted Changes
 
 ```bash
-cd <worktree_path>
-git status --porcelain
+git -C <worktree_path> status --porcelain
 ```
 
 If there are uncommitted changes:
 1. **Do NOT proceed** with teardown
-2. Tell user: "Worktree has uncommitted changes. Run `/wrap-up` in the agent working in `<worktree_path>` to commit, then retry."
+2. Tell user: "Worktree has uncommitted changes. Commit or discard them first, then retry."
 3. END
 
-### 2. Run Implementation Checker
+### 3. Copy Artifacts
 
-**Requires:** `implementation-checker` agent
+Copy any generated output from the worktree before removal:
 
-```
-Task tool: subagent_type=implementation-checker
-Prompt: "Review implementation in this worktree against the plan. Write report to output/claude-toolkit/reviews/"
-Working directory: <worktree_path>
-```
-
-Wait for health status: GREEN | YELLOW | RED
-
-### 3. Run Verification (if available)
-
-In the worktree, run what exists:
-- `make lint` / `make test` (verify targets exist first)
-- Or direct: `uv run pytest`, `uv run ruff check .`
-
-Skip gracefully if not configured. Report failures.
-
-### 4. Evaluate and Act
-
-```
-              Health?
-         ┌──────┴──────┐
-       GREEN         YELLOW/RED
-         │               │
-         ▼               ▼
-   Copy report      Report issues
-   to main project  to user
-         │               │
-         ▼              END
-   Remove worktree   (user fixes in
-         │            worktree agent)
-         ▼
-   Checkout branch
-   for manual testing
+```bash
+# Copy review/analysis artifacts if they exist
+if [ -d "<worktree_path>/output" ]; then
+  cp -r <worktree_path>/output/claude-toolkit/reviews/* output/claude-toolkit/reviews/ 2>/dev/null
+fi
 ```
 
-**GREEN path:**
-1. **Copy report FIRST** (before any removal): `cp <worktree>/output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__implementation-checker__{branch}.md output/claude-toolkit/reviews/`
-2. Remove worktree: `git worktree remove <worktree_path>`
-3. Checkout branch: `git checkout <branch_name>`
-4. Inform user: "On branch `<branch>` for manual review. Merge when ready: `git merge --no-ff <branch>`"
+Skip silently if no artifacts exist.
 
-**YELLOW path** (minor deviations, addressable):
-1. Summarize issues from report
-2. Ask user: "Minor issues found. Options: (a) return to agent to fix, (b) proceed anyway and document deviations in PR"
-3. If user chooses (b): proceed with GREEN path
-4. If user chooses (a): **Do NOT remove worktree** - user fixes first
+### 4. Get Branch Name
 
-**RED path** (major drift, blockers):
-1. Summarize blocking issues from report
-2. Tell user: "Blocking issues found. Must return to agent in `<worktree_path>` to fix before proceeding."
-3. **Do NOT remove worktree**
+```bash
+git -C <worktree_path> branch --show-current
+```
 
-## Anti-Patterns
+### 5. Remove Worktree
 
-| Pattern | Problem | Fix |
-|---------|---------|-----|
-| Remove before copying report | Lose the review artifact | Always copy report FIRST |
-| Auto-merge on GREEN | User loses review opportunity | Only checkout; user merges manually |
-| Ignore YELLOW | Minor issues compound | Treat YELLOW as "fix before merge" |
-| Run on wrong directory | Check wrong worktree | Verify path with `git worktree list` first |
-| Skip verification failures | Ship broken code | Report failures even if non-blocking |
+```bash
+git worktree remove <worktree_path>
+```
+
+### 6. Checkout Branch
+
+```bash
+git checkout <branch_name>
+```
+
+Tell user: "On branch `<branch>`. Merge when ready: `git merge --no-ff <branch>`"
 
 ## Constraints
 
+- **Uncommitted changes = blocked**: Must be resolved before teardown
 - **No auto-merge**: User controls when to merge
-- **No branch deletion**: User reviews before cleanup
-- **Uncommitted = blocked**: Agent must commit before teardown
-
-## See Also
-
-- `/setup-worktree` — Partner skill for creating worktrees
-- `implementation-checker` agent — Generates the health report
-- `/wrap-up` — Finalize the branch after merging worktree results
-- `goal-verifier` agent — Alternative to implementation-checker for feature completeness
-- `relevant-workflow-branch_development` memory — Branch workflow conventions
+- **No branch deletion**: User reviews and cleans up branches
+- **Copy before remove**: Always copy artifacts before removing the worktree

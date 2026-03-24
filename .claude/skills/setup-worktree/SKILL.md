@@ -1,18 +1,18 @@
 ---
 name: setup-worktree
 type: command
-description: Set up a git worktree with full Claude configuration. Use when working on multiple branches simultaneously or setting up parallel agent workflows. Keywords: worktree, parallel, branch isolation.
-argument-hint: Path to plan file (e.g. output/claude-toolkit/plans/2026-02-04_my-plan.md)
+description: Set up a git worktree with full Claude configuration. Use when working on multiple branches simultaneously or isolating work for parallel Claude instances. Keywords: worktree, parallel, branch isolation.
+argument-hint: "[optional] Path to context file to symlink into worktree"
 allowed-tools: Bash(git:*), Bash(ln:*), Bash(ls:*), Bash(mkdir:*), Read
 ---
 
-Set up a worktree with full Claude configuration. Worktrees live in `.worktrees/` (gitignored, inside project).
+Set up a worktree for branch isolation. Worktrees live in `.worktrees/` (gitignored, inside project).
 
-**See also:** `/teardown-worktree` (close out worktree after completion), `/review-plan` (review the plan before handing to a worktree agent), `relevant-workflow-branch_development` memory (branch workflow conventions)
+**See also:** `/teardown-worktree` (close out worktree after completion)
 
-## Plan File
+## Context File (Optional)
 
-`$ARGUMENTS` must contain a path to the plan file to symlink into the worktree. If not provided, ask the user which plan file to use — every worktree needs a plan.
+If `$ARGUMENTS` contains a file path, symlink it into the worktree's `output/claude-toolkit/` directory. This is optional — worktrees work fine without one.
 
 ## Setup Procedure
 
@@ -25,6 +25,8 @@ grep -q '^\.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitigno
 
 ### 2. Create the Worktree
 
+Ask the user for the branch name if not obvious from context.
+
 ```bash
 # New branch
 git worktree add .worktrees/<name> -b <branch-name>
@@ -33,49 +35,50 @@ git worktree add .worktrees/<name> -b <branch-name>
 git worktree add .worktrees/<name> <branch-name>
 ```
 
-### 3. Symlink Claude Resources
+### 3. Symlink Claude Resources (If Needed)
 
-`.claude/` is typically gitignored (synced via claude-toolkit). Worktrees get **no** `.claude/` content by default. Without this step, Claude instances in the worktree have no agents, hooks, memories, skills, or settings.
+Check if `.claude/` already exists in the worktree (it will if the project tracks `.claude/` in git). If it does, **skip this step** — the worktree already has everything.
 
-`CLAUDE.md` at the project root IS tracked and inherited automatically — no action needed for it.
+If `.claude/` is missing (gitignored, synced via claude-toolkit), symlink from the main project:
 
 ```bash
 WORKTREE=.worktrees/<name>
 MAIN=$(pwd)
 
-mkdir -p "$WORKTREE/output/claude-toolkit/plans"
-
-# Directories
-ln -s "$MAIN/.claude/agents"   "$WORKTREE/.claude/agents"
-ln -s "$MAIN/.claude/hooks"    "$WORKTREE/.claude/hooks"
-ln -s "$MAIN/.claude/memories" "$WORKTREE/.claude/memories"
-ln -s "$MAIN/.claude/skills"   "$WORKTREE/.claude/skills"
-
-# Settings
-ln -s "$MAIN/.claude/settings.json" "$WORKTREE/.claude/settings.json"
-
-# Plan file — verify path exists first
-PLAN="$ARGUMENTS"
-[ -f "$MAIN/$PLAN" ] && ln -s "$MAIN/$PLAN" "$WORKTREE/output/claude-toolkit/plans/$(basename "$PLAN")"
+if [ ! -d "$WORKTREE/.claude/skills" ]; then
+  # .claude/ not tracked — symlink from main
+  mkdir -p "$WORKTREE/.claude"
+  ln -s "$MAIN/.claude/agents"   "$WORKTREE/.claude/agents"
+  ln -s "$MAIN/.claude/hooks"    "$WORKTREE/.claude/hooks"
+  ln -s "$MAIN/.claude/memories" "$WORKTREE/.claude/memories"
+  ln -s "$MAIN/.claude/skills"   "$WORKTREE/.claude/skills"
+  ln -s "$MAIN/.claude/scripts"  "$WORKTREE/.claude/scripts"
+  ln -s "$MAIN/.claude/settings.json" "$WORKTREE/.claude/settings.json"
+fi
 ```
 
 **On retry** (partial setup): `ln -s` fails if the symlink already exists. Use `ln -sf` to overwrite, or remove the `.claude/` directory in the worktree and start fresh.
 
-### 4. Verify Setup
+### 4. Link Context File (If Provided)
 
 ```bash
-# Symlinks resolve correctly
-ls -la "$WORKTREE/.claude/agents" "$WORKTREE/.claude/skills" "$WORKTREE/.claude/settings.json"
+if [ -n "$ARGUMENTS" ] && [ -f "$MAIN/$ARGUMENTS" ]; then
+  mkdir -p "$WORKTREE/output/claude-toolkit"
+  ln -s "$MAIN/$ARGUMENTS" "$WORKTREE/output/claude-toolkit/$(basename "$ARGUMENTS")"
+fi
+```
 
-# Plan is linked
-ls -la "$WORKTREE/output/claude-toolkit/plans/"
+### 5. Verify Setup
+
+```bash
+ls -la "$WORKTREE/.claude/"
 ```
 
 ## Common Pitfalls
 
 ### Missing Claude Resources
 
-Most damaging pitfall. A Claude instance in the worktree operates with zero configuration — no custom agents, no behavioral hooks, no memories, wrong permissions. Always symlink immediately after creating the worktree (step 3).
+If `.claude/` is gitignored and you skip step 3, the Claude instance in the worktree has zero configuration — no agents, hooks, memories, or permissions. Always check whether `.claude/` exists in the worktree after creation.
 
 ### Worktree Gets Stale
 
@@ -106,22 +109,6 @@ git worktree remove .worktrees/feature-x
 git branch -d feature-x  # now works
 ```
 
-## After Setup: Launching an Agent
+## After Setup
 
-The worktree is ready but nothing is running in it yet. To start implementation:
-
-1. **Launch a Claude instance** in the worktree using the Agent tool with `isolation: "worktree"`, or by running `claude` manually from the worktree directory
-2. **The plan is the entry point** — the agent's first action should be reading the symlinked plan in `output/claude-toolkit/plans/`
-3. **When the agent reports done**, use `/teardown-worktree` to verify and close out
-
-## Multi-Agent Workflow
-
-When using multiple Claude agents in parallel:
-
-1. Create worktree per agent task (each with its own plan)
-2. Launch a Claude instance in each worktree
-3. Each agent works in isolation with full Claude config
-4. Use `/teardown-worktree` on each when done
-5. Merge results back to main
-
-**Note:** Worktree instances won't see uncommitted changes from other worktrees — check `git log` (not just `git status`) to see commits made by other instances.
+Start a Claude instance in the worktree directory. When done, use `/teardown-worktree` to close out.
