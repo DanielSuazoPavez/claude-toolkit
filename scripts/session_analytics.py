@@ -44,19 +44,20 @@ def _cte(extra: str = "") -> str:
 # Active time computation
 # ---------------------------------------------------------------------------
 
-# Max gap (minutes) between events that still counts as "active"
-ACTIVE_GAP_THRESHOLD_MIN = 5
+# Bucket size for active time computation (minutes)
+ACTIVE_BUCKET_MIN = 1
 
 
 def compute_active_time(
     conn: sqlite3.Connection,
     session_ids: list[str],
-    threshold_min: float = ACTIVE_GAP_THRESHOLD_MIN,
+    bucket_min: float = ACTIVE_BUCKET_MIN,
 ) -> dict[str, float]:
-    """Compute active minutes per session from event timestamps.
+    """Compute active minutes per session using time bucketing.
 
-    Active time = sum of windows where consecutive events are within
-    threshold_min of each other. Gaps exceeding the threshold are idle time.
+    Divides the session timeline into fixed-width buckets. Any bucket
+    containing at least one event counts as active. Active time =
+    number of active buckets * bucket size.
     """
     if not session_ids:
         return {}
@@ -85,18 +86,20 @@ def compute_active_time(
             except (ValueError, TypeError):
                 continue
 
-        if len(timestamps) < 2:
+        if len(timestamps) < 1:
             result[sid] = 0.0
             continue
 
         timestamps.sort()
-        active_min = 0.0
-        for i in range(1, len(timestamps)):
-            gap = (timestamps[i] - timestamps[i - 1]).total_seconds() / 60
-            if 0 < gap <= threshold_min:
-                active_min += gap
+        start = timestamps[0]
 
-        result[sid] = active_min
+        # Assign each event to a bucket and count distinct active buckets
+        active_buckets: set[int] = set()
+        for ts in timestamps:
+            bucket = int((ts - start).total_seconds() / 60 / bucket_min)
+            active_buckets.add(bucket)
+
+        result[sid] = len(active_buckets) * bucket_min
 
     return result
 

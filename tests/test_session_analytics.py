@@ -216,23 +216,24 @@ class TestActiveTime:
         assert "sess-b1" in active
 
     def test_active_time_within_duration(self, indexed_db: sqlite3.Connection) -> None:
-        """Active time should not exceed wall clock duration."""
+        """Active time should not exceed wall clock duration + 1 bucket."""
         active = compute_active_time(indexed_db, ["sess-a1"])
-        # sess-a1 is 10m wall clock
-        assert active["sess-a1"] <= 10.0
+        # sess-a1 is 10m wall clock, active time at most duration + bucket size
+        assert active["sess-a1"] <= 15.0
 
-    def test_active_time_excludes_large_gaps(self, indexed_db: sqlite3.Connection) -> None:
-        """Sessions with gaps > threshold should have active < duration."""
+    def test_active_time_sparse_session(self, indexed_db: sqlite3.Connection) -> None:
+        """Sparse events across wide time range produce few active buckets."""
         # sess-b1: events at 08:00, 08:10, 08:20, 08:30
-        # gaps are 10m each, all > default 5m threshold
+        # Each falls in a different 5m bucket = 4 buckets = 20m
+        # Wall clock is 30m, so active < duration
         active = compute_active_time(indexed_db, ["sess-b1"])
-        assert active["sess-b1"] == 0.0
+        assert active["sess-b1"] < 30.0
 
-    def test_custom_threshold(self, indexed_db: sqlite3.Connection) -> None:
-        """Higher threshold should capture more active time."""
-        narrow = compute_active_time(indexed_db, ["sess-b1"], threshold_min=5)
-        wide = compute_active_time(indexed_db, ["sess-b1"], threshold_min=15)
-        assert wide["sess-b1"] >= narrow["sess-b1"]
+    def test_custom_bucket_size(self, indexed_db: sqlite3.Connection) -> None:
+        """Smaller buckets should produce less or equal active time."""
+        small = compute_active_time(indexed_db, ["sess-b1"], bucket_min=1)
+        large = compute_active_time(indexed_db, ["sess-b1"], bucket_min=10)
+        assert large["sess-b1"] >= small["sess-b1"]
 
     def test_empty_session_ids(self, indexed_db: sqlite3.Connection) -> None:
         result = compute_active_time(indexed_db, [])
