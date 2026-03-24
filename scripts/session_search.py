@@ -539,13 +539,12 @@ def index_sessions(
     """Index sessions into the database. Returns stats."""
     stats = {"new": 0, "updated": 0, "skipped": 0, "errors": 0, "events": 0}
 
-    # Get already indexed sessions for incremental check
+    # Always snapshot existing sessions (needed for accurate new vs updated stats)
     indexed: dict[str, tuple[float, int]] = {}
-    if not full:
-        for row in conn.execute(
-            "SELECT session_id, file_mtime, file_size FROM sessions"
-        ):
-            indexed[row[0]] = (row[1], row[2])
+    for row in conn.execute(
+        "SELECT session_id, file_mtime, file_size FROM sessions"
+    ):
+        indexed[row[0]] = (row[1], row[2])
 
     for file_path, source_dir in _find_all_session_files(project_filter):
         session_id = file_path.stem
@@ -568,7 +567,8 @@ def index_sessions(
 
         try:
             meta, events = extract_session_events(file_path)
-        except Exception:
+        except Exception as e:
+            print(f"Error indexing {file_path}: {e}", file=sys.stderr)
             stats["errors"] += 1
             continue
 
@@ -724,8 +724,12 @@ def cmd_search(args: argparse.Namespace) -> None:
     conn = init_db(args.db_path)
     c = _c()
 
-    # Escape and wrap query for FTS5
-    safe_query = '"' + args.query.replace('"', '""') + '"'
+    # Quote each token individually for AND semantics
+    # "git" "branch" matches docs with both words (any position)
+    tokens = args.query.split()
+    safe_query = " ".join(
+        '"' + t.replace('"', '""') + '"' for t in tokens if t
+    )
 
     sql = """
         SELECT e.date, p.name, e.event_type, e.tool, e.action_type,
