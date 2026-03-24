@@ -4,13 +4,14 @@ Source: [Official Claude Code Hooks Documentation](https://code.claude.com/docs/
 
 ## Contents
 
-1. [Hook Events](#hook-events) - All 13 events with blocking/matcher support
-2. [Common Input Fields](#common-input-fields) - Fields available to all hooks
-3. [Event-Specific Input Fields](#event-specific-input-fields) - Per-event JSON schemas
-4. [Tool-Specific Inputs](#tool-specific-inputs) - Bash, Read, Edit, Write, Task
-5. [Output Format](#output-format) - Exit codes, JSON decisions, control flow
-6. [settings.json Configuration](#settingsjson-configuration) - Matcher syntax, env vars
-7. [Debugging](#debugging) - Logging and troubleshooting
+1. [Hook Events](#hook-events) - All events with blocking/matcher support
+2. [Hook Types](#hook-types) - command, http, prompt, agent
+3. [Common Input Fields](#common-input-fields) - Fields available to all hooks
+4. [Event-Specific Input Fields](#event-specific-input-fields) - Per-event JSON schemas
+5. [Tool-Specific Inputs](#tool-specific-inputs) - Bash, Read, Edit, Write, Task
+6. [Output Format](#output-format) - Exit codes, JSON decisions, control flow
+7. [settings.json Configuration](#settingsjson-configuration) - Matcher syntax, env vars
+8. [Debugging](#debugging) - Logging and troubleshooting
 
 ## Hook Events
 
@@ -22,13 +23,123 @@ Source: [Official Claude Code Hooks Documentation](https://code.claude.com/docs/
 | PermissionRequest | Permission dialog shown | Yes | Yes |
 | PostToolUse | After tool succeeds | No | Yes |
 | PostToolUseFailure | After tool fails | No | Yes |
-| SubagentStart | Subagent spawns | No | No |
-| SubagentStop | Subagent completes | Yes | No |
+| SubagentStart | Subagent spawns | No | Yes |
+| SubagentStop | Subagent completes | Yes | Yes |
 | Stop | Claude finishes responding | Yes | No |
+| StopFailure | Turn ends due to API error | No | Yes |
 | PreCompact | Before context compaction | No | Yes |
+| PostCompact | After context compaction | No | Yes |
+| InstructionsLoaded | CLAUDE.md/.claude/rules loaded | No | Yes |
+| ConfigChange | Config file changes during session | Yes | Yes |
+| TaskCompleted | Task marked completed | No | No |
+| TeammateIdle | Agent team teammate going idle | No | No |
+| WorktreeCreate | Worktree being created | No | No |
+| WorktreeRemove | Worktree being removed | No | No |
+| Elicitation | MCP server requests user input | No | Yes |
+| ElicitationResult | User responds to MCP elicitation | No | Yes |
 | Setup | --init or --maintenance flags | No | Yes |
-| SessionEnd | Session terminates | No | No |
+| SessionEnd | Session terminates | No | Yes |
 | Notification | Needs user attention | No | Yes |
+
+## Hook Types
+
+Each hook has a `type` that determines how it runs.
+
+### `command` — Shell command (default)
+
+Runs a shell command. Communicates via stdin (JSON input), stdout (JSON output), stderr (feedback), and exit codes.
+
+```json
+{ "type": "command", "command": "bash .claude/hooks/my-hook.sh", "timeout": 30 }
+```
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `command` | yes | — | Shell command to execute |
+| `timeout` | no | 600 | Seconds before canceling |
+| `statusMessage` | no | — | Custom spinner message while running |
+
+### `http` — POST to URL
+
+Posts event data as JSON to an HTTP endpoint. Response body uses the same JSON format as command hooks.
+
+```json
+{
+  "type": "http",
+  "url": "http://localhost:8080/hooks/tool-use",
+  "headers": { "Authorization": "Bearer $MY_TOKEN" },
+  "allowedEnvVars": ["MY_TOKEN"]
+}
+```
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `url` | yes | — | Endpoint URL |
+| `headers` | no | — | HTTP headers (supports `$VAR` interpolation) |
+| `allowedEnvVars` | no | — | Env vars allowed in header interpolation |
+| `timeout` | no | 600 | Seconds before canceling |
+
+### `prompt` — Single-turn LLM evaluation
+
+Sends prompt + hook input to a Claude model for a yes/no judgment. No tool access.
+
+```json
+{
+  "type": "prompt",
+  "prompt": "Check if all tasks are complete. $ARGUMENTS",
+  "model": "claude-haiku-4-5-20251001",
+  "timeout": 30
+}
+```
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `prompt` | yes | — | Prompt text. `$ARGUMENTS` is replaced with hook input JSON |
+| `model` | no | haiku | Model for evaluation |
+| `timeout` | no | 30 | Seconds before canceling |
+| `statusMessage` | no | — | Custom spinner message |
+
+**Response format** — the model returns:
+- `{"ok": true}` — action proceeds
+- `{"ok": false, "reason": "what remains"}` — action is blocked, reason fed back to Claude
+
+**Example: Anti-rationalization Stop hook**
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "prompt",
+        "prompt": "Review this response for completeness. If Claude declared victory while leaving work undone, respond {\"ok\": false, \"reason\": \"what remains\"}. Response: $ARGUMENTS"
+      }]
+    }]
+  }
+}
+```
+
+### `agent` — Multi-turn verification with tool access
+
+Spawns a subagent that can read files, search code, and run tools before returning a decision. Same `ok`/`reason` response format as prompt hooks.
+
+```json
+{
+  "type": "agent",
+  "prompt": "Verify all unit tests pass. Run the test suite. $ARGUMENTS",
+  "model": "claude-sonnet-4-6",
+  "timeout": 60
+}
+```
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `prompt` | yes | — | Task prompt. `$ARGUMENTS` is replaced with hook input JSON |
+| `model` | no | haiku | Model for the subagent |
+| `timeout` | no | 60 | Seconds before canceling |
+| `statusMessage` | no | — | Custom spinner message |
+
+Agent hooks have up to 50 tool-use turns and access to Read, Grep, Glob, and Bash.
+
+**When to use which:** Use `prompt` when hook input alone is enough to decide. Use `agent` when you need to verify against actual codebase state.
 
 ## Common Input Fields
 
@@ -159,13 +270,15 @@ All hooks receive these fields via stdin JSON:
 ```json
 {
   "hook_event_name": "Stop",
-  "stop_hook_active": true
+  "stop_hook_active": true,
+  "last_assistant_message": "Text of Claude's final response"
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `stop_hook_active` | boolean | True if continuing due to stop hook (prevent infinite loops!) |
+| `last_assistant_message` | string | Full text of Claude's final response (avoids parsing transcript) |
 
 ### PreCompact
 
