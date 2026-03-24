@@ -20,6 +20,9 @@ from pathlib import Path
 
 from session_search import DB_PATH, _c, _fmt_tokens, init_db
 
+# Default UTC offset for display (hours). Timestamps in the DB are UTC.
+DEFAULT_UTC_OFFSET = -3
+
 # ---------------------------------------------------------------------------
 # Preprocessing: base queries that filter out hook/progress noise
 # ---------------------------------------------------------------------------
@@ -364,9 +367,11 @@ def cmd_projects(args: argparse.Namespace) -> None:
 # Step 3: Time patterns
 # ---------------------------------------------------------------------------
 
-HOURLY_ACTIVITY_SQL = """
+def _hourly_activity_sql(utc_offset: int) -> str:
+    offset_str = f"{utc_offset:+d} hours"
+    return f"""
 SELECT
-    CAST(strftime('%H', s.first_ts) AS INTEGER) as hour,
+    CAST(strftime('%H', s.first_ts, '{offset_str}') AS INTEGER) as hour,
     COUNT(*) as sessions,
     SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens) as tokens
 FROM sessions s
@@ -374,9 +379,12 @@ JOIN projects p ON s.project_id = p.id
 WHERE s.first_ts IS NOT NULL
 """
 
-DAILY_ACTIVITY_SQL = """
+
+def _daily_activity_sql(utc_offset: int) -> str:
+    offset_str = f"{utc_offset:+d} hours"
+    return f"""
 SELECT
-    CAST(strftime('%w', s.first_ts) AS INTEGER) as dow,
+    CAST(strftime('%w', s.first_ts, '{offset_str}') AS INTEGER) as dow,
     COUNT(*) as sessions,
     SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens) as tokens
 FROM sessions s
@@ -430,8 +438,9 @@ def query_hourly_activity(
     conn: sqlite3.Connection,
     project: str | None = None,
     days: int | None = None,
+    utc_offset: int = DEFAULT_UTC_OFFSET,
 ) -> list[sqlite3.Row]:
-    sql, params = _add_filters(HOURLY_ACTIVITY_SQL, project, days)
+    sql, params = _add_filters(_hourly_activity_sql(utc_offset), project, days)
     sql += " GROUP BY hour ORDER BY hour"
     conn.row_factory = sqlite3.Row
     return conn.execute(sql, params).fetchall()
@@ -441,8 +450,9 @@ def query_daily_activity(
     conn: sqlite3.Connection,
     project: str | None = None,
     days: int | None = None,
+    utc_offset: int = DEFAULT_UTC_OFFSET,
 ) -> list[sqlite3.Row]:
-    sql, params = _add_filters(DAILY_ACTIVITY_SQL, project, days)
+    sql, params = _add_filters(_daily_activity_sql(utc_offset), project, days)
     sql += " GROUP BY dow ORDER BY dow"
     conn.row_factory = sqlite3.Row
     return conn.execute(sql, params).fetchall()
@@ -510,15 +520,17 @@ def cmd_time(args: argparse.Namespace) -> None:
     """Show time-based usage patterns."""
     conn = init_db(args.db_path)
     c = _c()
+    utc_offset = args.utc_offset
 
-    hourly = query_hourly_activity(conn, project=args.project, days=args.days)
-    daily = query_daily_activity(conn, project=args.project, days=args.days)
+    hourly = query_hourly_activity(conn, project=args.project, days=args.days, utc_offset=utc_offset)
+    daily = query_daily_activity(conn, project=args.project, days=args.days, utc_offset=utc_offset)
     weekly = query_weekly_volume(conn, project=args.project, days=args.days)
     gaps = query_session_gaps(conn, project=args.project, days=args.days)
     conn.close()
 
     # Hourly distribution
-    print(f"\n{c['bold']}{c['cyan']}Time Patterns{c['reset']}\n")
+    tz_label = f"UTC{utc_offset:+d}" if utc_offset != 0 else "UTC"
+    print(f"\n{c['bold']}{c['cyan']}Time Patterns{c['reset']} ({tz_label})\n")
 
     if hourly:
         print(f"  {c['bold']}By Hour{c['reset']}")
@@ -709,6 +721,10 @@ def build_parser() -> argparse.ArgumentParser:
     tm = sub.add_parser("time", help="Time-based usage patterns")
     tm.add_argument("--project", help="Filter by project name")
     tm.add_argument("--days", type=int, help="Limit to last N days")
+    tm.add_argument(
+        "--utc-offset", type=int, default=DEFAULT_UTC_OFFSET,
+        help=f"UTC offset in hours for display (default: {DEFAULT_UTC_OFFSET})",
+    )
 
     # branches
     br = sub.add_parser("branches", help="Git branch usage patterns")

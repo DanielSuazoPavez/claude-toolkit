@@ -356,7 +356,7 @@ class TestProjectPatterns:
 
 class TestTimePatterns:
     def test_hourly_returns_active_hours(self, indexed_db: sqlite3.Connection) -> None:
-        rows = query_hourly_activity(indexed_db)
+        rows = query_hourly_activity(indexed_db, utc_offset=0)
         hours = {r["hour"]: r["sessions"] for r in rows}
         # sess-a1 starts at 09:00, sess-a2 at 14:00, sess-b1 at 08:00
         assert 9 in hours
@@ -364,14 +364,24 @@ class TestTimePatterns:
         assert 8 in hours
 
     def test_hourly_filter_by_project(self, indexed_db: sqlite3.Connection) -> None:
-        rows = query_hourly_activity(indexed_db, project="beta")
+        rows = query_hourly_activity(indexed_db, project="beta", utc_offset=0)
         hours = {r["hour"]: r["sessions"] for r in rows}
         # Only sess-b1 at 08:00
         assert len(hours) == 1
         assert hours[8] == 1
 
+    def test_hourly_with_offset(self, indexed_db: sqlite3.Connection) -> None:
+        """UTC offset shifts hours correctly."""
+        utc = query_hourly_activity(indexed_db, utc_offset=0)
+        shifted = query_hourly_activity(indexed_db, utc_offset=-3)
+        utc_hours = {r["hour"] for r in utc}
+        shifted_hours = {r["hour"] for r in shifted}
+        # Hours should be shifted by -3
+        expected = {(h - 3) % 24 for h in utc_hours}
+        assert shifted_hours == expected
+
     def test_daily_returns_active_days(self, indexed_db: sqlite3.Connection) -> None:
-        rows = query_daily_activity(indexed_db)
+        rows = query_daily_activity(indexed_db, utc_offset=0)
         # Jan 10 2026 = Saturday (dow=6), Jan 12 = Monday (dow=1), Jan 15 = Thursday (dow=4)
         dows = {r["dow"] for r in rows}
         assert 6 in dows  # Saturday
@@ -379,7 +389,7 @@ class TestTimePatterns:
         assert 4 in dows  # Thursday
 
     def test_daily_session_counts(self, indexed_db: sqlite3.Connection) -> None:
-        rows = query_daily_activity(indexed_db)
+        rows = query_daily_activity(indexed_db, utc_offset=0)
         dow_map = {r["dow"]: r["sessions"] for r in rows}
         # Saturday has 1 session (sess-a1)
         assert dow_map[6] == 1
