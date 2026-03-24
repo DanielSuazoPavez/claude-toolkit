@@ -44,7 +44,7 @@ def resolve_source_file(target_path: str, claude_dir: Path, dist_dir: Path) -> P
         override = dist_dir / "templates" / basename
         if override.is_file():
             return override
-        return claude_dir / "dist" / "base" / "templates" / basename
+        return claude_dir.parent / "dist" / "base" / "templates" / basename
     return claude_dir / target_path
 
 
@@ -59,7 +59,7 @@ def resolve_source_dir(target_path: str, claude_dir: Path, dist_dir: Path) -> Pa
     if clean.startswith("docs/"):
         return claude_dir.parent / clean
     if clean.startswith("templates/"):
-        return claude_dir / "dist" / "base" / clean
+        return claude_dir.parent / "dist" / "base" / clean
     return claude_dir / clean
 
 
@@ -274,7 +274,7 @@ def main() -> None:
         sys.exit(1)
 
     dist_name = sys.argv[1]
-    dist_dir = CLAUDE_DIR / "dist" / dist_name
+    dist_dir = TOOLKIT_DIR / "dist" / dist_name
     manifest_path = dist_dir / "MANIFEST"
 
     if not manifest_path.is_file():
