@@ -157,7 +157,7 @@ display_tasks() {
         cat_display = (category != "") ? "["category"] " : ""
         status_display = status
 
-        printf "[%14s] [%4s] %s%s%s\n", status_display, priority, cat_display, title, id_display
+        printf "[%14s] [%3s] %s%s%s\n", status_display, priority, cat_display, title, id_display
 
         if (verbose == "1") {
             if (scope != "") printf "    scope: %s\n", scope

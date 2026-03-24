@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.21.8] - 2026-03-24 - Fix backlog-query priority column spacing
+
+### Fixed
+- **scripts**: `backlog-query.sh` priority column width `%4s` → `%3s` — was sized for P100, now correct for P99 max
+
 ## [2.21.7] - 2026-03-24 - Memory index convention alignment
 
 ### Changed

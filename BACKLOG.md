@@ -22,6 +22,17 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
+- **[TOOLKIT]** Resource usage audit — identify which skills/agents/hooks are actually used vs collecting dust (`usage-audit`)
+    - **scope**: `toolkit`
+    - **notes**: Infrastructure is in place: `scripts/insights.py` parses transcripts with `skills`, `agents`, `hooks`, `tools` subcommands; `scripts/backup-transcripts.sh` runs hourly via cron preserving transcripts from auto-pruning (`~/backups/claude-transcripts/`). Run the audit, identify dead weight, decide what to prune or demote.
+
+- **[SKILLS]** Worktree skills polish — stress-test `setup-worktree` and `teardown-worktree` with real parallel workflows (`worktree-polish`)
+    - **scope**: `skills`
+    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
+
+- **[TOOLKIT]** Exploration ecosystem scan — fresh look at Claude Code community for new patterns and trends (`exploration-scan`)
+    - **scope**: `toolkit`
+    - **notes**: Last exploration batch was mid-March 2026. Two repos still pending review (`itsmostafa/aws-agent-skills`, `mitsuhiko/agent-stuff`). Scan for new repos, emerging patterns, and anything that addresses current gaps. See `output/claude-toolkit/exploration/BACKLOG.md` for pending items.
 
 ## P2 - Medium
 
@@ -35,23 +46,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
-- **[TOOLKIT]** Resource usage audit — identify which skills/agents/hooks are actually used vs collecting dust (`usage-audit`)
-    - **scope**: `toolkit`
-    - **notes**: Infrastructure is in place: `scripts/insights.py` parses transcripts with `skills`, `agents`, `hooks`, `tools` subcommands; `scripts/backup-transcripts.sh` runs hourly via cron preserving transcripts from auto-pruning (`~/backups/claude-transcripts/`). Run the audit, identify dead weight, decide what to prune or demote.
-
-- **[SKILLS]** Worktree skills polish — stress-test `setup-worktree` and `teardown-worktree` with real parallel workflows (`worktree-polish`)
-    - **scope**: `skills`
-    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
-
 ## P3 - Low
 
 
 
 ## P99 - Nice to Have
-
-- **[TESTS]** Fix backlog-query priority column spacing — padding still sized for P100, should shrink by 1 char for P99 max (`backlog-query-spacing`)
-    - **scope**: `tests`
-    - **notes**: When P100 was renamed to P99, the priority column width in `backlog-query.sh` wasn't adjusted. Update the formatting and fix related test expectations in `test-backlog-query.sh`.
 
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`
