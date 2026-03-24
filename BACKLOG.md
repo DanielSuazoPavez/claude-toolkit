@@ -23,11 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[TOOLKIT]** Resource token cost analysis — measure token usage of skills/agents/hooks/memories to evaluate efficiency vs value (`resource-token-cost`)
-    - **scope**: `toolkit`
-    - **notes**: Follow-up to `usage-audit`. Once we know *what* is used, measure *how much context* each resource consumes. Evaluate whether high-cost resources justify their token spend relative to the value they provide. Informs pruning, splitting, or compression decisions.
-
-
 ## P2 - Medium
 
 - **[SCRIPTS]** Session DB analytics — explore analytics possibilities on the session-search SQLite database (`session-db-analytics`)
