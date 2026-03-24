@@ -28,6 +28,7 @@ hooks/approve-safe-commands.sh
 # memories
 memories/essential-conventions-code_style.md
 memories/essential-conventions-memory.md
+memories/relevant-toolkit-permissions_config.md
 
 # docs (copied to project root, outside .claude/)
 docs/getting-started.md
