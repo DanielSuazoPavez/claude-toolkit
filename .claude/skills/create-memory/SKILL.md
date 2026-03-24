@@ -138,7 +138,7 @@ Before writing the memory file, verify:
 - [ ] **Category correct?** Matches stability timeline (essential=permanent, relevant=months, branch=days)
 - [ ] **Quick Reference exists?** Has `**ONLY READ WHEN:**` bullets
 - [ ] **Filename format?** `{category}-{context}-{descriptive_name}.md` with underscores
-- [ ] **No duplicate?** Check `.claude/indexes/MEMORIES.md` if available, otherwise list files in `.claude/memories/`
+- [ ] **No duplicate?** Check `docs/indexes/MEMORIES.md` if available, otherwise list files in `.claude/memories/`
 - [ ] **Under 300 lines?** Split if larger
 
 ### Quality Gate

@@ -14,7 +14,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-EVAL_FILE="$CLAUDE_DIR/indexes/evaluations.json"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+EVAL_FILE="$PROJECT_ROOT/docs/indexes/evaluations.json"
 
 # Colors
 RED='\033[0;31m'

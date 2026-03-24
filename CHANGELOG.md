@@ -5,6 +5,13 @@
 ### Changed
 - **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
 
+## [2.21.3] - 2026-03-24 - Move indexes and curated-resources to docs/
+
+### Changed
+- **toolkit**: Moved `indexes/` and `curated-resources.md` from `.claude/` to `docs/` — these are documentation about resources, not runtime configuration
+- **toolkit**: Scripts (`validate-resources-indexed`, `verify-resource-deps`, `evaluation-query`) now use `PROJECT_ROOT` to find indexes in `docs/indexes/`
+- **docs**: Fixed misleading `make backlog` ("Query" → "Show") and `make check` ("Run all" → "Run") descriptions in CLAUDE.md
+
 ## [2.21.2] - 2026-03-23 - Move dist/ to project root
 
 ### Changed

@@ -13,6 +13,8 @@
 #   1 - Validation errors found
 
 CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ERRORS=0
 WARNINGS=0
 
@@ -34,7 +36,7 @@ declare -a MANIFEST_SCRIPTS=()
 # MANIFEST mode: only activate when MANIFEST exists but index files don't.
 # The toolkit has both MANIFEST and index files (SKILLS.md etc.) — use full disk mode there.
 # Target projects have MANIFEST but no index files — use MANIFEST mode there.
-if [ -f "$MANIFEST_FILE" ] && [ ! -f "$CLAUDE_DIR/indexes/SKILLS.md" ]; then
+if [ -f "$MANIFEST_FILE" ] && [ ! -f "$PROJECT_ROOT/docs/indexes/SKILLS.md" ]; then
     MANIFEST_MODE=true
     while IFS= read -r line || [ -n "$line" ]; do
         # Skip empty lines and comments
@@ -91,7 +93,7 @@ echo ""
 
 # === SKILLS ===
 echo "=== Skills ==="
-SKILLS_INDEX="$CLAUDE_DIR/indexes/SKILLS.md"
+SKILLS_INDEX="$PROJECT_ROOT/docs/indexes/SKILLS.md"
 SKILLS_DIR="$CLAUDE_DIR/skills"
 
 if [ -f "$SKILLS_INDEX" ] && [ -d "$SKILLS_DIR" ]; then
@@ -152,7 +154,7 @@ echo ""
 
 # === AGENTS ===
 echo "=== Agents ==="
-AGENTS_INDEX="$CLAUDE_DIR/indexes/AGENTS.md"
+AGENTS_INDEX="$PROJECT_ROOT/docs/indexes/AGENTS.md"
 AGENTS_DIR="$CLAUDE_DIR/agents"
 
 if [ -f "$AGENTS_INDEX" ] && [ -d "$AGENTS_DIR" ]; then
@@ -198,7 +200,7 @@ echo ""
 
 # === HOOKS ===
 echo "=== Hooks ==="
-HOOKS_INDEX="$CLAUDE_DIR/indexes/HOOKS.md"
+HOOKS_INDEX="$PROJECT_ROOT/docs/indexes/HOOKS.md"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 
 if [ -f "$HOOKS_INDEX" ] && [ -d "$HOOKS_DIR" ]; then
@@ -244,7 +246,7 @@ echo ""
 
 # === MEMORIES ===
 echo "=== Memories ==="
-MEMORIES_INDEX="$CLAUDE_DIR/indexes/MEMORIES.md"
+MEMORIES_INDEX="$PROJECT_ROOT/docs/indexes/MEMORIES.md"
 MEMORIES_DIR="$CLAUDE_DIR/memories"
 
 if [ -f "$MEMORIES_INDEX" ] && [ -d "$MEMORIES_DIR" ]; then
@@ -294,7 +296,7 @@ echo ""
 
 # === SCRIPTS ===
 echo "=== Scripts ==="
-SCRIPTS_INDEX="$CLAUDE_DIR/indexes/SCRIPTS.md"
+SCRIPTS_INDEX="$PROJECT_ROOT/docs/indexes/SCRIPTS.md"
 SCRIPTS_DIR="$CLAUDE_DIR/scripts"
 
 if [ -f "$SCRIPTS_INDEX" ] && [ -d "$SCRIPTS_DIR" ]; then
