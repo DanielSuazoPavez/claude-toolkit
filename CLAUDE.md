@@ -16,6 +16,7 @@ make backlog                                   # Show backlog (prefer over readi
 ## Key Principles
 
 - **Merge with --no-ff**: Always use `git merge --no-ff` to preserve branch history
+- **Remove done tasks from backlog**: When a backlog task is completed, delete it entirely — don't strikethrough or leave it with a DONE marker
 
 ## Structure
 
@@ -46,6 +47,7 @@ Summary and status of all resources:
 
 - Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
 - Code/resource changes: version bump + changelog entry under version
+- When adding a version entry, fold any existing `[Unreleased]` changes into it
 
 ## When You're Done
 
