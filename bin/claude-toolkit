@@ -704,6 +704,7 @@ fi
 # === Main: Route to subcommand ===
 case "${1:-}" in
     -h|--help|"") cmd_help ;;
+    version) cat "$TOOLKIT_DIR/VERSION" ;;
     sync) shift; cmd_sync "$@" ;;
     send) shift; cmd_send "$@" ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
