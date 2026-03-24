@@ -10,6 +10,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 | Scope | Description |
 |-------|-------------|
+| scripts | Standalone utility scripts |
 | toolkit | Core toolkit infrastructure (sync, indexes, versioning) |
 | skills | User-invocable skills |
 | agents | Specialized task agents |
@@ -30,9 +31,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
 
-- **[TOOLKIT]** Exploration ecosystem scan — fresh look at Claude Code community for new patterns and trends (`exploration-scan`)
+- ~~**[TOOLKIT]** Exploration ecosystem scan — fresh look at Claude Code community for new patterns and trends (`exploration-scan`)~~ **DONE 2026-03-24**
     - **scope**: `toolkit`
-    - **notes**: Last exploration batch was mid-March 2026. Two repos still pending review (`itsmostafa/aws-agent-skills`, `mitsuhiko/agent-stuff`). Scan for new repos, emerging patterns, and anything that addresses current gaps. See `output/claude-toolkit/exploration/BACKLOG.md` for pending items.
+    - **notes**: Reviewed 3 repos (itsmostafa/aws-agent-skills, mitsuhiko/agent-stuff, applied-ai/claude-code-toolkit). Scanned GitHub + skills.sh for new community repos. Added 2 pending to exploration backlog (disler hooks repos). Key find: session-db.py → new `session-search` backlog item.
 
 ## P2 - Medium
 
@@ -46,9 +47,23 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
+- **[SCRIPTS]** Session history search tool — SQLite+FTS5 index of all CC sessions for cross-project search (`session-search`)
+    - **scope**: `scripts`
+    - **notes**: Inspired by `applied-artificial-intelligence/claude-code-toolkit`'s `session-db.py`. Indexes `~/.claude/projects/` JSONL into SQLite with full-text search across tool calls, file changes, commands. Use cases: "when did we implement X?", "what files changed related to Y?", cross-project pattern recall. Also feeds into `usage-audit` task. Reference: `output/claude-toolkit/exploration/applied-ai_claude-code-toolkit/summary.md`.
+
 ## P3 - Low
 
+- **[SKILLS]** Tighten review-plan skill — make commit-per-step and post-implementation steps structural (`review-plan-tighten`)
+    - **scope**: `skills`
+    - **notes**: Current review-plan suggests "commit after each step" and "add post-implementation steps" but these feel too close to optional suggestions. Tighten to be structural requirements. Consider pairing with `stop-hook-plan-enforcement` for enforcement.
 
+- **[HOOKS]** Stop hook enforcement for plan execution — verify implementation steps completed (`stop-hook-plan-enforcement`)
+    - **scope**: `hooks`
+    - **notes**: Pattern from `disler/claude-code-hooks-mastery` — Stop hooks that verify output files exist and contain required sections before allowing completion. Could enforce "commit after each step" and "post-implementation steps" structurally rather than via suggestion. Ties into `review-plan-tighten`. Reference: `output/claude-toolkit/exploration/disler_claude-code-hooks-mastery/summary.md`.
+
+- **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
+    - **scope**: `toolkit`
+    - **notes**: Inspired by `disler/claude-code-hooks-mastery`'s `.claude/output-styles/` directory. Named formatting modes (ultra-concise, table-based, genui/HTML output, etc.) activated per-session. Different from our communication style memory — these are structural formatting preferences, not personality. Relates to `schemas/` folder direction. Explore whether this fits as a convention or is over-engineering.
 
 ## P99 - Nice to Have
 
