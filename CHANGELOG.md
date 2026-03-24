@@ -5,6 +5,16 @@
 ### Changed
 - **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
 
+## [2.21.4] - 2026-03-24 - Test coverage for evaluation-query and validate-resources-indexed
+
+### Added
+- **tests**: `test-evaluation-query.sh` — 37 test cases covering all subcommands (list, type, stale, unevaluated, above, verbose, help) and error paths
+- **tests**: `test-validate-resources-indexed.sh` — 31 test cases covering toolkit mode (synced, missing, stale, mixed errors, idea/personal exclusion) and MANIFEST mode
+- **tests**: `make test-eval` and `make test-validate-indexed` targets
+
+### Fixed
+- **backlog**: Added `fix-eval-query-hook-path` for pre-existing bug where `evaluation-query.sh` stale detection silently skips hooks due to missing `.sh` extension in `get_resource_path`
+
 ## [2.21.3] - 2026-03-24 - Move indexes and curated-resources to docs/
 
 ### Changed

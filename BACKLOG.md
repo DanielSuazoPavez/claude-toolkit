@@ -41,10 +41,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `toolkit`
     - **notes**: `get_resource_path` for hooks returns `$CLAUDE_DIR/hooks/$name` but actual files are `$name.sh`. The file is never found, so stale detection silently skips all hooks. Same issue may affect `list_resources` vs `get_resource_path` naming for hooks.
 
-- **[TESTS]** Add tests for `evaluation-query.sh` and `validate-resources-indexed.sh` scripts (`test-script-coverage`)
-    - **scope**: `tests`
-    - **notes**: These scripts have no dedicated test coverage. `validate-resources-indexed.sh` is tested indirectly via MANIFEST mode in `test-cli.sh`, but the toolkit-mode (non-MANIFEST) path and `evaluation-query.sh` subcommands are untested.
-
 
 ## P99 - Nice to Have
 
