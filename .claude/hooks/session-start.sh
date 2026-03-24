@@ -84,7 +84,8 @@ if [ -f "$LESSONS_DB" ]; then
 
     KEY_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- [' || GROUP_CONCAT(t.name, ',') || '] ' || l.text FROM lessons l LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id LEFT JOIN tags t ON t.id = lt.tag_id WHERE l.tier = 'key' AND l.active = 1 GROUP BY l.id ORDER BY l.date DESC;" 2>/dev/null)
     RECENT_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 ORDER BY l.date DESC LIMIT 5;" 2>/dev/null)
-    BRANCH_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 AND l.branch = '$CURRENT_BRANCH' ORDER BY l.date DESC;" 2>/dev/null)
+    SAFE_BRANCH=$(echo "$CURRENT_BRANCH" | sed "s/'/''/g")
+    BRANCH_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 AND l.branch = '${SAFE_BRANCH}' ORDER BY l.date DESC;" 2>/dev/null)
 
     if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
         echo ""

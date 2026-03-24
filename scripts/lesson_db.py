@@ -351,6 +351,15 @@ def cmd_migrate(args: argparse.Namespace) -> None:
 
     conn = init_lessons_db(args.db_path)
     c = _c()
+
+    # Check if DB already has lessons (idempotency guard)
+    existing = conn.execute("SELECT COUNT(*) FROM lessons").fetchone()[0]
+    if existing > 0:
+        print(f"Database already has {existing} lessons. Skipping migration.")
+        print(f"Use a fresh DB or delete existing lessons first.")
+        conn.close()
+        return
+
     migrated = 0
     tags_created: set[str] = set()
 
@@ -425,8 +434,6 @@ def cmd_migrate(args: argparse.Namespace) -> None:
 
 def cmd_add(args: argparse.Namespace) -> None:
     """Add a new lesson."""
-    import subprocess
-
     conn = init_lessons_db(args.db_path)
 
     # Generate ID if not provided
