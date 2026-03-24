@@ -4,7 +4,7 @@
 
 Post-v2 — improve resources through real usage, expand into AWS and security domains.
 
-**See also:** `output/claude-toolkit/reviews/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
+**See also:** `output/claude-toolkit/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
 
 ## Scope Definitions
 

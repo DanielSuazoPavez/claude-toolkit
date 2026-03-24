@@ -48,7 +48,7 @@ If you can't answer yes to 1-3 confidently, it's not ready.
 
 Domain-specific resources (Python, Docker, AWS) are fine — as long as they reflect current work, not aspirational coverage. Project-specific config lives in the project's own `.claude/`, not here.
 
-**Curated references** (`output/claude-toolkit/reviews/exploration/`) are the lane for "interesting but not actionable now." Don't promote to a real resource until there's a concrete use case.
+**Curated references** (`output/claude-toolkit/exploration/`) are the lane for "interesting but not actionable now." Don't promote to a real resource until there's a concrete use case.
 
 ---
 
