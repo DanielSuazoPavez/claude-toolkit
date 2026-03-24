@@ -75,13 +75,16 @@ if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; th
 fi
 
 # === LESSONS ===
+LESSONS_DB="$HOME/.claude/lessons.db"
 LEARNED_FILE=".claude/learned.json"
-if [ -f "$LEARNED_FILE" ]; then
+
+if [ -f "$LESSONS_DB" ]; then
+    # SQLite path — lessons.db exists
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
 
-    KEY_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "key")] | .[] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
-    RECENT_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "recent")] | .[-5:][] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
-    BRANCH_LESSONS=$(jq -r --arg b "$CURRENT_BRANCH" '[.lessons[]? | select(.tier == "recent" and (.flags | index("branch")) and .branch == $b)] | .[] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    KEY_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- [' || GROUP_CONCAT(t.name, ',') || '] ' || l.text FROM lessons l LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id LEFT JOIN tags t ON t.id = lt.tag_id WHERE l.tier = 'key' AND l.active = 1 GROUP BY l.id ORDER BY l.date DESC;" 2>/dev/null)
+    RECENT_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 ORDER BY l.date DESC LIMIT 5;" 2>/dev/null)
+    BRANCH_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 AND l.branch = '$CURRENT_BRANCH' ORDER BY l.date DESC;" 2>/dev/null)
 
     if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
         echo ""
@@ -91,17 +94,39 @@ if [ -f "$LEARNED_FILE" ]; then
         [ -n "$BRANCH_LESSONS" ] && echo "This branch:" && echo "$BRANCH_LESSONS"
     fi
 
-    # Nudge logic
-    RECENT_COUNT=$(jq '[.lessons[]? | select(.tier == "recent")] | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
-    RECURRING_COUNT=$(jq '[.lessons[]? | select(.tier == "recent" and (.flags | index("recurring")))] | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+    # Nudge logic — based on time since last manage-lessons run
+    LAST_MANAGE=$(sqlite3 "$LESSONS_DB" "SELECT value FROM metadata WHERE key = 'last_manage_run';" 2>/dev/null)
+    THRESHOLD_DAYS=$(sqlite3 "$LESSONS_DB" "SELECT value FROM metadata WHERE key = 'nudge_threshold_days';" 2>/dev/null)
+    [ -z "$THRESHOLD_DAYS" ] && THRESHOLD_DAYS=7
+
     NUDGE=""
-    if [ "$RECENT_COUNT" -ge 10 ] 2>/dev/null; then
-        NUDGE="$RECENT_COUNT recent lessons"
+    if [ -n "$LAST_MANAGE" ]; then
+        LAST_EPOCH=$(date -d "$LAST_MANAGE" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "$LAST_MANAGE" +%s 2>/dev/null || echo 0)
+        NOW_EPOCH=$(date +%s)
+        DAYS_SINCE=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
+        if [ "$DAYS_SINCE" -ge "$THRESHOLD_DAYS" ] 2>/dev/null; then
+            NUDGE="${DAYS_SINCE}d since last /manage-lessons"
+        fi
+    else
+        NUDGE="never run /manage-lessons"
     fi
-    if [ "$RECURRING_COUNT" -gt 0 ] 2>/dev/null; then
-        [ -n "$NUDGE" ] && NUDGE="$NUDGE, $RECURRING_COUNT flagged recurring" || NUDGE="$RECURRING_COUNT flagged recurring"
-    fi
-    [ -n "$NUDGE" ] && echo "⚠ $NUDGE. Consider running /manage-lessons"
+
+    ACTIVE_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons WHERE active = 1;" 2>/dev/null || echo 0)
+    [ -n "$NUDGE" ] && echo "⚠ $NUDGE ($ACTIVE_COUNT active lessons). Consider running /manage-lessons"
+    echo ""
+
+elif [ -f "$LEARNED_FILE" ]; then
+    # Fallback — learned.json still exists but no lessons.db
+    echo ""
+    echo "=== LESSONS ==="
+    echo "⚠ lessons.db not found. Run \`uv run scripts/lesson_db.py migrate\` to upgrade lessons to SQLite."
+
+    # Legacy jq path
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+    KEY_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "key")] | .[] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    RECENT_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "recent")] | .[-5:][] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
+    [ -n "$KEY_LESSONS" ] && echo "Key:" && echo "$KEY_LESSONS"
+    [ -n "$RECENT_LESSONS" ] && echo "Recent:" && echo "$RECENT_LESSONS"
     echo ""
 fi
 
@@ -112,7 +137,9 @@ echo "If the user's request relates to a non-essential memory topic, use /list-m
 # === ACKNOWLEDGMENT ===
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
 LESSON_COUNT=0
-if [ -f "$LEARNED_FILE" ]; then
+if [ -f "$LESSONS_DB" ]; then
+    LESSON_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons;" 2>/dev/null || echo 0)
+elif [ -f "$LEARNED_FILE" ]; then
     LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
 fi
 echo ""
