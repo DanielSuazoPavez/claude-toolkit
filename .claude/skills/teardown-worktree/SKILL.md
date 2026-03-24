@@ -60,7 +60,14 @@ git worktree remove <worktree_path>
 git checkout <branch_name>
 ```
 
-Tell user: "On branch `<branch>`. Merge when ready: `git merge --no-ff <branch>`"
+### 7. Check Branch Alignment with Main
+
+```bash
+git log HEAD..main --oneline
+```
+
+- **If behind main** (commits shown): Tell user: "Branch is N commits behind main. Rebase before merging: `git rebase main`"
+- **If up to date** (no output): Tell user: "On branch `<branch>`. Merge when ready: `git merge --no-ff <branch>`"
 
 ## Constraints
 
