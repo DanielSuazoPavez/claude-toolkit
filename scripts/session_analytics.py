@@ -479,7 +479,7 @@ def query_session_gaps(
     conn: sqlite3.Connection,
     project: str | None = None,
     days: int | None = None,
-) -> list[dict]:
+) -> dict:
     """Compute gaps between consecutive sessions, return gap stats."""
     sql, params = _add_filters(GAP_ANALYSIS_SQL, project, days)
     sql += " ORDER BY s.last_ts"
@@ -500,7 +500,7 @@ def query_session_gaps(
                 continue
 
     if not gaps_hours:
-        return []
+        return {}
 
     gaps_sorted = sorted(gaps_hours)
     return {
@@ -860,12 +860,16 @@ def cmd_memory(args: argparse.Namespace) -> None:
         print()
 
     # --- On-demand memory reads ---
+    # by_name is built in the is_global branch and reused for shared-memories below
+    from collections import defaultdict
+    by_name: dict[str, dict] = defaultdict(
+        lambda: {"projects": set(), "reads": 0, "sessions": 0}
+    )
     if memory_reads:
         print(f"  {c['bold']}On-Demand Memory Reads{c['reset']}")
         if is_global:
             # Group by filename to surface shared memories
-            from collections import defaultdict
-            by_name: dict[str, dict] = defaultdict(
+            by_name = defaultdict(
                 lambda: {"projects": set(), "reads": 0, "sessions": 0}
             )
             for row in memory_reads:
