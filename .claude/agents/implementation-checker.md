@@ -1,7 +1,7 @@
 ---
 name: implementation-checker
 description: Compares implementation to planning docs. Use after completing a phase or before marking milestone done. Writes report to branch's output/claude-toolkit/reviews/ folder.
-tools: Read, Grep, Glob, Write
+tools: Read, Bash, Grep, Glob, Write
 color: yellow
 model: sonnet
 background: true
@@ -29,10 +29,16 @@ Investigate plan-vs-implementation gaps. File a written report. Let stakeholders
 
 ## Investigation Process
 
+### 0. Discover Changes
+
+- Run `git diff main...HEAD --name-only` to see what files changed on this branch
+- Run `git diff main...HEAD` for the full diff — this is your primary source of truth for what was implemented
+- If there are uncommitted changes, also check `git status` and `git diff` to include working tree state
+
 ### 1. Plan Alignment
 
 - Read the relevant planning documents (`output/claude-toolkit/plans/` or as specified)
-- Compare completed work to planned approach
+- Compare completed work (from the diff) to planned approach
 - Identify deviations - are they improvements or drift?
 - Confirm all planned functionality exists
 
@@ -87,6 +93,14 @@ The report should be the full markdown output, not a summary.
 - Focus on plan items, don't exhaustively trace every import or line change
 - For simple plans (< 20 items), keep review proportional
 - Summarize patterns rather than listing every instance
+
+## Tools & Their Role
+
+- **Bash**: Discover changes via `git diff`, get branch name and timestamps for report output
+- **Read**: Inspect planning docs and implementation files
+- **Grep**: Search for planned features across the codebase
+- **Glob**: Find artifacts that should exist per the plan
+- **Write**: Write the review report
 
 ## What I Don't Do
 
