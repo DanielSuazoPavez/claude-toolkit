@@ -23,10 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[TOOLKIT]** Resource usage audit — identify which skills/agents/hooks are actually used vs collecting dust (`usage-audit`)
-    - **scope**: `toolkit`
-    - **notes**: Infrastructure is in place: `scripts/insights.py` parses transcripts with `skills`, `agents`, `hooks`, `tools` subcommands; `scripts/backup-transcripts.sh` runs hourly via cron preserving transcripts from auto-pruning (`~/backups/claude-transcripts/`). Run the audit, identify dead weight, decide what to prune or demote.
-
 - **[TOOLKIT]** Resource token cost analysis — measure token usage of skills/agents/hooks/memories to evaluate efficiency vs value (`resource-token-cost`)
     - **scope**: `toolkit`
     - **notes**: Follow-up to `usage-audit`. Once we know *what* is used, measure *how much context* each resource consumes. Evaluate whether high-cost resources justify their token spend relative to the value they provide. Informs pruning, splitting, or compression decisions.
@@ -39,11 +35,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **both**: Reframe from "multi-agent orchestration" to "branch isolation for parallel instances". Keep it mechanical, get out of the way.
 
 ## P2 - Medium
-
-- **[TOOLKIT]** Resource organization via plugins — explore grouping skills/agents/hooks by domain using Claude Code plugins (`resource-plugins`)
-    - **scope**: `toolkit`
-    - **notes**: Plugins provide namespacing (`/domain:skill`) and directory grouping. Trade-off: organizational clarity vs longer invocation for high-frequency skills. Explore: (1) test whether unknown frontmatter keys like `metadata` are silently accepted, (2) sketch domain boundaries (design, workflow, toolkit, code, personal), (3) decide which resources stay standalone vs get bundled. See `output/claude-toolkit/analysis/20260324_1346__analyze-idea__resource-usage-audit.md` for usage data informing grouping.
-
 
 - **[SCRIPTS]** Session DB analytics — explore analytics possibilities on the session-search SQLite database (`session-db-analytics`)
     - **scope**: `scripts`
