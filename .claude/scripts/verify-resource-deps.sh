@@ -355,8 +355,8 @@ if [ -d "$MEMORIES_DIR" ]; then
     while IFS= read -r memfile; do
         mem_name=$(basename "$memfile" .md)
 
-        # Skip idea-* and personal-* memories (ephemeral/private)
-        case "$mem_name" in idea-*|personal-*) continue ;; esac
+        # Skip idea-*, personal-*, and experimental-* memories (ephemeral/private)
+        case "$mem_name" in idea-*|personal-*|experimental-*) continue ;; esac
 
         if $MANIFEST_MODE; then
             if ! in_manifest "memories/$mem_name.md"; then
@@ -400,8 +400,8 @@ if [ -d "$MEMORIES_DIR" ] && [ -d "$SKILLS_DIR" ]; then
     while IFS= read -r memfile; do
         mem_name=$(basename "$memfile" .md)
 
-        # Skip idea-* and personal-* memories (ephemeral/private)
-        case "$mem_name" in idea-*|personal-*) continue ;; esac
+        # Skip idea-*, personal-*, and experimental-* memories (ephemeral/private)
+        case "$mem_name" in idea-*|personal-*|experimental-*) continue ;; esac
 
         if $MANIFEST_MODE; then
             if ! in_manifest "memories/$mem_name.md"; then
