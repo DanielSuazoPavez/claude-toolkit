@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.25.1] - 2026-03-24 - Auto-deny sudo commands
+
+### Added
+- **hooks**: `sudo` command blocking in `block-dangerous-commands.sh` — sudo can't work without an interactive password prompt, so block it instead of letting it fail
+
+### Removed
+- **backlog**: Completed `hook-auto-deny-sudo` task
+
 ## [2.25.0] - 2026-03-24 - Resource token cost tracking
 
 ### Added

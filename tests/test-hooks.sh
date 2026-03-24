@@ -202,6 +202,16 @@ test_block_dangerous_commands() {
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo hello; ls -la"}}' \
         "allows chained safe commands"
 
+    # sudo commands
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"sudo apt-get install foo"}}' \
+        "blocks sudo apt-get install"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"sudo rm -rf /tmp/stuff"}}' \
+        "blocks sudo rm"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo hello && sudo cat /etc/shadow"}}' \
+        "blocks chained sudo"
+    expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo hello; sudo ls"}}' \
+        "blocks sudo after semicolon"
+
     # Evasion via subshell/eval/shell wrappers (uses jq for proper JSON escaping)
     expect_block "$hook" "$(jq -n --arg cmd '$(rm -rf /)' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
         "blocks subshell \$(rm -rf /)"

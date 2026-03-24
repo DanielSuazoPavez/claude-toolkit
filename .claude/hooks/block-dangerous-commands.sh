@@ -13,6 +13,7 @@
 #   - dd to /dev/sda or similar (disk overwrite)
 #   - chmod -R 777 / (dangerous permissions)
 #   - > /dev/sda (disk overwrite via redirect)
+#   - sudo commands (cannot work — no interactive password prompt)
 #
 # Also detects these patterns when hidden via:
 #   - Subshells: $(rm -rf /), `rm -rf /`
@@ -28,6 +29,9 @@
 #
 #   echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ./temp"}}' | ./block-dangerous-commands.sh
 #   # Expected: (empty - allowed)
+#
+#   echo '{"tool_name":"Bash","tool_input":{"command":"sudo apt-get install foo"}}' | ./block-dangerous-commands.sh
+#   # Expected: {"decision":"block","reason":"..."}
 #
 #   echo '{"tool_name":"Bash","tool_input":{"command":"$(rm -rf /)"}}' | ./block-dangerous-commands.sh
 #   # Expected: {"decision":"block","reason":"..."}
@@ -121,6 +125,11 @@ fi
 if [[ "$CMD" =~ chmod[[:space:]]+-R[[:space:]]+777[[:space:]]+/(\ |$) ]] || \
    [[ "$CMD" =~ chmod[[:space:]]+777[[:space:]]+-R[[:space:]]+/(\ |$) ]]; then
     block "BLOCKED: chmod -R 777 / detected. This would make all files world-writable."
+fi
+
+# Check for sudo commands (no interactive password prompt available)
+if [[ "$CMD" =~ (^|;|&&|\|\|)[[:space:]]*sudo[[:space:]] ]]; then
+    block "BLOCKED: sudo commands cannot work in this environment — no interactive password prompt available."
 fi
 
 exit 0

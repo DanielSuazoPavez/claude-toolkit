@@ -41,10 +41,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `scripts`
     - **notes**: Which projects have sessions active on the same days? A project with many sessions compressed into few days alongside another project (e.g., schema-smith appearing on the same days as acustica-marina) suggests a supporting/dependency role rather than independent work. Analyze: daily co-occurrence matrix, identify "primary" vs "supporting" project roles per day, projects that always appear together vs independently.
 
-- **[HOOKS]** Auto-deny sudo commands — add `sudo` to hook-based auto-deny list (`hook-auto-deny-sudo`)
-    - **scope**: `hooks`
-    - **notes**: `sudo` commands should be blocked automatically by a PreToolUse hook, similar to other dangerous command patterns. Currently no hook prevents `sudo apt-get install` etc. from prompting the user — it should be denied outright.
-
 ## P3 - Low
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
