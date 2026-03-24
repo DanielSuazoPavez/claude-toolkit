@@ -14,6 +14,7 @@ Automation hooks configured in `settings.json`.
 | `suggest-read-json.sh` | stable | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
 | `enforce-uv-run.sh` | stable | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
 | `enforce-make-commands.sh` | stable | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
+| `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | Surfaces relevant active lessons as additionalContext based on tool context keywords |
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
@@ -28,8 +29,9 @@ Loads essential memories and git context at the start of each session.
 - Outputs all `essential-*.md` memories
 - Lists other available memories (with category counts)
 - Shows current git branch and main branch
-- Loads lessons from `learned.json`: key tier (all), recent (last 5), branch-flagged (current branch)
-- Nudges `/manage-lessons` when recent count ≥ 10 or recurring flags exist
+- Loads lessons from `lessons.db` (sqlite3): key tier (all), recent (last 5), branch-specific (current branch)
+- Falls back to `learned.json` (jq) if lessons.db not found, with migration nudge
+- Nudges `/manage-lessons` based on days since last run (metadata-driven threshold, default 7d)
 - Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
 - Outputs guidance text for memory usage
 
@@ -123,6 +125,19 @@ Blocks bare tool invocations, suggests Make targets.
 - Blocks: `uv run ruff`, `uv run pre-commit`, bare `pre-commit`, `ruff check/format`
 - Blocks: `uv sync`, `docker up/down/build`
 - Suggests: `make test`, `make lint`, `make install`, etc.
+
+### surface-lessons.sh
+
+**Trigger**: PreToolUse (Bash|Read|Write|Edit)
+
+Surfaces relevant active lessons as additionalContext based on tool context keywords.
+
+- Extracts keywords from tool input (command text or file path)
+- Matches against `tags.keywords` in `~/.claude/lessons.db`
+- Injects up to 3 matching active lessons as non-blocking `additionalContext`
+- Pure bash+sqlite3 — no Python overhead
+- Includes basic plural handling (strips trailing 's' for matching)
+- Silent exit if no lessons.db, no context, or no matches
 
 ### approve-safe-commands.sh
 
