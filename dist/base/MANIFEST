@@ -1,7 +1,7 @@
 # Sync Manifest — controls what claude-toolkit sync copies to projects.
 #
 # Rules:
-#   - One entry per line, paths relative to .claude/
+#   - One entry per line, paths relative to .claude/ (except dist/* which resolves from project root)
 #   - Directories end with / — includes all files recursively
 #   - Individual files listed by exact path
 #   - Lines starting with # are comments
