@@ -10,6 +10,7 @@ Internal utility scripts in `.claude/scripts/`.
 | `validate-resources-indexed.sh` | stable | yes | Checks disk resources match index entries |
 | `validate-settings-template.sh` | stable | yes | Checks settings.json matches template |
 | `verify-resource-deps.sh` | stable | yes | Validates cross-references between resources |
+| `validate-safe-commands-sync.sh` | stable | yes | Checks approve-safe-commands hook prefixes match settings.json |
 
 ## Backlog
 
