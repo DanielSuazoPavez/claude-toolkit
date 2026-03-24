@@ -29,17 +29,29 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **status**: `in-progress`
     - **scope**: `agents, skills`
     - **repo**: `~/projects/personal/aws-toolkit`
-    - **notes**: Base model struggles with real-world IAM policies and service-specific config. Three sub-items:
+    - **notes**: Base model struggles with real-world IAM policies and service-specific config. Work happens in the aws-toolkit repo, not here — this backlog entry tracks the initiative, not local changes. Three sub-items:
         - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
         - `aws-security-auditor` agent: Security review, least-privilege IAM validation
         - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
     - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
+
+- **[TOOLKIT]** Resource usage audit — identify which skills/agents/hooks are actually used vs collecting dust (`usage-audit`)
+    - **scope**: `toolkit`
+    - **notes**: Infrastructure is in place: `scripts/insights.py` parses transcripts with `skills`, `agents`, `hooks`, `tools` subcommands; `scripts/backup-transcripts.sh` runs hourly via cron preserving transcripts from auto-pruning (`~/backups/claude-transcripts/`). Run the audit, identify dead weight, decide what to prune or demote.
+
+- **[SKILLS]** Worktree skills polish — stress-test `setup-worktree` and `teardown-worktree` with real parallel workflows (`worktree-polish`)
+    - **scope**: `skills`
+    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
 
 ## P3 - Low
 
 
 
 ## P99 - Nice to Have
+
+- **[TESTS]** Fix backlog-query priority column spacing — padding still sized for P100, should shrink by 1 char for P99 max (`backlog-query-spacing`)
+    - **scope**: `tests`
+    - **notes**: When P100 was renamed to P99, the priority column width in `backlog-query.sh` wasn't adjusted. Update the formatting and fix related test expectations in `test-backlog-query.sh`.
 
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`

@@ -30,13 +30,6 @@ Always loaded at session start:
 |--------|--------|---------|
 | `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |
 
-## Personal
-
-| Memory | Status | Purpose |
-|--------|--------|---------|
-| `personal-preferences-casual_communication_style` | stable | Casual conversation mode for meta-discussions |
-| `personal-context-user` | stable | Personal context (cats, board games, Chilean game scene, misc preferences) |
-
 ## Memory Categories
 
 See `essential-conventions-memory` for full category definitions, naming conventions, and Quick Reference patterns.

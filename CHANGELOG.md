@@ -2,9 +2,17 @@
 
 ## [Unreleased]
 
+## [2.21.7] - 2026-03-24 - Memory index convention alignment
+
 ### Changed
 - **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
 - **ci**: Raiz publish workflow now stamps `.claude-toolkit-version` in target repo and includes version in commit message
+- **indexes**: Removed `personal-*` section from MEMORIES.md — now excluded from index alongside `idea-*` and `experimental-*`, matching validation logic
+- **memories**: Added `Indexing:` field to `idea`, `personal`, and `experimental` category definitions in `essential-conventions-memory`
+- **skills**: `create-memory` — added missing `personal-` row to category table, index update step, and category-aware duplicate check guidance
+
+### Fixed
+- **scripts**: `validate-resources-indexed.sh` and `verify-resource-deps.sh` now exclude `experimental-*` memories alongside `idea-*` and `personal-*`
 
 ## [2.21.6] - 2026-03-24 - Permissions config convention memory
 

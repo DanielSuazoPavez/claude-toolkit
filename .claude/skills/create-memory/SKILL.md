@@ -41,6 +41,7 @@ Is this information stable for 6+ months?
 | `relevant-` | Months | On-demand | API patterns, tool configurations |
 | `branch-` | Days/weeks | On-demand | WIP context for feature-x |
 | `idea-` | Until decided | User permission | Future refactoring plans |
+| `personal-` | Private | User on-demand ONLY | Preferences, personal context |
 | `experimental-` | Until proven | User on-demand ONLY | A/B testing behaviors |
 
 **See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `docs/naming-conventions.md`
@@ -61,6 +62,10 @@ Is this information stable for 6+ months?
 4. **Include Quick Reference** as section 1 with `**ONLY READ WHEN:**` bullets
 
 5. **Write content** based on what user wants to capture
+
+6. **Update index** (if applicable):
+   - `essential` and `relevant` memories → add to `docs/indexes/MEMORIES.md`
+   - `idea`, `personal`, `experimental`, `branch` memories → skip the index (excluded by convention and validation)
 
 ## File Format
 
@@ -138,7 +143,7 @@ Before writing the memory file, verify:
 - [ ] **Category correct?** Matches stability timeline (essential=permanent, relevant=months, branch=days)
 - [ ] **Quick Reference exists?** Has `**ONLY READ WHEN:**` bullets
 - [ ] **Filename format?** `{category}-{context}-{descriptive_name}.md` with underscores
-- [ ] **No duplicate?** Check `docs/indexes/MEMORIES.md` if available, otherwise list files in `.claude/memories/`
+- [ ] **No duplicate?** For `essential`/`relevant`: check `docs/indexes/MEMORIES.md`. For `idea`/`personal`/`experimental`: list `.claude/memories/` directly (these categories are excluded from the index)
 - [ ] **Under 300 lines?** Split if larger
 
 ### Quality Gate

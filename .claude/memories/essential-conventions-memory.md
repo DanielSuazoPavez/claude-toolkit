@@ -40,18 +40,21 @@
 ### `idea` (Temporary)
 - **Principle:** For future implementation ideas that might appear during development of features. To be reviewed and prioritized with the team, then moved by the user to an appropriate location.
 - **Load pattern:** Requires explicit user permission before reading.
+- **Indexing:** Excluded from MEMORIES.md index and validation. Check duplicates by listing `.claude/memories/` directly.
 - **Format:** `idea-{YYYYMMDD}-{context}-{plan_idea}`
 - **Example:** `idea-20251001-logging-simple_monitoring`
 
 ### `personal` (Private)
 - **Principle:** For personal preferences and customizations. Not shared to other projects, not evaluated.
 - **Load pattern:** User on-demand ONLY - never auto-load or proactively read. User must explicitly request.
+- **Indexing:** Excluded from MEMORIES.md index and validation. Check duplicates by listing `.claude/memories/` directly.
 - **Format:** `personal-{context}-{descriptive_name}`
 - **Example:** `personal-preferences-casual_communication_style`
 
 ### `experimental` (Testing)
 - **Principle:** For trying out new approaches, alternative configurations, or A/B testing different behaviors. May be promoted to `relevant` or `essential` if proven useful, or deleted if not.
 - **Load pattern:** User on-demand ONLY - never auto-load or proactively read. User must explicitly request.
+- **Indexing:** Excluded from MEMORIES.md index and validation. Check duplicates by listing `.claude/memories/` directly.
 - **Format:** `experimental-{context}-{descriptive_name}`
 - **Example:** `experimental-conventions-alternative_commit_style`
 
