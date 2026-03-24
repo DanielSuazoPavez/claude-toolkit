@@ -17,6 +17,7 @@ make backlog                                   # Show backlog (prefer over readi
 
 - **Merge with --no-ff**: Always use `git merge --no-ff` to preserve branch history
 - **Remove done tasks from backlog**: When a backlog task is completed, delete it entirely — don't strikethrough or leave it with a DONE marker
+- **Capture lessons aggressively**: When you notice a correction, gotcha, pattern, or convention worth preserving, use `/learn` without hesitation. Bias toward capturing — pruning and crystallization happen later via `/manage-lessons`
 
 ## Structure
 

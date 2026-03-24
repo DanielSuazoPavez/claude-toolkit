@@ -39,6 +39,9 @@ tables:
         type: text
         required: true
         description: Encoded directory name (e.g. -home-hata-projects-personal-claude-toolkit)
+      project_path:
+        type: text
+        description: Absolute filesystem path to the project directory (from JSONL cwd field)
       session_count:
         type: integer
         default_value: '0'
