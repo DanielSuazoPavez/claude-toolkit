@@ -34,6 +34,18 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `scripts`
     - **notes**: `session_search.py` has analytics-oriented subcommands (`timeline`, `files`, `stats`) that belong in `session_analytics.py`. Keep `session_search.py` focused on indexing and search. Migrate the commands, update imports, and keep backward-compat CLI aliases if needed.
 
+- **[SCRIPTS]** Session analytics — memory load patterns per project (`session-analytics-memory`)
+    - **scope**: `scripts`
+    - **notes**: Data already exists in the events table (file_read actions on `**/memories/**`). Analyze: most-read memories per project, memory diversity (how many distinct memories a project uses), read frequency distribution, which memories are "load-bearing" (read nearly every session) vs occasional. Could inform memory pruning and identify projects that need better memory coverage.
+
+- **[SCRIPTS]** Session analytics — plan+implementation session pairing (`session-analytics-work-units`)
+    - **scope**: `scripts`
+    - **notes**: Explore clustering consecutive sessions into "work units" — a planning session followed by implementation sessions. Challenge: planning may start on `main` before branching, or on the feature branch if the hook prompted a branch switch. Signals to use: timing proximity, project, branch transitions, plan mode events, session shape (planning sessions are shorter, read-heavy; implementation sessions are longer, command-heavy). Cross-branch boundary is the hard part.
+
+- **[SCRIPTS]** Session analytics — project co-occurrence patterns (`session-analytics-co-occurrence`)
+    - **scope**: `scripts`
+    - **notes**: Which projects have sessions active on the same days? A project with many sessions compressed into few days alongside another project (e.g., schema-smith appearing on the same days as acustica-marina) suggests a supporting/dependency role rather than independent work. Analyze: daily co-occurrence matrix, identify "primary" vs "supporting" project roles per day, projects that always appear together vs independently.
+
 ## P3 - Low
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)

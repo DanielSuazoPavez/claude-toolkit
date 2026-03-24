@@ -3,9 +3,14 @@
 ## [2.24.0] - 2026-03-24 - Session DB analytics
 
 ### Added
-- **scripts**: `session_analytics.py` — usage pattern analytics over the session-index DB, separate from search. Preprocessing filter excludes hook/progress events. Subcommands: `sessions` (per-session shape metrics), `projects` (project lifecycle patterns), `time` (hourly/daily/weekly distributions, gap analysis), `branches` (effort per branch, lifetime)
-- **tests**: 28 pytest tests for session analytics (preprocessing, session shapes, project patterns, time patterns, branch patterns)
-- **backlog**: Added `session-analytics-migration` (P2) — migrate timeline/files/stats from session_search to session_analytics
+- **scripts**: `session_analytics.py` — usage pattern analytics over the session-index DB, separate from search. Preprocessing filter excludes hook/progress events from all queries. Subcommands:
+  - `sessions` — per-session shape metrics (duration, active time, events, tool diversity, dominant action)
+  - `projects` — project lifecycle patterns (activity span, peak weeks, session density)
+  - `time` — hourly/daily/weekly distributions with timezone offset (default UTC-3), session gap analysis
+  - `branches` — effort per branch, lifetime, session shape by branch
+- **scripts**: Active time metric using 1-minute time bucketing — counts minutes with any event activity, filtering out idle periods where sessions were left open
+- **tests**: 35 pytest tests for session analytics (preprocessing, active time, session shapes, project patterns, time patterns, branch patterns)
+- **backlog**: Added `session-analytics-migration` (P2), `session-analytics-memory` (P2), `session-analytics-work-units` (P2), `session-analytics-co-occurrence` (P2)
 
 ### Removed
 - **backlog**: Completed `session-db-analytics` task
