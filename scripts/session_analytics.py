@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import sqlite3
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from session_search import DB_PATH, _c, _fmt_tokens, init_db
@@ -37,6 +38,67 @@ def _cte(extra: str = "") -> str:
     if extra:
         parts.append(extra)
     return "WITH " + ",\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# Active time computation
+# ---------------------------------------------------------------------------
+
+# Max gap (minutes) between events that still counts as "active"
+ACTIVE_GAP_THRESHOLD_MIN = 5
+
+
+def compute_active_time(
+    conn: sqlite3.Connection,
+    session_ids: list[str],
+    threshold_min: float = ACTIVE_GAP_THRESHOLD_MIN,
+) -> dict[str, float]:
+    """Compute active minutes per session from event timestamps.
+
+    Active time = sum of windows where consecutive events are within
+    threshold_min of each other. Gaps exceeding the threshold are idle time.
+    """
+    if not session_ids:
+        return {}
+
+    # Batch query: get timestamps for all requested sessions, ordered
+    placeholders = ",".join("?" for _ in session_ids)
+    rows = conn.execute(
+        f"""
+        {_cte()}
+        SELECT session_id, timestamp
+        FROM filtered_events
+        WHERE session_id IN ({placeholders}) AND timestamp IS NOT NULL
+        ORDER BY session_id, seq
+        """,
+        session_ids,
+    ).fetchall()
+
+    # Group timestamps by session
+    from itertools import groupby
+    result: dict[str, float] = {}
+    for sid, group in groupby(rows, key=lambda r: r[0]):
+        timestamps: list[datetime] = []
+        for _, ts_str in group:
+            try:
+                timestamps.append(datetime.fromisoformat(ts_str))
+            except (ValueError, TypeError):
+                continue
+
+        if len(timestamps) < 2:
+            result[sid] = 0.0
+            continue
+
+        timestamps.sort()
+        active_min = 0.0
+        for i in range(1, len(timestamps)):
+            gap = (timestamps[i] - timestamps[i - 1]).total_seconds() / 60
+            if 0 < gap <= threshold_min:
+                active_min += gap
+
+        result[sid] = active_min
+
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -77,8 +139,8 @@ def query_session_shapes(
     conn: sqlite3.Connection,
     project: str | None = None,
     days: int | None = None,
-) -> list[sqlite3.Row]:
-    """Get per-session shape metrics."""
+) -> list[dict]:
+    """Get per-session shape metrics with active time."""
     sql = SESSION_SHAPE_SQL
     params: list = []
     wheres: list[str] = []
@@ -96,7 +158,19 @@ def query_session_shapes(
     sql += " ORDER BY s.last_ts DESC"
 
     conn.row_factory = sqlite3.Row
-    return conn.execute(sql, params).fetchall()
+    rows = conn.execute(sql, params).fetchall()
+
+    # Enrich with active time
+    session_ids = [r["session_id"] for r in rows]
+    active_times = compute_active_time(conn, session_ids)
+
+    result = []
+    for row in rows:
+        d = dict(row)
+        d["active_min"] = active_times.get(row["session_id"], 0.0)
+        result.append(d)
+
+    return result
 
 
 def cmd_sessions(args: argparse.Namespace) -> None:
@@ -116,26 +190,34 @@ def cmd_sessions(args: argparse.Namespace) -> None:
 
     print(f"\n{c['bold']}{c['cyan']}Session Shapes{c['reset']} ({len(rows)} total)\n")
     print(
-        f"  {'Date':12} {'Project':30} {'Dur':>6} {'Events':>7} "
-        f"{'Tools':>5} {'Tokens':>9} {'Dominant':>12}"
+        f"  {'Date':12} {'Project':30} {'Dur':>6} {'Active':>6} "
+        f"{'Events':>7} {'Tools':>5} {'Tokens':>9} {'Dominant':>12}"
     )
-    print(f"  {'─' * 12} {'─' * 30} {'─' * 6} {'─' * 7} {'─' * 5} {'─' * 9} {'─' * 12}")
+    print(
+        f"  {'─' * 12} {'─' * 30} {'─' * 6} {'─' * 6} "
+        f"{'─' * 7} {'─' * 5} {'─' * 9} {'─' * 12}"
+    )
 
     for row in showing:
         date = (row["last_ts"] or "")[:10]
         proj = (row["project"] or "")[:30]
         dur = f"{row['duration_min']:.0f}m" if row["duration_min"] else "—"
+        active = f"{row['active_min']:.0f}m" if row["active_min"] else "—"
         events = row["event_count"]
         tools = row["tool_diversity"]
         tokens = _fmt_tokens(row["total_tokens"] or 0)
         dominant = row["dominant_action"] or "—"
-        print(f"  {date:12} {proj:30} {dur:>6} {events:>7} {tools:>5} {tokens:>9} {dominant:>12}")
+        print(
+            f"  {date:12} {proj:30} {dur:>6} {active:>6} "
+            f"{events:>7} {tools:>5} {tokens:>9} {dominant:>12}"
+        )
 
     if len(rows) > limit:
         print(f"\n  ... and {len(rows) - limit} more (use --limit to show more)")
 
     # Summary stats
     durations = [r["duration_min"] for r in rows if r["duration_min"] and r["duration_min"] > 0]
+    actives = [r["active_min"] for r in rows if r["active_min"] and r["active_min"] > 0]
     event_counts = [r["event_count"] for r in rows]
     token_counts = [r["total_tokens"] for r in rows if r["total_tokens"]]
 
@@ -144,6 +226,15 @@ def cmd_sessions(args: argparse.Namespace) -> None:
         avg_dur = sum(durations) / len(durations)
         med_dur = sorted(durations)[len(durations) // 2]
         print(f"    Duration:  avg {avg_dur:.0f}m, median {med_dur:.0f}m")
+    if actives:
+        avg_act = sum(actives) / len(actives)
+        med_act = sorted(actives)[len(actives) // 2]
+        print(f"    Active:    avg {avg_act:.0f}m, median {med_act:.0f}m")
+    if durations and actives:
+        total_dur = sum(durations)
+        total_act = sum(actives)
+        if total_dur > 0:
+            print(f"    Efficiency: {total_act / total_dur * 100:.0f}% of wall clock time")
     if event_counts:
         avg_ev = sum(event_counts) / len(event_counts)
         print(f"    Events:    avg {avg_ev:.0f}/session")

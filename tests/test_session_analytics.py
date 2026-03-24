@@ -15,6 +15,7 @@ from scripts.session_search import (
 from scripts.session_analytics import (
     FILTERED_EVENTS_CTE,
     _cte,
+    compute_active_time,
     query_session_shapes,
     query_project_patterns,
     query_hourly_activity,
@@ -200,6 +201,46 @@ class TestPreprocessingFilter:
         extended = _cte("extra AS (SELECT 1)")
         assert "filtered_events" in extended
         assert "extra AS" in extended
+
+
+# ---------------------------------------------------------------------------
+# Active time
+# ---------------------------------------------------------------------------
+
+
+class TestActiveTime:
+    def test_active_time_computed(self, indexed_db: sqlite3.Connection) -> None:
+        active = compute_active_time(indexed_db, ["sess-a1", "sess-a2", "sess-b1"])
+        assert "sess-a1" in active
+        assert "sess-a2" in active
+        assert "sess-b1" in active
+
+    def test_active_time_within_duration(self, indexed_db: sqlite3.Connection) -> None:
+        """Active time should not exceed wall clock duration."""
+        active = compute_active_time(indexed_db, ["sess-a1"])
+        # sess-a1 is 10m wall clock
+        assert active["sess-a1"] <= 10.0
+
+    def test_active_time_excludes_large_gaps(self, indexed_db: sqlite3.Connection) -> None:
+        """Sessions with gaps > threshold should have active < duration."""
+        # sess-b1: events at 08:00, 08:10, 08:20, 08:30
+        # gaps are 10m each, all > default 5m threshold
+        active = compute_active_time(indexed_db, ["sess-b1"])
+        assert active["sess-b1"] == 0.0
+
+    def test_custom_threshold(self, indexed_db: sqlite3.Connection) -> None:
+        """Higher threshold should capture more active time."""
+        narrow = compute_active_time(indexed_db, ["sess-b1"], threshold_min=5)
+        wide = compute_active_time(indexed_db, ["sess-b1"], threshold_min=15)
+        assert wide["sess-b1"] >= narrow["sess-b1"]
+
+    def test_empty_session_ids(self, indexed_db: sqlite3.Connection) -> None:
+        result = compute_active_time(indexed_db, [])
+        assert result == {}
+
+    def test_session_shape_includes_active_min(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_session_shapes(indexed_db)
+        assert all("active_min" in r for r in rows)
 
 
 # ---------------------------------------------------------------------------
