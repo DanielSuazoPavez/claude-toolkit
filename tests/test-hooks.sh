@@ -803,6 +803,12 @@ test_approve_safe_commands() {
     expect_silent "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat < input.txt"}}' \
         "silent: redirect <"
 
+    expect_silent "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo secret 2>exfil.txt"}}' \
+        "silent: stderr redirect 2>"
+
+    expect_silent "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo test &>output.txt"}}' \
+        "silent: combined redirect &>"
+
     expect_silent "$hook" '{"tool_name":"Bash","tool_input":{"command":"npm install"}}' \
         "silent: npm install (not in safe list)"
 

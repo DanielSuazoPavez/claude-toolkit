@@ -43,8 +43,8 @@ if [[ "$COMMAND" == *'$('* ]] || [[ "$COMMAND" == *'`'* ]]; then
 fi
 
 # Bail on redirects — filesystem side effects
-# Check for >, >>, or < outside of quotes (simple heuristic)
-if echo "$COMMAND" | grep -qE '(>>|[^2]>([^&]|$)|^>|<)'; then
+# Matches: >, >>, <, 2>, 2>>, &>, etc. (any redirect operator)
+if echo "$COMMAND" | grep -qE '(>>|[0-9]*>|<|&>)'; then
     exit 0
 fi
 
@@ -84,7 +84,7 @@ SAFE_PREFIXES=(
     "git checkout"
     "git switch"
     "git commit"
-    # Hook/script paths
+    # Hook/script paths — trust assumption: these dirs are not writable by untrusted sources
     "./.claude/hooks/"
     ".claude/scripts/"
     "./scripts/"
