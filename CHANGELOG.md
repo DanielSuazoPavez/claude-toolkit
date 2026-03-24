@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.23.0] - 2026-03-24 - Worktree skills polish
+
+### Changed
+- **skills**: `setup-worktree` — drop mandatory plan file (optional context file instead), add `.claude/scripts` symlink, skip symlinks when `.claude/` is already tracked in git, reframe as branch isolation
+- **skills**: `teardown-worktree` — mechanical only (check uncommitted → copy artifacts → remove → checkout), drop implementation-checker agent run, drop Agent from allowed tools
+
+### Removed
+- **backlog**: Completed `worktree-polish` task
+
 ## [2.22.0] - 2026-03-24 - Session history search with SQLite+FTS5
 
 ### Added
