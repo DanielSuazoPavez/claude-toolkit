@@ -68,7 +68,7 @@ agents:   .claude/agents/*.md
 
 - **Always exclude** `personal-` memories — personal memories are not evaluated
 - If specific resources are listed in the invocation, evaluate exactly those — skip staleness checks
-- Otherwise, read `.claude/indexes/evaluations.json` and include resources that are:
+- Otherwise, read `docs/indexes/evaluations.json` and include resources that are:
   - **Unevaluated**: Not in `{type}.resources`
   - **Stale**: `file_hash` doesn't match current file (`md5sum <file> | cut -c1-8`), OR the evaluate-* skill itself has changed since last evaluation
 
@@ -130,7 +130,7 @@ Type mapping:
 Wait for batch agents to complete. Parse JSON from each response.
 
 **3c. Write batch to evaluations.json immediately:**
-Add each result to `.claude/indexes/evaluations.json` under `{type}.resources.{name}`:
+Add each result to `docs/indexes/evaluations.json` under `{type}.resources.{name}`:
 
 ```json
 {
@@ -166,7 +166,7 @@ After all batches complete:
 | name-2   | 105/120 | 87.5% |
 ...
 
-Added N evaluations to .claude/indexes/evaluations.json
+Added N evaluations to docs/indexes/evaluations.json
 ```
 
 ## When to Use Each Parameter
@@ -261,7 +261,7 @@ Re-run → Filter finds only 5 remaining → single batch needed
 | secrets-guard | 95/115  | 82.6% |
 | session-start | 103/115 | 89.6% |
 
-Added 2 evaluations to .claude/indexes/evaluations.json
+Added 2 evaluations to docs/indexes/evaluations.json
 ```
 
 ## Anti-Patterns

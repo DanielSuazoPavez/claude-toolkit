@@ -7,9 +7,9 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 ## Quick Start
 
 ```bash
-make check                             # Run all tests and validations
+make check                             # Run tests and validations
 make test                              # Run tests only
-make backlog                           # Query backlog (prefer over reading BACKLOG.md directly)
+make backlog                           # Show backlog (prefer over reading BACKLOG.md directly)
 ```
 
 ## Key Principles
@@ -23,8 +23,10 @@ make backlog                           # Query backlog (prefer over reading BACK
 ├── skills/     # User-invocable skills (/skill-name)
 ├── agents/     # Specialized task agents
 ├── hooks/      # Automation hooks
-├── memories/   # Memory templates
-└── indexes/    # Resource indexes and evaluation scores
+└── memories/   # Memory templates
+docs/
+├── indexes/    # Resource indexes and evaluation scores
+└── ...         # Reference documentation
 output/
 └── claude-toolkit/  # Generated artifacts (analysis, reviews, sessions, plans, etc.)
 ```
@@ -33,11 +35,11 @@ output/
 
 Summary and status of all resources:
 
-- `.claude/indexes/SKILLS.md` - All skills with status and descriptions
-- `.claude/indexes/AGENTS.md` - All agents with status, descriptions, and tools
-- `.claude/indexes/HOOKS.md` - All hooks with triggers and configuration
-- `.claude/indexes/MEMORIES.md` - All memories with categories and purposes
-- `.claude/indexes/evaluations.json` - Quality scores, grades, and improvement suggestions
+- `docs/indexes/SKILLS.md` - All skills with status and descriptions
+- `docs/indexes/AGENTS.md` - All agents with status, descriptions, and tools
+- `docs/indexes/HOOKS.md` - All hooks with triggers and configuration
+- `docs/indexes/MEMORIES.md` - All memories with categories and purposes
+- `docs/indexes/evaluations.json` - Quality scores, grades, and improvement suggestions
 
 ## Changelog
 
@@ -56,5 +58,5 @@ Summary and status of all resources:
 ## See Also
 
 - `README.md` — Full documentation, CLI usage, sync workflow
-- `make backlog` — Query current priorities (use instead of reading BACKLOG.md directly)
-- `.claude/indexes/` — Resource indexes (skills, agents, hooks, memories, evaluations)
+- `make backlog` — Show current priorities (use instead of reading BACKLOG.md directly)
+- `docs/indexes/` — Resource indexes (skills, agents, hooks, memories, evaluations)

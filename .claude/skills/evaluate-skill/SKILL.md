@@ -256,9 +256,9 @@ Using a separate agent ensures objective assessment without influence from prior
 4. Score each dimension with evidence
 5. Calculate total and percentage
 6. Generate report with JSON output including file_hash, type, and top 3 improvements (tag each with `[high]` or `[low]` priority)
-7. Update `.claude/indexes/evaluations.json` using jq:
+7. Update `docs/indexes/evaluations.json` using jq:
    ```bash
-   jq --argjson result '<JSON>' '.skills.resources["<name>"] = $result' .claude/indexes/evaluations.json > tmp && mv tmp .claude/indexes/evaluations.json
+   jq --argjson result '<JSON>' '.skills.resources["<name>"] = $result' docs/indexes/evaluations.json > tmp && mv tmp docs/indexes/evaluations.json
    ```
 
 ## Example Evaluation
