@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.21.2] - 2026-03-23 - Move dist/ to project root
+
+### Changed
+- **toolkit**: Distribution configs (MANIFESTs, templates) moved from `.claude/dist/` to project root `dist/` — cleaner separation of build artifacts from Claude Code config
+- **toolkit**: `resolve_manifest()` now resolves `dist/*` entries from project root instead of `.claude/`; all other entries unchanged
+- **toolkit**: `publish.py` template resolution updated for root-level `dist/`
+
 ## [2.21.1] - 2026-03-23 - Blanket Glob and Grep permissions
 
 ### Added
