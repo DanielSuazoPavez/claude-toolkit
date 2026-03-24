@@ -31,9 +31,12 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `toolkit`
     - **notes**: Follow-up to `usage-audit`. Once we know *what* is used, measure *how much context* each resource consumes. Evaluate whether high-cost resources justify their token spend relative to the value they provide. Informs pruning, splitting, or compression decisions.
 
-- **[SKILLS]** Worktree skills polish — stress-test `setup-worktree` and `teardown-worktree` with real parallel workflows (`worktree-polish`)
+- **[SKILLS]** Worktree skills polish — streamline `setup-worktree` and `teardown-worktree` for branch isolation workflows (`worktree-polish`)
     - **scope**: `skills`
-    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
+    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky — over-engineered around multi-agent orchestration and plan files. Reframe around branch isolation for parallel Claude instances. Known issues: `.claude/` resources showing as deleted+untracked in worktree (symlink/copy issue), missing `.claude/scripts` symlink.
+    - **setup-worktree changes**: Drop mandatory plan file — accept optional context file (any file, not plan-specific) symlinked if provided. Drop "launching an agent" section — end with "start a claude instance in the worktree". Add `.claude/scripts` to symlinks.
+    - **teardown-worktree changes**: Run from parent directory. Mechanical only: check uncommitted → copy artifacts → remove worktree → checkout branch. Drop implementation-checker agent run — plans already include verification agents (code-reviewer, goal-verifier, implementation-checker) via `/review-plan`.
+    - **both**: Reframe from "multi-agent orchestration" to "branch isolation for parallel instances". Keep it mechanical, get out of the way.
 
 ## P2 - Medium
 
