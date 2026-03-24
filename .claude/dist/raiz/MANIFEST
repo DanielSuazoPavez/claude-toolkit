@@ -23,6 +23,7 @@ hooks/block-dangerous-commands.sh
 hooks/git-safety.sh
 hooks/secrets-guard.sh
 hooks/suggest-read-json.sh
+hooks/approve-safe-commands.sh
 
 # memories
 memories/essential-conventions-code_style.md

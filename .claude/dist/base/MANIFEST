@@ -56,6 +56,7 @@ hooks/enforce-uv-run.sh
 hooks/secrets-guard.sh
 hooks/session-start.sh
 hooks/suggest-read-json.sh
+hooks/approve-safe-commands.sh
 
 # memories
 memories/essential-conventions-code_style.md
@@ -80,3 +81,4 @@ scripts/validate-all.sh
 scripts/validate-resources-indexed.sh
 scripts/validate-settings-template.sh
 scripts/verify-resource-deps.sh
+scripts/validate-safe-commands-sync.sh
