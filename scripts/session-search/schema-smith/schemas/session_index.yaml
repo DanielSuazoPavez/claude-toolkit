@@ -1,0 +1,173 @@
+description: "Claude Code session transcript index with FTS5 full-text search"
+
+enums:
+  event_type:
+    values: [user, assistant, tool_use, tool_result, progress, skill]
+    description: "Type of event in the session timeline"
+  action_type:
+    values: [command, file_change, file_read, search, glob, web, agent, skill]
+    description: "Subcategory for tool_use events — maps tool name to semantic action"
+
+tables:
+  projects:
+    description: "Dimension table for project identity"
+    mixins:
+      - auto_id
+      - timestamps
+    columns:
+      name:
+        type: varchar
+        size: 128
+        required: true
+        unique: true
+        description: "Human-readable project name (extracted from encoded dir)"
+      dir_name:
+        type: text
+        required: true
+        description: "Encoded directory name (e.g. -home-hata-projects-personal-claude-toolkit)"
+      session_count:
+        type: integer
+        default_value: "0"
+        description: "Number of sessions for this project (maintained during indexing)"
+
+  sessions:
+    description: "One row per Claude Code session (identified by UUID)"
+    columns:
+      session_id:
+        type: varchar
+        size: 36
+        primary_key: true
+        description: "UUID from JSONL filename"
+      project_id:
+        type: bigint
+        required: true
+        description: "FK to projects dimension"
+      source_dir:
+        type: text
+        required: true
+        description: "Source directory path (backup or live)"
+      first_ts:
+        type: timestamptz
+        description: "Earliest timestamp in session"
+      last_ts:
+        type: timestamptz
+        description: "Latest timestamp in session"
+      git_branch:
+        type: varchar
+        size: 256
+        description: "Git branch at session start"
+      model:
+        type: varchar
+        size: 64
+        description: "Claude model used (e.g. claude-opus-4-6)"
+      event_count:
+        type: integer
+        default_value: "0"
+        description: "Total events indexed for this session"
+      input_tokens:
+        type: integer
+        default_value: "0"
+        description: "Total input tokens consumed"
+      output_tokens:
+        type: integer
+        default_value: "0"
+        description: "Total output tokens generated"
+      cache_create_tokens:
+        type: integer
+        default_value: "0"
+        description: "Total cache creation input tokens"
+      cache_read_tokens:
+        type: integer
+        default_value: "0"
+        description: "Total cache read input tokens"
+      file_mtime:
+        type: double precision
+        required: true
+        description: "Source file mtime at indexing time (for incremental updates)"
+      file_size:
+        type: integer
+        required: true
+        description: "Source file size at indexing time (for incremental updates)"
+      indexed_at:
+        type: timestamptz
+        required: true
+        description: "When this session was last indexed"
+    foreign_keys:
+      - column: project_id
+        reference:
+          table: projects
+          column: id
+        on_delete: RESTRICT
+    indexes:
+      idx_sessions_last_ts:
+        columns: [last_ts]
+
+  events:
+    description: "Full session timeline — every JSONL record becomes an event row"
+    mixins:
+      - auto_id
+    columns:
+      session_id:
+        type: varchar
+        size: 36
+        required: true
+        description: "FK to sessions"
+      project_id:
+        type: bigint
+        required: true
+        description: "FK to projects (denormalized for query performance)"
+      seq:
+        type: integer
+        required: true
+        description: "Ordering within session (line number in JSONL)"
+      timestamp:
+        type: timestamptz
+        description: "Event timestamp from JSONL record"
+      date:
+        type: varchar
+        size: 10
+        description: "YYYY-MM-DD extracted from timestamp for range filtering"
+      event_type:
+        type: event_type
+        required: true
+        description: "Category of event (user, assistant, tool_use, etc.)"
+      tool:
+        type: varchar
+        size: 32
+        description: "Tool name for tool_use events (Bash, Read, Write, etc.)"
+      action_type:
+        type: action_type
+        description: "Semantic action for tool_use events (command, file_change, etc.)"
+      detail:
+        type: text
+        required: true
+        description: "Searchable content — command, file path, message text, etc."
+      output_tokens:
+        type: integer
+        default_value: "0"
+        description: "Output tokens for this turn; proportionally attributed for tool_use events"
+      subagent_id:
+        type: varchar
+        size: 64
+        description: "Non-null for events from subagent transcripts"
+    foreign_keys:
+      - column: session_id
+        reference:
+          table: sessions
+          column: session_id
+        on_delete: CASCADE
+      - column: project_id
+        reference:
+          table: projects
+          column: id
+        on_delete: RESTRICT
+        auto_index: false
+    indexes:
+      idx_events_project_date:
+        columns: [project_id, date]
+      idx_events_event_type:
+        columns: [event_type]
+      idx_events_action_type:
+        columns: [action_type]
+        conditions:
+          - "action_type IS NOT NULL"

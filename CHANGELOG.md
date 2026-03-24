@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.22.0] - 2026-03-24 - Session history search with SQLite+FTS5
+
+### Added
+- **scripts**: `session_search.py` — SQLite+FTS5 cross-project search across all Claude Code transcripts. Full timeline indexing (user messages, assistant text, tool calls), projects dimension table, token accounting, incremental indexing with dedup, subcommands: index, search, timeline, files, stats
+- **scripts**: `index-sessions.sh` — cron wrapper for hourly session indexing alongside backup-transcripts.sh
+- **scripts**: Schema-smith YAML design artifact with generated PostgreSQL DDL and Mermaid diagram (`scripts/session-search/schema-smith/`)
+- **tests**: 30 pytest tests for session search (extraction, DB round-trip, dedup, incremental)
+- **docs**: Resource usage audit report (`output/claude-toolkit/analysis/`)
+- **backlog**: Added `resource-token-cost` (P1) and `resource-plugins` (P2) tasks from usage audit findings
+
+### Removed
+- **backlog**: Completed `session-search` task, removed `stop-hook-plan-enforcement` (P3)
+
 ## [2.21.9] - 2026-03-24 - Tighten review-plan structural requirements
 
 ### Changed

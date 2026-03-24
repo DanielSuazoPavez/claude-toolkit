@@ -1,0 +1,18 @@
+mixins:
+  auto_id:
+    position: start
+    columns:
+      id:
+        type: bigserial
+        primary_key: true
+        description: "Auto-incrementing primary key"
+
+  timestamps:
+    position: end
+    columns:
+      first_seen:
+        type: timestamptz
+        description: "Earliest observed timestamp"
+      last_seen:
+        type: timestamptz
+        description: "Latest observed timestamp"

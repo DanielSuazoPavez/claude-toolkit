@@ -19,8 +19,8 @@ __pycache__/
 
 # Claude session artifacts
 output/claude-toolkit/
-
 .claude/settings.local.json
+.worktrees/
 
 # Distribution output
 dist-output/
