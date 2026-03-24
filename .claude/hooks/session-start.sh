@@ -67,7 +67,7 @@ echo "Main: $MAIN_BRANCH"
 if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; then
     PROJECT_VER=$(cat .claude-toolkit-version 2>/dev/null)
     TOOLKIT_VER=$(claude-toolkit version 2>/dev/null)
-    if [ -n "$TOOLKIT_VER" ] && [ "$PROJECT_VER" != "$TOOLKIT_VER" ]; then
+    if [ -n "$TOOLKIT_VER" ] && [ -n "$PROJECT_VER" ] && [ "$PROJECT_VER" != "$TOOLKIT_VER" ]; then
         echo ""
         echo "=== TOOLKIT VERSION ==="
         echo "Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sync\` then /setup-toolkit"

@@ -47,6 +47,7 @@ USAGE:
 COMMANDS:
     sync [path]     Sync toolkit updates to a project (default: current dir)
     send <path>     Send a resource from another project to suggestions-box
+    version         Print toolkit version
 
 OPTIONS:
     -h, --help      Show this help message

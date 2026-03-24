@@ -157,7 +157,7 @@ If it exists but is missing servers, add them from the template (additive merge)
 
 ```bash
 # Merge missing servers from template into current config
-jq -s '.[0].mcpServers * .[1].mcpServers | {mcpServers: .}' .claude/mcp.json .claude/templates/mcp.template.json
+jq -s '.[1].mcpServers * .[0].mcpServers | {mcpServers: .}' .claude/mcp.json .claude/templates/mcp.template.json
 ```
 
 Note: this preserves existing server config and adds missing ones.
