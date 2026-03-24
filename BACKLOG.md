@@ -42,9 +42,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `scripts`
     - **notes**: Which projects have sessions active on the same days? A project with many sessions compressed into few days alongside another project (e.g., schema-smith appearing on the same days as acustica-marina) suggests a supporting/dependency role rather than independent work. Analyze: daily co-occurrence matrix, identify "primary" vs "supporting" project roles per day, projects that always appear together vs independently.
 
-- **[AGENTS]** Align implementation-checker to goal-verifier and code-reviewer patterns (`implementation-checker-bash`)
-    - **scope**: `agents`
-    - **notes**: implementation-checker has `tools: Read, Grep, Glob, Write` — no Bash. It can't run `git diff main...HEAD` to discover changes, so it reads files from cwd (main tree) and misses worktree changes entirely. goal-verifier and code-reviewer both have Bash and use `git diff` as their starting point. Add Bash to implementation-checker's tools and update its investigation process to start with `git diff main...HEAD` like the others.
 
 ## P3 - Low
 
