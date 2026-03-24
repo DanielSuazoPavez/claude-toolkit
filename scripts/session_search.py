@@ -10,6 +10,7 @@ Usage:
     uv run scripts/session-search.py timeline [--days N] [--project <name>]
     uv run scripts/session-search.py files [<pattern>] [--days N] [--project <name>]
     uv run scripts/session-search.py stats
+    uv run scripts/session-search.py resource-cost [--type skill|agent] [--project <name>] [--sort tokens|uses|avg] [--subagents]
 
 Schema design: scripts/session-search/schema-smith/schemas/session_index.yaml
 """
@@ -100,6 +101,8 @@ CREATE TABLE IF NOT EXISTS events (
     action_type   TEXT,
     detail        TEXT NOT NULL,
     output_tokens INTEGER DEFAULT 0,
+    input_total   INTEGER DEFAULT 0,
+    output_total  INTEGER DEFAULT 0,
     subagent_id   TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id);
@@ -107,6 +110,27 @@ CREATE INDEX IF NOT EXISTS idx_events_project_date ON events(project_id, date);
 CREATE INDEX IF NOT EXISTS idx_events_event_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_events_action_type ON events(action_type)
     WHERE action_type IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_events_session_seq ON events(session_id, seq);
+CREATE INDEX IF NOT EXISTS idx_events_boundary ON events(session_id, seq, event_type, action_type)
+    WHERE event_type = 'user' AND action_type = 'human';
+
+CREATE TABLE IF NOT EXISTS resource_usage (
+    id              INTEGER PRIMARY KEY,
+    session_id      TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    project_id      INTEGER NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+    resource_type   TEXT NOT NULL,
+    resource_name   TEXT NOT NULL,
+    timestamp       TEXT,
+    input_delta     INTEGER NOT NULL,
+    output_delta    INTEGER NOT NULL,
+    turn_count      INTEGER NOT NULL,
+    end_reason      TEXT,
+    files_written   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_resource_usage_name
+    ON resource_usage(resource_type, resource_name);
+CREATE INDEX IF NOT EXISTS idx_resource_usage_session
+    ON resource_usage(session_id);
 
 CREATE VIRTUAL TABLE IF NOT EXISTS events_fts USING fts5(
     detail,
@@ -183,7 +207,9 @@ def _extract_tool_detail(tool_name: str, inp: dict) -> tuple[str, str] | None:
     elif tool_name in ("WebFetch", "WebSearch"):
         detail = inp.get("url", "") or inp.get("query", "")
     elif tool_name in ("Task", "Agent"):
-        detail = inp.get("description", "") or inp.get("prompt", "")[:300]
+        agent_type = inp.get("subagent_type", "") or "general-purpose"
+        desc = inp.get("description", "") or inp.get("prompt", "")[:300]
+        detail = f"{agent_type}: {desc}" if desc else agent_type
     elif tool_name == "Skill":
         detail = inp.get("skill", "")
     else:
@@ -279,6 +305,9 @@ def extract_session_events(
     }
     events: list[dict] = []
     seq = 0
+    # Running sums for cumulative token tracking
+    running_input_total = 0
+    running_output_total = 0
 
     with open(file_path, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
@@ -320,6 +349,8 @@ def extract_session_events(
                         "action_type": None,
                         "detail": f"{data.get('hookEvent', '')}:{data.get('hookName', '')}",
                         "output_tokens": 0,
+                        "input_total": 0,
+                        "output_total": 0,
                         "subagent_id": None,
                     })
                 continue
@@ -330,6 +361,11 @@ def extract_session_events(
                 content = msg.get("content", "")
                 text = _extract_user_text(content)
                 if text:
+                    # Classify user event action_type
+                    if text.startswith("Base directory for this skill:"):
+                        user_action = "skill_content"
+                    else:
+                        user_action = "human"
                     seq += 1
                     events.append({
                         "seq": seq,
@@ -337,9 +373,11 @@ def extract_session_events(
                         "date": date,
                         "event_type": "user",
                         "tool": None,
-                        "action_type": None,
+                        "action_type": user_action,
                         "detail": text,
                         "output_tokens": 0,
+                        "input_total": 0,
+                        "output_total": 0,
                         "subagent_id": None,
                     })
                 continue
@@ -364,6 +402,14 @@ def extract_session_events(
                     )
 
                 turn_output = usage.get("output_tokens", 0)
+                # Cumulative input = cache_creation + cache_read + input_tokens
+                turn_input_total = (
+                    usage.get("cache_creation_input_tokens", 0)
+                    + usage.get("cache_read_input_tokens", 0)
+                    + usage.get("input_tokens", 0)
+                )
+                running_input_total = turn_input_total
+                running_output_total += turn_output
                 content = msg.get("content", [])
 
                 # Extract assistant text
@@ -379,6 +425,8 @@ def extract_session_events(
                         "action_type": None,
                         "detail": assistant_text,
                         "output_tokens": turn_output,
+                        "input_total": running_input_total,
+                        "output_total": running_output_total,
                         "subagent_id": None,
                     })
 
@@ -408,6 +456,8 @@ def extract_session_events(
                                 "action_type": action_type,
                                 "detail": detail,
                                 "output_tokens": per_tool_tokens,
+                                "input_total": running_input_total,
+                                "output_total": running_output_total,
                                 "subagent_id": None,
                             })
 
@@ -425,11 +475,143 @@ def extract_session_events(
     return meta, events
 
 
+# Interactive skills that use file-write as end boundary
+_INTERACTIVE_SKILLS = {"brainstorm-idea", "shape-proposal"}
+
+
+def extract_resource_usage(events: list[dict]) -> list[dict]:
+    """Extract resource usage spans from an ordered event list.
+
+    Walks events linearly to find skill/agent invocations and their
+    end boundaries, computing token deltas for each span.
+    """
+    usages: list[dict] = []
+
+    i = 0
+    while i < len(events):
+        evt = events[i]
+
+        # Skill invocation
+        if evt["event_type"] == "tool_use" and evt["tool"] == "Skill":
+            skill_name = evt["detail"]
+            start_input = evt["input_total"]
+            start_output = evt["output_total"]
+            ts = evt["timestamp"]
+            is_interactive = skill_name in _INTERACTIVE_SKILLS
+
+            # Scan forward for end boundary
+            turn_count = 0
+            files_written: list[str] = []
+            end_input = start_input
+            end_output = start_output
+            end_reason = "eof"
+
+            for j in range(i + 1, len(events)):
+                fwd = events[j]
+
+                # Track assistant turns and token totals
+                if fwd["event_type"] == "assistant" and fwd["subagent_id"] is None:
+                    turn_count += 1
+                    if fwd["input_total"] > 0:
+                        end_input = fwd["input_total"]
+                        end_output = fwd["output_total"]
+
+                # Track file writes
+                if fwd["action_type"] == "file_change":
+                    fp = fwd["detail"]
+                    files_written.append(fp)
+                    if is_interactive:
+                        end_reason = "file_write"
+                        break
+
+                # End at next human message (skip skill_content)
+                if (fwd["event_type"] == "user"
+                        and fwd["action_type"] == "human"):
+                    end_reason = "user_msg"
+                    break
+
+            usages.append({
+                "resource_type": "skill",
+                "resource_name": skill_name,
+                "timestamp": ts,
+                "input_delta": end_input - start_input,
+                "output_delta": end_output - start_output,
+                "turn_count": turn_count,
+                "end_reason": end_reason,
+                "files_written": json.dumps(files_written) if files_written else None,
+            })
+
+        # Agent invocation
+        elif (evt["event_type"] == "tool_use"
+              and evt["tool"] in ("Agent", "Task")):
+            detail = evt["detail"]
+            # Parse "type: description" format
+            if ": " in detail:
+                agent_type = detail.split(": ", 1)[0]
+            else:
+                agent_type = detail
+            start_input = evt["input_total"]
+            start_output = evt["output_total"]
+            ts = evt["timestamp"]
+
+            turn_count = 0
+            end_input = start_input
+            end_output = start_output
+            end_reason = "eof"
+
+            for j in range(i + 1, len(events)):
+                fwd = events[j]
+
+                if fwd["event_type"] == "assistant" and fwd["subagent_id"] is None:
+                    turn_count += 1
+                    if fwd["input_total"] > 0:
+                        end_input = fwd["input_total"]
+                        end_output = fwd["output_total"]
+
+                if (fwd["event_type"] == "user"
+                        and fwd["action_type"] == "human"):
+                    end_reason = "user_msg"
+                    break
+
+            usages.append({
+                "resource_type": "agent",
+                "resource_name": agent_type,
+                "timestamp": ts,
+                "input_delta": end_input - start_input,
+                "output_delta": end_output - start_output,
+                "turn_count": turn_count,
+                "end_reason": end_reason,
+                "files_written": None,
+            })
+
+        i += 1
+
+    # Memory baseline: first assistant event's input_total
+    for evt in events:
+        if evt["event_type"] == "assistant" and evt["subagent_id"] is None:
+            if evt["input_total"] > 0:
+                usages.append({
+                    "resource_type": "memory_baseline",
+                    "resource_name": "session_baseline",
+                    "timestamp": evt["timestamp"],
+                    "input_delta": evt["input_total"],
+                    "output_delta": 0,
+                    "turn_count": 0,
+                    "end_reason": None,
+                    "files_written": None,
+                })
+            break
+
+    return usages
+
+
 def _extract_subagent_events(
     jsonl_path: Path, agent_id: str
 ) -> list[dict]:
     """Extract events from a subagent JSONL file."""
     events: list[dict] = []
+    running_input_total = 0
+    running_output_total = 0
 
     with open(jsonl_path, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
@@ -449,6 +631,13 @@ def _extract_subagent_events(
                 msg = record.get("message", {})
                 usage = msg.get("usage", {})
                 turn_output = usage.get("output_tokens", 0)
+                turn_input_total = (
+                    usage.get("cache_creation_input_tokens", 0)
+                    + usage.get("cache_read_input_tokens", 0)
+                    + usage.get("input_tokens", 0)
+                )
+                running_input_total = turn_input_total
+                running_output_total += turn_output
                 content = msg.get("content", [])
 
                 # Assistant text
@@ -463,6 +652,8 @@ def _extract_subagent_events(
                         "action_type": None,
                         "detail": text,
                         "output_tokens": turn_output,
+                        "input_total": running_input_total,
+                        "output_total": running_output_total,
                         "subagent_id": agent_id,
                     })
 
@@ -488,6 +679,8 @@ def _extract_subagent_events(
                                 "action_type": action_type,
                                 "detail": detail,
                                 "output_tokens": per_tool,
+                                "input_total": running_input_total,
+                                "output_total": running_output_total,
                                 "subagent_id": agent_id,
                             })
 
@@ -624,8 +817,9 @@ def index_sessions(
         conn.executemany(
             """INSERT INTO events
             (session_id, project_id, seq, timestamp, date,
-             event_type, tool, action_type, detail, output_tokens, subagent_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+             event_type, tool, action_type, detail, output_tokens,
+             input_total, output_total, subagent_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 (
                     session_id,
@@ -638,11 +832,39 @@ def index_sessions(
                     e["action_type"],
                     e["detail"],
                     e["output_tokens"],
+                    e["input_total"],
+                    e["output_total"],
                     e["subagent_id"],
                 )
                 for e in events
             ],
         )
+
+        # Extract and insert resource usage
+        resource_usages = extract_resource_usage(events)
+        if resource_usages:
+            conn.executemany(
+                """INSERT INTO resource_usage
+                (session_id, project_id, resource_type, resource_name,
+                 timestamp, input_delta, output_delta, turn_count,
+                 end_reason, files_written)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                [
+                    (
+                        session_id,
+                        project_id,
+                        u["resource_type"],
+                        u["resource_name"],
+                        u["timestamp"],
+                        u["input_delta"],
+                        u["output_delta"],
+                        u["turn_count"],
+                        u["end_reason"],
+                        u["files_written"],
+                    )
+                    for u in resource_usages
+                ],
+            )
 
         stats["events"] += len(events)
         conn.commit()
@@ -933,6 +1155,89 @@ def cmd_stats(args: argparse.Namespace) -> None:
             print(f"    {atype:15} {count:8}")
 
 
+def cmd_resource_cost(args: argparse.Namespace) -> None:
+    """Show token cost of toolkit resources (skills, agents)."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    type_filter = args.type if hasattr(args, "type") and args.type else None
+
+    def _print_table(
+        title: str,
+        rows: list[tuple],
+        name_header: str = "Name",
+    ) -> None:
+        if not rows:
+            return
+        print(f"\n{c['bold']}{c['cyan']}{title}{c['reset']}\n")
+        print(
+            f"  {name_header:30} {'Uses':>5} {'Avg In':>8} "
+            f"{'Avg Out':>8} {'Turns':>5} "
+            f"{'Total In':>10} {'Total Out':>10}"
+        )
+        print(f"  {'-' * 88}")
+        for name, invocations, avg_in, avg_out, avg_turns, total_in, total_out in rows:
+            print(
+                f"  {name:30} {invocations:5} "
+                f"{_fmt_tokens(avg_in or 0):>8} {_fmt_tokens(avg_out or 0):>8} "
+                f"{avg_turns or 0:5} "
+                f"{_fmt_tokens(total_in or 0):>10} "
+                f"{_fmt_tokens(total_out or 0):>10}"
+            )
+
+    sort_col = {
+        "tokens": "total_input",
+        "uses": "invocations",
+        "avg": "avg_input_delta",
+    }.get(args.sort, "total_input")
+
+    for rtype, title, name_header in [
+        ("skill", "Skills", "Name"),
+        ("agent", "Agents", "Type"),
+    ]:
+        if type_filter and type_filter != rtype:
+            continue
+
+        sql = """
+            SELECT
+                resource_name,
+                COUNT(*) AS invocations,
+                CAST(AVG(input_delta) AS INTEGER) AS avg_input_delta,
+                CAST(AVG(output_delta) AS INTEGER) AS avg_output_delta,
+                CAST(AVG(turn_count) AS INTEGER) AS avg_turns,
+                SUM(input_delta) AS total_input,
+                SUM(output_delta) AS total_output
+            FROM resource_usage
+            WHERE resource_type = ?
+        """
+        params: list = [rtype]
+
+        if args.project:
+            sql += " AND project_id IN (SELECT id FROM projects WHERE name LIKE ?)"
+            params.append(f"%{args.project}%")
+
+        sql += f" GROUP BY resource_name ORDER BY {sort_col} DESC"
+        rows = conn.execute(sql, params).fetchall()
+        _print_table(title, rows, name_header)
+
+    # Memory baseline
+    if not type_filter:
+        row = conn.execute("""
+            SELECT COUNT(*) AS sessions,
+                   CAST(AVG(input_delta) AS INTEGER) AS avg_baseline
+            FROM resource_usage
+            WHERE resource_type = 'memory_baseline'
+        """).fetchone()
+        if row and row[0]:
+            print(f"\n{c['bold']}{c['cyan']}Memory Baseline{c['reset']}\n")
+            print(
+                f"  Avg first-turn input: {_fmt_tokens(row[1])} tokens "
+                f"({row[0]} sessions)"
+            )
+
+    conn.close()
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -979,6 +1284,17 @@ def build_parser() -> argparse.ArgumentParser:
     # stats
     sub.add_parser("stats", help="Database statistics")
 
+    # resource-cost
+    rc = sub.add_parser("resource-cost", help="Token cost of toolkit resources")
+    rc.add_argument("--type", choices=["skill", "agent"], help="Filter by resource type")
+    rc.add_argument("--project", help="Filter by project")
+    rc.add_argument(
+        "--sort",
+        choices=["tokens", "uses", "avg"],
+        default="tokens",
+        help="Sort order (default: tokens)",
+    )
+
     return parser
 
 
@@ -996,6 +1312,7 @@ def main() -> None:
         "timeline": cmd_timeline,
         "files": cmd_files,
         "stats": cmd_stats,
+        "resource-cost": cmd_resource_cost,
     }
     commands[args.command](args)
 
