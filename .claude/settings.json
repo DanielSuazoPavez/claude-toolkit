@@ -33,6 +33,8 @@
       "Bash(./.claude/hooks/*)",
       "Bash(.claude/scripts/*)",
       "Bash(./scripts/*)",
+      "Glob(**)",
+      "Grep(**)",
       "Read(/**)",
       "Write(/output/claude-toolkit/**)",
       "Edit(/output/claude-toolkit/**)"

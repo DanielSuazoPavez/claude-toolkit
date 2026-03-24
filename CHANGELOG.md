@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.21.1] - 2026-03-23 - Blanket Glob and Grep permissions
+
+### Added
+- **permissions**: `Glob(**)` and `Grep(**)` added to settings.json and settings template — both are read-only tools guarded by secrets-guard hook, no longer prompt unnecessarily
+
 ## [2.21.0] - 2026-03-23 - Auto-approve safe chained Bash commands
 
 ### Added
