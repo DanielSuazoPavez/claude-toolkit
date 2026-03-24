@@ -1,4 +1,4 @@
-"""Tests for scripts/session-search.py — SQLite+FTS5 session history search."""
+"""Tests for scripts/session_index.py — session extraction and indexing."""
 
 from __future__ import annotations
 
@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 
-from scripts.session_search import (
+from scripts.session_db import init_db
+from scripts.session_index import (
     _extract_assistant_text,
     _extract_tool_detail,
     _extract_user_text,
     extract_session_events,
     extract_resource_usage,
-    init_db,
     index_sessions,
     _get_or_create_project,
 )
@@ -550,13 +550,13 @@ class TestResourceUsageExtraction:
         db_path = tmp_path / "test.db"
         conn = init_db(db_path)
 
-        import scripts.session_search as ss
-        original = ss.SOURCE_DIRS
-        ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+        import scripts.session_index as si
+        original = si.SOURCE_DIRS
+        si.SOURCE_DIRS = [tmp_path / "transcripts"]
         try:
             index_sessions(conn)
         finally:
-            ss.SOURCE_DIRS = original
+            si.SOURCE_DIRS = original
 
         rows = conn.execute("""
             SELECT resource_type, resource_name, input_delta, output_delta,
@@ -668,13 +668,13 @@ class TestDatabaseRoundTrip:
         conn = init_db(db_path)
 
         # Monkeypatch SOURCE_DIRS for test
-        import scripts.session_search as ss
-        original = ss.SOURCE_DIRS
-        ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+        import scripts.session_index as si
+        original = si.SOURCE_DIRS
+        si.SOURCE_DIRS = [tmp_path / "transcripts"]
         try:
             stats = index_sessions(conn)
         finally:
-            ss.SOURCE_DIRS = original
+            si.SOURCE_DIRS = original
 
         assert stats["new"] == 1
         assert stats["events"] > 0
@@ -711,13 +711,13 @@ class TestDatabaseRoundTrip:
 
         conn = init_db(db_path)
 
-        import scripts.session_search as ss
-        original = ss.SOURCE_DIRS
-        ss.SOURCE_DIRS = [tmp_path / "backup", tmp_path / "live"]
+        import scripts.session_index as si
+        original = si.SOURCE_DIRS
+        si.SOURCE_DIRS = [tmp_path / "backup", tmp_path / "live"]
         try:
             stats = index_sessions(conn)
         finally:
-            ss.SOURCE_DIRS = original
+            si.SOURCE_DIRS = original
 
         assert stats["new"] == 1
 
@@ -742,9 +742,9 @@ class TestDatabaseRoundTrip:
 
         conn = init_db(db_path)
 
-        import scripts.session_search as ss
-        original = ss.SOURCE_DIRS
-        ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+        import scripts.session_index as si
+        original = si.SOURCE_DIRS
+        si.SOURCE_DIRS = [tmp_path / "transcripts"]
         try:
             stats1 = index_sessions(conn)
             assert stats1["new"] == 1
@@ -753,6 +753,6 @@ class TestDatabaseRoundTrip:
             assert stats2["skipped"] == 1
             assert stats2["new"] == 0
         finally:
-            ss.SOURCE_DIRS = original
+            si.SOURCE_DIRS = original
 
         conn.close()
