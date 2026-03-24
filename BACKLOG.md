@@ -27,21 +27,26 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `toolkit`
     - **notes**: Infrastructure is in place: `scripts/insights.py` parses transcripts with `skills`, `agents`, `hooks`, `tools` subcommands; `scripts/backup-transcripts.sh` runs hourly via cron preserving transcripts from auto-pruning (`~/backups/claude-transcripts/`). Run the audit, identify dead weight, decide what to prune or demote.
 
+- **[TOOLKIT]** Resource token cost analysis — measure token usage of skills/agents/hooks/memories to evaluate efficiency vs value (`resource-token-cost`)
+    - **scope**: `toolkit`
+    - **notes**: Follow-up to `usage-audit`. Once we know *what* is used, measure *how much context* each resource consumes. Evaluate whether high-cost resources justify their token spend relative to the value they provide. Informs pruning, splitting, or compression decisions.
+
 - **[SKILLS]** Worktree skills polish — stress-test `setup-worktree` and `teardown-worktree` with real parallel workflows (`worktree-polish`)
     - **scope**: `skills`
     - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
 
 ## P2 - Medium
 
-- **[SCRIPTS]** Session history search tool — SQLite+FTS5 index of all CC sessions for cross-project search (`session-search`)
+- **[TOOLKIT]** Resource organization via plugins — explore grouping skills/agents/hooks by domain using Claude Code plugins (`resource-plugins`)
+    - **scope**: `toolkit`
+    - **notes**: Plugins provide namespacing (`/domain:skill`) and directory grouping. Trade-off: organizational clarity vs longer invocation for high-frequency skills. Explore: (1) test whether unknown frontmatter keys like `metadata` are silently accepted, (2) sketch domain boundaries (design, workflow, toolkit, code, personal), (3) decide which resources stay standalone vs get bundled. See `output/claude-toolkit/analysis/20260324_1346__analyze-idea__resource-usage-audit.md` for usage data informing grouping.
+
+
+- **[SCRIPTS]** Session DB analytics — explore analytics possibilities on the session-search SQLite database (`session-db-analytics`)
     - **scope**: `scripts`
-    - **notes**: Inspired by `applied-artificial-intelligence/claude-code-toolkit`'s `session-db.py`. Indexes `~/.claude/projects/` JSONL into SQLite with full-text search across tool calls, file changes, commands. Use cases: "when did we implement X?", "what files changed related to Y?", cross-project pattern recall. Also feeds into `usage-audit` task. Reference: `output/claude-toolkit/exploration/applied-ai_claude-code-toolkit/summary.md`.
+    - **notes**: The session-search DB (projects, sessions, events with token accounting) could replace `insights.py`'s stateless re-parsing. Explore: token cost trends over time, project activity heatmaps, tool usage patterns, session duration analysis, most-expensive sessions/projects. Could become a `stats` subcommand expansion or a separate analytics layer.
 
 ## P3 - Low
-
-- **[HOOKS]** Stop hook enforcement for plan execution — verify implementation steps completed (`stop-hook-plan-enforcement`)
-    - **scope**: `hooks`
-    - **notes**: Pattern from `disler/claude-code-hooks-mastery` — Stop hooks that verify output files exist and contain required sections before allowing completion. Reference: `output/claude-toolkit/exploration/disler_claude-code-hooks-mastery/summary.md`.
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
