@@ -1,104 +1,145 @@
 ---
 name: manage-lessons
 description: Review and manage lesson lifecycle. Use when the user says "manage lessons", "review lessons", "promote lessons", "clean up lessons", "prune lessons", or when session-start nudge suggests it.
-allowed-tools: Bash(.claude/scripts/lessons-query.sh:*), Bash(jq:*), Read, Write
+allowed-tools: Bash(uv run scripts/lesson_db.py:*), Bash(sqlite3:*), Read, Write
 ---
 
 # Manage Lessons
 
-Review `recent` lessons and decide their fate: promote, archive, delete, or flag.
+Review lessons and work toward crystallization, absorption, and pruning.
 
-**See also:** `/learn` (capture new lessons), `.claude/scripts/lessons-query.sh` (filter/list lessons), `.claude/schemas/lesson.schema.json` (field definitions), `session-start.sh` hook (nudge that triggers this skill), `/create-memory` (when absorbing a key lesson into a memory)
+**See also:** `/learn` (capture new lessons), `scripts/lesson_db.py` (DB layer and CLI), `session-start.sh` hook (nudges for this skill)
 
 ## When to Use
 
-- Session-start nudge suggests it (10+ recent, recurring flags)
+- Session-start nudge suggests it (threshold days elapsed)
 - User wants to review accumulated lessons
 - Before a project milestone (clean signal for next phase)
 
 ## Process
 
-### 1. List Current State
-
-Run the summary first:
+### 1. Health Check
 
 ```bash
-.claude/scripts/lessons-query.sh summary
+uv run scripts/lesson_db.py health
 ```
 
-Then list recent lessons:
+Review: active count, tier distribution, warnings, time since last run.
+
+### 2. Cluster Detection
 
 ```bash
-.claude/scripts/lessons-query.sh tier recent
+uv run scripts/lesson_db.py clusters
 ```
 
-### 2. Walk Through Each Lesson
+Identify lessons orbiting the same themes. Propose crystallization for pairs/groups that express the same underlying pattern.
 
-For each `recent` lesson, present it and ask the user to decide:
+### 3. Walk Through Clusters
+
+For each cluster, decide with the user:
+
+- **Crystallize** — merge into a single, sharper lesson:
+  ```bash
+  uv run scripts/lesson_db.py crystallize \
+    --ids "ID1,ID2" \
+    --text "Crystallized lesson text" \
+    --tags "tag1,tag2"
+  ```
+  Sources are deactivated, new lesson created as `key` tier.
+
+- **Absorb** — the pattern is already enforced by a resource:
+  ```bash
+  uv run scripts/lesson_db.py absorb --id "ID" --into "hook:git-safety"
+  ```
+  Lesson deactivated, `absorbed_into` recorded.
+
+- **Skip** — not ready to crystallize yet.
+
+### 4. Walk Through Recent Lessons
+
+```bash
+uv run scripts/lesson_db.py list --tier recent --active
+```
+
+For each recent lesson, present and ask:
 
 ```
-Lesson: [category] <text>
-  ID: <id> | Date: <date> | Branch: <branch>
+Lesson: <text>
+  ID: <id> | Date: <date> | Tags: <tags> | Branch: <branch>
 
-  → promote (move to key — always loaded)
-  → archive (move to historical — searchable only)
+  → promote (move to key — validated, eligible for surfacing)
+  → absorb (already in a resource — record and deactivate)
+  → deactivate (no longer relevant — searchable only)
   → delete (remove entirely)
-  → flag recurring (mark as repeat offender)
   → skip (leave as recent)
 ```
 
-Wait for user decision on each one. Don't batch — each lesson deserves individual consideration.
+Execute decisions:
 
-### 3. Execute Decisions
-
-**Promote** — set tier to `key`, record promoted date:
-
+**Promote:**
 ```bash
-jq --arg id "<ID>" --arg date "$(date +%Y-%m-%d)" \
-   '.lessons |= map(if .id == $id then .tier = "key" | .promoted = $date else . end)' \
-   .claude/learned.json > .claude/learned.json.tmp && mv .claude/learned.json.tmp .claude/learned.json
+uv run scripts/lesson_db.py set-meta "" "" # placeholder
+```
+Actually use sqlite3 directly for field updates:
+```bash
+sqlite3 ~/.claude/lessons.db "UPDATE lessons SET tier='key', promoted='$(date +%Y-%m-%d)' WHERE id='<ID>';"
 ```
 
-**Archive** — set tier to `historical`, record archived date:
-
+**Deactivate:**
 ```bash
-jq --arg id "<ID>" --arg date "$(date +%Y-%m-%d)" \
-   '.lessons |= map(if .id == $id then .tier = "historical" | .archived = $date else . end)' \
-   .claude/learned.json > .claude/learned.json.tmp && mv .claude/learned.json.tmp .claude/learned.json
+sqlite3 ~/.claude/lessons.db "UPDATE lessons SET active=0 WHERE id='<ID>';"
 ```
 
-**Delete** — remove the entry:
-
+**Delete:**
 ```bash
-jq --arg id "<ID>" \
-   '.lessons |= map(select(.id != $id))' \
-   .claude/learned.json > .claude/learned.json.tmp && mv .claude/learned.json.tmp .claude/learned.json
+sqlite3 ~/.claude/lessons.db "DELETE FROM lessons WHERE id='<ID>';"
 ```
 
-**Flag recurring** — add the recurring flag:
+Wait for user decision on each one. Don't batch.
+
+### 5. Tag Hygiene
 
 ```bash
-jq --arg id "<ID>" \
-   '.lessons |= map(if .id == $id then .flags += ["recurring"] | .flags |= unique else . end)' \
-   .claude/learned.json > .claude/learned.json.tmp && mv .claude/learned.json.tmp .claude/learned.json
+uv run scripts/lesson_db.py tag-hygiene
 ```
 
-### 4. Show Final State
+Address reported issues:
+- Orphaned tags → delete or add lessons
+- Tags without keywords → add keywords so hooks can surface them
+- Deprecated tags still in use → migrate lessons to canonical tag
 
-After all decisions are made, show the updated summary:
+### 6. Record Completion
 
 ```bash
-.claude/scripts/lessons-query.sh summary
+uv run scripts/lesson_db.py set-meta last_manage_run "$(date -Iseconds)"
 ```
 
-## Key Lessons Can Be Absorbed
+Show final state:
 
-If a `key` lesson has been fully absorbed into a memory, skill, or CLAUDE.md convention, it can be archived or deleted. Mention this when reviewing `key` lessons.
+```bash
+uv run scripts/lesson_db.py health
+```
+
+## Crystallization Guide
+
+Crystallization isn't just "merge 3 lessons into 1." The end state of a mature pattern is that it **leaves the lessons system** and becomes a toolkit resource.
+
+```
+raw lessons → crystallized lesson → absorbed into resource → deactivated
+```
+
+| Signal | Action |
+|--------|--------|
+| 3+ lessons circling same theme | Crystallize into one sharper lesson |
+| Lesson matches an existing hook/skill | Absorb — record and deactivate |
+| Lesson is specific to a closed branch | Deactivate unless pattern is general |
+| Lesson has been key for 30+ days | Check: still needed, or absorbed? |
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| Promoting everything | Defeats the tier system | Only promote lessons that apply broadly and repeatedly |
-| Deleting without reading | Losing potentially valuable signal | Read each lesson before deciding |
-| Skipping all | Accumulates noise | At minimum, flag obvious recurring ones |
+| Promoting everything | Defeats the tier system | Only promote lessons that apply broadly |
+| Skipping all | Accumulates noise | At minimum, address clusters |
+| Deleting without reading | Losing valuable signal | Read each lesson before deciding |
+| Ignoring tag hygiene | Tags lose surfacing value | Clean up keywords and orphans |
