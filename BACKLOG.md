@@ -21,6 +21,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
+- **[SCRIPTS]** Reorganize scripts folder — rethink structure (`scripts-folder-reorg`)
+    - **scope**: `scripts`
+    - **notes**: The `scripts/` folder has grown organically: session tools (`session_db.py`, `session_index.py`, `session_search.py`, `session_analytics.py`), lesson tools (`lesson_db.py`), shared infra (`insights.py`), shell wrappers (`index-sessions.sh`, `backup-transcripts.sh`, `backup-lessons-db.sh`), publishing (`publish.py`), and schema-smith definitions (`session-search/schema-smith/`). Meanwhile `.claude/scripts/` has validation and query scripts. Need to decide: flat vs packages, what belongs in `.claude/scripts/` vs `scripts/`, naming conventions, and whether session/lesson tools should be proper Python packages with `__init__.py` exports.
+
 ## P1 - High
 
 ## P2 - Medium

@@ -78,10 +78,6 @@ Execute decisions:
 
 **Promote:**
 ```bash
-uv run scripts/lesson_db.py set-meta "" "" # placeholder
-```
-Actually use sqlite3 directly for field updates:
-```bash
 sqlite3 ~/.claude/lessons.db "UPDATE lessons SET tier='key', promoted='$(date +%Y-%m-%d)' WHERE id='<ID>';"
 ```
 
