@@ -29,7 +29,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 - **[SKILLS]** Worktree skills polish — stress-test `setup-worktree` and `teardown-worktree` with real parallel workflows (`worktree-polish`)
     - **scope**: `skills`
-    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
+    - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage. Check the linking of files at setup — worktree had `.claude/` resources showing as deleted+untracked (symlink/copy issue), required manual `git checkout` to fix. Teardown should run from parent folder (can't remove worktree from inside it). Consider a workflow where sessions start at parent and navigate into worktree for work.
 
 ## P2 - Medium
 
