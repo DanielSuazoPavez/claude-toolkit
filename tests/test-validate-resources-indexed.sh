@@ -60,9 +60,6 @@ teardown_test_env() {
 # Create a fully synced test environment (all resources indexed)
 create_synced_env() {
     # Resource dirs with mock files
-    mkdir -p "$TEMP_DIR/.claude/skills/alpha/SKILL.md"
-    # fix: SKILL.md is a file not dir
-    rm -rf "$TEMP_DIR/.claude/skills/alpha/SKILL.md"
     mkdir -p "$TEMP_DIR/.claude/skills/alpha"
     echo "# Alpha" > "$TEMP_DIR/.claude/skills/alpha/SKILL.md"
 
