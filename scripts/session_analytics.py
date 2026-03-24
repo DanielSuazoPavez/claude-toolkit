@@ -6,6 +6,8 @@ Builds on the session-index.db created by session_search.py.
 Usage:
     uv run scripts/session_analytics.py sessions [--project <name>] [--days N] [--limit N]
     uv run scripts/session_analytics.py projects [--days N]
+    uv run scripts/session_analytics.py time [--project <name>] [--days N]
+    uv run scripts/session_analytics.py branches [--project <name>] [--days N] [--limit N]
 """
 
 from __future__ import annotations
@@ -265,6 +267,323 @@ def cmd_projects(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Step 3: Time patterns
+# ---------------------------------------------------------------------------
+
+HOURLY_ACTIVITY_SQL = """
+SELECT
+    CAST(strftime('%H', s.first_ts) AS INTEGER) as hour,
+    COUNT(*) as sessions,
+    SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens) as tokens
+FROM sessions s
+JOIN projects p ON s.project_id = p.id
+WHERE s.first_ts IS NOT NULL
+"""
+
+DAILY_ACTIVITY_SQL = """
+SELECT
+    CAST(strftime('%w', s.first_ts) AS INTEGER) as dow,
+    COUNT(*) as sessions,
+    SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens) as tokens
+FROM sessions s
+JOIN projects p ON s.project_id = p.id
+WHERE s.first_ts IS NOT NULL
+"""
+
+WEEKLY_VOLUME_SQL = """
+SELECT
+    strftime('%Y-W%W', s.last_ts) as week,
+    COUNT(*) as sessions,
+    SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens) as tokens
+FROM sessions s
+JOIN projects p ON s.project_id = p.id
+WHERE s.last_ts IS NOT NULL
+"""
+
+GAP_ANALYSIS_SQL = """
+SELECT
+    s.session_id,
+    s.last_ts,
+    LAG(s.last_ts) OVER (ORDER BY s.last_ts) as prev_last_ts
+FROM sessions s
+JOIN projects p ON s.project_id = p.id
+WHERE s.last_ts IS NOT NULL
+"""
+
+_DOW_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+
+def _add_filters(sql: str, project: str | None, days: int | None) -> tuple[str, list]:
+    """Append WHERE clauses for project/days filters."""
+    params: list = []
+    clauses: list[str] = []
+    if project:
+        clauses.append("p.name LIKE ?")
+        params.append(f"%{project}%")
+    if days:
+        clauses.append("s.last_ts >= date('now', ?)")
+        params.append(f"-{days} days")
+    if clauses:
+        # Check if SQL already has WHERE
+        if "WHERE" in sql:
+            sql += " AND " + " AND ".join(clauses)
+        else:
+            sql += " WHERE " + " AND ".join(clauses)
+    return sql, params
+
+
+def query_hourly_activity(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    sql, params = _add_filters(HOURLY_ACTIVITY_SQL, project, days)
+    sql += " GROUP BY hour ORDER BY hour"
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def query_daily_activity(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    sql, params = _add_filters(DAILY_ACTIVITY_SQL, project, days)
+    sql += " GROUP BY dow ORDER BY dow"
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def query_weekly_volume(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    sql, params = _add_filters(WEEKLY_VOLUME_SQL, project, days)
+    sql += " GROUP BY week ORDER BY week"
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def query_session_gaps(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[dict]:
+    """Compute gaps between consecutive sessions, return gap stats."""
+    sql, params = _add_filters(GAP_ANALYSIS_SQL, project, days)
+    sql += " ORDER BY s.last_ts"
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(sql, params).fetchall()
+
+    gaps_hours: list[float] = []
+    for row in rows:
+        if row["prev_last_ts"]:
+            from datetime import datetime
+            try:
+                curr = datetime.fromisoformat(row["last_ts"])
+                prev = datetime.fromisoformat(row["prev_last_ts"])
+                gap_h = (curr - prev).total_seconds() / 3600
+                if gap_h > 0:
+                    gaps_hours.append(gap_h)
+            except ValueError:
+                continue
+
+    if not gaps_hours:
+        return []
+
+    gaps_sorted = sorted(gaps_hours)
+    return {
+        "count": len(gaps_sorted),
+        "min_h": gaps_sorted[0],
+        "max_h": gaps_sorted[-1],
+        "median_h": gaps_sorted[len(gaps_sorted) // 2],
+        "avg_h": sum(gaps_sorted) / len(gaps_sorted),
+        "pct_under_1h": sum(1 for g in gaps_sorted if g < 1) / len(gaps_sorted) * 100,
+        "pct_under_4h": sum(1 for g in gaps_sorted if g < 4) / len(gaps_sorted) * 100,
+    }
+
+
+def _bar(value: int, max_value: int, width: int = 30) -> str:
+    """Simple horizontal bar."""
+    if max_value == 0:
+        return ""
+    filled = round(value / max_value * width)
+    return "█" * filled
+
+
+def cmd_time(args: argparse.Namespace) -> None:
+    """Show time-based usage patterns."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    hourly = query_hourly_activity(conn, project=args.project, days=args.days)
+    daily = query_daily_activity(conn, project=args.project, days=args.days)
+    weekly = query_weekly_volume(conn, project=args.project, days=args.days)
+    gaps = query_session_gaps(conn, project=args.project, days=args.days)
+    conn.close()
+
+    # Hourly distribution
+    print(f"\n{c['bold']}{c['cyan']}Time Patterns{c['reset']}\n")
+
+    if hourly:
+        print(f"  {c['bold']}By Hour{c['reset']}")
+        max_sess = max(r["sessions"] for r in hourly)
+        # Fill in missing hours
+        hour_map = {r["hour"]: r for r in hourly}
+        for h in range(24):
+            r = hour_map.get(h)
+            sess = r["sessions"] if r else 0
+            bar = _bar(sess, max_sess)
+            print(f"    {h:02d}:00  {sess:>4}  {bar}")
+        print()
+
+    # Day of week
+    if daily:
+        print(f"  {c['bold']}By Day of Week{c['reset']}")
+        max_sess = max(r["sessions"] for r in daily)
+        dow_map = {r["dow"]: r for r in daily}
+        for d in range(7):
+            r = dow_map.get(d)
+            sess = r["sessions"] if r else 0
+            tok = _fmt_tokens(r["tokens"] or 0) if r else "0"
+            bar = _bar(sess, max_sess)
+            print(f"    {_DOW_NAMES[d]}  {sess:>4}  {tok:>8}  {bar}")
+        print()
+
+    # Weekly volume
+    if weekly:
+        print(f"  {c['bold']}Weekly Volume{c['reset']}")
+        max_sess = max(r["sessions"] for r in weekly)
+        for row in weekly:
+            bar = _bar(row["sessions"], max_sess, width=20)
+            print(f"    {row['week']}  {row['sessions']:>4} sessions  {_fmt_tokens(row['tokens'] or 0):>8}  {bar}")
+        print()
+
+    # Gap analysis
+    if gaps:
+        print(f"  {c['bold']}Session Gaps{c['reset']}")
+        print(f"    Between consecutive sessions:")
+        print(f"    Min: {gaps['min_h']:.1f}h  Median: {gaps['median_h']:.1f}h  Avg: {gaps['avg_h']:.1f}h  Max: {gaps['max_h']:.1f}h")
+        print(f"    {gaps['pct_under_1h']:.0f}% under 1h  {gaps['pct_under_4h']:.0f}% under 4h")
+
+
+# ---------------------------------------------------------------------------
+# Step 4: Git branch patterns
+# ---------------------------------------------------------------------------
+
+BRANCH_PATTERNS_SQL = f"""
+{_cte()}
+SELECT
+    s.git_branch,
+    p.name as project,
+    COUNT(*) as sessions,
+    MIN(s.first_ts) as first_session,
+    MAX(s.last_ts) as last_session,
+    SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens) as total_tokens,
+    AVG(
+        CASE WHEN s.first_ts IS NOT NULL AND s.last_ts IS NOT NULL
+        THEN (julianday(s.last_ts) - julianday(s.first_ts)) * 24 * 60
+        END
+    ) as avg_duration_min,
+    SUM(
+        (SELECT COUNT(*) FROM filtered_events fe WHERE fe.session_id = s.session_id)
+    ) as total_events,
+    -- Dominant action across all sessions on this branch
+    (SELECT fe2.action_type FROM filtered_events fe2
+     JOIN sessions s2 ON fe2.session_id = s2.session_id
+     WHERE s2.git_branch = s.git_branch AND s2.project_id = p.id
+       AND fe2.action_type IS NOT NULL
+     GROUP BY fe2.action_type ORDER BY COUNT(*) DESC LIMIT 1) as dominant_action
+FROM sessions s
+JOIN projects p ON s.project_id = p.id
+WHERE s.git_branch IS NOT NULL
+"""
+
+
+def query_branch_patterns(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    sql = BRANCH_PATTERNS_SQL
+    params: list = []
+
+    if project:
+        sql += " AND p.name LIKE ?"
+        params.append(f"%{project}%")
+    if days:
+        sql += " AND s.last_ts >= date('now', ?)"
+        params.append(f"-{days} days")
+
+    sql += " GROUP BY s.git_branch, p.id ORDER BY sessions DESC"
+
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def cmd_branches(args: argparse.Namespace) -> None:
+    """Show git branch usage patterns."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    rows = query_branch_patterns(conn, project=args.project, days=args.days)
+    conn.close()
+
+    if not rows:
+        print("No branch data found.")
+        return
+
+    limit = args.limit
+    showing = rows[:limit]
+
+    print(f"\n{c['bold']}{c['cyan']}Branch Patterns{c['reset']} ({len(rows)} branches)\n")
+    print(
+        f"  {'Branch':35} {'Project':25} {'Sess':>5} {'Events':>7} "
+        f"{'Tokens':>9} {'Avg Dur':>7} {'Dominant':>12}"
+    )
+    print(
+        f"  {'─' * 35} {'─' * 25} {'─' * 5} {'─' * 7} "
+        f"{'─' * 9} {'─' * 7} {'─' * 12}"
+    )
+
+    for row in showing:
+        branch = (row["git_branch"] or "—")[:35]
+        proj = (row["project"] or "")[:25]
+        sessions = row["sessions"]
+        events = row["total_events"]
+        tokens = _fmt_tokens(row["total_tokens"] or 0)
+        avg_dur = f"{row['avg_duration_min']:.0f}m" if row["avg_duration_min"] else "—"
+        dominant = row["dominant_action"] or "—"
+
+        print(
+            f"  {branch:35} {proj:25} {sessions:>5} {events:>7} "
+            f"{tokens:>9} {avg_dur:>7} {dominant:>12}"
+        )
+
+    if len(rows) > limit:
+        print(f"\n  ... and {len(rows) - limit} more (use --limit to show more)")
+
+    # Branch lifetime summary
+    lifetimes: list[float] = []
+    for row in rows:
+        if row["first_session"] and row["last_session"]:
+            from datetime import datetime
+            try:
+                d1 = datetime.fromisoformat(row["first_session"][:10])
+                d2 = datetime.fromisoformat(row["last_session"][:10])
+                lifetimes.append((d2 - d1).days)
+            except ValueError:
+                continue
+
+    if lifetimes:
+        avg_life = sum(lifetimes) / len(lifetimes)
+        med_life = sorted(lifetimes)[len(lifetimes) // 2]
+        print(f"\n  {c['bold']}Branch Lifetimes{c['reset']}")
+        print(f"    Avg: {avg_life:.0f}d  Median: {med_life:.0f}d")
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -292,6 +611,17 @@ def build_parser() -> argparse.ArgumentParser:
     proj = sub.add_parser("projects", help="Project usage patterns")
     proj.add_argument("--days", type=int, help="Only projects active in last N days")
 
+    # time
+    tm = sub.add_parser("time", help="Time-based usage patterns")
+    tm.add_argument("--project", help="Filter by project name")
+    tm.add_argument("--days", type=int, help="Limit to last N days")
+
+    # branches
+    br = sub.add_parser("branches", help="Git branch usage patterns")
+    br.add_argument("--project", help="Filter by project name")
+    br.add_argument("--days", type=int, help="Limit to last N days")
+    br.add_argument("--limit", type=int, default=30, help="Max rows to display")
+
     return parser
 
 
@@ -306,6 +636,8 @@ def main() -> None:
     commands = {
         "sessions": cmd_sessions,
         "projects": cmd_projects,
+        "time": cmd_time,
+        "branches": cmd_branches,
     }
     commands[args.command](args)
 

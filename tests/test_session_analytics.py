@@ -17,6 +17,11 @@ from scripts.session_analytics import (
     _cte,
     query_session_shapes,
     query_project_patterns,
+    query_hourly_activity,
+    query_daily_activity,
+    query_weekly_volume,
+    query_session_gaps,
+    query_branch_patterns,
 )
 
 
@@ -300,3 +305,108 @@ class TestProjectPatterns:
         by_name = self._by_name(indexed_db)
         # beta: 2 reads + 1 search = file_read dominant
         assert by_name["beta"]["dominant_action"] == "file_read"
+
+
+# ---------------------------------------------------------------------------
+# Time patterns
+# ---------------------------------------------------------------------------
+
+
+class TestTimePatterns:
+    def test_hourly_returns_active_hours(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_hourly_activity(indexed_db)
+        hours = {r["hour"]: r["sessions"] for r in rows}
+        # sess-a1 starts at 09:00, sess-a2 at 14:00, sess-b1 at 08:00
+        assert 9 in hours
+        assert 14 in hours
+        assert 8 in hours
+
+    def test_hourly_filter_by_project(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_hourly_activity(indexed_db, project="beta")
+        hours = {r["hour"]: r["sessions"] for r in rows}
+        # Only sess-b1 at 08:00
+        assert len(hours) == 1
+        assert hours[8] == 1
+
+    def test_daily_returns_active_days(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_daily_activity(indexed_db)
+        # Jan 10 2026 = Saturday (dow=6), Jan 12 = Monday (dow=1), Jan 15 = Thursday (dow=4)
+        dows = {r["dow"] for r in rows}
+        assert 6 in dows  # Saturday
+        assert 1 in dows  # Monday
+        assert 4 in dows  # Thursday
+
+    def test_daily_session_counts(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_daily_activity(indexed_db)
+        dow_map = {r["dow"]: r["sessions"] for r in rows}
+        # Saturday has 1 session (sess-a1)
+        assert dow_map[6] == 1
+
+    def test_weekly_returns_active_weeks(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_weekly_volume(indexed_db)
+        assert len(rows) >= 1
+        for row in rows:
+            assert row["sessions"] > 0
+            assert row["week"] is not None
+
+    def test_weekly_token_totals(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_weekly_volume(indexed_db)
+        total_tokens = sum(r["tokens"] or 0 for r in rows)
+        assert total_tokens > 0
+
+    def test_gaps_returns_stats(self, indexed_db: sqlite3.Connection) -> None:
+        gaps = query_session_gaps(indexed_db)
+        assert gaps  # Should have gap data with 3 sessions
+        assert "count" in gaps
+        assert "median_h" in gaps
+        assert "avg_h" in gaps
+        assert gaps["count"] == 2  # 3 sessions = 2 gaps
+
+    def test_gaps_min_less_than_max(self, indexed_db: sqlite3.Connection) -> None:
+        gaps = query_session_gaps(indexed_db)
+        assert gaps["min_h"] <= gaps["max_h"]
+
+    def test_gaps_filter_by_project(self, indexed_db: sqlite3.Connection) -> None:
+        gaps = query_session_gaps(indexed_db, project="alpha")
+        # alpha has 2 sessions = 1 gap
+        assert gaps["count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Branch patterns
+# ---------------------------------------------------------------------------
+
+
+class TestBranchPatterns:
+    def test_returns_branches(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_branch_patterns(indexed_db)
+        assert len(rows) == 2  # feat/widgets + main
+
+    def test_branch_has_expected_fields(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_branch_patterns(indexed_db)
+        row = rows[0]
+        expected_keys = {
+            "git_branch", "project", "sessions", "first_session",
+            "last_session", "total_tokens", "avg_duration_min",
+            "total_events", "dominant_action",
+        }
+        assert expected_keys.issubset(row.keys())
+
+    def test_branch_session_counts(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_branch_patterns(indexed_db)
+        by_branch = {r["git_branch"]: r for r in rows}
+        # feat/widgets: sess-a1 + sess-a2 = 2 sessions
+        assert by_branch["feat/widgets"]["sessions"] == 2
+        # main: sess-b1 = 1 session
+        assert by_branch["main"]["sessions"] == 1
+
+    def test_branch_events_exclude_progress(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_branch_patterns(indexed_db)
+        by_branch = {r["git_branch"]: r for r in rows}
+        # feat/widgets: sess-a1(4) + sess-a2(3) = 7 filtered events
+        assert by_branch["feat/widgets"]["total_events"] == 7
+
+    def test_branch_filter_by_project(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_branch_patterns(indexed_db, project="beta")
+        assert len(rows) == 1
+        assert rows[0]["git_branch"] == "main"
