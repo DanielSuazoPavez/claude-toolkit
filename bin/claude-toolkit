@@ -193,7 +193,7 @@ target_path() {
 # === resolve_manifest: Read MANIFEST and expand to file list ===
 # Outputs relative paths (relative to .claude/) one per line
 resolve_manifest() {
-    local manifest="$TOOLKIT_DIR/.claude/dist/base/MANIFEST"
+    local manifest="$TOOLKIT_DIR/dist/base/MANIFEST"
     if [[ ! -f "$manifest" ]]; then
         echo "Error: MANIFEST not found at $manifest" >&2
         return 1
@@ -207,19 +207,25 @@ resolve_manifest() {
         line="${line## }"
         line="${line%% }"
 
+        # dist/ entries resolve from project root, everything else from .claude/
+        local base_dir="$TOOLKIT_DIR/.claude"
+        if [[ "$line" == dist/* ]]; then
+            base_dir="$TOOLKIT_DIR"
+        fi
+
         if [[ "$line" == */ ]]; then
             # Directory entry: expand recursively
-            local dir="$TOOLKIT_DIR/.claude/$line"
+            local dir="$base_dir/$line"
             if [[ -d "$dir" ]]; then
                 while IFS= read -r -d '' f; do
-                    echo "${f#$TOOLKIT_DIR/.claude/}"
+                    echo "${f#$base_dir/}"
                 done < <(find "$dir" -type f -print0 2>/dev/null)
             else
                 echo "Warning: manifest directory not found: $line" >&2
             fi
         else
             # File entry: verify exists
-            if [[ -f "$TOOLKIT_DIR/.claude/$line" ]]; then
+            if [[ -f "$base_dir/$line" ]]; then
                 echo "$line"
             else
                 echo "Warning: manifest file not found: $line" >&2
@@ -426,6 +432,9 @@ while IFS= read -r rel_path; do
     [[ -z "$rel_path" ]] && continue
 
     local toolkit_file="$TOOLKIT_DIR/.claude/$rel_path"
+    if [[ "$rel_path" == dist/* ]]; then
+        toolkit_file="$TOOLKIT_DIR/$rel_path"
+    fi
     local tgt_path
     tgt_path=$(target_path "$rel_path")
     local target_file="$TARGET_DIR/.claude/$tgt_path"
@@ -635,6 +644,9 @@ fi
 echo ""
 for f in "${FILES_TO_COPY[@]}"; do
     local source_file="$TOOLKIT_DIR/.claude/$f"
+    if [[ "$f" == dist/* ]]; then
+        source_file="$TOOLKIT_DIR/$f"
+    fi
     local tgt_path
     tgt_path=$(target_path "$f")
     local target_file="$TARGET_DIR/.claude/$tgt_path"
@@ -648,7 +660,7 @@ done
 
 # Ensure .claude-toolkit-ignore exists in target
 if [[ ! -f "$PROJECT_IGNORE_FILE" ]]; then
-    local ignore_template="$TOOLKIT_DIR/.claude/dist/base/templates/claude-toolkit-ignore.template"
+    local ignore_template="$TOOLKIT_DIR/dist/base/templates/claude-toolkit-ignore.template"
     if [[ -f "$ignore_template" ]]; then
         cp "$ignore_template" "$PROJECT_IGNORE_FILE"
         echo -e "  ${GREEN}Created: .claude-toolkit-ignore (from template)${NC}"
@@ -656,7 +668,7 @@ if [[ ! -f "$PROJECT_IGNORE_FILE" ]]; then
 fi
 
 # Copy MANIFEST (infrastructure file, not listed in MANIFEST itself)
-local manifest_src="$TOOLKIT_DIR/.claude/dist/base/MANIFEST"
+local manifest_src="$TOOLKIT_DIR/dist/base/MANIFEST"
 if [[ -f "$manifest_src" ]]; then
     cp "$manifest_src" "$TARGET_DIR/.claude/MANIFEST"
     echo -e "  ${GREEN}Copied: MANIFEST${NC}"
