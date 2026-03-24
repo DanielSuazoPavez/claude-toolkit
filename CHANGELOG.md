@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.26.1] - 2026-03-24 - Implementation checker git diff support
+
+### Changed
+- **agents**: `implementation-checker` now has Bash tool — starts investigation with `git diff main...HEAD` to discover actual changes, aligning with goal-verifier and code-reviewer patterns
+
+### Removed
+- **backlog**: Completed `implementation-checker-bash` task
+
 ## [2.26.0] - 2026-03-24 - Memory load patterns analytics
 
 ### Added
