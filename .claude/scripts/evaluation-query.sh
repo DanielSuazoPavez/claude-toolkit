@@ -55,7 +55,7 @@ get_resource_path() {
 
     case "$type" in
         skills) echo "$CLAUDE_DIR/skills/$name/SKILL.md" ;;
-        hooks) echo "$CLAUDE_DIR/hooks/$name" ;;
+        hooks) echo "$CLAUDE_DIR/hooks/$name.sh" ;;
         memories) echo "$CLAUDE_DIR/memories/$name.md" ;;
         agents) echo "$CLAUDE_DIR/agents/$name.md" ;;
     esac

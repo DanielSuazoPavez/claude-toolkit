@@ -37,9 +37,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SCRIPTS]** Fix `evaluation-query.sh` stale detection for hooks — `get_resource_path` missing `.sh` extension (`fix-eval-query-hook-path`)
-    - **scope**: `toolkit`
-    - **notes**: `get_resource_path` for hooks returns `$CLAUDE_DIR/hooks/$name` but actual files are `$name.sh`. The file is never found, so stale detection silently skips all hooks. Same issue may affect `list_resources` vs `get_resource_path` naming for hooks.
 
 
 ## P99 - Nice to Have

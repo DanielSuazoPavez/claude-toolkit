@@ -5,6 +5,11 @@
 ### Changed
 - **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
 
+## [2.21.5] - 2026-03-24 - Fix evaluation-query hook stale detection
+
+### Fixed
+- **scripts**: `evaluation-query.sh` stale detection now works for hooks — `get_resource_path` was missing `.sh` extension, causing hook files to never be found
+
 ## [2.21.4] - 2026-03-24 - Test coverage for evaluation-query and validate-resources-indexed
 
 ### Added
