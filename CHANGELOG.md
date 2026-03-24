@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.27.0] - 2026-03-24 - Setup toolkit skill and version drift detection
+
+### Added
+- **skills**: `/setup-toolkit` — interactive fixer for post-sync toolkit configuration. Diagnoses and fixes settings.json hooks/permissions, MCP config, Makefile targets, .gitignore patterns, and CLAUDE.md. Additive only — never removes existing config
+- **hooks**: Version drift detection in `session-start.sh` — compares `.claude-toolkit-version` against `claude-toolkit version` and nudges user to sync
+- **cli**: `claude-toolkit version` subcommand — prints toolkit version from VERSION file
+
+### Removed
+- **backlog**: Completed `setup-toolkit-skill` task
+
 ## [2.26.2] - 2026-03-24 - Teardown worktree rebase check
 
 ### Changed
