@@ -8,6 +8,7 @@ Usage:
     uv run scripts/session_analytics.py projects [--days N]
     uv run scripts/session_analytics.py time [--project <name>] [--days N]
     uv run scripts/session_analytics.py branches [--project <name>] [--days N] [--limit N]
+    uv run scripts/session_analytics.py memory [--project <name>] [--days N] [--limit N]
 """
 
 from __future__ import annotations
@@ -690,6 +691,325 @@ def cmd_branches(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Step 5: Memory & CLAUDE.md load patterns
+# ---------------------------------------------------------------------------
+
+
+def _memory_filters(
+    project: str | None, days: int | None,
+) -> tuple[str, list]:
+    """Build WHERE clauses for memory queries (events+projects join)."""
+    clauses: list[str] = []
+    params: list = []
+    if project:
+        clauses.append("p.name LIKE ?")
+        params.append(f"%{project}%")
+    if days:
+        clauses.append("e.date >= date('now', ?)")
+        params.append(f"-{days} days")
+    return (" AND " + " AND ".join(clauses)) if clauses else "", params
+
+
+def query_essential_estimates(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    """Count SessionStart hook fires per project (proxy for essential memory loads)."""
+    extra, params = _memory_filters(project, days)
+    sql = f"""
+    SELECT p.name as project,
+           COUNT(*) as hook_fires,
+           COUNT(DISTINCT e.session_id) as sessions
+    FROM events e
+    JOIN projects p ON e.project_id = p.id
+    WHERE e.event_type = 'progress'
+      AND e.detail LIKE 'SessionStart:SessionStart:%'
+      {extra}
+    GROUP BY p.name
+    ORDER BY sessions DESC
+    """
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def query_memory_reads(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    """On-demand memory file reads, ranked by session count."""
+    extra, params = _memory_filters(project, days)
+    sql = f"""
+    SELECT e.detail, p.name as project,
+           COUNT(*) as reads, COUNT(DISTINCT e.session_id) as sessions
+    FROM events e
+    JOIN projects p ON e.project_id = p.id
+    WHERE e.action_type = 'file_read'
+      AND e.detail LIKE '%/memories/%'
+      AND e.detail NOT LIKE '%/MEMORY.md'
+      {extra}
+    GROUP BY e.detail, p.name
+    ORDER BY sessions DESC
+    """
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def query_claude_md_reads(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    """CLAUDE.md file reads with project_path for root/subfolder classification."""
+    extra, params = _memory_filters(project, days)
+    sql = f"""
+    SELECT e.detail, p.name as project, p.project_path,
+           COUNT(*) as reads, COUNT(DISTINCT e.session_id) as sessions
+    FROM events e
+    JOIN projects p ON e.project_id = p.id
+    WHERE e.action_type = 'file_read'
+      AND e.detail LIKE '%/CLAUDE.md'
+      {extra}
+    GROUP BY e.detail, p.name
+    ORDER BY sessions DESC
+    """
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def query_memory_diversity(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[sqlite3.Row]:
+    """Per-project memory diversity metrics."""
+    extra, params = _memory_filters(project, days)
+    sql = f"""
+    SELECT p.name as project,
+           COUNT(DISTINCT e.detail) as distinct_memories,
+           COUNT(*) as total_reads,
+           COUNT(DISTINCT e.session_id) as sessions_with_reads,
+           p.session_count as total_sessions
+    FROM events e
+    JOIN projects p ON e.project_id = p.id
+    WHERE e.action_type = 'file_read'
+      AND e.detail LIKE '%/memories/%'
+      AND e.detail NOT LIKE '%/MEMORY.md'
+      {extra}
+    GROUP BY p.name
+    ORDER BY distinct_memories DESC
+    """
+    conn.row_factory = sqlite3.Row
+    return conn.execute(sql, params).fetchall()
+
+
+def _extract_memory_filename(detail: str) -> str:
+    """Extract just the filename from a full memory file path."""
+    return Path(detail).name
+
+
+def _classify_claude_md(detail: str, project_path: str | None) -> str:
+    """Classify a CLAUDE.md path as 'root' or a relative subfolder path."""
+    if not project_path:
+        return Path(detail).parent.name + "/"
+    root_claude = project_path.rstrip("/") + "/CLAUDE.md"
+    if detail == root_claude:
+        return "root"
+    # Show relative path from project root
+    try:
+        rel = str(Path(detail).parent.relative_to(project_path))
+        return rel + "/"
+    except ValueError:
+        return Path(detail).parent.name + "/"
+
+
+def cmd_memory(args: argparse.Namespace) -> None:
+    """Show memory and CLAUDE.md load patterns."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    essentials = query_essential_estimates(conn, project=args.project, days=args.days)
+    memory_reads = query_memory_reads(conn, project=args.project, days=args.days)
+    claude_md = query_claude_md_reads(conn, project=args.project, days=args.days)
+    diversity = query_memory_diversity(conn, project=args.project, days=args.days)
+    conn.close()
+
+    is_global = not args.project
+
+    print(f"\n{c['bold']}{c['cyan']}Memory Load Patterns{c['reset']}", end="")
+    if args.project:
+        print(f" (project: {args.project})", end="")
+    if args.days:
+        print(f" (last {args.days}d)", end="")
+    print("\n")
+
+    # --- Essential estimates ---
+    if essentials:
+        print(f"  {c['bold']}Estimated Essential Loads{c['reset']} (hook-injected, not individually trackable)")
+        if is_global:
+            for row in essentials:
+                print(f"    {row['project']:40} {row['sessions']:>5} sessions")
+        else:
+            print(f"    {essentials[0]['sessions']} sessions with SessionStart hook")
+        print()
+
+    # --- On-demand memory reads ---
+    if memory_reads:
+        print(f"  {c['bold']}On-Demand Memory Reads{c['reset']}")
+        if is_global:
+            # Group by filename to surface shared memories
+            from collections import defaultdict
+            by_name: dict[str, dict] = defaultdict(
+                lambda: {"projects": set(), "reads": 0, "sessions": 0}
+            )
+            for row in memory_reads:
+                name = _extract_memory_filename(row["detail"])
+                by_name[name]["projects"].add(row["project"])
+                by_name[name]["reads"] += row["reads"]
+                by_name[name]["sessions"] += row["sessions"]
+
+            sorted_names = sorted(
+                by_name.items(), key=lambda x: x[1]["sessions"], reverse=True
+            )
+            max_sess = sorted_names[0][1]["sessions"] if sorted_names else 1
+
+            print(
+                f"    {'Memory':45} {'Proj':>4} {'Reads':>6} "
+                f"{'Sess':>5}  {'':>20}"
+            )
+            print(
+                f"    {'─' * 45} {'─' * 4} {'─' * 6} "
+                f"{'─' * 5}  {'─' * 20}"
+            )
+            limit = args.limit
+            for name, info in sorted_names[:limit]:
+                n_proj = len(info["projects"])
+                bar = _bar(info["sessions"], max_sess, width=20)
+                proj_marker = f" ({n_proj}p)" if n_proj > 1 else ""
+                print(
+                    f"    {name[:45]:45} {n_proj:>4} {info['reads']:>6} "
+                    f"{info['sessions']:>5}  {bar}{proj_marker}"
+                )
+            if len(sorted_names) > limit:
+                print(f"\n    ... and {len(sorted_names) - limit} more")
+        else:
+            max_sess = memory_reads[0]["sessions"] if memory_reads else 1
+            print(
+                f"    {'Memory':45} {'Reads':>6} "
+                f"{'Sess':>5}  {'':>20}"
+            )
+            print(
+                f"    {'─' * 45} {'─' * 6} "
+                f"{'─' * 5}  {'─' * 20}"
+            )
+            limit = args.limit
+            for row in memory_reads[:limit]:
+                name = _extract_memory_filename(row["detail"])
+                bar = _bar(row["sessions"], max_sess, width=20)
+                print(
+                    f"    {name[:45]:45} {row['reads']:>6} "
+                    f"{row['sessions']:>5}  {bar}"
+                )
+            if len(memory_reads) > limit:
+                print(f"\n    ... and {len(memory_reads) - limit} more")
+        print()
+
+    # --- Shared memories (global only, reuse by_name from above) ---
+    if is_global and memory_reads:
+        shared_multi = {
+            k: v["projects"] for k, v in by_name.items() if len(v["projects"]) > 1
+        }
+        if shared_multi:
+            print(f"  {c['bold']}Shared Memories{c['reset']} (same name across projects)")
+            for name, projects in sorted(
+                shared_multi.items(), key=lambda x: len(x[1]), reverse=True
+            ):
+                proj_list = ", ".join(sorted(projects))
+                print(f"    {name[:40]:40} → {proj_list}")
+            print()
+
+    # --- CLAUDE.md reads ---
+    if claude_md:
+        null_paths = sum(1 for r in claude_md if not r["project_path"])
+        print(f"  {c['bold']}CLAUDE.md Reads{c['reset']}", end="")
+        if null_paths:
+            print(f"  ({null_paths} rows without project_path — root/subfolder split may be inaccurate)", end="")
+        print()
+        if is_global:
+            # Per-project summary: root vs subfolder counts
+            from collections import defaultdict
+            project_claude: dict[str, dict] = defaultdict(
+                lambda: {"root": 0, "subfolder": 0, "root_sess": 0, "sub_sess": 0}
+            )
+            for row in claude_md:
+                kind = _classify_claude_md(row["detail"], row["project_path"])
+                pname = row["project"]
+                if kind == "root":
+                    project_claude[pname]["root"] += row["reads"]
+                    project_claude[pname]["root_sess"] += row["sessions"]
+                else:
+                    project_claude[pname]["subfolder"] += row["reads"]
+                    project_claude[pname]["sub_sess"] += row["sessions"]
+
+            print(
+                f"    {'Project':35} {'Root':>10} {'Subfolder':>12}"
+            )
+            print(
+                f"    {'─' * 35} {'─' * 10} {'─' * 12}"
+            )
+            for pname, info in sorted(
+                project_claude.items(),
+                key=lambda x: x[1]["root"] + x[1]["subfolder"],
+                reverse=True,
+            ):
+                root_str = f"{info['root']}r/{info['root_sess']}s" if info["root"] else "—"
+                sub_str = f"{info['subfolder']}r/{info['sub_sess']}s" if info["subfolder"] else "—"
+                print(f"    {pname[:35]:35} {root_str:>10} {sub_str:>12}")
+        else:
+            print(
+                f"    {'Path':50} {'Reads':>6} {'Sess':>5}"
+            )
+            print(
+                f"    {'─' * 50} {'─' * 6} {'─' * 5}"
+            )
+            for row in claude_md:
+                kind = _classify_claude_md(row["detail"], row["project_path"])
+                label = f"CLAUDE.md ({kind})" if kind != "root" else "CLAUDE.md (root)"
+                print(
+                    f"    {label[:50]:50} {row['reads']:>6} {row['sessions']:>5}"
+                )
+        print()
+
+    # --- Diversity ---
+    if diversity:
+        print(f"  {c['bold']}Diversity{c['reset']}")
+        print(
+            f"    {'Project':35} {'Distinct':>8} {'Reads':>6} "
+            f"{'Sess':>5} {'Avg/Sess':>8}"
+        )
+        print(
+            f"    {'─' * 35} {'─' * 8} {'─' * 6} "
+            f"{'─' * 5} {'─' * 8}"
+        )
+        for row in diversity:
+            avg = (
+                row["total_reads"] / row["sessions_with_reads"]
+                if row["sessions_with_reads"]
+                else 0
+            )
+            print(
+                f"    {row['project'][:35]:35} {row['distinct_memories']:>8} "
+                f"{row['total_reads']:>6} {row['sessions_with_reads']:>5} "
+                f"{avg:>8.1f}"
+            )
+        print()
+
+    if not essentials and not memory_reads and not claude_md:
+        print("  No memory data found.")
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -732,6 +1052,12 @@ def build_parser() -> argparse.ArgumentParser:
     br.add_argument("--days", type=int, help="Limit to last N days")
     br.add_argument("--limit", type=int, default=30, help="Max rows to display")
 
+    # memory
+    mem = sub.add_parser("memory", help="Memory and CLAUDE.md load patterns")
+    mem.add_argument("--project", help="Filter by project name")
+    mem.add_argument("--days", type=int, help="Limit to last N days")
+    mem.add_argument("--limit", type=int, default=30, help="Max rows to display")
+
     return parser
 
 
@@ -748,6 +1074,7 @@ def main() -> None:
         "projects": cmd_projects,
         "time": cmd_time,
         "branches": cmd_branches,
+        "memory": cmd_memory,
     }
     commands[args.command](args)
 
