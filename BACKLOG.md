@@ -25,6 +25,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
+- **[SKILLS]** `setup-toolkit` skill — interactive fixer for post-sync toolkit adoption (`setup-toolkit-skill`)
+    - **scope**: `skills, hooks`
+    - **notes**: After `claude-toolkit sync`, settings.json hooks/permissions, MCP config, Makefile targets, .gitignore patterns, and CLAUDE.md need manual wiring. This skill runs checks and proposes fixes interactively (additive only for config merging). Also adds version drift detection to session-start hook to nudge users when toolkit updates are available. Uses existing `validate-all.sh` as final health check. Covers both first-time setup and ongoing updates.
+    - **design**: `output/claude-toolkit/design/20260324_1731__brainstorm-idea__setup-toolkit.md`
+
 - **[SCRIPTS]** Migrate session-search analytics to session-analytics — move `timeline`, `files`, `stats` subcommands from `session_search.py` to `session_analytics.py` (`session-analytics-migration`)
     - **scope**: `scripts`
     - **notes**: `session_search.py` has analytics-oriented subcommands (`timeline`, `files`, `stats`) that belong in `session_analytics.py`. Keep `session_search.py` focused on indexing and search. Migrate the commands, update imports, and keep backward-compat CLI aliases if needed.
