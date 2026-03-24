@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS projects (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     name        TEXT NOT NULL UNIQUE,
     dir_name    TEXT NOT NULL,
+    project_path TEXT,
     first_seen  TEXT,
     last_seen   TEXT,
     session_count INTEGER DEFAULT 0
@@ -294,6 +295,7 @@ def extract_session_events(
         "session_id": session_id,
         "project_name": project,
         "dir_name": file_path.parent.name,
+        "project_path": None,
         "first_ts": None,
         "last_ts": None,
         "git_branch": None,
@@ -332,6 +334,10 @@ def extract_session_events(
             date = ts[:10] if ts else None
 
             # Track metadata
+            # First-wins: cwd from earliest record. May be a subdir in rare
+            # cases (worktrees, nested sessions), but stable for typical usage.
+            if record.get("cwd") and not meta["project_path"]:
+                meta["project_path"] = record["cwd"]
             if record.get("gitBranch") and not meta["git_branch"]:
                 meta["git_branch"] = record["gitBranch"]
 
@@ -709,17 +715,26 @@ def _find_all_session_files(
 
 
 def _get_or_create_project(
-    conn: sqlite3.Connection, name: str, dir_name: str
+    conn: sqlite3.Connection,
+    name: str,
+    dir_name: str,
+    project_path: str | None = None,
 ) -> int:
     """Upsert project and return its id."""
     row = conn.execute(
-        "SELECT id FROM projects WHERE name = ?", (name,)
+        "SELECT id, project_path FROM projects WHERE name = ?", (name,)
     ).fetchone()
     if row:
+        # Backfill project_path if missing
+        if project_path and not row[1]:
+            conn.execute(
+                "UPDATE projects SET project_path = ? WHERE id = ?",
+                (project_path, row[0]),
+            )
         return row[0]
     cursor = conn.execute(
-        "INSERT INTO projects (name, dir_name) VALUES (?, ?)",
-        (name, dir_name),
+        "INSERT INTO projects (name, dir_name, project_path) VALUES (?, ?, ?)",
+        (name, dir_name, project_path),
     )
     return cursor.lastrowid  # type: ignore[return-value]
 
@@ -783,7 +798,7 @@ def index_sessions(
 
         # Get or create project
         project_id = _get_or_create_project(
-            conn, meta["project_name"], meta["dir_name"]
+            conn, meta["project_name"], meta["dir_name"], meta["project_path"]
         )
 
         # Insert session

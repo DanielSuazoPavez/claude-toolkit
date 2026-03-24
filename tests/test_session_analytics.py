@@ -15,14 +15,20 @@ from scripts.session_search import (
 from scripts.session_analytics import (
     FILTERED_EVENTS_CTE,
     _cte,
+    _classify_claude_md,
+    _extract_memory_filename,
     compute_active_time,
-    query_session_shapes,
-    query_project_patterns,
-    query_hourly_activity,
-    query_daily_activity,
-    query_weekly_volume,
-    query_session_gaps,
     query_branch_patterns,
+    query_claude_md_reads,
+    query_daily_activity,
+    query_essential_estimates,
+    query_hourly_activity,
+    query_memory_diversity,
+    query_memory_reads,
+    query_project_patterns,
+    query_session_gaps,
+    query_session_shapes,
+    query_weekly_volume,
 )
 
 
@@ -462,3 +468,201 @@ class TestBranchPatterns:
         rows = query_branch_patterns(indexed_db, project="beta")
         assert len(rows) == 1
         assert rows[0]["git_branch"] == "main"
+
+
+# ---------------------------------------------------------------------------
+# Memory patterns
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def memory_db(tmp_path: Path) -> sqlite3.Connection:
+    """DB with memory reads, CLAUDE.md reads, and SessionStart events."""
+    db_path = tmp_path / "test.db"
+
+    # Project A: /home/user/projects/alpha — 2 sessions with memory + CLAUDE.md reads
+    proj_a = tmp_path / "transcripts" / "-home-user-projects-alpha"
+
+    _write_jsonl(
+        proj_a / "sess-m1.jsonl",
+        [
+            _progress_record("2026-02-01T09:00:00Z", "SessionStart", "SessionStart:clear"),
+            {"type": "user", "timestamp": "2026-02-01T09:00:01Z",
+             "cwd": "/home/user/projects/alpha",
+             "gitBranch": "main",
+             "message": {"content": "start"}},
+            # Memory reads
+            _assistant_record(
+                "2026-02-01T09:01:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/.claude/memories/essential-foo.md"})],
+            ),
+            _assistant_record(
+                "2026-02-01T09:02:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/.claude/memories/relevant-shared.md"})],
+            ),
+            # Root CLAUDE.md
+            _assistant_record(
+                "2026-02-01T09:03:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/CLAUDE.md"})],
+            ),
+            # Subfolder CLAUDE.md
+            _assistant_record(
+                "2026-02-01T09:04:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/tests/CLAUDE.md"})],
+            ),
+        ],
+    )
+
+    _write_jsonl(
+        proj_a / "sess-m2.jsonl",
+        [
+            _progress_record("2026-02-03T10:00:00Z", "SessionStart", "SessionStart:startup"),
+            {"type": "user", "timestamp": "2026-02-03T10:00:01Z",
+             "cwd": "/home/user/projects/alpha",
+             "gitBranch": "feat/thing",
+             "message": {"content": "continue"}},
+            # Same memory again (tests session count vs read count)
+            _assistant_record(
+                "2026-02-03T10:01:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/.claude/memories/essential-foo.md"})],
+            ),
+            # Single-use memory (only in this session)
+            _assistant_record(
+                "2026-02-03T10:02:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/.claude/memories/relevant-once.md"})],
+            ),
+            # MEMORY.md (should be excluded)
+            _assistant_record(
+                "2026-02-03T10:03:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/alpha/.claude/memories/MEMORY.md"})],
+            ),
+        ],
+    )
+
+    # Project B: /home/user/projects/beta — 1 session with shared memory name
+    proj_b = tmp_path / "transcripts" / "-home-user-projects-beta"
+
+    _write_jsonl(
+        proj_b / "sess-m3.jsonl",
+        [
+            _progress_record("2026-02-05T11:00:00Z", "SessionStart", "SessionStart:clear"),
+            {"type": "user", "timestamp": "2026-02-05T11:00:01Z",
+             "cwd": "/home/user/projects/beta",
+             "gitBranch": "main",
+             "message": {"content": "review"}},
+            # Same filename as alpha's — shared memory
+            _assistant_record(
+                "2026-02-05T11:01:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/beta/.claude/memories/relevant-shared.md"})],
+            ),
+            # Root CLAUDE.md
+            _assistant_record(
+                "2026-02-05T11:02:00Z",
+                [_tool_use_block("Read", {"file_path": "/home/user/projects/beta/CLAUDE.md"})],
+            ),
+        ],
+    )
+
+    conn = init_db(db_path)
+
+    import scripts.session_search as ss
+    original = ss.SOURCE_DIRS
+    ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+    try:
+        index_sessions(conn)
+    finally:
+        ss.SOURCE_DIRS = original
+
+    return conn
+
+
+class TestMemoryPatterns:
+    def _proj(self, rows: list, substr: str) -> dict:
+        """Find a row by project name substring."""
+        for r in rows:
+            if substr in r["project"]:
+                return dict(r)
+        raise KeyError(f"No project matching '{substr}'")
+
+    def test_essential_estimate_counts(self, memory_db: sqlite3.Connection) -> None:
+        """SessionStart events counted per project as distinct sessions."""
+        rows = query_essential_estimates(memory_db)
+        assert self._proj(rows, "alpha")["sessions"] == 2  # clear + startup in 2 sessions
+        assert self._proj(rows, "beta")["sessions"] == 1   # clear in 1 session
+
+    def test_memory_reads_ranked_by_sessions(self, memory_db: sqlite3.Connection) -> None:
+        """Memory reads ordered by session count descending."""
+        rows = query_memory_reads(memory_db)
+        sessions = [r["sessions"] for r in rows]
+        assert sessions == sorted(sessions, reverse=True)
+        # essential-foo.md read in 2 sessions
+        foo = [r for r in rows if "essential-foo" in r["detail"]]
+        assert foo[0]["sessions"] == 2
+        assert foo[0]["reads"] == 2
+
+    def test_memory_excludes_memory_md(self, memory_db: sqlite3.Connection) -> None:
+        """MEMORY.md index file is not counted as a memory read."""
+        rows = query_memory_reads(memory_db)
+        details = [r["detail"] for r in rows]
+        assert not any("MEMORY.md" in d for d in details)
+
+    def test_shared_memories_global(self, memory_db: sqlite3.Connection) -> None:
+        """Same filename across projects detected in global view."""
+        rows = query_memory_reads(memory_db)
+        # relevant-shared.md appears for both alpha and beta
+        shared = [r for r in rows if "relevant-shared" in r["detail"]]
+        projects = {r["project"] for r in shared}
+        assert len(projects) == 2
+        assert any("alpha" in p for p in projects)
+        assert any("beta" in p for p in projects)
+
+    def test_claude_md_root_vs_subfolder(self, memory_db: sqlite3.Connection) -> None:
+        """Root vs subfolder CLAUDE.md correctly classified."""
+        rows = query_claude_md_reads(memory_db)
+        for row in rows:
+            kind = _classify_claude_md(row["detail"], row["project_path"])
+            if row["detail"].endswith("alpha/CLAUDE.md"):
+                assert kind == "root"
+            elif row["detail"].endswith("tests/CLAUDE.md"):
+                assert kind == "tests/"
+            elif row["detail"].endswith("beta/CLAUDE.md"):
+                assert kind == "root"
+
+    def test_diversity_metrics(self, memory_db: sqlite3.Connection) -> None:
+        """Distinct count and per-project metrics."""
+        rows = query_memory_diversity(memory_db)
+        alpha = self._proj(rows, "alpha")
+        beta = self._proj(rows, "beta")
+        # alpha: essential-foo, relevant-shared, relevant-once = 3 distinct
+        assert alpha["distinct_memories"] == 3
+        # beta: relevant-shared = 1 distinct
+        assert beta["distinct_memories"] == 1
+
+    def test_filter_by_project(self, memory_db: sqlite3.Connection) -> None:
+        """--project narrows all queries."""
+        reads = query_memory_reads(memory_db, project="beta")
+        assert all("beta" in r["project"] for r in reads)
+        assert len(reads) == 1  # only relevant-shared
+
+        essentials = query_essential_estimates(memory_db, project="beta")
+        assert len(essentials) == 1
+        assert essentials[0]["hook_fires"] == 1
+
+    def test_filter_by_days(self, memory_db: sqlite3.Connection) -> None:
+        """--days narrows results (all test data is old, so 0 results with days=1)."""
+        reads = query_memory_reads(memory_db, days=1)
+        assert len(reads) == 0
+
+    def test_extract_memory_filename(self) -> None:
+        assert _extract_memory_filename("/a/b/.claude/memories/essential-foo.md") == "essential-foo.md"
+        assert _extract_memory_filename("/x/y/MEMORY.md") == "MEMORY.md"
+
+    def test_classify_claude_md_with_project_path(self) -> None:
+        assert _classify_claude_md("/proj/CLAUDE.md", "/proj") == "root"
+        assert _classify_claude_md("/proj/src/CLAUDE.md", "/proj") == "src/"
+        assert _classify_claude_md("/proj/src/cli/CLAUDE.md", "/proj") == "src/cli/"
+
+    def test_classify_claude_md_without_project_path(self) -> None:
+        """Falls back to parent directory name when project_path is None."""
+        result = _classify_claude_md("/proj/src/CLAUDE.md", None)
+        assert result == "src/"

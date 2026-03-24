@@ -236,6 +236,31 @@ class TestExtractSessionEvents:
         seqs = [e["seq"] for e in events]
         assert seqs == [1, 2, 3, 4]
 
+    def test_project_path_from_cwd(self, tmp_path: Path) -> None:
+        """project_path is extracted from the first record's cwd field."""
+        records = [
+            {"type": "user", "timestamp": "2026-01-01T10:00:00Z",
+             "cwd": "/home/user/projects/my-project",
+             "message": {"content": "hello"}},
+        ]
+        session_dir = tmp_path / "test-project"
+        _write_jsonl(session_dir / "cwd-test.jsonl", records)
+
+        meta, _ = extract_session_events(session_dir / "cwd-test.jsonl")
+        assert meta["project_path"] == "/home/user/projects/my-project"
+
+    def test_project_path_none_without_cwd(self, tmp_path: Path) -> None:
+        """project_path is None when no record has cwd."""
+        records = [
+            {"type": "user", "timestamp": "2026-01-01T10:00:00Z",
+             "message": {"content": "hello"}},
+        ]
+        session_dir = tmp_path / "test-project"
+        _write_jsonl(session_dir / "no-cwd.jsonl", records)
+
+        meta, _ = extract_session_events(session_dir / "no-cwd.jsonl")
+        assert meta["project_path"] is None
+
     def test_empty_session(self, tmp_path: Path) -> None:
         session_dir = tmp_path / "test-project"
         session_file = session_dir / "empty.jsonl"
@@ -580,6 +605,46 @@ class TestDatabaseRoundTrip:
 
         id3 = _get_or_create_project(conn, "other", "-home-user-other")
         assert id3 != id1
+        conn.close()
+
+    def test_project_path_stored(self, tmp_path: Path) -> None:
+        """project_path is stored on create and backfilled on subsequent calls."""
+        db_path = tmp_path / "test.db"
+        conn = init_db(db_path)
+
+        # First call without project_path
+        id1 = _get_or_create_project(conn, "proj", "-home-user-proj")
+        row = conn.execute(
+            "SELECT project_path FROM projects WHERE id = ?", (id1,)
+        ).fetchone()
+        assert row[0] is None
+
+        # Second call with project_path backfills
+        _get_or_create_project(
+            conn, "proj", "-home-user-proj", "/home/user/proj"
+        )
+        row = conn.execute(
+            "SELECT project_path FROM projects WHERE id = ?", (id1,)
+        ).fetchone()
+        assert row[0] == "/home/user/proj"
+
+        # Third call doesn't overwrite existing path
+        _get_or_create_project(
+            conn, "proj", "-home-user-proj", "/different/path"
+        )
+        row = conn.execute(
+            "SELECT project_path FROM projects WHERE id = ?", (id1,)
+        ).fetchone()
+        assert row[0] == "/home/user/proj"
+
+        # New project with path from the start
+        id2 = _get_or_create_project(
+            conn, "other", "-home-user-other", "/home/user/other"
+        )
+        row = conn.execute(
+            "SELECT project_path FROM projects WHERE id = ?", (id2,)
+        ).fetchone()
+        assert row[0] == "/home/user/other"
         conn.close()
 
     def test_index_and_search(self, tmp_path: Path) -> None:
