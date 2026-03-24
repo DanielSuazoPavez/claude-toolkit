@@ -44,6 +44,16 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- Safe commands sync ---
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Running: validate-safe-commands-sync.sh"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+bash "$SCRIPTS_DIR/validate-safe-commands-sync.sh"
+if [ $? -ne 0 ]; then
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
 # --- Summary ---
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ $FAILURES -eq 0 ]; then
