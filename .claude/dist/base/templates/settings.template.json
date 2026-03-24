@@ -106,6 +106,17 @@
           }
         ]
       }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/approve-safe-commands.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

@@ -14,6 +14,7 @@ Automation hooks configured in `settings.json`.
 | `suggest-read-json.sh` | stable | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
 | `enforce-uv-run.sh` | stable | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
 | `enforce-make-commands.sh` | stable | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
+| `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
 ---
@@ -121,6 +122,19 @@ Blocks bare tool invocations, suggests Make targets.
 - Blocks: `uv run ruff`, `uv run pre-commit`, bare `pre-commit`, `ruff check/format`
 - Blocks: `uv sync`, `docker up/down/build`
 - Suggests: `make test`, `make lint`, `make install`, etc.
+
+### approve-safe-commands.sh
+
+**Trigger**: PermissionRequest (Bash)
+
+Auto-approves chained Bash commands when all subcommands match safe prefixes from settings.json permissions.
+
+- Splits commands on `&&`, `||`, `;`, `|` (respects quotes)
+- Checks each subcommand against hardcoded safe prefixes (ls, git status, make, etc.)
+- All match → auto-approve via `permissionDecision: "allow"`
+- Any don't match → stays silent (normal permission prompt shows)
+- Bails on: subshells `$(...)`, backticks, redirects (`>`, `>>`, `<`)
+- Validated by `.claude/scripts/validate-safe-commands-sync.sh` (runs in `make check`)
 
 ## Configuration
 
