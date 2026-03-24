@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.26.2] - 2026-03-24 - Teardown worktree rebase check
+
+### Changed
+- **skills**: `teardown-worktree` now checks if branch is behind main after checkout — suggests `git rebase main` when needed instead of blindly offering the merge command
+
 ## [2.26.1] - 2026-03-24 - Implementation checker git diff support
 
 ### Changed
