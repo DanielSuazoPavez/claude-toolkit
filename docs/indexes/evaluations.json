@@ -792,6 +792,29 @@
           "[low] D8: Add edge-case handling for missing learned.json or zero recent lessons",
           "[low] D3: Add a non-obvious anti-pattern such as archiving recurring lessons instead of promoting them"
         ]
+      },
+      "setup-toolkit": {
+        "file_hash": "2b9e3d96",
+        "date": "2026-03-24",
+        "type": "command",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 17,
+          "D2": 13,
+          "D3": 14,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 12,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] Add cross-reference to session-start hook that detects version drift and triggers this skill (D7)",
+          "[low] Include example of populated diagnostic summary table showing real issues (D8)",
+          "[low] Evaluate whether the CLAUDE.md-exists check adds enough expert curation value vs diluting the checklist (D1)"
+        ]
       }
     }
   },

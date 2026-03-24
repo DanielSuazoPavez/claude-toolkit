@@ -6,7 +6,7 @@ Automation hooks configured in `settings.json`.
 
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
-| `session-start.sh` | stable | SessionStart | Loads essential memories and git context |
+| `session-start.sh` | stable | SessionStart | Loads essential memories, git context, and toolkit version drift check |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `block-dangerous-commands.sh` | stable | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
@@ -30,6 +30,7 @@ Loads essential memories and git context at the start of each session.
 - Shows current git branch and main branch
 - Loads lessons from `learned.json`: key tier (all), recent (last 5), branch-flagged (current branch)
 - Nudges `/manage-lessons` when recent count ≥ 10 or recurring flags exist
+- Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
 - Outputs guidance text for memory usage
 
 ### git-safety.sh

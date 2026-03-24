@@ -47,6 +47,7 @@ USAGE:
 COMMANDS:
     sync [path]     Sync toolkit updates to a project (default: current dir)
     send <path>     Send a resource from another project to suggestions-box
+    version         Print toolkit version
 
 OPTIONS:
     -h, --help      Show this help message
@@ -704,6 +705,7 @@ fi
 # === Main: Route to subcommand ===
 case "${1:-}" in
     -h|--help|"") cmd_help ;;
+    version) cat "$TOOLKIT_DIR/VERSION" ;;
     sync) shift; cmd_sync "$@" ;;
     send) shift; cmd_send "$@" ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;

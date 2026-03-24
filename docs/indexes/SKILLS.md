@@ -42,6 +42,7 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `write-docs` | beta | Write or update project documentation via gap analysis |
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
+| `setup-toolkit` | beta | Diagnose and fix Claude Toolkit configuration after sync or drift |
 | `setup-worktree` | beta | Set up git worktree with full Claude configuration for branch isolation |
 | `teardown-worktree` | beta | Close out a worktree — check, copy artifacts, remove, checkout branch |
 | `read-json` | stable | Read and analyze JSON files efficiently using jq |
