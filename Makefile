@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-insights test-eval test-validate-indexed validate check backlog help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-insights test-session-search test-eval test-validate-indexed validate check backlog help
 
 install:
 	@uv sync --dev
@@ -16,7 +16,7 @@ help:
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
-test: test-hooks test-cli test-backlog test-raiz test-insights test-eval test-validate-indexed
+test: test-hooks test-cli test-backlog test-raiz test-insights test-session-search test-eval test-validate-indexed
 
 test-hooks:
 	@bash tests/test-hooks.sh
@@ -32,6 +32,9 @@ test-raiz:
 
 test-insights:
 	@uv run pytest tests/test_insights.py -q
+
+test-session-search:
+	@uv run pytest tests/test_session_search.py -q
 
 test-eval:
 	@bash tests/test-evaluation-query.sh
