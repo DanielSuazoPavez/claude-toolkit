@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.25.0] - 2026-03-24 - Resource token cost tracking
+
+### Added
+- **scripts**: `resource-cost` subcommand for session-search — measures token cost of skill and agent invocations by tracking input/output deltas from invocation to end boundary. Pre-computed during indexing via `resource_usage` table for instant queries
+- **scripts**: `extract_resource_usage()` — linear-scan span detection for skills (next human message boundary), agents (same), interactive skills like brainstorm-idea (file-write boundary), and memory baseline (first-turn input tokens)
+- **scripts**: `input_total`/`output_total` cumulative columns on events table — running sums of context size and output per assistant turn
+- **scripts**: User event classification — `action_type` distinguishes `human` vs `skill_content` messages for accurate boundary detection
+- **tests**: 10 new tests covering cumulative tokens, user classification, resource extraction, and DB round-trip
+
+### Changed
+- **scripts**: Agent/Task event detail now prefixed with `subagent_type` (e.g. `Explore: description`) for aggregation in resource-cost reports
+
+### Removed
+- **backlog**: Completed `resource-token-cost` task
+
 ## [2.24.0] - 2026-03-24 - Session DB analytics
 
 ### Added

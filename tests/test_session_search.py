@@ -13,6 +13,7 @@ from scripts.session_search import (
     _extract_tool_detail,
     _extract_user_text,
     extract_session_events,
+    extract_resource_usage,
     init_db,
     index_sessions,
     _get_or_create_project,
@@ -115,8 +116,12 @@ class TestExtractToolDetail:
         assert result == ("web", "https://example.com")
 
     def test_task_agent(self) -> None:
-        result = _extract_tool_detail("Task", {"description": "explore code"})
-        assert result == ("agent", "explore code")
+        result = _extract_tool_detail("Task", {"description": "explore code", "subagent_type": "Explore"})
+        assert result == ("agent", "Explore: explore code")
+
+    def test_agent_default_type(self) -> None:
+        result = _extract_tool_detail("Agent", {"description": "do stuff"})
+        assert result == ("agent", "general-purpose: do stuff")
 
     def test_skill(self) -> None:
         result = _extract_tool_detail("Skill", {"skill": "wrap-up"})
@@ -243,6 +248,308 @@ class TestExtractSessionEvents:
 # ---------------------------------------------------------------------------
 # Database round-trip
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Cumulative tokens and user classification
+# ---------------------------------------------------------------------------
+
+
+class TestCumulativeTokens:
+    def test_input_total_on_assistant_events(self, tmp_path: Path) -> None:
+        """Assistant and tool_use events should have input_total from usage."""
+        records = [
+            _user_record("2026-01-01T10:00:00Z", "hello"),
+            _assistant_record(
+                "2026-01-01T10:01:00Z",
+                [_text_block("hi"), _tool_use_block("Read", {"file_path": "/f.py"})],
+                usage={
+                    "input_tokens": 10,
+                    "output_tokens": 50,
+                    "cache_creation_input_tokens": 100,
+                    "cache_read_input_tokens": 200,
+                },
+            ),
+            _assistant_record(
+                "2026-01-01T10:02:00Z",
+                [_text_block("done")],
+                usage={
+                    "input_tokens": 15,
+                    "output_tokens": 30,
+                    "cache_creation_input_tokens": 150,
+                    "cache_read_input_tokens": 250,
+                },
+            ),
+        ]
+
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "tok-001.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+
+        # user event has input_total=0
+        user_evt = [e for e in events if e["event_type"] == "user"][0]
+        assert user_evt["input_total"] == 0
+
+        # First assistant turn: 10 + 100 + 200 = 310
+        asst_evts = [e for e in events if e["event_type"] == "assistant"]
+        assert asst_evts[0]["input_total"] == 310
+        assert asst_evts[0]["output_total"] == 50
+
+        # tool_use from same turn shares the same totals
+        tool_evts = [e for e in events if e["event_type"] == "tool_use"]
+        assert tool_evts[0]["input_total"] == 310
+        assert tool_evts[0]["output_total"] == 50
+
+        # Second assistant turn: 15 + 150 + 250 = 415, output_total = 50 + 30 = 80
+        assert asst_evts[1]["input_total"] == 415
+        assert asst_evts[1]["output_total"] == 80
+
+    def test_progress_events_zero_tokens(self, tmp_path: Path) -> None:
+        records = [
+            _progress_record("2026-01-01T10:00:00Z", "PreToolUse", "Bash"),
+        ]
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "tok-002.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        assert events[0]["input_total"] == 0
+        assert events[0]["output_total"] == 0
+
+
+class TestUserClassification:
+    def test_human_message(self, tmp_path: Path) -> None:
+        records = [
+            _user_record("2026-01-01T10:00:00Z", "please fix the bug"),
+        ]
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "usr-001.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        assert events[0]["action_type"] == "human"
+
+    def test_skill_content_message(self, tmp_path: Path) -> None:
+        records = [
+            _user_record(
+                "2026-01-01T10:00:00Z",
+                "Base directory for this skill: /home/user/.claude/skills/wrap-up\n\nDo the wrap-up.",
+            ),
+        ]
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "usr-002.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        assert events[0]["action_type"] == "skill_content"
+
+    def test_slash_command_is_human(self, tmp_path: Path) -> None:
+        records = [
+            _user_record(
+                "2026-01-01T10:00:00Z",
+                '<command-name>/wrap-up</command-name><command-message>wrap-up</command-message>',
+            ),
+        ]
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "usr-003.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        assert events[0]["action_type"] == "human"
+
+
+# ---------------------------------------------------------------------------
+# Resource cost query
+# ---------------------------------------------------------------------------
+
+
+class TestResourceUsageExtraction:
+    def test_skill_span(self, tmp_path: Path) -> None:
+        """Skill invocation followed by work, ended by human message."""
+        records = [
+            _user_record("2026-01-01T10:00:00Z", "do the wrap-up"),
+            _assistant_record(
+                "2026-01-01T10:01:00Z",
+                [_tool_use_block("Skill", {"skill": "wrap-up"})],
+                usage={
+                    "input_tokens": 10,
+                    "output_tokens": 20,
+                    "cache_creation_input_tokens": 500,
+                    "cache_read_input_tokens": 500,
+                },
+            ),
+            _user_record(
+                "2026-01-01T10:01:01Z",
+                "Base directory for this skill: /home/user/.claude/skills/wrap-up\n\nSteps...",
+            ),
+            _assistant_record(
+                "2026-01-01T10:02:00Z",
+                [_tool_use_block("Edit", {"file_path": "/CHANGELOG.md"})],
+                usage={
+                    "input_tokens": 15,
+                    "output_tokens": 100,
+                    "cache_creation_input_tokens": 800,
+                    "cache_read_input_tokens": 700,
+                },
+            ),
+            _assistant_record(
+                "2026-01-01T10:03:00Z",
+                [_text_block("Done with wrap-up")],
+                usage={
+                    "input_tokens": 20,
+                    "output_tokens": 50,
+                    "cache_creation_input_tokens": 1000,
+                    "cache_read_input_tokens": 900,
+                },
+            ),
+            _user_record("2026-01-01T10:04:00Z", "thanks"),
+        ]
+
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "rc-001.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        usages = extract_resource_usage(events)
+
+        skills = [u for u in usages if u["resource_type"] == "skill"]
+        assert len(skills) == 1
+        assert skills[0]["resource_name"] == "wrap-up"
+        assert skills[0]["end_reason"] == "user_msg"
+        assert skills[0]["turn_count"] == 1  # Only the text turn has event_type='assistant'
+        # Start: 10+500+500=1010, End: 20+1000+900=1920
+        assert skills[0]["input_delta"] == 910
+        # Start output: 20, End output: 20+100+50=170
+        assert skills[0]["output_delta"] == 150
+
+    def test_agent_span(self, tmp_path: Path) -> None:
+        records = [
+            _user_record("2026-01-01T10:00:00Z", "review code"),
+            _assistant_record(
+                "2026-01-01T10:01:00Z",
+                [_tool_use_block("Agent", {"subagent_type": "code-reviewer", "description": "review"})],
+                usage={
+                    "input_tokens": 5,
+                    "output_tokens": 30,
+                    "cache_creation_input_tokens": 200,
+                    "cache_read_input_tokens": 300,
+                },
+            ),
+            _assistant_record(
+                "2026-01-01T10:02:00Z",
+                [_text_block("Review complete")],
+                usage={
+                    "input_tokens": 10,
+                    "output_tokens": 80,
+                    "cache_creation_input_tokens": 400,
+                    "cache_read_input_tokens": 500,
+                },
+            ),
+            _user_record("2026-01-01T10:03:00Z", "ok"),
+        ]
+
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "rc-002.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        usages = extract_resource_usage(events)
+
+        agents = [u for u in usages if u["resource_type"] == "agent"]
+        assert len(agents) == 1
+        assert agents[0]["resource_name"] == "code-reviewer"
+        assert agents[0]["end_reason"] == "user_msg"
+
+    def test_memory_baseline(self, tmp_path: Path) -> None:
+        records = [
+            _user_record("2026-01-01T10:00:00Z", "hi"),
+            _assistant_record(
+                "2026-01-01T10:01:00Z",
+                [_text_block("hello")],
+                usage={
+                    "input_tokens": 50,
+                    "output_tokens": 10,
+                    "cache_creation_input_tokens": 5000,
+                    "cache_read_input_tokens": 3000,
+                },
+            ),
+        ]
+
+        session_dir = tmp_path / "test-project"
+        session_file = session_dir / "rc-003.jsonl"
+        _write_jsonl(session_file, records)
+
+        _, events = extract_session_events(session_file)
+        usages = extract_resource_usage(events)
+
+        baselines = [u for u in usages if u["resource_type"] == "memory_baseline"]
+        assert len(baselines) == 1
+        assert baselines[0]["input_delta"] == 8050  # 50+5000+3000
+
+    def test_db_round_trip(self, tmp_path: Path) -> None:
+        """Resource usage survives index -> query cycle."""
+        records = [
+            _user_record("2026-01-01T10:00:00Z", "wrap it up"),
+            _assistant_record(
+                "2026-01-01T10:01:00Z",
+                [_tool_use_block("Skill", {"skill": "wrap-up"})],
+                usage={
+                    "input_tokens": 10,
+                    "output_tokens": 20,
+                    "cache_creation_input_tokens": 500,
+                    "cache_read_input_tokens": 500,
+                },
+            ),
+            _user_record(
+                "2026-01-01T10:01:01Z",
+                "Base directory for this skill: /skills/wrap-up\n\nDo stuff",
+            ),
+            _assistant_record(
+                "2026-01-01T10:02:00Z",
+                [_text_block("Done")],
+                usage={
+                    "input_tokens": 20,
+                    "output_tokens": 50,
+                    "cache_creation_input_tokens": 1000,
+                    "cache_read_input_tokens": 900,
+                },
+            ),
+            _user_record("2026-01-01T10:03:00Z", "thanks"),
+        ]
+
+        project_dir = tmp_path / "transcripts" / "-home-user-projects-personal-myproj"
+        _write_jsonl(project_dir / "rc-004.jsonl", records)
+
+        db_path = tmp_path / "test.db"
+        conn = init_db(db_path)
+
+        import scripts.session_search as ss
+        original = ss.SOURCE_DIRS
+        ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+        try:
+            index_sessions(conn)
+        finally:
+            ss.SOURCE_DIRS = original
+
+        rows = conn.execute("""
+            SELECT resource_type, resource_name, input_delta, output_delta,
+                   turn_count, end_reason
+            FROM resource_usage
+            ORDER BY resource_type
+        """).fetchall()
+
+        # Should have memory_baseline + skill
+        types = {r[0] for r in rows}
+        assert "skill" in types
+        assert "memory_baseline" in types
+
+        skill_row = [r for r in rows if r[0] == "skill"][0]
+        assert skill_row[1] == "wrap-up"
+        assert skill_row[4] == 1  # 1 assistant turn in span
+        assert skill_row[5] == "user_msg"
+        conn.close()
 
 
 class TestDatabaseRoundTrip:
