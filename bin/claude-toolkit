@@ -191,7 +191,7 @@ target_path() {
 }
 
 # === resolve_manifest: Read MANIFEST and expand to file list ===
-# Outputs relative paths (relative to .claude/) one per line
+# Outputs relative paths one per line (relative to .claude/, except dist/* from project root)
 resolve_manifest() {
     local manifest="$TOOLKIT_DIR/dist/base/MANIFEST"
     if [[ ! -f "$manifest" ]]; then
