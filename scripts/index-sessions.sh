@@ -10,4 +10,4 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 cd "$SCRIPT_DIR/.."
-uv run scripts/session_search.py index
+uv run scripts/session_index.py index

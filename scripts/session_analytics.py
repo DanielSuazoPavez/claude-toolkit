@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Session analytics for Claude Code — usage patterns from the session index DB.
 
-Builds on the session-index.db created by session_search.py.
+Builds on the session-index.db created by session_index.py.
 
 Usage:
     uv run scripts/session_analytics.py sessions [--project <name>] [--days N] [--limit N]
@@ -9,6 +9,10 @@ Usage:
     uv run scripts/session_analytics.py time [--project <name>] [--days N]
     uv run scripts/session_analytics.py branches [--project <name>] [--days N] [--limit N]
     uv run scripts/session_analytics.py memory [--project <name>] [--days N] [--limit N]
+    uv run scripts/session_analytics.py timeline [--days N] [--project <name>]
+    uv run scripts/session_analytics.py files [<pattern>] [--days N] [--project <name>]
+    uv run scripts/session_analytics.py stats
+    uv run scripts/session_analytics.py resource-cost [--type skill|agent] [--project <name>] [--sort tokens|uses|avg]
 """
 
 from __future__ import annotations
@@ -16,10 +20,11 @@ from __future__ import annotations
 import argparse
 import sqlite3
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from session_search import DB_PATH, _c, _fmt_tokens, init_db
+sys.path.insert(0, str(Path(__file__).parent))
+from session_db import DB_PATH, _c, _fmt_tokens, init_db  # noqa: E402
 
 # Default UTC offset for display (hours). Timestamps in the DB are UTC.
 DEFAULT_UTC_OFFSET = -3
@@ -474,7 +479,7 @@ def query_session_gaps(
     conn: sqlite3.Connection,
     project: str | None = None,
     days: int | None = None,
-) -> list[dict]:
+) -> dict:
     """Compute gaps between consecutive sessions, return gap stats."""
     sql, params = _add_filters(GAP_ANALYSIS_SQL, project, days)
     sql += " ORDER BY s.last_ts"
@@ -495,7 +500,7 @@ def query_session_gaps(
                 continue
 
     if not gaps_hours:
-        return []
+        return {}
 
     gaps_sorted = sorted(gaps_hours)
     return {
@@ -855,12 +860,16 @@ def cmd_memory(args: argparse.Namespace) -> None:
         print()
 
     # --- On-demand memory reads ---
+    # by_name is built in the is_global branch and reused for shared-memories below
+    from collections import defaultdict
+    by_name: dict[str, dict] = defaultdict(
+        lambda: {"projects": set(), "reads": 0, "sessions": 0}
+    )
     if memory_reads:
         print(f"  {c['bold']}On-Demand Memory Reads{c['reset']}")
         if is_global:
             # Group by filename to surface shared memories
-            from collections import defaultdict
-            by_name: dict[str, dict] = defaultdict(
+            by_name = defaultdict(
                 lambda: {"projects": set(), "reads": 0, "sessions": 0}
             )
             for row in memory_reads:
@@ -1010,6 +1019,250 @@ def cmd_memory(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Index-level analytics (moved from session_search.py)
+# ---------------------------------------------------------------------------
+
+
+def cmd_timeline(args: argparse.Namespace) -> None:
+    """Show daily activity timeline."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    since = (datetime.now() - timedelta(days=args.days)).strftime("%Y-%m-%d")
+
+    sql = """
+        SELECT e.date, p.name,
+               COUNT(*) as events,
+               COUNT(DISTINCT e.session_id) as sessions
+        FROM events e
+        JOIN projects p ON p.id = e.project_id
+        WHERE e.date >= ?
+    """
+    params: list = [since]
+
+    if args.project:
+        sql += " AND p.name LIKE ?"
+        params.append(f"%{args.project}%")
+
+    sql += " GROUP BY e.date, p.name ORDER BY e.date DESC, events DESC"
+
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+
+    print(f"\n{c['bold']}{c['cyan']}Timeline (last {args.days} days){c['reset']}\n")
+
+    current_date = None
+    for date, project, events, sessions in rows:
+        if date != current_date:
+            print(f"\n  {c['bold']}--- {date} ---{c['reset']}")
+            current_date = date
+        proj = project[:30] if len(project) > 30 else project
+        print(
+            f"    {proj:30} "
+            f"{c['green']}{sessions:3} sessions{c['reset']}  "
+            f"{events:5} events"
+        )
+
+
+def cmd_files(args: argparse.Namespace) -> None:
+    """Show most-touched files."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    since = (datetime.now() - timedelta(days=args.days)).strftime("%Y-%m-%d")
+
+    sql = """
+        SELECT e.detail, COUNT(*) as times,
+               MAX(e.date) as last_date,
+               e.action_type
+        FROM events e
+        JOIN projects p ON p.id = e.project_id
+        WHERE e.action_type IN ('file_change', 'file_read')
+          AND e.date >= ?
+    """
+    params: list = [since]
+
+    if args.project:
+        sql += " AND p.name LIKE ?"
+        params.append(f"%{args.project}%")
+
+    if args.pattern:
+        sql += " AND e.detail LIKE ?"
+        params.append(f"%{args.pattern}%")
+
+    sql += " GROUP BY e.detail ORDER BY times DESC LIMIT ?"
+    params.append(args.limit)
+
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+
+    print(f"\n{c['bold']}{c['cyan']}Files (last {args.days} days){c['reset']}\n")
+
+    for detail, times, last_date, action_type in rows:
+        atype = "W" if action_type == "file_change" else "R"
+        path_short = detail[-60:] if len(detail) > 60 else detail
+        print(
+            f"  {c['dim']}{last_date}{c['reset']} "
+            f"{times:5}x {c['yellow']}{atype}{c['reset']} "
+            f"{path_short}"
+        )
+
+
+def cmd_stats(args: argparse.Namespace) -> None:
+    """Show database statistics."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    session_count = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+    event_count = conn.execute("SELECT COUNT(*) FROM events").fetchone()[0]
+    project_count = conn.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
+
+    date_range = conn.execute(
+        "SELECT MIN(date), MAX(date) FROM events"
+    ).fetchone()
+
+    total_tokens = conn.execute(
+        "SELECT SUM(input_tokens + output_tokens + cache_create_tokens + cache_read_tokens) FROM sessions"
+    ).fetchone()[0] or 0
+
+    by_project = conn.execute("""
+        SELECT p.name,
+               p.session_count as sessions,
+               (SELECT COUNT(*) FROM events e WHERE e.project_id = p.id) as events,
+               (SELECT SUM(s.input_tokens + s.output_tokens + s.cache_create_tokens + s.cache_read_tokens)
+                FROM sessions s WHERE s.project_id = p.id) as tokens
+        FROM projects p
+        ORDER BY sessions DESC
+        LIMIT 15
+    """).fetchall()
+
+    by_type = conn.execute("""
+        SELECT event_type, COUNT(*) FROM events
+        GROUP BY event_type ORDER BY 2 DESC
+    """).fetchall()
+
+    by_action = conn.execute("""
+        SELECT action_type, COUNT(*) FROM events
+        WHERE action_type IS NOT NULL
+        GROUP BY action_type ORDER BY 2 DESC
+    """).fetchall()
+
+    conn.close()
+
+    # DB file size
+    db_size = args.db_path.stat().st_size if args.db_path.exists() else 0
+    db_size_mb = db_size / (1024 * 1024)
+
+    print(f"\n{c['bold']}{c['cyan']}Session Index Stats{c['reset']}\n")
+    print(f"  Sessions:  {c['bold']}{session_count}{c['reset']}")
+    print(f"  Events:    {event_count}")
+    print(f"  Projects:  {project_count}")
+    print(f"  Tokens:    {_fmt_tokens(total_tokens)}")
+    print(f"  DB size:   {db_size_mb:.1f} MB")
+    if date_range[0]:
+        print(f"  Date range: {date_range[0]} to {date_range[1]}")
+
+    if by_project:
+        print(f"\n  {c['bold']}By Project{c['reset']}")
+        for name, sessions, events, tokens in by_project:
+            tok = _fmt_tokens(tokens or 0)
+            print(f"    {name:35} {sessions:4} sessions  {events:6} events  {tok:>8} tokens")
+
+    if by_type:
+        print(f"\n  {c['bold']}By Event Type{c['reset']}")
+        for etype, count in by_type:
+            print(f"    {etype:15} {count:8}")
+
+    if by_action:
+        print(f"\n  {c['bold']}By Action Type{c['reset']}")
+        for atype, count in by_action:
+            print(f"    {atype:15} {count:8}")
+
+
+def cmd_resource_cost(args: argparse.Namespace) -> None:
+    """Show token cost of toolkit resources (skills, agents)."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    type_filter = args.type if hasattr(args, "type") and args.type else None
+
+    def _print_table(
+        title: str,
+        rows: list[tuple],
+        name_header: str = "Name",
+    ) -> None:
+        if not rows:
+            return
+        print(f"\n{c['bold']}{c['cyan']}{title}{c['reset']}\n")
+        print(
+            f"  {name_header:30} {'Uses':>5} {'Avg In':>8} "
+            f"{'Avg Out':>8} {'Turns':>5} "
+            f"{'Total In':>10} {'Total Out':>10}"
+        )
+        print(f"  {'-' * 88}")
+        for name, invocations, avg_in, avg_out, avg_turns, total_in, total_out in rows:
+            print(
+                f"  {name:30} {invocations:5} "
+                f"{_fmt_tokens(avg_in or 0):>8} {_fmt_tokens(avg_out or 0):>8} "
+                f"{avg_turns or 0:5} "
+                f"{_fmt_tokens(total_in or 0):>10} "
+                f"{_fmt_tokens(total_out or 0):>10}"
+            )
+
+    sort_col = {
+        "tokens": "total_input",
+        "uses": "invocations",
+        "avg": "avg_input_delta",
+    }.get(args.sort, "total_input")
+
+    for rtype, title, name_header in [
+        ("skill", "Skills", "Name"),
+        ("agent", "Agents", "Type"),
+    ]:
+        if type_filter and type_filter != rtype:
+            continue
+
+        sql = """
+            SELECT
+                resource_name,
+                COUNT(*) AS invocations,
+                CAST(AVG(input_delta) AS INTEGER) AS avg_input_delta,
+                CAST(AVG(output_delta) AS INTEGER) AS avg_output_delta,
+                CAST(AVG(turn_count) AS INTEGER) AS avg_turns,
+                SUM(input_delta) AS total_input,
+                SUM(output_delta) AS total_output
+            FROM resource_usage
+            WHERE resource_type = ?
+        """
+        params: list = [rtype]
+
+        if args.project:
+            sql += " AND project_id IN (SELECT id FROM projects WHERE name LIKE ?)"
+            params.append(f"%{args.project}%")
+
+        sql += f" GROUP BY resource_name ORDER BY {sort_col} DESC"
+        rows = conn.execute(sql, params).fetchall()
+        _print_table(title, rows, name_header)
+
+    # Memory baseline
+    if not type_filter:
+        row = conn.execute("""
+            SELECT COUNT(*) AS sessions,
+                   CAST(AVG(input_delta) AS INTEGER) AS avg_baseline
+            FROM resource_usage
+            WHERE resource_type = 'memory_baseline'
+        """).fetchone()
+        if row and row[0]:
+            print(f"\n{c['bold']}{c['cyan']}Memory Baseline{c['reset']}\n")
+            print(
+                f"  Avg first-turn input: {_fmt_tokens(row[1])} tokens "
+                f"({row[0]} sessions)"
+            )
+
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1058,6 +1311,32 @@ def build_parser() -> argparse.ArgumentParser:
     mem.add_argument("--days", type=int, help="Limit to last N days")
     mem.add_argument("--limit", type=int, default=30, help="Max rows to display")
 
+    # timeline
+    tl = sub.add_parser("timeline", help="Daily activity timeline")
+    tl.add_argument("--days", type=int, default=7, help="Days to show")
+    tl.add_argument("--project", help="Filter by project")
+
+    # files
+    fl = sub.add_parser("files", help="Most-touched files")
+    fl.add_argument("pattern", nargs="?", help="File path pattern")
+    fl.add_argument("--days", type=int, default=7, help="Days to search")
+    fl.add_argument("--project", help="Filter by project")
+    fl.add_argument("--limit", type=int, default=30, help="Max results")
+
+    # stats
+    sub.add_parser("stats", help="Database statistics")
+
+    # resource-cost
+    rc = sub.add_parser("resource-cost", help="Token cost of toolkit resources")
+    rc.add_argument("--type", choices=["skill", "agent"], help="Filter by resource type")
+    rc.add_argument("--project", help="Filter by project")
+    rc.add_argument(
+        "--sort",
+        choices=["tokens", "uses", "avg"],
+        default="tokens",
+        help="Sort order (default: tokens)",
+    )
+
     return parser
 
 
@@ -1075,6 +1354,10 @@ def main() -> None:
         "time": cmd_time,
         "branches": cmd_branches,
         "memory": cmd_memory,
+        "timeline": cmd_timeline,
+        "files": cmd_files,
+        "stats": cmd_stats,
+        "resource-cost": cmd_resource_cost,
     }
     commands[args.command](args)
 

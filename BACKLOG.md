@@ -25,10 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[SCRIPTS]** Migrate session-search analytics to session-analytics — move `timeline`, `files`, `stats` subcommands from `session_search.py` to `session_analytics.py` (`session-analytics-migration`)
-    - **scope**: `scripts`
-    - **notes**: `session_search.py` has analytics-oriented subcommands (`timeline`, `files`, `stats`) that belong in `session_analytics.py`. Keep `session_search.py` focused on indexing and search. Migrate the commands, update imports, and keep backward-compat CLI aliases if needed.
-
 - **[SCRIPTS]** Session analytics — plan+implementation session pairing (`session-analytics-work-units`)
     - **scope**: `scripts`
     - **notes**: Explore clustering consecutive sessions into "work units" — a planning session followed by implementation sessions. Challenge: planning may start on `main` before branching, or on the feature branch if the hook prompted a branch switch. Signals to use: timing proximity, project, branch transitions, plan mode events, session shape (planning sessions are shorter, read-heavy; implementation sessions are longer, command-heavy). Cross-branch boundary is the hard part.

@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.27.1] - 2026-03-24 - Session scripts reorganization
+
+### Changed
+- **scripts**: Split `session_search.py` (1,336 lines) into four focused modules — `session_db.py` (shared utilities), `session_index.py` (extraction + indexing), `session_search.py` (FTS search only), `session_analytics.py` (all analytics commands)
+- **scripts**: Moved `timeline`, `files`, `stats`, `resource-cost` subcommands from `session_search.py` to `session_analytics.py`
+- **scripts**: `index-sessions.sh` cron wrapper now calls `session_index.py`
+- **tests**: Renamed `test_session_search.py` to `test_session_index.py`, added `test-session-analytics` Makefile target
+
+### Removed
+- **backlog**: Completed `session-analytics-migration` task
+
 ## [2.27.0] - 2026-03-24 - Setup toolkit skill and version drift detection
 
 ### Added

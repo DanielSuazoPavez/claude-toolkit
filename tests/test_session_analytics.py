@@ -8,10 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from scripts.session_search import (
-    init_db,
-    index_sessions,
-)
+from scripts.session_db import init_db
+from scripts.session_index import index_sessions
 from scripts.session_analytics import (
     FILTERED_EVENTS_CTE,
     _cte,
@@ -33,7 +31,7 @@ from scripts.session_analytics import (
 
 
 # ---------------------------------------------------------------------------
-# Record builders (duplicated from test_session_search for isolation)
+# Record builders (duplicated from test_session_index for isolation)
 # ---------------------------------------------------------------------------
 
 
@@ -167,13 +165,13 @@ def indexed_db(tmp_path: Path) -> sqlite3.Connection:
 
     conn = init_db(db_path)
 
-    import scripts.session_search as ss
-    original = ss.SOURCE_DIRS
-    ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+    import scripts.session_index as si
+    original = si.SOURCE_DIRS
+    si.SOURCE_DIRS = [tmp_path / "transcripts"]
     try:
         index_sessions(conn)
     finally:
-        ss.SOURCE_DIRS = original
+        si.SOURCE_DIRS = original
 
     return conn
 
@@ -565,13 +563,13 @@ def memory_db(tmp_path: Path) -> sqlite3.Connection:
 
     conn = init_db(db_path)
 
-    import scripts.session_search as ss
-    original = ss.SOURCE_DIRS
-    ss.SOURCE_DIRS = [tmp_path / "transcripts"]
+    import scripts.session_index as si
+    original = si.SOURCE_DIRS
+    si.SOURCE_DIRS = [tmp_path / "transcripts"]
     try:
         index_sessions(conn)
     finally:
-        ss.SOURCE_DIRS = original
+        si.SOURCE_DIRS = original
 
     return conn
 
