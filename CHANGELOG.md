@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+- **docs**: Completed `exploration-scan` backlog task — reviewed disler/claude-code-hooks-multi-agent-observability, added 4 new backlog items (session-search, review-plan-tighten, stop-hook-plan-enforcement, output-styles-concept)
+- **docs**: Moved `aws-toolkit` from P2 to P3, removed completed exploration-scan task
+- **docs**: Added CLAUDE.md reminders — remove done backlog tasks, fold unreleased changes into version entries
+
 ## [2.21.8] - 2026-03-24 - Fix backlog-query priority column spacing
 
 ### Fixed

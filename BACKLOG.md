@@ -31,21 +31,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: Both skills are `beta*` (under consideration). Previous attempts at the parallel worktrees flow were clunky. Need a real multi-branch scenario to identify friction, fix issues, and decide whether to promote to stable or remove. Skills have been updated since last real usage.
 
-- ~~**[TOOLKIT]** Exploration ecosystem scan — fresh look at Claude Code community for new patterns and trends (`exploration-scan`)~~ **DONE 2026-03-24**
-    - **scope**: `toolkit`
-    - **notes**: Reviewed 3 repos (itsmostafa/aws-agent-skills, mitsuhiko/agent-stuff, applied-ai/claude-code-toolkit). Scanned GitHub + skills.sh for new community repos. Added 2 pending to exploration backlog (disler hooks repos). Key find: session-db.py → new `session-search` backlog item.
-
 ## P2 - Medium
-
-- **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
-    - **status**: `in-progress`
-    - **scope**: `agents, skills`
-    - **repo**: `~/projects/personal/aws-toolkit`
-    - **notes**: Base model struggles with real-world IAM policies and service-specific config. Work happens in the aws-toolkit repo, not here — this backlog entry tracks the initiative, not local changes. Three sub-items:
-        - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
-        - `aws-security-auditor` agent: Security review, least-privilege IAM validation
-        - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
-    - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 - **[SCRIPTS]** Session history search tool — SQLite+FTS5 index of all CC sessions for cross-project search (`session-search`)
     - **scope**: `scripts`
@@ -64,6 +50,15 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
     - **notes**: Inspired by `disler/claude-code-hooks-mastery`'s `.claude/output-styles/` directory. Named formatting modes (ultra-concise, table-based, genui/HTML output, etc.) activated per-session. Different from our communication style memory — these are structural formatting preferences, not personality. Relates to `schemas/` folder direction. Explore whether this fits as a convention or is over-engineering.
+
+- **[AGENTS/SKILLS]** AWS toolkit — agents and skills for AWS workflows (`aws-toolkit`)
+    - **scope**: `agents, skills`
+    - **repo**: `~/projects/personal/aws-toolkit`
+    - **notes**: Base model struggles with real-world IAM policies and service-specific config. Work happens in the aws-toolkit repo, not here — this backlog entry tracks the initiative, not local changes. Three sub-items:
+        - `aws-architect` agent: Infra design, cost/tradeoff analysis, online cost lookup
+        - `aws-security-auditor` agent: Security review, least-privilege IAM validation
+        - `aws-deploy` skill: Service-specific best practices (Lambda, RDS, OpenSearch)
+    - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P99 - Nice to Have
 
