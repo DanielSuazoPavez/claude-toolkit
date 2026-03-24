@@ -37,6 +37,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[TESTS]** Add tests for `evaluation-query.sh` and `validate-resources-indexed.sh` scripts (`test-script-coverage`)
+    - **scope**: `tests`
+    - **notes**: These scripts have no dedicated test coverage. `validate-resources-indexed.sh` is tested indirectly via MANIFEST mode in `test-cli.sh`, but the toolkit-mode (non-MANIFEST) path and `evaluation-query.sh` subcommands are untested.
+
 
 ## P99 - Nice to Have
 
