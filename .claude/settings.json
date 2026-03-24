@@ -104,6 +104,16 @@
             "command": "bash .claude/hooks/suggest-read-json.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash|Read|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/surface-lessons.sh",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PermissionRequest": [
