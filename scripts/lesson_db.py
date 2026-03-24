@@ -352,15 +352,8 @@ def cmd_migrate(args: argparse.Namespace) -> None:
     conn = init_lessons_db(args.db_path)
     c = _c()
 
-    # Check if DB already has lessons (idempotency guard)
-    existing = conn.execute("SELECT COUNT(*) FROM lessons").fetchone()[0]
-    if existing > 0:
-        print(f"Database already has {existing} lessons. Skipping migration.")
-        print(f"Use a fresh DB or delete existing lessons first.")
-        conn.close()
-        return
-
     migrated = 0
+    skipped = 0
     tags_created: set[str] = set()
 
     # Seed category tags
@@ -405,6 +398,11 @@ def cmd_migrate(args: argparse.Namespace) -> None:
 
         active = lesson["tier"] in ("recent", "key")
 
+        # Skip if this lesson ID already exists (idempotent per-lesson)
+        if conn.execute("SELECT 1 FROM lessons WHERE id = ?", (lesson["id"],)).fetchone():
+            skipped += 1
+            continue
+
         insert_lesson(
             conn,
             lesson_id=lesson["id"],
@@ -423,7 +421,11 @@ def cmd_migrate(args: argparse.Namespace) -> None:
     set_metadata(conn, "last_manage_run", _now_iso())
     conn.close()
 
-    print(f"{c['green']}Migrated {migrated} lessons{c['reset']}")
+    print(f"{c['green']}Migrated {migrated} lessons{c['reset']}", end="")
+    if skipped:
+        print(f" ({skipped} skipped — already in DB)")
+    else:
+        print()
     print(f"Tags: {', '.join(sorted(tags_created))}")
 
 
