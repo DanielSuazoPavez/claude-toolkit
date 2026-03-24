@@ -594,6 +594,281 @@ def cmd_set_meta(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Phase 2b: Manage-lessons subcommands
+# ---------------------------------------------------------------------------
+
+
+def cmd_tags(args: argparse.Namespace) -> None:
+    """Show tag registry with counts and status."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    rows = conn.execute(
+        """SELECT t.name, t.status, t.lesson_count, t.keywords, t.description,
+                  m.name AS merged_into
+           FROM tags t
+           LEFT JOIN tags m ON t.merged_into_id = m.id
+           ORDER BY t.lesson_count DESC, t.name"""
+    ).fetchall()
+    conn.close()
+
+    print(f"\n{c['bold']}Tag Registry ({len(rows)} tags){c['reset']}\n")
+    for name, status, count, keywords, desc, merged_into in rows:
+        status_fmt = (
+            f"{c['green']}{status}{c['reset']}" if status == "active"
+            else f"{c['dim']}{status}{c['reset']}"
+        )
+        merged_note = f" → {merged_into}" if merged_into else ""
+        kw = f" kw:[{keywords}]" if keywords else ""
+        print(f"  {name:20} {count:3} lessons  {status_fmt}{merged_note}{kw}")
+        if desc:
+            print(f"  {' ':20} {c['dim']}{desc}{c['reset']}")
+    print()
+
+
+def cmd_clusters(args: argparse.Namespace) -> None:
+    """Find lessons sharing 2+ tags — crystallization candidates."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    # Find pairs of active lessons sharing tags
+    rows = conn.execute(
+        """SELECT l1.id, l1.text, l2.id, l2.text,
+                  GROUP_CONCAT(DISTINCT t.name) AS shared_tags,
+                  COUNT(DISTINCT t.id) AS shared_count
+           FROM lesson_tags lt1
+           JOIN lesson_tags lt2 ON lt1.tag_id = lt2.tag_id AND lt1.lesson_id < lt2.lesson_id
+           JOIN lessons l1 ON l1.id = lt1.lesson_id
+           JOIN lessons l2 ON l2.id = lt2.lesson_id
+           JOIN tags t ON t.id = lt1.tag_id
+           WHERE l1.active = 1 AND l2.active = 1
+           GROUP BY l1.id, l2.id
+           HAVING shared_count >= ?
+           ORDER BY shared_count DESC""",
+        (args.min_shared,),
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        print(f"\n{c['dim']}No clusters found (min shared tags: {args.min_shared}){c['reset']}\n")
+        return
+
+    print(f"\n{c['bold']}Crystallization Candidates ({len(rows)} pairs){c['reset']}\n")
+    for id1, text1, id2, text2, shared_tags, shared_count in rows:
+        print(f"  {c['yellow']}Shared tags ({shared_count}): {shared_tags}{c['reset']}")
+        print(f"    {c['dim']}{id1}{c['reset']}: {text1[:100]}")
+        print(f"    {c['dim']}{id2}{c['reset']}: {text2[:100]}")
+        print()
+
+
+def cmd_crystallize(args: argparse.Namespace) -> None:
+    """Crystallize multiple lessons into one, deactivating the sources."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    source_ids = [s.strip() for s in args.ids.split(",")]
+
+    # Verify all source lessons exist and are active
+    for sid in source_ids:
+        row = conn.execute(
+            "SELECT active FROM lessons WHERE id = ?", (sid,)
+        ).fetchone()
+        if not row:
+            print(f"Error: lesson {sid} not found", file=sys.stderr)
+            sys.exit(1)
+        if not row[0]:
+            print(f"Warning: lesson {sid} is already inactive", file=sys.stderr)
+
+    # Get project from first source
+    project_name = conn.execute(
+        "SELECT p.name FROM lessons l JOIN projects p ON l.project_id = p.id WHERE l.id = ?",
+        (source_ids[0],),
+    ).fetchone()[0]
+
+    tag_names = [t.strip() for t in args.tags.split(",") if t.strip()] if args.tags else []
+    inferred = _infer_domain_tags(args.text)
+    tag_names = list(dict.fromkeys(tag_names + inferred))
+
+    # Generate ID
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M")
+    prefix = f"{project_name}_{timestamp}"
+    existing = conn.execute(
+        "SELECT COUNT(*) FROM lessons WHERE id LIKE ?", (f"{prefix}%",)
+    ).fetchone()[0]
+    new_id = f"{prefix}_{existing + 1:03d}"
+
+    # Insert crystallized lesson
+    insert_lesson(
+        conn,
+        lesson_id=new_id,
+        project_name=project_name,
+        date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        text=args.text,
+        tag_names=tag_names,
+        tier="key",
+        branch=_detect_branch(),
+        crystallized_from=",".join(source_ids),
+        promoted=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+    )
+
+    # Deactivate sources
+    for sid in source_ids:
+        update_lesson(conn, sid, active=0)
+
+    conn.close()
+
+    print(f"{c['green']}Crystallized:{c['reset']} {new_id}")
+    print(f"  From: {', '.join(source_ids)}")
+    print(f"  Tags: {', '.join(tag_names)}")
+    print(f"  Text: {args.text[:100]}")
+
+
+def cmd_absorb(args: argparse.Namespace) -> None:
+    """Mark a lesson as absorbed into a resource, deactivating it."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    row = conn.execute("SELECT text, active FROM lessons WHERE id = ?", (args.id,)).fetchone()
+    if not row:
+        print(f"Error: lesson {args.id} not found", file=sys.stderr)
+        sys.exit(1)
+
+    update_lesson(conn, args.id, absorbed_into=args.into, active=0)
+    conn.close()
+
+    print(f"{c['green']}Absorbed:{c['reset']} {args.id}")
+    print(f"  Into: {args.into}")
+    print(f"  Text: {row[0][:100]}")
+
+
+def cmd_tag_hygiene(args: argparse.Namespace) -> None:
+    """Report tag quality issues: orphaned, near-duplicates, keyword gaps."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    issues: list[str] = []
+
+    # Orphaned tags (no active lessons)
+    orphaned = conn.execute(
+        "SELECT name FROM tags WHERE status = 'active' AND lesson_count = 0"
+    ).fetchall()
+    if orphaned:
+        names = ", ".join(r[0] for r in orphaned)
+        issues.append(f"Orphaned tags (0 active lessons): {names}")
+
+    # Tags without keywords (can't be surfaced by hooks)
+    no_kw = conn.execute(
+        "SELECT name FROM tags WHERE status = 'active' AND (keywords IS NULL OR keywords = '')"
+    ).fetchall()
+    if no_kw:
+        names = ", ".join(r[0] for r in no_kw)
+        issues.append(f"Tags without keywords (won't surface in hooks): {names}")
+
+    # Tags without descriptions
+    no_desc = conn.execute(
+        "SELECT name FROM tags WHERE status = 'active' AND (description IS NULL OR description = '')"
+    ).fetchall()
+    if no_desc:
+        names = ", ".join(r[0] for r in no_desc)
+        issues.append(f"Tags without descriptions: {names}")
+
+    # Deprecated tags still in use
+    deprecated_used = conn.execute(
+        """SELECT t.name, COUNT(*) FROM tags t
+           JOIN lesson_tags lt ON lt.tag_id = t.id
+           JOIN lessons l ON l.id = lt.lesson_id
+           WHERE t.status = 'deprecated' AND l.active = 1
+           GROUP BY t.id"""
+    ).fetchall()
+    if deprecated_used:
+        for name, count in deprecated_used:
+            issues.append(f"Deprecated tag '{name}' still on {count} active lesson(s)")
+
+    conn.close()
+
+    print(f"\n{c['bold']}Tag Hygiene Report{c['reset']}\n")
+    if issues:
+        for issue in issues:
+            print(f"  {c['yellow']}⚠{c['reset']} {issue}")
+    else:
+        print(f"  {c['green']}All tags healthy{c['reset']}")
+    print()
+
+
+def cmd_health(args: argparse.Namespace) -> None:
+    """Overall health report for the lessons system."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    total = conn.execute("SELECT COUNT(*) FROM lessons").fetchone()[0]
+    active = conn.execute("SELECT COUNT(*) FROM lessons WHERE active = 1").fetchone()[0]
+    by_tier = conn.execute(
+        "SELECT tier, COUNT(*), SUM(active) FROM lessons GROUP BY tier ORDER BY tier"
+    ).fetchall()
+    tag_count = conn.execute("SELECT COUNT(*) FROM tags WHERE status = 'active'").fetchone()[0]
+    absorbed = conn.execute(
+        "SELECT COUNT(*) FROM lessons WHERE absorbed_into IS NOT NULL"
+    ).fetchone()[0]
+    crystallized = conn.execute(
+        "SELECT COUNT(*) FROM lessons WHERE crystallized_from IS NOT NULL"
+    ).fetchone()[0]
+
+    last_manage = get_metadata(conn, "last_manage_run")
+    threshold = get_metadata(conn, "nudge_threshold_days") or "7"
+
+    print(f"\n{c['bold']}Lessons Health Report{c['reset']}\n")
+    print(f"  Total: {total}  Active: {active}  Inactive: {total - active}")
+    print(f"  Absorbed: {absorbed}  Crystallized: {crystallized}")
+    print(f"  Active tags: {tag_count}")
+
+    print(f"\n  {c['bold']}By tier:{c['reset']}")
+    for tier, count, active_count in by_tier:
+        print(f"    {tier:12} {count:3} total, {int(active_count or 0):3} active")
+
+    # Top tags
+    top_tags = conn.execute(
+        """SELECT t.name, t.lesson_count FROM tags t
+           WHERE t.status = 'active' AND t.lesson_count > 0
+           ORDER BY t.lesson_count DESC LIMIT 5"""
+    ).fetchall()
+    if top_tags:
+        print(f"\n  {c['bold']}Top tags:{c['reset']}")
+        for name, count in top_tags:
+            print(f"    {name:20} {count:3}")
+
+    print(f"\n  Last manage-lessons: {last_manage or 'never'}")
+    print(f"  Nudge threshold: {threshold} days")
+
+    # Health warnings
+    warnings: list[str] = []
+    if active > 15:
+        warnings.append(f"Active lesson count ({active}) exceeds recommended max (15) — prune")
+    if last_manage:
+        from datetime import datetime as dt
+        try:
+            last_dt = dt.fromisoformat(last_manage)
+            days_since = (datetime.now(timezone.utc) - last_dt.replace(tzinfo=timezone.utc)).days
+            if days_since >= int(threshold):
+                warnings.append(f"{days_since}d since last manage-lessons (threshold: {threshold}d)")
+        except ValueError:
+            pass
+
+    orphaned = conn.execute(
+        "SELECT COUNT(*) FROM tags WHERE status = 'active' AND lesson_count = 0"
+    ).fetchone()[0]
+    if orphaned:
+        warnings.append(f"{orphaned} orphaned tag(s)")
+
+    conn.close()
+
+    if warnings:
+        print(f"\n  {c['bold']}Warnings:{c['reset']}")
+        for w in warnings:
+            print(f"    {c['yellow']}⚠{c['reset']} {w}")
+    print()
+
+
+# ---------------------------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------------------------
 
@@ -678,6 +953,30 @@ def build_parser() -> argparse.ArgumentParser:
     sm.add_argument("key", help="Metadata key")
     sm.add_argument("value", help="Metadata value")
 
+    # tags
+    sub.add_parser("tags", help="Show tag registry")
+
+    # clusters
+    cl = sub.add_parser("clusters", help="Find crystallization candidates")
+    cl.add_argument("--min-shared", type=int, default=2, help="Min shared tags (default: 2)")
+
+    # crystallize
+    cr = sub.add_parser("crystallize", help="Merge lessons into one")
+    cr.add_argument("--ids", required=True, help="Comma-separated source lesson IDs")
+    cr.add_argument("--text", required=True, help="Crystallized lesson text")
+    cr.add_argument("--tags", default="", help="Comma-separated tag names")
+
+    # absorb
+    ab = sub.add_parser("absorb", help="Mark lesson as absorbed into a resource")
+    ab.add_argument("--id", required=True, help="Lesson ID")
+    ab.add_argument("--into", required=True, help="Resource (e.g. hook:git-safety, skill:learn)")
+
+    # tag-hygiene
+    sub.add_parser("tag-hygiene", help="Report tag quality issues")
+
+    # health
+    sub.add_parser("health", help="Overall health report")
+
     return parser
 
 
@@ -696,6 +995,12 @@ def main() -> None:
         "list": cmd_list,
         "summary": cmd_summary,
         "set-meta": cmd_set_meta,
+        "tags": cmd_tags,
+        "clusters": cmd_clusters,
+        "crystallize": cmd_crystallize,
+        "absorb": cmd_absorb,
+        "tag-hygiene": cmd_tag_hygiene,
+        "health": cmd_health,
     }
     commands[args.command](args)
 
