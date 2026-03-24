@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
+
 ## [2.21.2] - 2026-03-23 - Move dist/ to project root
 
 ### Changed
