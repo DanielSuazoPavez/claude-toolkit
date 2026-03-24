@@ -5,6 +5,11 @@
 ### Changed
 - **toolkit**: Moved `exploration/` from `output/claude-toolkit/reviews/` to `output/claude-toolkit/exploration/` — exploration is its own concern, not a review subtype
 
+## [2.21.6] - 2026-03-24 - Permissions config convention memory
+
+### Added
+- **memories**: `relevant-toolkit-permissions_config` — documents two-tier permissions architecture (toolkit `settings.json` for globally safe commands + hooks, project `settings.local.json` for per-project trust), with decision guide and reference to `settings.template.json`
+
 ## [2.21.5] - 2026-03-24 - Fix evaluation-query hook stale detection
 
 ### Fixed
