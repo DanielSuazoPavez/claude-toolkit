@@ -4,7 +4,7 @@
 
 -- ========================================
 
--- Schema creation order: 1
+-- Schema creation order: 2
 
 CREATE SCHEMA IF NOT EXISTS session_index;
 
@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS session_index.projects (
     "id" BIGSERIAL PRIMARY KEY,
     "name" VARCHAR(128) NOT NULL,
     "dir_name" TEXT NOT NULL,
+    "project_path" TEXT,
     "session_count" INTEGER DEFAULT 0,
     "first_seen" TIMESTAMP WITH TIME ZONE,
     "last_seen" TIMESTAMP WITH TIME ZONE,
@@ -37,6 +38,8 @@ COMMENT ON COLUMN session_index.projects."id" IS 'Auto-incrementing primary key'
 COMMENT ON COLUMN session_index.projects."name" IS 'Human-readable project name (extracted from encoded dir)';
 
 COMMENT ON COLUMN session_index.projects."dir_name" IS 'Encoded directory name (e.g. -home-hata-projects-personal-claude-toolkit)';
+
+COMMENT ON COLUMN session_index.projects."project_path" IS 'Absolute filesystem path to the project directory (from JSONL cwd field)';
 
 COMMENT ON COLUMN session_index.projects."session_count" IS 'Number of sessions for this project (maintained during indexing)';
 

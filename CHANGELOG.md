@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.28.0] - 2026-03-24 - Lessons DB migration and contextual surfacing
+
+### Added
+- **scripts**: `lesson_db.py` — SQLite database layer for lessons with FTS5 full-text search, tag registry, crystallization/absorption lifecycle tracking, and metadata store
+- **scripts**: 12 CLI subcommands: `migrate`, `add`, `search`, `list`, `summary`, `set-meta`, `tags`, `clusters`, `crystallize`, `absorb`, `tag-hygiene`, `health`
+- **hooks**: `surface-lessons.sh` — PreToolUse hook (pure bash+sqlite3) that surfaces relevant active lessons as additionalContext based on tool context keywords
+- **scripts**: `backup-lessons-db.sh` — daily timestamped backup with 30-day retention
+- **schema**: `lessons.yaml` schema-smith definition for lessons DB (projects, tags, lessons, metadata, lesson_tags)
+- **tests**: 28 tests for lesson_db.py (init, CRUD, FTS, constraints)
+
+### Changed
+- **skills**: `/learn` now writes to `lessons.db` via `lesson_db.py add` instead of jq/JSON
+- **skills**: `/manage-lessons` reworked for crystallization model — health checks, cluster detection, absorption workflow, tag hygiene
+- **hooks**: `session-start.sh` uses sqlite3 for lesson queries with learned.json fallback; nudge logic based on days since last manage-lessons run
+- **CLAUDE.md**: Added "capture lessons aggressively" principle
+
+### Removed
+- **scripts**: `lessons-query.sh` — replaced by `lesson_db.py` CLI
+- **schemas**: `lesson.schema.json` — schema now lives in YAML + DB
+
 ## [2.27.1] - 2026-03-24 - Session scripts reorganization
 
 ### Changed

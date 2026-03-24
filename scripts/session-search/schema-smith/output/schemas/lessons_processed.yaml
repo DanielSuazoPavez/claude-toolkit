@@ -1,0 +1,204 @@
+schema_name: lessons
+description: Lessons database — cross-project actionable rules captured across Claude Code sessions
+enums:
+  lesson_tier:
+    values:
+      - recent
+      - key
+      - historical
+    description: 'Lifecycle stage: recent (new, under review), key (validated, eligible for surfacing), historical (archived, searchable only)'
+  tag_status:
+    values:
+      - active
+      - deprecated
+      - merged
+    description: 'Tag lifecycle: active (in use), deprecated (being phased out), merged (consolidated into another tag)'
+tables:
+  metadata:
+    description: Key-value store for system state — last manage-lessons run, config, thresholds
+    columns:
+      key:
+        type: varchar
+        size: 64
+        primary_key: true
+        description: Setting key (e.g. 'last_manage_run', 'nudge_threshold_days')
+      value:
+        type: text
+        required: true
+        description: Setting value (ISO date, number, etc. — app interprets)
+      updated_at:
+        type: timestamptz
+        required: true
+        default_value: CURRENT_TIMESTAMP
+        description: When this key was last written
+  projects:
+    description: Project dimension — same pattern as session-index.db
+    columns:
+      id:
+        type: bigserial
+        primary_key: true
+        description: Auto-incrementing primary key
+      name:
+        type: varchar
+        size: 128
+        required: true
+        unique: true
+        description: Project name (git root basename, e.g. 'claude-toolkit')
+  tags:
+    description: Tag registry — canonical tags with quality tracking. Prevents tag sprawl, enables synonym resolution and hook keyword mapping.
+    columns:
+      id:
+        type: bigserial
+        primary_key: true
+        description: Auto-incrementing primary key
+      name:
+        type: varchar
+        size: 64
+        required: true
+        unique: true
+        description: Canonical tag name (e.g. 'git', 'commit', 'skills')
+      status:
+        type: tag_status
+        required: true
+        default_value: '''active'''
+        description: Tag lifecycle status
+      merged_into_id:
+        type: bigint
+        description: If status=merged, points to the tag this was consolidated into
+      keywords:
+        type: text
+        description: Comma-separated hook keywords that map to this tag (e.g. 'git,push,pull,merge,rebase,branch' for tag 'git')
+      description:
+        type: text
+        description: What this tag covers — helps manage-lessons decide tagging
+      lesson_count:
+        type: integer
+        required: true
+        default_value: '0'
+        description: Number of active lessons with this tag (maintained by triggers or app logic)
+      created_at:
+        type: timestamptz
+        required: true
+        default_value: CURRENT_TIMESTAMP
+    foreign_keys:
+      - column: merged_into_id
+        reference:
+          table: tags
+          column: id
+        on_delete: SET NULL
+        auto_index: false
+    indexes:
+      idx_tags_status:
+        columns:
+          - status
+  lessons:
+    description: One row per captured lesson
+    columns:
+      id:
+        type: varchar
+        size: 64
+        primary_key: true
+        description: 'Unique ID: {project}_{YYYYMMDD}T{HHMM}_{NNN}'
+      project_id:
+        type: bigint
+        required: true
+        description: FK to projects dimension
+      date:
+        type: varchar
+        size: 10
+        required: true
+        description: Capture date (YYYY-MM-DD)
+      tier:
+        type: lesson_tier
+        required: true
+        default_value: '''recent'''
+        description: Lifecycle stage — promotion/archival track
+      active:
+        type: boolean
+        required: true
+        default_value: 'TRUE'
+        description: Whether this lesson is eligible for contextual surfacing. Active = loaded when tags match. Inactive = searchable only.
+      text:
+        type: text
+        required: true
+        description: One-line actionable rule — the lesson itself
+      branch:
+        type: varchar
+        size: 256
+        description: Git branch at capture time
+      crystallized_from:
+        type: text
+        description: Comma-separated lesson IDs this was crystallized from — null for original lessons
+      absorbed_into:
+        type: varchar
+        size: 256
+        description: Resource that absorbed this lesson (e.g. 'hook:git-safety', 'skill:learn', 'memory:essential-conventions-code_style', 'claude.md'). Set when lesson graduates out of the system.
+      promoted:
+        type: varchar
+        size: 10
+        description: Date when promoted to key tier (YYYY-MM-DD)
+      archived:
+        type: varchar
+        size: 10
+        description: Date when archived to historical tier (YYYY-MM-DD)
+      created_at:
+        type: timestamptz
+        required: true
+        default_value: CURRENT_TIMESTAMP
+        description: When the lesson was inserted
+    foreign_keys:
+      - column: project_id
+        reference:
+          table: projects
+          column: id
+        on_delete: RESTRICT
+        auto_index: false
+    indexes:
+      idx_lessons_project:
+        columns:
+          - project_id
+      idx_lessons_active_tier:
+        columns:
+          - active
+          - tier
+      idx_lessons_date:
+        columns:
+          - date
+  lesson_tags:
+    description: Junction table — which tags apply to which lessons
+    columns:
+      id:
+        type: bigserial
+        primary_key: true
+        description: Auto-incrementing primary key
+      lesson_id:
+        type: varchar
+        size: 64
+        required: true
+        description: FK to lessons
+      tag_id:
+        type: bigint
+        required: true
+        description: FK to tags registry
+    foreign_keys:
+      - column: lesson_id
+        reference:
+          table: lessons
+          column: id
+        on_delete: CASCADE
+        auto_index: false
+      - column: tag_id
+        reference:
+          table: tags
+          column: id
+        on_delete: RESTRICT
+        auto_index: false
+    indexes:
+      idx_lesson_tags_unique:
+        columns:
+          - lesson_id
+          - tag_id
+        unique: true
+      idx_lesson_tags_tag:
+        columns:
+          - tag_id

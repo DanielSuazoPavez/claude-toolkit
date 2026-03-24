@@ -72,12 +72,8 @@ memories/relevant-conventions-testing.md
 # templates
 dist/base/templates/
 
-# schemas
-schemas/lesson.schema.json
-
 # scripts
 scripts/backlog-query.sh
-scripts/lessons-query.sh
 scripts/backlog-validate.sh
 scripts/validate-all.sh
 scripts/validate-resources-indexed.sh
