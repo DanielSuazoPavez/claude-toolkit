@@ -30,9 +30,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[SCRIPTS]** Session DB analytics — explore analytics possibilities on the session-search SQLite database (`session-db-analytics`)
+- **[SCRIPTS]** Migrate session-search analytics to session-analytics — move `timeline`, `files`, `stats` subcommands from `session_search.py` to `session_analytics.py` (`session-analytics-migration`)
     - **scope**: `scripts`
-    - **notes**: The session-search DB (projects, sessions, events with token accounting) could replace `insights.py`'s stateless re-parsing. Explore: token cost trends over time, project activity heatmaps, tool usage patterns, session duration analysis, most-expensive sessions/projects. Could become a `stats` subcommand expansion or a separate analytics layer.
+    - **notes**: `session_search.py` has analytics-oriented subcommands (`timeline`, `files`, `stats`) that belong in `session_analytics.py`. Keep `session_search.py` focused on indexing and search. Migrate the commands, update imports, and keep backward-compat CLI aliases if needed.
 
 ## P3 - Low
 

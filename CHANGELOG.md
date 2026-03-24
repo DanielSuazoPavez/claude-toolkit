@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.24.0] - 2026-03-24 - Session DB analytics
+
+### Added
+- **scripts**: `session_analytics.py` — usage pattern analytics over the session-index DB, separate from search. Preprocessing filter excludes hook/progress events. Subcommands: `sessions` (per-session shape metrics), `projects` (project lifecycle patterns), `time` (hourly/daily/weekly distributions, gap analysis), `branches` (effort per branch, lifetime)
+- **tests**: 28 pytest tests for session analytics (preprocessing, session shapes, project patterns, time patterns, branch patterns)
+- **backlog**: Added `session-analytics-migration` (P2) — migrate timeline/files/stats from session_search to session_analytics
+
+### Removed
+- **backlog**: Completed `session-db-analytics` task
+
 ## [2.23.0] - 2026-03-24 - Worktree skills polish
 
 ### Changed
