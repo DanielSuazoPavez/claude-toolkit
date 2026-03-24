@@ -39,13 +39,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SKILLS]** Tighten review-plan skill — make commit-per-step and post-implementation steps structural (`review-plan-tighten`)
-    - **scope**: `skills`
-    - **notes**: Current review-plan suggests "commit after each step" and "add post-implementation steps" but these feel too close to optional suggestions. Tighten to be structural requirements. Consider pairing with `stop-hook-plan-enforcement` for enforcement.
-
 - **[HOOKS]** Stop hook enforcement for plan execution — verify implementation steps completed (`stop-hook-plan-enforcement`)
     - **scope**: `hooks`
-    - **notes**: Pattern from `disler/claude-code-hooks-mastery` — Stop hooks that verify output files exist and contain required sections before allowing completion. Could enforce "commit after each step" and "post-implementation steps" structurally rather than via suggestion. Ties into `review-plan-tighten`. Reference: `output/claude-toolkit/exploration/disler_claude-code-hooks-mastery/summary.md`.
+    - **notes**: Pattern from `disler/claude-code-hooks-mastery` — Stop hooks that verify output files exist and contain required sections before allowing completion. Reference: `output/claude-toolkit/exploration/disler_claude-code-hooks-mastery/summary.md`.
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`

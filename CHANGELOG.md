@@ -1,8 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [2.21.9] - 2026-03-24 - Tighten review-plan structural requirements
 
 ### Changed
+- **skills**: `review-plan` — commit-per-step and post-implementation steps are now structural requirements, not suggestions. Reviewer must add missing steps to the plan before presenting the review. "After Approval" section replaced with "Before Presenting the Review"
 - **docs**: Completed `exploration-scan` backlog task — reviewed disler/claude-code-hooks-multi-agent-observability, added 4 new backlog items (session-search, review-plan-tighten, stop-hook-plan-enforcement, output-styles-concept)
 - **docs**: Moved `aws-toolkit` from P2 to P3, removed completed exploration-scan task
 - **docs**: Added CLAUDE.md reminders — remove done backlog tasks, fold unreleased changes into version entries

@@ -46,7 +46,7 @@ Goal statement check:
 
 ### Are steps commit-sized?
 
-Each step should be a commit-able unit of work — small enough to verify, large enough to be meaningful. The implementing agent should commit after completing each step.
+Each step should be a commit-able unit of work — small enough to verify, large enough to be meaningful. The plan must explicitly state that each step produces a commit.
 
 ```
 Step granularity check:
@@ -55,8 +55,27 @@ Step granularity check:
 ├─ Touches >3 files? → Probably split
 ├─ Contains "and", "also", "then"? → Definitely split
 ├─ Uses vague verbs (handle, set up, implement)? → Needs specifics
-└─ Could fail partially? → Split into success/failure paths
+├─ Could fail partially? → Split into success/failure paths
+└─ Plan states "commit after each step"? → Required
 ```
+
+### Does the plan include post-implementation steps?
+
+Every plan must end with closing steps that verify and finalize the work. If missing, **add them to the plan before presenting the review**.
+
+```
+Post-implementation steps check:
+├─ Implementation check (plans with 5+ steps only)?
+│   └─ "Launch implementation-checker agent to compare implementation against the plan"
+├─ Goal verification?
+│   └─ "Launch goal-verifier agent to confirm the feature works (L1→L2→L3 verification)"
+├─ Code review?
+│   └─ "Launch code-reviewer agent to review changes on this branch"
+└─ Wrap up?
+    └─ "Run /wrap-up to update changelog, bump version, and finalize the branch"
+```
+
+**If any required post-implementation steps are missing, add them to the plan yourself before generating the review output.** Do not flag them as issues — just fix the plan. Note the additions in the review summary so the user sees what was added.
 
 ### Are files listed?
 
@@ -226,12 +245,11 @@ Use color and visual emphasis to make the review scannable at a glance:
 - Hidden dependencies between steps
 - Security implications not addressed
 
-## After Approval
+## Before Presenting the Review
 
-When the verdict is **APPROVE**, append these steps to the plan if they're not already present:
+Before outputting the review to the user, ensure the plan has been updated:
 
-1. **Commit after each step** — each step in the plan should produce a commit. If the plan doesn't mention this, add it.
-2. **Implementation check** (plans with 5+ steps only) — add: "Launch `implementation-checker` agent to compare implementation against the plan."
-3. **Goal verification** — add: "Launch `goal-verifier` agent to confirm the feature works (L1→L2→L3 verification)."
-4. **Code review** — add: "Launch `code-reviewer` agent to review changes on this branch."
-5. **Wrap up** — add a closing step: "Run `/wrap-up` to update changelog, bump version, and finalize the branch."
+1. **Commit cadence** — if the plan doesn't state "commit after each step", add it to the plan's preamble or first step.
+2. **Post-implementation steps** — if any required closing steps are missing (see "Does the plan include post-implementation steps?" above), add them to the plan.
+
+These are not suggestions — they are structural requirements. Fix the plan first, then present the review of the fixed version. Note any additions you made in the review summary.
