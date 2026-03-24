@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.25.0] - 2026-03-24 - Memory load patterns analytics
+
+### Added
+- **scripts**: `memory` subcommand for `session_analytics.py` — memory and CLAUDE.md load patterns per project and globally. Sections: estimated essential loads (SessionStart hook counts), on-demand memory reads ranked by frequency, CLAUDE.md reads split by root vs subfolder, shared memories across projects, diversity metrics
+- **scripts**: `project_path` column on `projects` table — actual filesystem path populated from JSONL `cwd` field at index time, enables reliable CLAUDE.md root classification
+- **tests**: 11 pytest tests for memory patterns (essential estimates, reads ranking, CLAUDE.md classification, shared memories, diversity, filters)
+- **backlog**: Added `implementation-checker-bash` (P2), `hook-auto-deny-sudo` (P2)
+
+### Removed
+- **backlog**: Completed `session-analytics-memory` task
+
 ## [2.24.0] - 2026-03-24 - Session DB analytics
 
 ### Added
