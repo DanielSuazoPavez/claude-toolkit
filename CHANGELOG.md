@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.21.0] - 2026-03-23 - Auto-approve safe chained Bash commands
+
+### Added
+- **hooks**: `approve-safe-commands` — PermissionRequest hook that auto-approves chained Bash commands (`&&`, `||`, `;`, `|`) when all subcommands match safe prefixes from settings.json permissions
+- **scripts**: `validate-safe-commands-sync` — validation script that checks hook's hardcoded prefixes stay in sync with settings.json; added to `make check` via `validate-all.sh`
+- **tests**: 41 tests covering chained commands, single commands, env var prefixes, script paths, quoted operators, unsafe commands, subshells, redirects, and sync validation
+
+### Fixed
+- **hooks**: `approve-safe-commands` — closed stderr redirect bypass (`2>file`, `&>file`) found during code review
+
 ## [2.20.5] - 2026-03-23 - Document prompt/agent hook types in HOOKS_API
 
 ### Added
