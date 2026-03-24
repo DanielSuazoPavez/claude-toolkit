@@ -8,7 +8,7 @@ on:
       - '.claude/agents/**'
       - '.claude/hooks/**'
       - '.claude/memories/**'
-      - '.claude/dist/**'
+      - 'dist/**'
       - 'scripts/publish.py'
 
 jobs:
