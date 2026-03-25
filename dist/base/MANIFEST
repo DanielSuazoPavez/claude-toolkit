@@ -80,3 +80,4 @@ scripts/validate-resources-indexed.sh
 scripts/validate-settings-template.sh
 scripts/verify-resource-deps.sh
 scripts/validate-safe-commands-sync.sh
+scripts/validate-hook-utils.sh

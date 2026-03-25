@@ -37,6 +37,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[HOOKS]** Investigate hookEventName value for PermissionRequest hooks (`hook-event-name-investigation`)
+    - **scope**: `hooks`
+    - **notes**: `hook_approve` now emits `hookEventName=$HOOK_EVENT` (e.g., "PermissionRequest") but the old create-hook GOTCHA claimed it must be "PreToolUse" even for PermissionRequest. HOOKS_API.md only shows "PreToolUse" in the output spec. Current `approve-safe-commands.sh` works with "PermissionRequest" but this may be undocumented behavior. Investigate if Claude Code enforces specific values.
+
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
     - **notes**: Inspired by `disler/claude-code-hooks-mastery`'s `.claude/output-styles/` directory. Named formatting modes (ultra-concise, table-based, genui/HTML output, etc.) activated per-session. Different from our communication style memory — these are structural formatting preferences, not personality. Relates to `schemas/` folder direction. Explore whether this fits as a convention or is over-engineering.

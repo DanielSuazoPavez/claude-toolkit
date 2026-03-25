@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed validate check backlog help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils validate check backlog help
 
 install:
 	@uv sync --dev
@@ -12,11 +12,12 @@ help:
 	@echo "  make test-raiz         - Run raiz publish tests only"
 	@echo "  make test-eval         - Run evaluation-query tests only"
 	@echo "  make test-validate-indexed - Run validate-resources-indexed tests only"
+	@echo "  make test-validate-hook-utils - Run validate-hook-utils tests only"
 	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
-test: test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed
+test: test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils
 
 test-hooks:
 	@bash tests/test-hooks.sh -q
@@ -35,6 +36,9 @@ test-eval:
 
 test-validate-indexed:
 	@bash tests/test-validate-resources-indexed.sh -q
+
+test-validate-hook-utils:
+	@bash tests/test-validate-hook-utils.sh -q
 
 backlog:
 	@bash .claude/scripts/backlog-query.sh

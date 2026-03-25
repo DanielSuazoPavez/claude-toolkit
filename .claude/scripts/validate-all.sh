@@ -34,6 +34,16 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- Hook-utils sourcing ---
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Running: validate-hook-utils.sh"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+bash "$SCRIPTS_DIR/validate-hook-utils.sh"
+if [ $? -ne 0 ]; then
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
 # --- Settings template ---
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Running: validate-settings-template.sh"

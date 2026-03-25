@@ -48,8 +48,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 
 **Check:**
 - Right hook event? (PreToolUse for blocking, PostToolUse for reactions)
-- Output format correct? (`{"decision":"block","reason":"..."}` or empty)
-- Early exit for non-matching tools?
+- Output format correct? (`hook_block` for blocks, empty for allow)
+- Early exit for non-matching tools via `hook_require_tool`?
 
 ### D2: Testability (20 pts)
 
@@ -84,12 +84,13 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Clear structure, patterns in arrays/variables, easy to extend |
-| 13-17 | Logic is readable and sequential, but patterns are inline rather than in variables. Extending requires editing logic |
-| 7-12 | Deeply nested conditionals, mixed concerns, or magic values that require tracing to understand |
-| 0-6 | Spaghetti logic, magic values everywhere |
+| 18-20 | Sources shared library, uses standardized outcome helpers; clear structure, patterns in arrays/variables, easy to extend |
+| 13-17 | Sources shared library but patterns are inline rather than in variables. Extending requires editing logic |
+| 7-12 | Manual stdin parsing and raw JSON output instead of shared library. Deeply nested conditionals or magic values |
+| 0-6 | Spaghetti logic, magic values everywhere, no library usage |
 
 **Check:**
+- Sources `lib/hook-utils.sh`? Uses `hook_init`/`hook_require_tool`/`hook_block` instead of manual boilerplate?
 - Uses `$HOME` or env vars instead of hardcoded paths?
 - Logic easy to extend with new patterns?
 - Patterns in arrays/variables rather than scattered through logic?
@@ -110,7 +111,7 @@ Does it work well within the resource ecosystem?
 
 | Score | Criteria |
 |-------|----------|
-| 13-15 | Seamless integration — correct references, no conflicts, follows conventions |
+| 13-15 | Seamless integration — correct references, no conflicts, follows conventions, sources shared library |
 | 10-12 | References exist and are correct, minor overlap or missed connections |
 | 6-9 | Some conflicts with other hooks, doesn't follow toolkit patterns |
 | 3-5 | Island — mostly ignores the ecosystem |
@@ -121,6 +122,7 @@ Does it work well within the resource ecosystem?
 - **Non-interference** — doesn't conflict with other hooks on same event
 - **Ecosystem awareness** — knows what other hooks exist and avoids overlap
 - **Convention alignment** — follows toolkit hook patterns (naming, output format)
+- **Shared library** — sources `lib/hook-utils.sh` for standardized instrumentation
 - **Terminology consistency** — uses same terms as hook documentation
 
 ## JSON Output Format
@@ -178,8 +180,9 @@ Using a separate agent ensures objective assessment without influence from prior
 
 | Pattern | Problem | Fix | Score Impact |
 |---------|---------|-----|--------------|
-| **Wrong output format** | Hook doesn't block when it should | Use `{"decision":"block","reason":"..."}` for PreToolUse, empty output for allow | D1: -15 |
-| **No early exit** | Processes every tool, wastes cycles | Check `tool_name` first, `exit 0` if no match | D1: -5, D4: -5 |
+| **Manual boilerplate** | Duplicates stdin parsing, JSON output, no instrumentation | Source `lib/hook-utils.sh`, use `hook_init`/`hook_block`/etc. | D4: -5, D6: -5 |
+| **Wrong output format** | Hook doesn't block when it should | Use `hook_block` for PreToolUse, empty output for allow | D1: -15 |
+| **No early exit** | Processes every tool, wastes cycles | Use `hook_require_tool` — exits 0 if no match | D1: -5, D4: -5 |
 | **Silent failures** | Errors go unnoticed | Log to `~/.claude/hooks-logs/`, handle jq errors | D3: -10 |
 | **Hardcoded paths** | Breaks on other machines | Use `$HOME`, `$CLAUDE_PROJECT_DIR`, or relative paths | D4: -10 |
 | **No allowlist** | Blocks legitimate work | Add explicit safe-pattern exceptions (e.g., `.env.example`) | D3: -8 |
@@ -194,6 +197,7 @@ Using a separate agent ensures objective assessment without influence from prior
 | **Logging-only** | D1 lower bar (no blocking logic), D2/D5 still matter |
 | **Simple passthrough** | Minimal is fine if purpose is clear |
 | **Multi-tool** | Higher D4 bar (must handle all matched tools) |
+| **Notification/SessionStart** | `hook_require_tool` not applicable — use `hook_init` only, tool matching done manually or not needed |
 
 ## See Also
 
@@ -220,7 +224,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 **Total: 90/115 (78.3%)**
 
-### Before/After: 15.7% → 71.3%
+### Before/After: 15.7% → 75.7%
 
 **First attempt** of a secrets-guard hook — blocks commits containing secrets:
 
@@ -244,11 +248,19 @@ cat | grep -q "password\|secret\|key" && echo "blocked" && exit 1
 
 ```bash
 #!/bin/bash
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
-[ "$TOOL_NAME" != "Bash" ] && [ "$TOOL_NAME" != "Write" ] && exit 0
+# PreToolUse hook: block secrets in Bash commands and Write content
+#
+# Test cases:
+#   echo '{"tool_name":"Bash","tool_input":{"command":"export AWS_SECRET=abc123"}}' | bash secrets-check.sh
+#   # Expected: {"decision":"block","reason":"Potential secret detected..."}
 
-CONTENT=$(echo "$INPUT" | jq -r '.tool_input.command // .tool_input.content // ""')
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "secrets-check" "PreToolUse"
+hook_require_tool "Bash" "Write"
+
+CONTENT=$(hook_get_input '.tool_input.command')
+[ -z "$CONTENT" ] && CONTENT=$(hook_get_input '.tool_input.content')
+
 SAFE_PATTERNS=(".env.example" "secret_key_base" "test_secret")
 for safe in "${SAFE_PATTERNS[@]}"; do
     CONTENT=$(echo "$CONTENT" | grep -v "$safe")
@@ -256,19 +268,19 @@ done
 
 SECRETS_RE='(AWS_SECRET|PRIVATE_KEY|password\s*=\s*["\x27][^"\x27]+)'
 if echo "$CONTENT" | grep -qP "$SECRETS_RE"; then
-    echo '{"decision":"block","reason":"Potential secret detected. Review content before proceeding."}'
+    hook_block "Potential secret detected. Review content before proceeding."
 fi
 exit 0
 ```
 
 | Dimension | Score | Why |
 |-----------|-------|-----|
-| D1 | 20/25 | Correct JSON output, early exit, matches Bash+Write |
-| D2 | 15/20 | Testable via stdin, clear block/allow paths |
+| D1 | 20/25 | Correct output via `hook_block`, early exit via `hook_require_tool`, matches Bash+Write |
+| D2 | 16/20 | Testable via stdin, test cases documented in header |
 | D3 | 14/20 | Allowlist for safe patterns, targeted regex reduces false positives |
-| D4 | 15/20 | Patterns in variables, easy to extend arrays |
-| D5 | 8/15 | Purpose clear, but no settings.json example |
-| D6 | 10/15 | Follows toolkit conventions, no conflicts |
-| **Total** | **82/115 (71.3%)** | |
+| D4 | 17/20 | Sources shared library, patterns in variables, easy to extend arrays |
+| D5 | 10/15 | Purpose clear, test cases documented, no settings.json example |
+| D6 | 10/15 | Follows toolkit conventions, sources shared library |
+| **Total** | **87/115 (75.7%)** | |
 
-**Key fixes:** JSON output format, early exit by tool_name, allowlist array, targeted regex instead of broad keyword match.
+**Key fixes:** Sourced shared library, `hook_block` instead of raw output, `hook_require_tool` for early exit, allowlist array, targeted regex instead of broad keyword match.

@@ -27,45 +27,61 @@ Use `verb-noun.sh` format for hook names. See `docs/naming-conventions.md`.
 - Want to **react after** something happens? → `PostToolUse`
 - Want **alerts when Claude waits**? → `Notification`
 
-See `resources/HOOKS_API.md` for all 13 events.
+See `resources/HOOKS_API.md` for all events.
 
 ### 2. Write the Hook
 
-Use the script below as the LITERAL STARTING POINT. Copy it, then modify the tool name check, pattern matching, and block reason for your use case.
+All hooks source the shared library `.claude/hooks/lib/hook-utils.sh` for standardized initialization, outcome helpers, and execution timing.
 
-Bash script structure:
+Use the script below as the LITERAL STARTING POINT. Copy it, then modify the tool name check, pattern matching, and block reason for your use case.
 
 ```bash
 #!/bin/bash
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+# PreToolUse hook: <description>
+#
+# Settings.json:
+#   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/<name>.sh"}]}]
+#
+# Test cases:
+#   echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ~/"}}' | bash .claude/hooks/<name>.sh
+#   # Expected: {"decision":"block","reason":"..."}
+#
+#   echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash .claude/hooks/<name>.sh
+#   # Expected: (empty - allowed)
 
-# Early exit for non-matching tools
-if [ "$TOOL_NAME" != "Bash" ]; then
-    exit 0
-fi
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "<name>" "PreToolUse"
+hook_require_tool "Bash"
 
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
+COMMAND=$(hook_get_input '.tool_input.command')
+[ -z "$COMMAND" ] && exit 0
 
 # Check patterns and block if needed
 if [[ "$COMMAND" =~ rm\ -rf\ ~/ ]]; then
-    echo '{"decision": "block", "reason": "Blocks rm -rf ~/"}'
-    exit 0
+    hook_block "Blocks rm -rf ~/"
 fi
 
 # Allow by default (empty output)
 exit 0
 ```
 
+**Shared library functions:**
+- `hook_init "name" "Event"` — reads stdin, sets up timing, registers EXIT trap for logging
+- `hook_require_tool "Tool1" "Tool2"` — parses tool_name, exits 0 if no match
+- `hook_get_input '.jq.path'` — extracts field from stdin JSON
+- `hook_block "reason"` — emits block JSON, exits 0
+- `hook_approve "reason"` — emits permission-allow JSON, exits 0 (PermissionRequest only)
+- `hook_inject "context"` — emits additionalContext JSON, exits 0
+
 ### 3. Test with Bash
 
 ```bash
 # Should block
-echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ~/"}}' | ./hook.sh
+echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ~/"}}' | bash .claude/hooks/<name>.sh
 # Expected: {"decision":"block","reason":"..."}
 
 # Should allow
-echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | ./hook.sh
+echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash .claude/hooks/<name>.sh
 # Expected: (empty)
 ```
 
@@ -78,7 +94,7 @@ Use this configuration as the LITERAL STARTING POINT. Modify the event, matcher,
   "hooks": {
     "PreToolUse": [{
       "matcher": "Bash",
-      "hooks": [{"type": "command", "command": "/path/to/hook.sh"}]
+      "hooks": [{"type": "command", "command": "bash .claude/hooks/<name>.sh"}]
     }]
   }
 }
@@ -92,18 +108,15 @@ Run `/evaluate-hook` on the result:
 
 ### PostToolUse Example
 
-A hook that logs all file writes:
+PostToolUse hooks use the same `hook_init` + `hook_require_tool` pattern. Since PostToolUse can't block actions, they don't call `hook_block` — they just perform side effects (logging, notifications):
 
 ```bash
 #!/bin/bash
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "log-writes" "PostToolUse"
+hook_require_tool "Write"
 
-if [ "$TOOL_NAME" != "Write" ]; then
-    exit 0
-fi
-
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
+FILE_PATH=$(hook_get_input '.tool_input.file_path')
 echo "[$(date)] Wrote: $FILE_PATH" >> ~/.claude/hooks-logs/writes.log
 exit 0
 ```
@@ -114,7 +127,7 @@ Configuration:
   "hooks": {
     "PostToolUse": [{
       "matcher": "Write",
-      "hooks": [{"type": "command", "command": "/path/to/log-writes.sh"}]
+      "hooks": [{"type": "command", "command": "bash .claude/hooks/log-writes.sh"}]
     }]
   }
 }
@@ -122,12 +135,15 @@ Configuration:
 
 ### Notification Example
 
-A hook that sends a desktop alert when Claude needs input:
+Notification hooks don't have tool_name — simpler pattern using `hook_init` only (no `hook_require_tool`):
 
 ```bash
 #!/bin/bash
-INPUT=$(cat)
-MESSAGE=$(echo "$INPUT" | jq -r '.message // "Claude needs your attention"')
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "desktop-alert" "Notification"
+
+MESSAGE=$(hook_get_input '.message')
+[ -z "$MESSAGE" ] && MESSAGE="Claude needs your attention"
 notify-send "Claude Code" "$MESSAGE" 2>/dev/null || true
 exit 0
 ```
@@ -137,7 +153,7 @@ Configuration:
 {
   "hooks": {
     "Notification": [{
-      "hooks": [{"type": "command", "command": "/path/to/notify.sh"}]
+      "hooks": [{"type": "command", "command": "bash .claude/hooks/desktop-alert.sh"}]
     }]
   }
 }
@@ -149,14 +165,11 @@ A hook that auto-approves specific Bash commands from the permission prompt:
 
 ```bash
 #!/bin/bash
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "auto-approve-safe" "PermissionRequest"
+hook_require_tool "Bash"
 
-if [ "$TOOL_NAME" != "Bash" ]; then
-    exit 0
-fi
-
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
+COMMAND=$(hook_get_input '.tool_input.command')
 
 # Allowlist: auto-approve safe commands
 ALLOWED_PATTERNS=(
@@ -167,9 +180,7 @@ ALLOWED_PATTERNS=(
 
 for pattern in "${ALLOWED_PATTERNS[@]}"; do
     if [[ "$COMMAND" =~ $pattern ]]; then
-        # GOTCHA: hookEventName must be "PreToolUse" even for PermissionRequest hooks
-        echo '{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow", "permissionDecisionReason": "Auto-approved by allowlist"}}'
-        exit 0
+        hook_approve "Auto-approved by allowlist"
     fi
 done
 
@@ -183,7 +194,7 @@ Configuration:
   "hooks": {
     "PermissionRequest": [{
       "matcher": "Bash",
-      "hooks": [{"type": "command", "command": "/path/to/auto-approve.sh"}]
+      "hooks": [{"type": "command", "command": "bash .claude/hooks/auto-approve-safe.sh"}]
     }]
   }
 }
@@ -192,11 +203,11 @@ Configuration:
 Test:
 ```bash
 # Should auto-approve
-echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | ./auto-approve.sh
-# Expected: {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow",...}}
+echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | bash .claude/hooks/auto-approve-safe.sh
+# Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","permissionDecision":"allow",...}}
 
 # Should fall through (no output)
-echo '{"tool_name":"Bash","tool_input":{"command":"npm publish"}}' | ./auto-approve.sh
+echo '{"tool_name":"Bash","tool_input":{"command":"npm publish"}}' | bash .claude/hooks/auto-approve-safe.sh
 # Expected: (empty)
 ```
 
@@ -204,33 +215,25 @@ echo '{"tool_name":"Bash","tool_input":{"command":"npm publish"}}' | ./auto-appr
 
 ## Real-World Reference
 
-See `relevant-toolkit-hooks_config` memory for 9 production hooks in this toolkit, covering safety (secrets-guard, enforce-uv-run), automation (session-start), and notification patterns.
+See `relevant-toolkit-hooks_config` memory for 10 production hooks in this toolkit (all sourcing the shared library), covering safety (secrets-guard, enforce-uv-run), automation (session-start), and context injection (surface-lessons) patterns.
 
 ## Best Patterns
 
+- **Shared library** — Always source `lib/hook-utils.sh` for standardized init, outcome helpers, and execution timing
 - **Safety levels** - Single constant (`critical`/`high`/`strict`) to adjust strictness
 - **Allowlists** - Explicit exceptions (e.g., `.env.example` is safe)
 - **Cross-tool protection** - Same logic across Read/Edit/Write/Bash
 
 ## Output Formats: When to Use Each
 
-| Format | When to Use | Example |
-|--------|-------------|---------|
-| Empty output (exit 0) | Allow the action | Default case, no match |
-| `{"decision": "block", "reason": "..."}` | Simple block with message | Blocking dangerous command |
-| `hookSpecificOutput` | Modify tool behavior or add context | Injecting warnings, modifying arguments |
+| Format | When to Use | How |
+|--------|-------------|-----|
+| Empty output (exit 0) | Allow the action | Default — no match, just exit |
+| Block | Prevent an action | `hook_block "reason"` |
+| Approve | Auto-approve permission | `hook_approve "reason"` (PermissionRequest only) |
+| Inject context | Add info for Claude | `hook_inject "context"` |
 
-**Simple block** - Use when you just need to prevent an action:
-```bash
-echo '{"decision": "block", "reason": "Cannot delete home directory"}'
-```
-
-**hookSpecificOutput** - Use when you need to modify or augment:
-```bash
-echo '{"hookSpecificOutput": {"warning": "This file is in .gitignore"}}'
-```
-
-Most hooks only need simple block or empty output. Use `hookSpecificOutput` only when you need to pass data back to Claude.
+Most hooks only need block or empty output. Use `hook_inject` when you need to pass additional context back to Claude (e.g., surfacing relevant lessons).
 
 ## Edge Cases
 
@@ -253,8 +256,8 @@ When multiple hooks match the same tool:
     "PreToolUse": [{
       "matcher": "Bash",
       "hooks": [
-        {"type": "command", "command": "block-dangerous.sh"},
-        {"type": "command", "command": "allow-make-commands.sh"}
+        {"type": "command", "command": "bash .claude/hooks/block-dangerous.sh"},
+        {"type": "command", "command": "bash .claude/hooks/allow-make-commands.sh"}
       ]
     }]
   }
@@ -267,11 +270,12 @@ Order matters: `block-dangerous.sh` runs first, then `allow-make-commands.sh` ca
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
+| **Raw JSON output** | Fragile, inconsistent formatting | Use `hook_block`/`hook_approve`/`hook_inject` from shared library |
 | **No tests** | Hook breaks silently | Test block + allow cases |
 | **Overly strict** | Blocks legitimate work | Use safety levels |
 | **No allowlist** | Can't handle exceptions | Add allowlist for safe patterns |
 | **Silent failures** | Hook errors go unnoticed | Log to `~/.claude/hooks-logs/` |
-| **No early exit** | Processes irrelevant tools | Check `tool_name` first, exit 0 if no match |
+| **No early exit** | Processes irrelevant tools | Use `hook_require_tool` — exits 0 if no match |
 | **Hardcoded paths** | Breaks on other machines | Use `$HOME`, relative paths, or env vars |
 | **Wrong hook order** | Allowlist blocked by earlier hook | Order: blockers first, allowlists after |
 | **Env var bypass** | Defeats the hook's purpose; user can just run the command directly if needed | Don't add `ALLOW_*` env var overrides |
