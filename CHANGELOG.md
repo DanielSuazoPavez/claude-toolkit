@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.29.3] - 2026-03-24 - Add missing hook to sync manifest
+
+### Fixed
+- **dist**: Added `surface-lessons.sh` hook to base MANIFEST — was referenced in settings template but not synced to projects
+
 ## [2.29.2] - 2026-03-24 - Cron script logging
 
 ### Fixed
