@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.32.10] - 2026-03-25 - Add session-start size logging
+
+### Changed
+- **hooks**: `session-start` now logs each section's byte/token size to `.claude/logs/session-start-sizes.log` with SESSION_ID, timestamp, project, section, bytes, and estimated tokens for traceability across projects
+
 ## [2.32.9] - 2026-03-25 - Gitignore .claude/ dir, whitelist project files
 
 ### Changed

@@ -29,6 +29,23 @@
 # Configuration
 MEMORIES_DIR="${CLAUDE_MEMORIES_DIR:-.claude/memories}"
 
+# Logging setup — session_id is PID + timestamp for correlation
+SESSION_ID="$$-$(date +%s)"
+PROJECT="$(basename "$PWD")"
+LOG_DIR=".claude/logs"
+LOG_FILE="$LOG_DIR/session-start-sizes.log"
+mkdir -p "$LOG_DIR"
+
+_log_section() {
+    local section="$1"
+    local content="$2"
+    local bytes
+    bytes=$(printf '%s' "$content" | wc -c)
+    printf '%s\t%s\t%s\t%s\t%db\t~%dt\n' \
+        "$SESSION_ID" "$(date -Iseconds)" "$PROJECT" "$section" "$bytes" "$((bytes / 4))" \
+        >> "$LOG_FILE"
+}
+
 # Check we're in a project with memories
 if [ ! -d "$MEMORIES_DIR" ]; then
     echo "Warning: $MEMORIES_DIR not found. Run from project root."
@@ -38,30 +55,36 @@ fi
 # === ESSENTIAL CONTEXT (auto-injected) ===
 
 # Output essential memories directly - these are always relevant
+MEMORIES_OUT=""
 for f in "$MEMORIES_DIR"/essential-*.md; do
   if [ -f "$f" ]; then
-    echo "=== $(basename "$f" .md) ==="
-    if ! cat "$f" 2>/dev/null; then
-      echo "(Error reading file - permission denied or corrupted)"
-    fi
-    echo ""
+    MEMORY_CONTENT="=== $(basename "$f" .md) ===
+$(cat "$f" 2>/dev/null || echo "(Error reading file - permission denied or corrupted)")
+"
+    _log_section "memory:$(basename "$f" .md)" "$MEMORY_CONTENT"
+    MEMORIES_OUT="${MEMORIES_OUT}${MEMORY_CONTENT}"
   fi
 done
+printf '%s' "$MEMORIES_OUT"
 
 # === AVAILABLE MEMORIES ===
-echo "=== OTHER MEMORIES AVAILABLE ==="
 OTHER_MEMORIES=$(ls -1 "$MEMORIES_DIR"/*.md 2>/dev/null | xargs -r -n1 basename 2>/dev/null | sed 's/.md$//' | grep -v "^essential-")
-[ -n "$OTHER_MEMORIES" ] && echo "$OTHER_MEMORIES" || echo "(none)"
-echo ""
-echo "Run /list-memories for Quick Reference summaries, or read specific files when relevant."
+OTHER_OUT="=== OTHER MEMORIES AVAILABLE ===
+$([ -n "$OTHER_MEMORIES" ] && echo "$OTHER_MEMORIES" || echo "(none)")
+
+Run /list-memories for Quick Reference summaries, or read specific files when relevant."
+_log_section "memories:other" "$OTHER_OUT"
+echo "$OTHER_OUT"
 
 # === GIT CONTEXT ===
-echo ""
-echo "=== GIT CONTEXT ==="
-echo "Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
 MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
 [ -z "$MAIN_BRANCH" ] && MAIN_BRANCH="main"
-echo "Main: $MAIN_BRANCH"
+GIT_OUT="=== GIT CONTEXT ===
+Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+Main: $MAIN_BRANCH"
+_log_section "git" "$GIT_OUT"
+echo ""
+echo "$GIT_OUT"
 
 # === TOOLKIT VERSION ===
 ACTIONABLE_ITEMS=""
@@ -69,9 +92,11 @@ if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; th
     PROJECT_VER=$(cat .claude-toolkit-version 2>/dev/null)
     TOOLKIT_VER=$(claude-toolkit version 2>/dev/null)
     if [ -n "$TOOLKIT_VER" ] && [ -n "$PROJECT_VER" ] && [ "$PROJECT_VER" != "$TOOLKIT_VER" ]; then
+        TOOLKIT_OUT="=== TOOLKIT VERSION ===
+Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sync\` then /setup-toolkit"
+        _log_section "toolkit" "$TOOLKIT_OUT"
         echo ""
-        echo "=== TOOLKIT VERSION ==="
-        echo "Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sync\` then /setup-toolkit"
+        echo "$TOOLKIT_OUT"
         ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- Toolkit version mismatch: $PROJECT_VER → $TOOLKIT_VER (run \`make claude-toolkit-sync\`)"
     fi
 fi
@@ -90,11 +115,19 @@ if [ -f "$LESSONS_DB" ]; then
     BRANCH_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 AND l.branch = '${SAFE_BRANCH}' ORDER BY l.date DESC;" 2>/dev/null)
 
     if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
+        LESSONS_OUT="=== LESSONS ==="
+        [ -n "$KEY_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
+Key:
+$KEY_LESSONS"
+        [ -n "$RECENT_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
+Recent:
+$RECENT_LESSONS"
+        [ -n "$BRANCH_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
+This branch:
+$BRANCH_LESSONS"
+        _log_section "lessons" "$LESSONS_OUT"
         echo ""
-        echo "=== LESSONS ==="
-        [ -n "$KEY_LESSONS" ] && echo "Key:" && echo "$KEY_LESSONS"
-        [ -n "$RECENT_LESSONS" ] && echo "Recent:" && echo "$RECENT_LESSONS"
-        [ -n "$BRANCH_LESSONS" ] && echo "This branch:" && echo "$BRANCH_LESSONS"
+        echo "$LESSONS_OUT"
     fi
 
     # Nudge logic — based on time since last manage-lessons run
@@ -138,8 +171,10 @@ elif [ -f "$LEARNED_FILE" ]; then
 fi
 
 # === MEMORY GUIDANCE ===
+GUIDANCE_OUT="If the user's request relates to a non-essential memory topic, use /list-memories to check Quick Reference summaries, then read relevant memories before proceeding."
+_log_section "guidance" "$GUIDANCE_OUT"
 echo ""
-echo "If the user's request relates to a non-essential memory topic, use /list-memories to check Quick Reference summaries, then read relevant memories before proceeding."
+echo "$GUIDANCE_OUT"
 
 # === ACKNOWLEDGMENT ===
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)

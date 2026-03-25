@@ -34,6 +34,7 @@ Loads essential memories and git context at the start of each session.
 - Nudges `/manage-lessons` based on days since last run (metadata-driven threshold, default 7d)
 - Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
 - Outputs guidance text for memory usage
+- Logs each section's byte/token size to `.claude/logs/session-start-sizes.log` (SESSION_ID, timestamp, project, section, bytes, ~tokens)
 
 ### git-safety.sh
 
