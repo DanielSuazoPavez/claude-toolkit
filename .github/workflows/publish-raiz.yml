@@ -9,7 +9,7 @@ on:
       - '.claude/hooks/**'
       - '.claude/memories/**'
       - 'dist/**'
-      - 'scripts/publish.py'
+      - '.github/scripts/publish.py'
 
 jobs:
   publish:
@@ -24,7 +24,7 @@ jobs:
           python-version: '3.12'
 
       - name: Build raiz distribution
-        run: python scripts/publish.py raiz dist-output/raiz
+        run: python .github/scripts/publish.py raiz dist-output/raiz
 
       - name: Checkout target repo
         uses: actions/checkout@v4
