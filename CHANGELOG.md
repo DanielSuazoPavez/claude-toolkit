@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.32.1] - 2026-03-25 - Remove review-changes skill
+
+### Removed
+- **skills**: Deleted `review-changes` — `code-reviewer` agent covers this functionality. Updated cross-references across skills, MANIFESTs, README, docs, and tests.
+
 ## [2.32.0] - 2026-03-25 - Extract session scripts
 
 ### Removed
