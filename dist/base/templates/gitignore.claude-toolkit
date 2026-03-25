@@ -4,9 +4,13 @@
 # Claude Code session artifacts
 output/claude-toolkit/
 
-# Local settings (not committed)
-.claude/settings.local.json
+# Claude Code synced resources (managed by claude-toolkit sync)
+.claude/
+
+# Track project-specific config and memories
+!.claude/settings.json
+!.claude/mcp.json
+!.claude/memories/project-*
 
 # Toolkit sync infrastructure
-.claude/MANIFEST
 .claude-toolkit-version
