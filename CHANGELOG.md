@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.32.6] - 2026-03-25 - Surface actionable items at session start
+
+### Fixed
+- **hooks**: `session-start` MANDATORY instruction now includes actionable items (toolkit version mismatch, manage-lessons nudge, lessons migration) so Claude surfaces them in the opening message instead of only acknowledging counts
+
 ## [2.32.5] - 2026-03-25 - Improve design-diagram and related skills
 
 ### Changed
