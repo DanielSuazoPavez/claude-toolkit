@@ -22,18 +22,18 @@
 LESSONS_DB="$HOME/.claude/lessons.db"
 [ -f "$LESSONS_DB" ] || exit 0
 
-# Parse input — exit gracefully if jq fails
-INPUT=$(cat)
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "surface-lessons" "PreToolUse"
+hook_require_tool "Bash" "Read" "Write" "Edit"
 
 # Extract context based on tool type
 CONTEXT=""
 case "$TOOL_NAME" in
     Bash)
-        CONTEXT=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null)
+        CONTEXT=$(hook_get_input '.tool_input.command')
         ;;
     Read|Write|Edit)
-        CONTEXT=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null)
+        CONTEXT=$(hook_get_input '.tool_input.file_path')
         ;;
     *)
         exit 0
@@ -88,5 +88,4 @@ LESSONS=$(sqlite3 "$LESSONS_DB" "
 # Format as additionalContext — escape for JSON
 ESCAPED=$(echo "$LESSONS" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n- /g')
 
-echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Relevant lessons:\\n- ${ESCAPED}\"}}"
-exit 0
+hook_inject "Relevant lessons:\\n- ${ESCAPED}"

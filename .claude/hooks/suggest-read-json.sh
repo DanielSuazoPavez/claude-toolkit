@@ -27,15 +27,11 @@
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' | bash suggest-read-json.sh
 #   # Expected: (empty - not json)
 
-INPUT=$(cat)
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "suggest-read-json" "PreToolUse"
+hook_require_tool "Read"
 
-# Parse JSON - exit gracefully if jq fails
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
-if [ "$TOOL_NAME" != "Read" ]; then
-    exit 0
-fi
-
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || exit 0
+FILE_PATH=$(hook_get_input '.tool_input.file_path')
 [ -z "$FILE_PATH" ] && exit 0
 
 # Check if file ends with .json
@@ -72,5 +68,4 @@ if [ -f "$FILE_PATH" ]; then
 fi
 
 # Block — suggest /read-json
-echo "{\"decision\": \"block\", \"reason\": \"Use \`/read-json\` skill for JSON files — it uses jq for efficient querying instead of loading entire files.\"}"
-exit 0
+hook_block "Use \`/read-json\` skill for JSON files — it uses jq for efficient querying instead of loading entire files."

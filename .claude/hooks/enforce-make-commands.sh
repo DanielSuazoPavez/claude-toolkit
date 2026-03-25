@@ -20,15 +20,11 @@
 #   echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | bash enforce-make-commands.sh
 #   # Expected: (empty - allowed)
 
-INPUT=$(cat)
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "enforce-make-commands" "PreToolUse"
+hook_require_tool "Bash"
 
-# Parse JSON - exit gracefully if jq fails
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
-if [ "$TOOL_NAME" != "Bash" ]; then
-    exit 0
-fi
-
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
+COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
 
 # Pattern definitions: REGEX -> MESSAGE
@@ -54,8 +50,7 @@ for entry in "${PATTERNS[@]}"; do
     pattern="${entry%%:::*}"
     message="${entry#*:::}"
     if [[ "$COMMAND" =~ $pattern ]]; then
-        echo "{\"decision\": \"block\", \"reason\": \"$message\"}"
-        exit 0
+        hook_block "$message"
     fi
 done
 
