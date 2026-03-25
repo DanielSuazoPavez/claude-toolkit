@@ -7,3 +7,4 @@ DEST="$HOME/backups/claude-transcripts/"
 
 mkdir -p "$DEST"
 rsync -a "$SRC" "$DEST"
+echo "$(date -Iseconds) backup-transcripts: ok"
