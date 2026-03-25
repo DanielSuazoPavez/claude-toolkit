@@ -120,7 +120,7 @@ elif [ -f "$LEARNED_FILE" ]; then
     # Fallback — learned.json still exists but no lessons.db
     echo ""
     echo "=== LESSONS ==="
-    echo "⚠ MANDATORY: lessons.db not found but learned.json exists. Ask the user to run \`uv run scripts/lessons/db.py migrate\` to upgrade lessons to SQLite. Do NOT skip this — surface it immediately at session start."
+    echo "⚠ MANDATORY: lessons.db not found but learned.json exists. Ask the user to run \`claude-toolkit lessons migrate\` to upgrade lessons to SQLite. Do NOT skip this — surface it immediately at session start."
 
     # Legacy jq path
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')

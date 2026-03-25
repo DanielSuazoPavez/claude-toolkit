@@ -7,12 +7,12 @@ lessons captured across Claude Code sessions.
 Schema design: scripts/lessons/schemas/lessons.yaml
 
 Usage:
-    uv run scripts/lessons/db.py migrate [--json-path PATH]
-    uv run scripts/lessons/db.py add --text TEXT --tags t1,t2 [--project NAME] [--branch B]
-    uv run scripts/lessons/db.py search <query> [--limit N]
-    uv run scripts/lessons/db.py list [--tier T] [--active] [--tags t1,t2] [--project P]
-    uv run scripts/lessons/db.py summary
-    uv run scripts/lessons/db.py set-meta KEY VALUE
+    claude-toolkit lessons migrate [--json-path PATH]
+    claude-toolkit lessons add --text TEXT --tags t1,t2 [--project NAME] [--branch B]
+    claude-toolkit lessons search <query> [--limit N]
+    claude-toolkit lessons list [--tier T] [--active] [--tags t1,t2] [--project P]
+    claude-toolkit lessons summary
+    claude-toolkit lessons set-meta KEY VALUE
 """
 
 from __future__ import annotations
@@ -24,8 +24,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
-from formatting import _c  # noqa: E402
+from scripts.shared.formatting import _c
 
 # ---------------------------------------------------------------------------
 # Constants

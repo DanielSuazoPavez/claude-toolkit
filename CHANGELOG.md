@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.30.0] - 2026-03-25 - Lessons CLI subcommand
+
+### Added
+- **cli**: `claude-toolkit lessons` subcommand — routes to lessons DB via installed `ct-lessons` entry point, works from any project
+- **packaging**: `pyproject.toml` now declares `[project.scripts]` entry point with hatchling build system
+
+### Fixed
+- **skills**: `/learn` and `/manage-lessons` now work in synced target projects (previously broken — invoked `uv run scripts/lessons/db.py` which only existed in the toolkit repo)
+- **imports**: Replaced all `sys.path.insert` hacks with proper package imports across 5 script files
+
+### Changed
+- **permissions**: Added `Bash(claude-toolkit:*)` to settings.json, settings.template.json, and approve-safe-commands hook
+- **conventions**: Added `sys.path.insert` as anti-pattern in code_style memory
+
 ## [2.29.4] - 2026-03-24 - Template→MANIFEST hook sync validation
 
 ### Added

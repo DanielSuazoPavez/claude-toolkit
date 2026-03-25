@@ -47,6 +47,7 @@ USAGE:
 COMMANDS:
     sync [path]     Sync toolkit updates to a project (default: current dir)
     send <path>     Send a resource from another project to suggestions-box
+    lessons <cmd>   Manage lessons database (add, search, list, health, ...)
     version         Print toolkit version
 
 OPTIONS:
@@ -708,5 +709,13 @@ case "${1:-}" in
     version) cat "$TOOLKIT_DIR/VERSION" ;;
     sync) shift; cmd_sync "$@" ;;
     send) shift; cmd_send "$@" ;;
+    lessons) shift
+        CT_LESSONS="$TOOLKIT_DIR/.venv/bin/ct-lessons"
+        if [ ! -x "$CT_LESSONS" ]; then
+            echo -e "${RED}ct-lessons not found. Run 'make install' in the toolkit repo.${NC}" >&2
+            exit 1
+        fi
+        exec "$CT_LESSONS" "$@"
+        ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
 esac

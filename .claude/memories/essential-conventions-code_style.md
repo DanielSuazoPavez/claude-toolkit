@@ -45,3 +45,4 @@
 - Follow existing formatting/naming patterns in the codebase
 - Type hints for all function signatures
 - Use language built-ins and standard patterns before custom implementations
+- No `sys.path.insert` hacks — use proper package imports (e.g., `uv` workspace, `pyproject.toml` package install)

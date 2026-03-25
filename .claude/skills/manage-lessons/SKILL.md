@@ -1,14 +1,14 @@
 ---
 name: manage-lessons
 description: Review and manage lesson lifecycle. Use when the user says "manage lessons", "review lessons", "promote lessons", "clean up lessons", "prune lessons", or when session-start nudge suggests it.
-allowed-tools: Bash(uv run scripts/lessons/db.py:*), Bash(sqlite3:*), Read, Write
+allowed-tools: Bash(claude-toolkit lessons:*), Bash(sqlite3:*), Read, Write
 ---
 
 # Manage Lessons
 
 Review lessons and work toward crystallization, absorption, and pruning.
 
-**See also:** `/learn` (capture new lessons), `scripts/lessons/db.py` (DB layer and CLI), `session-start.sh` hook (nudges for this skill)
+**See also:** `/learn` (capture new lessons), `claude-toolkit lessons` (CLI), `session-start.sh` hook (nudges for this skill)
 
 ## When to Use
 
@@ -21,7 +21,7 @@ Review lessons and work toward crystallization, absorption, and pruning.
 ### 1. Health Check
 
 ```bash
-uv run scripts/lessons/db.py health
+claude-toolkit lessons health
 ```
 
 Review: active count, tier distribution, warnings, time since last run.
@@ -29,7 +29,7 @@ Review: active count, tier distribution, warnings, time since last run.
 ### 2. Cluster Detection
 
 ```bash
-uv run scripts/lessons/db.py clusters
+claude-toolkit lessons clusters
 ```
 
 Identify lessons orbiting the same themes. Propose crystallization for pairs/groups that express the same underlying pattern.
@@ -40,7 +40,7 @@ For each cluster, decide with the user:
 
 - **Crystallize** — merge into a single, sharper lesson:
   ```bash
-  uv run scripts/lessons/db.py crystallize \
+  claude-toolkit lessons crystallize \
     --ids "ID1,ID2" \
     --text "Crystallized lesson text" \
     --tags "tag1,tag2"
@@ -49,7 +49,7 @@ For each cluster, decide with the user:
 
 - **Absorb** — the pattern is already enforced by a resource:
   ```bash
-  uv run scripts/lessons/db.py absorb --id "ID" --into "hook:git-safety"
+  claude-toolkit lessons absorb --id "ID" --into "hook:git-safety"
   ```
   Lesson deactivated, `absorbed_into` recorded.
 
@@ -58,7 +58,7 @@ For each cluster, decide with the user:
 ### 4. Walk Through Recent Lessons
 
 ```bash
-uv run scripts/lessons/db.py list --tier recent --active
+claude-toolkit lessons list --tier recent --active
 ```
 
 For each recent lesson, present and ask:
@@ -96,7 +96,7 @@ Wait for user decision on each one. Don't batch.
 ### 5. Tag Hygiene
 
 ```bash
-uv run scripts/lessons/db.py tag-hygiene
+claude-toolkit lessons tag-hygiene
 ```
 
 Address reported issues:
@@ -107,13 +107,13 @@ Address reported issues:
 ### 6. Record Completion
 
 ```bash
-uv run scripts/lessons/db.py set-meta last_manage_run "$(date -Iseconds)"
+claude-toolkit lessons set-meta last_manage_run "$(date -Iseconds)"
 ```
 
 Show final state:
 
 ```bash
-uv run scripts/lessons/db.py health
+claude-toolkit lessons health
 ```
 
 ## Crystallization Guide
