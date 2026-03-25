@@ -120,7 +120,7 @@ elif [ -f "$LEARNED_FILE" ]; then
     # Fallback — learned.json still exists but no lessons.db
     echo ""
     echo "=== LESSONS ==="
-    echo "⚠ lessons.db not found. Run \`uv run scripts/lessons/db.py migrate\` to upgrade lessons to SQLite."
+    echo "⚠ MANDATORY: lessons.db not found but learned.json exists. Ask the user to run \`uv run scripts/lessons/db.py migrate\` to upgrade lessons to SQLite. Do NOT skip this — surface it immediately at session start."
 
     # Legacy jq path
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
@@ -146,9 +146,9 @@ fi
 echo ""
 echo "=== SESSION START ==="
 if [ "$LESSON_COUNT" -gt 0 ]; then
-    echo "$ESSENTIAL_COUNT essential memories loaded, $LESSON_COUNT lessons noted. Acknowledge briefly, mentioning both counts."
+    echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ESSENTIAL_COUNT essential memories loaded, $LESSON_COUNT lessons noted. Do NOT skip this or bury it in other output."
 else
-    echo "$ESSENTIAL_COUNT essential memories loaded. Acknowledge briefly, mentioning the count."
+    echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ESSENTIAL_COUNT essential memories loaded. Do NOT skip this or bury it in other output."
 fi
 
 exit 0

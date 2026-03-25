@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.29.1] - 2026-03-24 - Stronger session-start hook prompts
+
+### Changed
+- **hooks**: `session-start.sh` — stronger prompt language for learned.json migration warning (MANDATORY, surface immediately)
+- **hooks**: `session-start.sh` — stronger prompt language for session-start acknowledgment (MANDATORY, FIRST message)
+
 ## [2.29.0] - 2026-03-24 - Scripts reorganization and insights migration
 
 ### Added
