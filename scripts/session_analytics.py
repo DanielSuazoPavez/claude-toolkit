@@ -1263,6 +1263,268 @@ def cmd_resource_cost(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Tool / skill / agent / hook breakdowns (migrated from insights.py)
+# ---------------------------------------------------------------------------
+
+
+def query_tool_usage(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[dict]:
+    """Tool usage breakdown with main vs subagent split."""
+    sql = """
+        SELECT
+            e.tool,
+            SUM(CASE WHEN e.subagent_id IS NULL THEN 1 ELSE 0 END) AS main,
+            SUM(CASE WHEN e.subagent_id IS NOT NULL THEN 1 ELSE 0 END) AS subagent,
+            COUNT(*) AS total,
+            SUM(e.output_tokens) AS output_tokens
+        FROM events e
+        JOIN sessions s ON e.session_id = s.session_id
+        JOIN projects p ON e.project_id = p.id
+        WHERE e.event_type = 'tool_use'
+    """
+    params: list = []
+    if project:
+        sql += " AND p.name LIKE ?"
+        params.append(f"%{project}%")
+    if days:
+        sql += " AND s.last_ts >= date('now', ?)"
+        params.append(f"-{days} days")
+
+    sql += " GROUP BY e.tool ORDER BY total DESC"
+    conn.row_factory = sqlite3.Row
+    return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+
+def cmd_tools(args: argparse.Namespace) -> None:
+    """Show tool usage breakdown (main vs subagent)."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    rows = query_tool_usage(conn, project=args.project, days=args.days)
+    conn.close()
+
+    if not rows:
+        print("No tool usage data.")
+        return
+
+    has_subagents = any(r["subagent"] > 0 for r in rows)
+
+    print(f"\n{c['bold']}{c['cyan']}Tool Usage{c['reset']}\n")
+    if has_subagents:
+        print(
+            f"  {'Tool':25} {'Main':>6} {'Subagent':>9} "
+            f"{'Total':>6} {'Out Tokens':>11}"
+        )
+        print(f"  {'-' * 61}")
+        for r in rows:
+            print(
+                f"  {r['tool']:25} {r['main']:6} {r['subagent']:9} "
+                f"{r['total']:6} {_fmt_tokens(r['output_tokens'] or 0):>11}"
+            )
+    else:
+        print(f"  {'Tool':25} {'Calls':>6} {'Out Tokens':>11}")
+        print(f"  {'-' * 45}")
+        for r in rows:
+            print(
+                f"  {r['tool']:25} {r['total']:6} "
+                f"{_fmt_tokens(r['output_tokens'] or 0):>11}"
+            )
+
+
+def query_skill_usage(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[dict]:
+    """Skill invocation counts and token usage."""
+    sql = """
+        SELECT
+            ru.resource_name,
+            COUNT(*) AS total,
+            SUM(ru.input_delta + ru.output_delta) AS tokens
+        FROM resource_usage ru
+        JOIN sessions s ON ru.session_id = s.session_id
+        JOIN projects p ON ru.project_id = p.id
+        WHERE ru.resource_type = 'skill'
+    """
+    params: list = []
+    if project:
+        sql += " AND p.name LIKE ?"
+        params.append(f"%{project}%")
+    if days:
+        sql += " AND s.last_ts >= date('now', ?)"
+        params.append(f"-{days} days")
+
+    sql += " GROUP BY ru.resource_name ORDER BY total DESC"
+    conn.row_factory = sqlite3.Row
+    return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+
+def cmd_skills(args: argparse.Namespace) -> None:
+    """Show skill invocation counts."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    rows = query_skill_usage(conn, project=args.project, days=args.days)
+    conn.close()
+
+    if not rows:
+        print("No skill usage data.")
+        return
+
+    print(f"\n{c['bold']}{c['cyan']}Skill Usage{c['reset']}\n")
+    print(f"  {'Skill':30} {'Uses':>5} {'Tokens':>10}")
+    print(f"  {'-' * 48}")
+    for r in rows:
+        print(
+            f"  {r['resource_name']:30} {r['total']:5} "
+            f"{_fmt_tokens(r['tokens'] or 0):>10}"
+        )
+
+
+def query_agent_usage(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> list[dict]:
+    """Agent/subagent usage breakdown."""
+    sql = """
+        SELECT
+            ru.resource_name,
+            COUNT(*) AS count,
+            SUM(ru.input_delta + ru.output_delta) AS tokens,
+            SUM(ru.turn_count) AS tool_calls
+        FROM resource_usage ru
+        JOIN sessions s ON ru.session_id = s.session_id
+        JOIN projects p ON ru.project_id = p.id
+        WHERE ru.resource_type = 'agent'
+    """
+    params: list = []
+    if project:
+        sql += " AND p.name LIKE ?"
+        params.append(f"%{project}%")
+    if days:
+        sql += " AND s.last_ts >= date('now', ?)"
+        params.append(f"-{days} days")
+
+    sql += " GROUP BY ru.resource_name ORDER BY count DESC"
+    conn.row_factory = sqlite3.Row
+    return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+
+def cmd_agents(args: argparse.Namespace) -> None:
+    """Show agent/subagent usage breakdown."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    rows = query_agent_usage(conn, project=args.project, days=args.days)
+    conn.close()
+
+    if not rows:
+        print("No agent usage data.")
+        return
+
+    print(f"\n{c['bold']}{c['cyan']}Agent Usage{c['reset']}\n")
+    print(f"  {'Agent Type':30} {'Count':>6} {'Tokens':>10} {'Tool Calls':>11}")
+    print(f"  {'-' * 61}")
+    for r in rows:
+        print(
+            f"  {r['resource_name']:30} {r['count']:6} "
+            f"{_fmt_tokens(r['tokens'] or 0):>10} {r['tool_calls'] or 0:>11}"
+        )
+
+
+def query_hook_usage(
+    conn: sqlite3.Connection,
+    project: str | None = None,
+    days: int | None = None,
+) -> tuple[list[dict], list[dict]]:
+    """Hook event aggregation, returns (by_event, by_hook) lists."""
+    base_where = "e.event_type = 'progress'"
+    params: list = []
+    if project:
+        base_where += " AND p.name LIKE ?"
+        params.append(f"%{project}%")
+    if days:
+        base_where += " AND s.last_ts >= date('now', ?)"
+        params.append(f"-{days} days")
+
+    conn.row_factory = sqlite3.Row
+
+    # By event type
+    by_event = [dict(r) for r in conn.execute(f"""
+        SELECT
+            SUBSTR(e.detail, 1, INSTR(e.detail, ':') - 1) AS hook_event,
+            SUM(CASE WHEN e.subagent_id IS NULL THEN 1 ELSE 0 END) AS main,
+            SUM(CASE WHEN e.subagent_id IS NOT NULL THEN 1 ELSE 0 END) AS subagent,
+            COUNT(*) AS total
+        FROM events e
+        JOIN sessions s ON e.session_id = s.session_id
+        JOIN projects p ON e.project_id = p.id
+        WHERE {base_where}
+        GROUP BY hook_event
+        ORDER BY total DESC
+    """, params).fetchall()]
+
+    # By hook name
+    by_hook = [dict(r) for r in conn.execute(f"""
+        SELECT
+            SUBSTR(e.detail, INSTR(e.detail, ':') + 1) AS hook_name,
+            SUM(CASE WHEN e.subagent_id IS NULL THEN 1 ELSE 0 END) AS main,
+            SUM(CASE WHEN e.subagent_id IS NOT NULL THEN 1 ELSE 0 END) AS subagent,
+            COUNT(*) AS total
+        FROM events e
+        JOIN sessions s ON e.session_id = s.session_id
+        JOIN projects p ON e.project_id = p.id
+        WHERE {base_where}
+        GROUP BY hook_name
+        ORDER BY total DESC
+    """, params).fetchall()]
+
+    return by_event, by_hook
+
+
+def cmd_hooks(args: argparse.Namespace) -> None:
+    """Show hook event aggregation."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    by_event, by_hook = query_hook_usage(conn, project=args.project, days=args.days)
+    conn.close()
+
+    if not by_event and not by_hook:
+        print("No hook event data.")
+        return
+
+    has_subagents = any(r["subagent"] > 0 for r in by_event + by_hook)
+
+    print(f"\n{c['bold']}{c['cyan']}Hook Events{c['reset']}\n")
+
+    def _print_section(title: str, rows: list[dict], name_col: str) -> None:
+        print(f"  {c['bold']}{title}{c['reset']}")
+        if has_subagents:
+            print(f"  {name_col:25} {'Main':>6} {'Subagent':>9} {'Total':>6}")
+            print(f"  {'-' * 50}")
+            for r in rows:
+                print(
+                    f"  {r[name_col.lower().replace(' ', '_')]:25} "
+                    f"{r['main']:6} {r['subagent']:9} {r['total']:6}"
+                )
+        else:
+            print(f"  {name_col:25} {'Count':>6}")
+            print(f"  {'-' * 34}")
+            for r in rows:
+                print(f"  {r[name_col.lower().replace(' ', '_')]:25} {r['total']:6}")
+        print()
+
+    _print_section("By Event Type", by_event, "Hook Event")
+    _print_section("By Hook Name", by_hook, "Hook Name")
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1337,6 +1599,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="Sort order (default: tokens)",
     )
 
+    # tools
+    tl2 = sub.add_parser("tools", help="Tool usage breakdown (main vs subagent)")
+    tl2.add_argument("--project", help="Filter by project name")
+    tl2.add_argument("--days", type=int, help="Limit to last N days")
+
+    # skills
+    sk = sub.add_parser("skills", help="Skill invocation counts")
+    sk.add_argument("--project", help="Filter by project name")
+    sk.add_argument("--days", type=int, help="Limit to last N days")
+
+    # agents
+    ag = sub.add_parser("agents", help="Agent/subagent usage breakdown")
+    ag.add_argument("--project", help="Filter by project name")
+    ag.add_argument("--days", type=int, help="Limit to last N days")
+
+    # hooks
+    hk = sub.add_parser("hooks", help="Hook event aggregation")
+    hk.add_argument("--project", help="Filter by project name")
+    hk.add_argument("--days", type=int, help="Limit to last N days")
+
     return parser
 
 
@@ -1358,6 +1640,10 @@ def main() -> None:
         "files": cmd_files,
         "stats": cmd_stats,
         "resource-cost": cmd_resource_cost,
+        "tools": cmd_tools,
+        "skills": cmd_skills,
+        "agents": cmd_agents,
+        "hooks": cmd_hooks,
     }
     commands[args.command](args)
 
