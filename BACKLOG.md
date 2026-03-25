@@ -23,24 +23,20 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
+- **[SCRIPTS]** Session analytics — plan+implementation session pairing (`session-analytics-work-units`)
+    - **scope**: `scripts`
+    - **notes**: Explore clustering consecutive sessions into "work units" — a planning session followed by implementation sessions. Challenge: planning may start on `main` before branching, or on the feature branch if the hook prompted a branch switch. Signals to use: timing proximity, project, branch transitions, plan mode events, session shape (planning sessions are shorter, read-heavy; implementation sessions are longer, command-heavy). Cross-branch boundary is the hard part.
+
 ## P2 - Medium
+
+- **[SCRIPTS]** Sessions CLI — add `claude-toolkit sessions` subcommand (`sessions-cli`)
+    - **scope**: `scripts`
+    - **notes**: Extend the CLI pattern from lessons to sessions. Merge index.py, search.py, and analytics.py into a single Click-based entry point. Register as `ct-sessions` in pyproject.toml. Update cron/index-sessions.sh to use `claude-toolkit sessions index`. Consider Click migration (user preference) over argparse.
 
 - **[HOOKS]** Hook router — single dispatch process per trigger instead of N separate hook spawns (`hook-router`)
     - **scope**: `hooks`
     - **notes**: Currently a Bash tool call spawns 7 separate hook processes, each parsing stdin independently. A router script would read stdin once, dispatch to relevant checks based on `$CLAUDE_TOOL_NAME`, and aggregate output. Benefits: cleaner resource_usage analytics in session-index.db (1 entry vs 7), fewer process spawns, defined execution order (blockers → suggestions → context injection), short-circuit on block. Tradeoffs: we own execution order and output aggregation (currently Claude Code handles both), per-project exclusion needs a skip mechanism inside the router. Prototype on a branch to validate.
     - **prior art**: `trailofbits/claude-code-config` uses inline one-liners in settings.json for simple guards instead of separate scripts. `disler/claude-code-hooks-mastery` uses a single `pre_tool_use.py` combining rm-rf + .env blocking with internal tool-type dispatch. See exploration summaries in `output/claude-toolkit/exploration/`.
-
-- **[SCRIPTS]** Session analytics — plan+implementation session pairing (`session-analytics-work-units`)
-    - **scope**: `scripts`
-    - **notes**: Explore clustering consecutive sessions into "work units" — a planning session followed by implementation sessions. Challenge: planning may start on `main` before branching, or on the feature branch if the hook prompted a branch switch. Signals to use: timing proximity, project, branch transitions, plan mode events, session shape (planning sessions are shorter, read-heavy; implementation sessions are longer, command-heavy). Cross-branch boundary is the hard part.
-
-- **[SCRIPTS]** Session analytics — project co-occurrence patterns (`session-analytics-co-occurrence`)
-    - **scope**: `scripts`
-    - **notes**: Which projects have sessions active on the same days? A project with many sessions compressed into few days alongside another project (e.g., schema-smith appearing on the same days as acustica-marina) suggests a supporting/dependency role rather than independent work. Analyze: daily co-occurrence matrix, identify "primary" vs "supporting" project roles per day, projects that always appear together vs independently.
-
-- **[SCRIPTS]** Sessions CLI — add `claude-toolkit sessions` subcommand (`sessions-cli`)
-    - **scope**: `scripts`
-    - **notes**: Extend the CLI pattern from lessons to sessions. Merge index.py, search.py, and analytics.py into a single Click-based entry point. Register as `ct-sessions` in pyproject.toml. Update cron/index-sessions.sh to use `claude-toolkit sessions index`. Consider Click migration (user preference) over argparse.
 
 ## P3 - Low
 
