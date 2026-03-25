@@ -126,6 +126,21 @@ How deep?
 - Cover: purpose, parameters, return values, exceptions
 - Skip trivial functions (getters, simple wrappers) unless user asks
 
+### 4b. Diagram Integration
+
+During doc writing, identify where a diagram would help:
+
+| Signal in the content | Action |
+|-----------------------|--------|
+| Describing relationships between 3+ entities | Consider an ERD or dependency diagram |
+| Multi-step process with branching | ASCII decision tree (not Mermaid — too heavy for inline docs) |
+| "A calls B which calls C" narrative | Sequence diagram if >3 participants, otherwise prose is fine |
+| Architecture overview section | Mermaid C4 or flowchart with subgraphs |
+
+**When NOT to add a diagram:** If a 1-2 sentence description is equally clear, skip it. Over-diagramming docs adds maintenance burden without helping readers.
+
+Use `/design-diagram` for format selection (Mermaid vs ASCII vs list) and theme presets for documentation contexts.
+
 ### 5. Verify
 
 Not all claims need equal scrutiny. Prioritize verification by staleness risk:
@@ -175,4 +190,4 @@ See `resources/EXAMPLES.md` for worked examples (end-to-end flow) and good/bad c
 - `/analyze-idea` — Research coverage gaps
 - `codebase-explorer` agent — Generate full architecture report before writing docs
 - `pattern-finder` agent — Targeted searches for specific patterns or conventions
-- `/design-diagram` — Generate architecture diagrams to embed in documentation
+- `/design-diagram` — Format selection (Mermaid vs ASCII vs list), theme presets, and diagramming for documentation

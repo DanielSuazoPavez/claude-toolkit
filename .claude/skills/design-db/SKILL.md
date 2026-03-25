@@ -133,6 +133,27 @@ CREATE UNIQUE INDEX idx_users_email_active ON users(email)
   WHERE deleted_at IS NULL;  -- Allows reuse of deleted emails
 ```
 
+## Large ERD Strategy
+
+For schemas with 20+ tables, a single ERD becomes unreadable. Use a layered approach:
+
+**Level 1 — Index diagram:** Show clusters (bounded contexts) as boxes with inter-cluster connections only. Use a Mermaid flowchart with subgraphs.
+
+**Level 2 — Per-cluster ERDs:** Full ERD for each cluster's transactional tables. Dimension tables (referenced by 3+ clusters) appear as `[dim]` stubs with just PK shown — they clutter every diagram otherwise.
+
+**Level 3 — Dimension catalog:** Standalone markdown table listing all dimension tables, their columns, and which clusters reference them. Not a diagram.
+
+### Discovery-First Approach
+
+For existing databases where bounded contexts aren't obvious:
+
+1. Extract all tables and foreign key relationships
+2. Classify each table: **transactional** (owned by one domain, moderate fan-out) vs **dimension** (high fan-out, referenced across domains — e.g., `status_types`, `countries`)
+3. Cluster transactional tables by FK density — tables with many FKs between them belong together
+4. Draw Level 1 first, then Level 2 per cluster as needed
+
+See `/design-diagram` for format selection (Mermaid vs ASCII) and theme presets.
+
 ## Anti-Patterns
 
 | Avoid | Instead | Why |

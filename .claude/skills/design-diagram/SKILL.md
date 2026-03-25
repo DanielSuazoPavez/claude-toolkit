@@ -4,9 +4,25 @@ type: knowledge
 description: Use when requests mention "diagram", "visualize", "architecture diagram", "sequence diagram", "flowchart", "ERD", "C4", or "map out".
 ---
 
-# Mermaid Diagramming
+# Diagramming
 
-## Which Diagram Type?
+## Format Selection
+
+Diagrams are for humans, not agents. Pick the lightest format that communicates.
+
+| Scenario | Best format | Why |
+|----------|------------|-----|
+| Branching logic / decision trees | ASCII tree | Text-native, no rendering needed |
+| Simple process flow (<6 steps) | Numbered list or ASCII | Mermaid is ceremony overhead |
+| Entity relationships (ERD) | Mermaid | Connections aren't linear — visual layout helps |
+| Temporal flows (sequence) | Mermaid | Participant lanes need 2D |
+| Architecture overview (C4) | Mermaid | Spatial relationships matter |
+
+**Backtracking:** If you picked Mermaid and the diagram is fighting you (too dense, wrong topology), step back and ask: "Would an ASCII tree or numbered list work here?" Switching format early is cheap; polishing the wrong format is expensive.
+
+For theme presets (documentation, review, presentation), see `resources/mermaid-theme-presets.md`.
+
+## Which Mermaid Diagram Type?
 
 | Audience | Recommended Type | Why this pairing |
 |----------|------------------|-----------------|
@@ -107,6 +123,19 @@ sequenceDiagram
 
 **Why this worked:** Sequence preserved "who talks to whom." A flowchart would have shown the same steps but lost the service boundaries — critical for a team reviewing ownership.
 
+## Diagrams for Documentation
+
+When diagrams are destined for docs (READMEs, guides), different rules apply:
+
+| Concern | Documentation context | Working session context |
+|---------|----------------------|------------------------|
+| Self-contained | Must make sense without surrounding conversation | Can assume shared context |
+| Complexity | Simpler — readers skim; aim for <10 nodes | Can be denser for design work |
+| Alt-text | Add `%% Alt: <description>` for accessibility | Optional |
+| Format bias | Prefer ASCII/lists unless spatial layout genuinely helps | Mermaid is fine |
+
+See `/write-docs` for when and where to insert diagrams during doc writing.
+
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
@@ -117,40 +146,8 @@ sequenceDiagram
 | **Dead Diagram** | Code changed, diagram didn't — now it misleads | Co-locate with code (`docs/` next to `src/`), add `%% Last updated:` for staleness detection |
 | **Over-Detailed** | Implementation details in architecture diagram | Match detail to audience: stakeholders get boxes and arrows, devs get methods and types |
 | **Layer Split** | Diagram split by tech layer (FE/BE) instead of by flow | Split by bounded context — one interaction shouldn't span two diagrams |
+| **Over-Diagramming** | Diagram for a 3-step process that a sentence explains | Ask: "Does this need spatial layout?" If no, use prose, a list, or an ASCII tree |
 
-## Common Gotchas
+For rendering fixes and syntax quirks, see `resources/mermaid-rendering-gotchas.md`.
 
-| Issue | Fix |
-|-------|-----|
-| Arrows overlapping in dense diagrams | `%%{init: {'flowchart': {'nodeSpacing': 50}}}%%` |
-| GitHub shows raw text instead of diagram | Add blank line before ` ```mermaid ` fence |
-| Special chars break rendering | Wrap labels in quotes: `id["My (label)"]` |
-
-## Non-Obvious Syntax Patterns
-
-C4 diagrams use Mermaid's less documented syntax — easy to get wrong:
-
-```mermaid
-C4Context
-  title System Context
-  Person(user, "User", "End user of the system")
-  System(app, "Application", "Core application")
-  System_Ext(email, "Email Service", "Sends notifications")
-  Rel(user, app, "Uses", "HTTPS")
-  Rel(app, email, "Sends emails", "SMTP")
-```
-
-Subgraph scoping — nodes defined inside a subgraph are scoped; edges must reference the node ID, not the subgraph:
-
-```mermaid
-flowchart LR
-  subgraph auth["Auth Service"]
-    a1[Login] --> a2[Validate Token]
-  end
-  subgraph api["API Gateway"]
-    b1[Route Request]
-  end
-  a2 --> b1
-```
-
-**See also:** `/design-db` (ERDs for schema design), `/design-docker` (multi-container architecture diagrams), `/refactor` (visualizing dependency structure), `/write-docs` (embedding diagrams in documentation)
+**See also:** `/design-db` (ERDs for schema design, large ERD strategy), `/design-docker` (multi-container architecture diagrams), `/refactor` (visualizing dependency structure), `/write-docs` (when and where to insert diagrams in documentation)
