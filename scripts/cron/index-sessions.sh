@@ -11,3 +11,4 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 cd "$SCRIPT_DIR/../.."
 uv run scripts/sessions/index.py index
+echo "$(date -Iseconds) index-sessions: ok"

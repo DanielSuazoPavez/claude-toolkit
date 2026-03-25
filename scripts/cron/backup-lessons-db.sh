@@ -17,3 +17,4 @@ cp "$SRC" "$DEST/lessons_$(date +%Y%m%d_%H%M%S).db"
 
 # Prune backups older than 30 days
 find "$DEST" -name "lessons_*.db" -mtime +30 -delete
+echo "$(date -Iseconds) backup-lessons-db: ok"

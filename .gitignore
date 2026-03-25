@@ -29,4 +29,4 @@ dist-output/
 
 # Logs
 logs/
-scripts/cron.log
+scripts/cron/cron.log
