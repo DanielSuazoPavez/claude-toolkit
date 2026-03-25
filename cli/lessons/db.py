@@ -4,7 +4,7 @@
 Provides database initialization, CRUD helpers, and CLI for managing
 lessons captured across Claude Code sessions.
 
-Schema design: scripts/lessons/schemas/lessons.yaml
+Schema design: cli/lessons/schemas/lessons.yaml
 
 Usage:
     claude-toolkit lessons migrate [--json-path PATH]
@@ -24,7 +24,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.shared.formatting import _c
+from cli.lessons.formatting import _c
 
 # ---------------------------------------------------------------------------
 # Constants
