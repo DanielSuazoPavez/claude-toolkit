@@ -25,6 +25,7 @@ OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
 HOOK_LOG_FILE=""
+_HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 
 # ============================================================
 # hook_init HOOK_NAME HOOK_EVENT
@@ -42,6 +43,10 @@ hook_init() {
     TOTAL_BYTES_INJECTED=0
     HOOK_LOG_FILE=".claude/logs/hook-timing.log"
     mkdir -p ".claude/logs" 2>/dev/null || true
+    # SessionStart hooks don't call hook_require_tool, so mark active immediately
+    if [ "$HOOK_EVENT" = "SessionStart" ]; then
+        _HOOK_ACTIVE=true
+    fi
     trap '_hook_log_timing' EXIT
 }
 
@@ -60,6 +65,7 @@ hook_require_tool() {
     if [ "$match" = false ]; then
         exit 0
     fi
+    _HOOK_ACTIVE=true
 }
 
 # ============================================================
@@ -75,7 +81,8 @@ hook_get_input() {
 hook_block() {
     OUTCOME="blocked"
     local reason="$1"
-    # Escape double quotes for JSON
+    # Escape backslashes first, then double quotes for JSON
+    reason="${reason//\\/\\\\}"
     reason="${reason//\"/\\\"}"
     echo "{\"decision\": \"block\", \"reason\": \"$reason\"}"
     exit 0
@@ -87,8 +94,9 @@ hook_block() {
 hook_approve() {
     OUTCOME="approved"
     local reason="$1"
+    reason="${reason//\\/\\\\}"
     reason="${reason//\"/\\\"}"
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"$reason\"}}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"$reason\"}}"
     exit 0
 }
 
@@ -100,7 +108,7 @@ hook_inject() {
     OUTCOME="injected"
     local context="$1"
     BYTES_INJECTED=${#context}
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"$context\"}}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"additionalContext\":\"$context\"}}"
     exit 0
 }
 
@@ -124,6 +132,8 @@ hook_log_section() {
 # _hook_log_timing  (internal — EXIT trap)
 # ============================================================
 _hook_log_timing() {
+    # Skip logging if hook never matched a tool (early exit from hook_require_tool)
+    [ "$_HOOK_ACTIVE" = true ] || return 0
     local end_ms
     end_ms=$(date +%s%3N)
     local duration_ms=$(( end_ms - HOOK_START_MS ))
