@@ -19,12 +19,10 @@ Tests are bash scripts in `tests/` plus pytest for Python modules. Run via Makef
 
 | Target | What it runs | Speed |
 |--------|-------------|-------|
-| `make test` | hooks + cli + backlog + session + raiz + eval tests | Fast |
+| `make test` | hooks + cli + backlog + raiz + eval tests | Fast |
 | `make test-hooks` | Hook behavior tests | Fast |
 | `make test-cli` | CLI (sync/send) tests | Fast |
 | `make test-backlog` | backlog-query.sh tests | Fast |
-| `make test-session-index` | Session indexing pytest suite | Fast |
-| `make test-session-analytics` | Session analytics pytest suite | Fast |
 | `make test-triggers` | Skill trigger eval (uses `claude -p`) | Slow |
 | `make validate` | Resource index + dependency validation | Fast |
 | `make check` | `test` + `validate` | Fast |

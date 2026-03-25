@@ -23,15 +23,23 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SCRIPTS]** Session analytics — plan+implementation session pairing (`session-analytics-work-units`)
-    - **scope**: `scripts`
-    - **notes**: Explore clustering consecutive sessions into "work units" — a planning session followed by implementation sessions. Challenge: planning may start on `main` before branching, or on the feature branch if the hook prompted a branch switch. Signals to use: timing proximity, project, branch transitions, plan mode events, session shape (planning sessions are shorter, read-heavy; implementation sessions are longer, command-heavy). Cross-branch boundary is the hard part.
+- **[SKILLS]** Delete `review-changes` skill — `code-reviewer` agent covers this (`delete-review-changes`)
+    - **scope**: `skills`
+    - **notes**: Already flagged with `*` in SKILLS.md. code-reviewer agent is integrated into daily workflow and does the same job.
 
 ## P2 - Medium
 
-- **[SCRIPTS]** Sessions CLI — add `claude-toolkit sessions` subcommand (`sessions-cli`)
-    - **scope**: `scripts`
-    - **notes**: Extend the CLI pattern from lessons to sessions. Merge index.py, search.py, and analytics.py into a single Click-based entry point. Register as `ct-sessions` in pyproject.toml. Update cron/index-sessions.sh to use `claude-toolkit sessions index`. Consider Click migration (user preference) over argparse.
+- **[SKILLS]** Evaluate consolidating evaluate-* skills (`evaluate-consolidate-evaluate-skills`)
+    - **scope**: `skills`
+    - **notes**: evaluate-skill, evaluate-agent, evaluate-hook, evaluate-memory are structurally similar (rubric + scoring). evaluate-batch already dispatches by type. However, each resource type has its own rubric nuances — generalizing may dilute quality. Investigate: how much is shared scaffolding vs type-specific expert knowledge? Would a single skill with embedded type references lose scoring precision? Potential savings ~600-800 lines, but only if quality holds.
+
+- **[SKILLS]** Evaluate consolidating create-* skills (`evaluate-consolidate-create-skills`)
+    - **scope**: `skills`
+    - **notes**: create-skill, create-agent, create-memory, create-hook follow a similar pattern (template + conventions). But each has type-specific guidance (e.g., agent tool selection, hook trigger patterns, memory category rules). Investigate: can a single parameterized skill preserve these nuances, or does merging flatten important distinctions? Potential savings ~500-600 lines, but only worth it if output quality doesn't regress.
+
+- **[SKILLS]** Audit design-* skills for knowledge density (`audit-design-skills`)
+    - **scope**: `skills`
+    - **notes**: design-tests (400 lines), design-docker (331), design-qa (209), design-db (180), design-diagram (156). These are reference skills by design — invoked occasionally, not daily. Low usage alone isn't a signal for removal. Question: how much is expert knowledge beyond Claude's training vs patterns Claude already knows? Review each for lines that wouldn't be generated without the skill. Track usage over time to inform future decisions.
 
 - **[HOOKS]** Hook router — single dispatch process per trigger instead of N separate hook spawns (`hook-router`)
     - **scope**: `hooks`
