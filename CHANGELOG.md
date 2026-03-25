@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.32.9] - 2026-03-25 - Gitignore .claude/ dir, whitelist project files
+
+### Changed
+- **templates**: Gitignore template now ignores entire `.claude/` directory (synced resources), whitelists `settings.json`, `mcp.json` (team config), and `project-*` memories (project-specific context)
+
 ## [2.32.8] - 2026-03-25 - Key Principles in templates, CLAUDE.md drift check
 
 ### Changed
