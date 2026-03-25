@@ -18,7 +18,7 @@ import shutil
 import sys
 from pathlib import Path
 
-TOOLKIT_DIR = Path(__file__).resolve().parent.parent
+TOOLKIT_DIR = Path(__file__).resolve().parent.parent.parent
 CLAUDE_DIR = TOOLKIT_DIR / ".claude"
 
 # Colors

@@ -14,7 +14,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PUBLISH_SCRIPT="$TOOLKIT_DIR/scripts/publish.py"
+PUBLISH_SCRIPT="$TOOLKIT_DIR/.github/scripts/publish.py"
 
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 parse_test_args "$@"
