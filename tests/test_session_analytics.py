@@ -96,9 +96,10 @@ def _write_jsonl(path: Path, records: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
-def indexed_db(tmp_path: Path) -> sqlite3.Connection:
+@pytest.fixture(scope="session")
+def indexed_db(tmp_path_factory: pytest.TempPathFactory) -> sqlite3.Connection:
     """Create and index a test DB with two projects and multiple sessions."""
+    tmp_path = tmp_path_factory.mktemp("analytics")
     db_path = tmp_path / "test.db"
 
     # Project A: 2 sessions, mix of tools and progress events
@@ -497,9 +498,10 @@ class TestBranchPatterns:
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
-def memory_db(tmp_path: Path) -> sqlite3.Connection:
+@pytest.fixture(scope="session")
+def memory_db(tmp_path_factory: pytest.TempPathFactory) -> sqlite3.Connection:
     """DB with memory reads, CLAUDE.md reads, and SessionStart events."""
+    tmp_path = tmp_path_factory.mktemp("memory")
     db_path = tmp_path / "test.db"
 
     # Project A: /home/user/projects/alpha — 2 sessions with memory + CLAUDE.md reads

@@ -19,16 +19,16 @@ help:
 test: test-hooks test-cli test-backlog test-raiz test-session-index test-session-analytics test-eval test-validate-indexed
 
 test-hooks:
-	@bash tests/test-hooks.sh
+	@bash tests/test-hooks.sh -q
 
 test-cli:
-	@bash tests/test-cli.sh
+	@bash tests/test-cli.sh -q
 
 test-backlog:
-	@bash tests/test-backlog-query.sh
+	@bash tests/test-backlog-query.sh -q
 
 test-raiz:
-	@bash tests/test-raiz-publish.sh
+	@bash tests/test-raiz-publish.sh -q
 
 test-session-index:
 	@uv run pytest tests/test_session_index.py -q
@@ -37,10 +37,10 @@ test-session-analytics:
 	@uv run pytest tests/test_session_analytics.py -q
 
 test-eval:
-	@bash tests/test-evaluation-query.sh
+	@bash tests/test-evaluation-query.sh -q
 
 test-validate-indexed:
-	@bash tests/test-validate-resources-indexed.sh
+	@bash tests/test-validate-resources-indexed.sh -q
 
 backlog:
 	@bash .claude/scripts/backlog-query.sh

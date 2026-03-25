@@ -3,6 +3,7 @@
 #
 # Usage:
 #   bash tests/test-evaluation-query.sh      # Run all tests
+#   bash tests/test-evaluation-query.sh -q   # Quiet mode (summary + failures only)
 #   bash tests/test-evaluation-query.sh -v   # Verbose mode
 #
 # Exit codes:
@@ -14,27 +15,9 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 QUERY_SCRIPT="$TOOLKIT_DIR/.claude/scripts/evaluation-query.sh"
-VERBOSE="${VERBOSE:-0}"
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-# Parse args
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) shift ;;
-    esac
-done
-
-log_verbose() {
-    [ "$VERBOSE" = "1" ] && echo "  $*"
-}
+source "$SCRIPT_DIR/lib/test-helpers.sh"
+parse_test_args "$@"
 
 # === Test Environment ===
 
@@ -165,11 +148,11 @@ expect_success() {
 
     if [[ $exit_code -eq 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: exit code 0"
         echo "    Got: exit code $exit_code"
         echo "    Output: ${output:-<empty>}"
@@ -187,11 +170,11 @@ expect_failure() {
 
     if [[ $exit_code -ne 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: non-zero exit code"
         echo "    Got: exit code 0"
         echo "    Output: ${output:-<empty>}"
@@ -210,11 +193,11 @@ expect_output() {
 
     if echo "$output" | grep -qF -- "$expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output contains: $expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected output to contain: $expected"
         echo "    Got: ${output:-<empty>}"
     fi
@@ -232,11 +215,11 @@ expect_not_output() {
 
     if ! echo "$output" | grep -qF -- "$not_expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output does not contain: $not_expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected output NOT to contain: $not_expected"
         echo "    Got: ${output:-<empty>}"
     fi
@@ -254,11 +237,11 @@ expect_count() {
 
     if echo "$output" | grep -qF -- "Found $expected_count "; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Found $expected_count"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: Found $expected_count ..."
         echo "    Got: ${output:-<empty>}"
     fi
@@ -267,8 +250,7 @@ expect_count() {
 # === TESTS ===
 
 test_missing_eval_file() {
-    echo ""
-    echo "=== missing evaluations.json ==="
+    report_section "=== missing evaluations.json ==="
     setup_test_env
     # Don't create evaluations.json
 
@@ -279,8 +261,7 @@ test_missing_eval_file() {
 }
 
 test_list_default() {
-    echo ""
-    echo "=== list all (default) ==="
+    report_section "=== list all (default) ==="
     setup_test_env
     create_test_evaluations
 
@@ -294,8 +275,7 @@ test_list_default() {
 }
 
 test_type_filter() {
-    echo ""
-    echo "=== type filter ==="
+    report_section "=== type filter ==="
     setup_test_env
     create_test_evaluations
 
@@ -311,8 +291,7 @@ test_type_filter() {
 }
 
 test_stale() {
-    echo ""
-    echo "=== stale detection ==="
+    report_section "=== stale detection ==="
     setup_test_env
     create_test_evaluations
 
@@ -328,8 +307,7 @@ test_stale() {
 }
 
 test_stale_none() {
-    echo ""
-    echo "=== no stale resources ==="
+    report_section "=== no stale resources ==="
     setup_test_env
 
     # Create evaluations with correct hashes for all resources
@@ -354,8 +332,7 @@ EOF
 }
 
 test_unevaluated() {
-    echo ""
-    echo "=== unevaluated detection ==="
+    report_section "=== unevaluated detection ==="
     setup_test_env
     create_test_evaluations
 
@@ -368,8 +345,7 @@ test_unevaluated() {
 }
 
 test_unevaluated_all_present() {
-    echo ""
-    echo "=== all resources evaluated ==="
+    report_section "=== all resources evaluated ==="
     setup_test_env
 
     local skill_hash
@@ -390,8 +366,7 @@ EOF
 }
 
 test_above() {
-    echo ""
-    echo "=== above threshold ==="
+    report_section "=== above threshold ==="
     setup_test_env
     create_test_evaluations
 
@@ -415,8 +390,7 @@ test_above() {
 }
 
 test_verbose() {
-    echo ""
-    echo "=== verbose mode ==="
+    report_section "=== verbose mode ==="
     setup_test_env
     create_test_evaluations
 
@@ -427,8 +401,7 @@ test_verbose() {
 }
 
 test_help() {
-    echo ""
-    echo "=== --help ==="
+    report_section "=== --help ==="
     setup_test_env
     create_test_evaluations
 
@@ -439,8 +412,7 @@ test_help() {
 }
 
 test_unknown_command() {
-    echo ""
-    echo "=== unknown command ==="
+    report_section "=== unknown command ==="
     setup_test_env
     create_test_evaluations
 
@@ -466,14 +438,4 @@ test_verbose
 test_help
 test_unknown_command
 
-# === SUMMARY ===
-echo ""
-echo "=== Summary ==="
-echo -e "Tests run: $TESTS_RUN"
-echo -e "Passed: ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed: ${RED}$TESTS_FAILED${NC}"
-
-if [ "$TESTS_FAILED" -gt 0 ]; then
-    exit 1
-fi
-exit 0
+print_summary

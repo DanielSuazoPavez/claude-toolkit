@@ -3,6 +3,7 @@
 #
 # Usage:
 #   bash tests/test-backlog-query.sh      # Run all tests
+#   bash tests/test-backlog-query.sh -q   # Quiet mode (summary + failures only)
 #   bash tests/test-backlog-query.sh -v   # Verbose mode
 #
 # Exit codes:
@@ -14,27 +15,9 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 QUERY_SCRIPT="$TOOLKIT_DIR/.claude/scripts/backlog-query.sh"
-VERBOSE="${VERBOSE:-0}"
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-# Parse args
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) shift ;;
-    esac
-done
-
-log_verbose() {
-    [ "$VERBOSE" = "1" ] && echo "  $*"
-}
+source "$SCRIPT_DIR/lib/test-helpers.sh"
+parse_test_args "$@"
 
 # === Test Environment ===
 
@@ -110,14 +93,14 @@ expect_success() {
 
     if [[ $exit_code -eq 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: exit code 0"
-        echo "    Got: exit code $exit_code"
-        echo "    Output: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected: exit code 0"
+        report_detail "Got: exit code $exit_code"
+        report_detail "Output: ${output:-<empty>}"
     fi
 }
 
@@ -132,14 +115,14 @@ expect_failure() {
 
     if [[ $exit_code -ne 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: non-zero exit code"
-        echo "    Got: exit code 0"
-        echo "    Output: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected: non-zero exit code"
+        report_detail "Got: exit code 0"
+        report_detail "Output: ${output:-<empty>}"
     fi
 }
 
@@ -155,13 +138,13 @@ expect_output() {
 
     if echo "$output" | grep -qF -- "$expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output contains: $expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected output to contain: $expected"
-        echo "    Got: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected output to contain: $expected"
+        report_detail "Got: ${output:-<empty>}"
     fi
 }
 
@@ -177,13 +160,13 @@ expect_not_output() {
 
     if ! echo "$output" | grep -qF -- "$not_expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output does not contain: $not_expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected output NOT to contain: $not_expected"
-        echo "    Got: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected output NOT to contain: $not_expected"
+        report_detail "Got: ${output:-<empty>}"
     fi
 }
 
@@ -199,21 +182,20 @@ expect_count() {
 
     if echo "$output" | grep -qF -- "Found $expected_count task"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Found $expected_count task(s)"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: Found $expected_count task(s)"
-        echo "    Got: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected: Found $expected_count task(s)"
+        report_detail "Got: ${output:-<empty>}"
     fi
 }
 
 # === TESTS ===
 
 test_help() {
-    echo ""
-    echo "=== --help ==="
+    report_section "=== --help ==="
     setup_test_env
     create_test_backlog
 
@@ -224,8 +206,7 @@ test_help() {
 }
 
 test_no_backlog() {
-    echo ""
-    echo "=== no BACKLOG.md ==="
+    report_section "=== no BACKLOG.md ==="
     setup_test_env
     # Don't create BACKLOG.md
 
@@ -236,8 +217,7 @@ test_no_backlog() {
 }
 
 test_list_all() {
-    echo ""
-    echo "=== list all (default) ==="
+    report_section "=== list all (default) ==="
     setup_test_env
     create_test_backlog
 
@@ -251,8 +231,7 @@ test_list_all() {
 }
 
 test_filter_status() {
-    echo ""
-    echo "=== status filter ==="
+    report_section "=== status filter ==="
     setup_test_env
     create_test_backlog
 
@@ -268,8 +247,7 @@ test_filter_status() {
 }
 
 test_filter_priority() {
-    echo ""
-    echo "=== priority filter ==="
+    report_section "=== priority filter ==="
     setup_test_env
     create_test_backlog
 
@@ -287,8 +265,7 @@ test_filter_priority() {
 }
 
 test_filter_scope() {
-    echo ""
-    echo "=== scope filter ==="
+    report_section "=== scope filter ==="
     setup_test_env
     create_test_backlog
 
@@ -303,8 +280,7 @@ test_filter_scope() {
 }
 
 test_blocked_unblocked() {
-    echo ""
-    echo "=== blocked/unblocked ==="
+    report_section "=== blocked/unblocked ==="
     setup_test_env
     create_test_backlog
 
@@ -318,8 +294,7 @@ test_blocked_unblocked() {
 }
 
 test_branch() {
-    echo ""
-    echo "=== branch filter ==="
+    report_section "=== branch filter ==="
     setup_test_env
     create_test_backlog
 
@@ -330,8 +305,7 @@ test_branch() {
 }
 
 test_verbose() {
-    echo ""
-    echo "=== verbose mode ==="
+    report_section "=== verbose mode ==="
     setup_test_env
     create_test_backlog
 
@@ -342,8 +316,7 @@ test_verbose() {
 }
 
 test_unknown_command() {
-    echo ""
-    echo "=== unknown command ==="
+    report_section "=== unknown command ==="
     setup_test_env
     create_test_backlog
 
@@ -368,14 +341,4 @@ test_branch
 test_verbose
 test_unknown_command
 
-# === SUMMARY ===
-echo ""
-echo "=== Summary ==="
-echo -e "Tests run: $TESTS_RUN"
-echo -e "Passed: ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed: ${RED}$TESTS_FAILED${NC}"
-
-if [ "$TESTS_FAILED" -gt 0 ]; then
-    exit 1
-fi
-exit 0
+print_summary

@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.30.2] - 2026-03-25 - Clean test output and faster analytics tests
+
+### Changed
+- **tests**: `make check` now runs bash test suites in quiet mode — only summaries and failures shown (~800 lines → ~80)
+- **tests**: Shared test helper library (`tests/lib/test-helpers.sh`) replaces duplicated color vars, counters, and summary blocks across 6 bash test files
+- **tests**: All bash test suites support `-q` (quiet) and `-v` (verbose) flags
+
+### Fixed
+- **tests**: Session analytics fixtures (`indexed_db`, `memory_db`) widened from function to session scope — 15.5s → 0.6s for 65 read-only tests
+
 ## [2.30.1] - 2026-03-25 - Cron index-sessions fix
 
 ### Fixed

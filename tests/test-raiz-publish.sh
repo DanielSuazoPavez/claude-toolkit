@@ -3,6 +3,7 @@
 #
 # Usage:
 #   bash tests/test-raiz-publish.sh           # Run all tests
+#   bash tests/test-raiz-publish.sh -q        # Quiet mode (summary + failures only)
 #   bash tests/test-raiz-publish.sh -v        # Verbose mode
 #
 # Exit codes:
@@ -14,27 +15,9 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PUBLISH_SCRIPT="$TOOLKIT_DIR/scripts/publish.py"
-VERBOSE="${VERBOSE:-0}"
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-# Parse args
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) shift ;;
-    esac
-done
-
-log_verbose() {
-    [ "$VERBOSE" = "1" ] && echo "  $*"
-}
+source "$SCRIPT_DIR/lib/test-helpers.sh"
+parse_test_args "$@"
 
 # === Test Helpers ===
 
@@ -58,10 +41,10 @@ assert_file_exists() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ -f "$path" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected file: $path"
     fi
 }
@@ -73,10 +56,10 @@ assert_file_not_exists() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ ! -f "$path" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    File should not exist: $path"
     fi
 }
@@ -88,10 +71,10 @@ assert_dir_not_exists() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ ! -d "$path" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Directory should not exist: $path"
     fi
 }
@@ -104,10 +87,10 @@ assert_file_contains() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ -f "$path" ]] && grep -qF "$pattern" "$path"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected '$path' to contain: $pattern"
     fi
 }
@@ -120,10 +103,10 @@ assert_file_not_contains() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ -f "$path" ]] && ! grep -qF "$pattern" "$path"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected '$path' NOT to contain: $pattern"
     fi
 }
@@ -135,8 +118,7 @@ echo "Toolkit directory: $TOOLKIT_DIR"
 
 # --- File list ---
 
-echo ""
-echo "=== File list ==="
+report_section "=== File list ==="
 setup
 
 # Included skills
@@ -193,8 +175,7 @@ teardown
 
 # --- Cross-reference trimming ---
 
-echo ""
-echo "=== Cross-reference trimming ==="
+report_section "=== Cross-reference trimming ==="
 setup
 
 # review-changes: /draft-pr and /refactor bullets should be removed
@@ -224,8 +205,7 @@ teardown
 
 # --- Settings template trimming ---
 
-echo ""
-echo "=== Settings template trimming ==="
+report_section "=== Settings template trimming ==="
 setup
 
 local_settings="$OUTPUT_DIR/.claude/templates/settings.template.json"
@@ -248,10 +228,10 @@ assert_file_not_contains "no statusLine" "$local_settings" "statusLine"
 TESTS_RUN=$((TESTS_RUN + 1))
 if jq empty "$local_settings" 2>/dev/null; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "  ${GREEN}PASS${NC}: settings.template.json is valid JSON"
+    report_pass "settings.template.json is valid JSON"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "  ${RED}FAIL${NC}: settings.template.json is valid JSON"
+    report_fail "settings.template.json is valid JSON"
 fi
 
 # Should not have empty hook event arrays
@@ -259,24 +239,13 @@ TESTS_RUN=$((TESTS_RUN + 1))
 empty_arrays=$(jq '[.hooks | to_entries[] | select(.value | length == 0)] | length' "$local_settings" 2>/dev/null)
 if [[ "$empty_arrays" == "0" ]]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "  ${GREEN}PASS${NC}: no empty hook event arrays"
+    report_pass "no empty hook event arrays"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "  ${RED}FAIL${NC}: no empty hook event arrays"
+    report_fail "no empty hook event arrays"
     echo "    Found $empty_arrays empty arrays"
 fi
 
 teardown
 
-# === Summary ===
-
-echo ""
-echo "=== Summary ==="
-echo -e "Tests run: $TESTS_RUN"
-echo -e "Passed: ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed: ${RED}$TESTS_FAILED${NC}"
-
-if [ "$TESTS_FAILED" -gt 0 ]; then
-    exit 1
-fi
-exit 0
+print_summary
