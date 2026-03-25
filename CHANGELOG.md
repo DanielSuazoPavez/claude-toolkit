@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.32.3] - 2026-03-25 - Fix learn skill duplicate detection bias
+
+### Fixed
+- **skills**: `/learn` duplicate detection now biases toward capturing with `recurring` tag instead of skipping — crystallization in `/manage-lessons` handles dedup, not the capture step
+
 ## [2.32.2] - 2026-03-25 - Audit design-* skills, backlog cleanup
 
 ### Changed
