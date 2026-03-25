@@ -90,8 +90,7 @@ User-invocable skills activated with `/skill-name`:
 | `design-db` | Design robust database schemas with normalization and indexing guidance |
 | `design-diagram` | Create diagrams for architecture, flows, and models |
 | `design-docker` | Generate Dockerfile and docker-compose for projects |
-| `design-qa` | Plan comprehensive QA testing strategy |
-| `design-tests` | Pytest patterns for fixtures, mocking, and test organization |
+| `design-tests` | Pytest patterns, QA strategy, fixtures, mocking, and test organization |
 | `draft-pr` | Generate pull request descriptions for the current branch |
 | `evaluate-agent` | Evaluate agent prompt quality and design |
 | `evaluate-batch` | Evaluate multiple resources in parallel with quality tracking |

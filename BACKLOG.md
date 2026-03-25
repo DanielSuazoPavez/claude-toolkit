@@ -23,11 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS]** Merge design-qa into design-tests (`merge-design-qa-into-tests`)
-    - **scope**: `skills`
-    - **notes**: Same domain (testing), complementary intent (strategy vs implementation). design-qa's expert content (~50 lines: debt signals, estimation formulas, triage heuristics) becomes a "Test Strategy" section or `resources/QA_STRATEGY.md` within design-tests. Curated content (artifact selection, regression tiers) adds consistent output formatting that design-tests currently lacks for planning scenarios. Both skills already cross-reference each other. Also: move design-tests troubleshooting (~70 lines) to `resources/TROUBLESHOOTING.md` during the merger. Move `schema-smith-input-spec.md` into `design-db/resources/` while touching skill file structures.
-    - **analysis**: `output/claude-toolkit/analysis/20260325_1101__analyze-idea__audit-design-skills.md`
-
 ## P2 - Medium
 
 - **[SKILLS]** Improve design-diagram skill (`improve-design-diagram`)
