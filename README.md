@@ -75,116 +75,42 @@ A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 
 ## What's Included
 
-### Skills (29)
+| Resource | Count | Examples |
+|----------|-------|---------|
+| **Skills** | 32 | `/brainstorm-idea`, `/draft-pr`, `/refactor`, `/learn` |
+| **Agents** | 7 | `code-reviewer`, `code-debugger`, `pattern-finder` |
+| **Hooks** | 10 | git safety, secrets guard, dangerous command blocking |
+| **Memory templates** | 11 | code style, communication style, testing conventions |
 
-User-invocable skills activated with `/skill-name`:
+Skills cover workflow, code quality, design, development tools, and toolkit development. Hooks cover safety (git, secrets, destructive commands) and convention enforcement (uv, make targets). Some hooks are Python-specific — remove or modify for other stacks.
 
-| Skill | Description |
-|-------|-------------|
-| `analyze-idea` | Research and exploration - investigates topics, gathers evidence, generates reports |
-| `brainstorm-idea` | Turn fuzzy ideas into clear designs through structured dialogue |
-| `create-agent` | Create new agents for specialized tasks |
-| `create-hook` | Create new hooks for Claude Code |
-| `create-memory` | Create new memory files following conventions |
-| `create-skill` | Create new skills using test-driven documentation |
-| `design-db` | Design robust database schemas with normalization and indexing guidance |
-| `design-diagram` | Create diagrams for architecture, flows, and models |
-| `design-docker` | Generate Dockerfile and docker-compose for projects |
-| `design-tests` | Pytest patterns, QA strategy, fixtures, mocking, and test organization |
-| `draft-pr` | Generate pull request descriptions for the current branch |
-| `evaluate-agent` | Evaluate agent prompt quality and design |
-| `evaluate-batch` | Evaluate multiple resources in parallel with quality tracking |
-| `evaluate-hook` | Evaluate hook quality before deployment |
-| `evaluate-memory` | Evaluate memory file quality against conventions |
-| `evaluate-skill` | Evaluate skill design quality against specifications |
-| `learn` | Capture lessons from corrections, patterns, conventions, gotchas |
-| `list-memories` | List available memories with Quick Reference summaries |
-| `read-json` | Read and analyze JSON files efficiently using jq |
-| `refactor` | Structural refactoring analysis |
-| `review-plan` | Review implementation plans against quality criteria |
-| `setup-worktree` | Reference for git worktrees - setup, usage, and common pitfalls |
-| `snap-back` | Reset tone when Claude drifts into sycophancy |
-| `teardown-worktree` | Safe worktree closure after agent completion |
-| `wrap-up` | Finish feature branch - changelog, version bump, commit |
-| `write-docs` | Write or update project documentation via gap analysis |
-| `write-handoff` | Capture context before `/clear` for session continuity |
+For full listings with status and details, see [`docs/indexes/`](docs/indexes/).
 
-### Agents (6)
+## Dependencies
 
-Specialized agents for complex tasks:
-
-| Agent | Description |
-|-------|-------------|
-| `codebase-explorer` | Explores codebase and writes structured analysis documents |
-| `code-reviewer` | Pragmatic code reviewer focused on real risks |
-| `code-debugger` | Investigates bugs using scientific method with persistent state |
-| `goal-verifier` | Verifies work is actually complete, not just tasks checked off |
-| `implementation-checker` | Compares implementation to planning docs at milestones |
-| `pattern-finder` | Documents how things are implemented - finds examples of patterns |
-
-### Hooks (8)
-
-Automation hooks configured in `settings.json`:
-
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| `session-start.sh` | SessionStart | Loads essential memories and git context |
-| `git-safety.sh` | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branches + remote-destructive commands |
-| `block-dangerous-commands.sh` | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, etc.) |
-| `block-config-edits.sh` | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
-| `enforce-uv-run.sh` | PreToolUse (Bash) | Ensures Python commands use `uv run` |
-| `enforce-make-commands.sh` | PreToolUse (Bash) | Encourages Make targets over raw commands |
-| `secrets-guard.sh` | PreToolUse (Read\|Bash) | Blocks reading .env files and credential files |
-| `suggest-read-json.sh` | PreToolUse (Read) | Suggests /read-json for large JSON files |
-**Note:** `enforce-uv-run.sh` and `enforce-make-commands.sh` are Python-specific. Remove or modify for non-Python projects.
-
-### Memory Templates (7)
-
-Synced to target projects as starting points in `.claude/memories/`:
-
-| Memory | Purpose |
-|--------|---------|
-| `essential-conventions-code_style` | Coding conventions and style guide |
-| `essential-conventions-memory` | Memory naming conventions |
-| `essential-preferences-communication_style` | Communication style preferences |
-| `relevant-workflow-backlog` | Standardized BACKLOG.md format |
-| `relevant-philosophy-reducing_entropy` | Philosophy on reducing codebase entropy |
-| `relevant-toolkit-hooks_config` | Hook environment variables reference |
-| `relevant-conventions-testing` | Test structure, runners, and conventions |
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — the CLI this toolkit extends
+- `jq` — JSON processing in hooks and skills (`/read-json`, session-start, evaluations)
+- `sqlite3` — lesson storage and retrieval (`/learn`, `surface-lessons` hook)
+- `bash` — all hooks and scripts target bash
+- `make` — test runner and common task targets
+- `uv` — Python dependency management (Python-specific hooks expect this)
 
 ## Configuration
 
 ### settings.local.json
 
-Per-machine configuration (gitignored in target projects). Configures:
+Per-project configuration (gitignored). Configures:
 - Pre-approved Bash commands to reduce permission prompts (`uv run`, `make`, `git`, etc.)
 - MCP server enablement
 - UI preferences
 
 Hooks are configured in `settings.json` (committed, shared).
 
-## Customization
-
-### Adding Skills
-
-1. Create `.claude/skills/your-skill/SKILL.md`
-2. Follow the skill template structure
-3. Use `/evaluate-skill` to evaluate quality
-
-### Adding Agents
-
-1. Create `.claude/agents/your-agent.md`
-2. Include frontmatter: name, description, tools, color (optional)
-3. Use `/evaluate-agent` to evaluate quality
-
-### Adding Memories
-
-1. Use `/create-memory` to create properly formatted memories
-2. Follow naming conventions in `essential-conventions-memory.md`
-
 ## Design Philosophy
 
 See [`.claude/memories/essential-toolkit-identity.md`](.claude/memories/essential-toolkit-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
+
+See also [`.claude/memories/relevant-philosophy-reducing_entropy.md`](.claude/memories/relevant-philosophy-reducing_entropy.md) for the curation philosophy — why less is more, and how to keep the toolkit lean.
 
 ## License
 

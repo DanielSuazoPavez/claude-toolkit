@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **docs**: Streamlined README — replaced full resource tables with summary counts + link to `docs/indexes/`, added Dependencies section, removed Customization section (covered by create-* skills), expanded Design Philosophy with reducing-entropy reference
+
 ## [2.32.4] - 2026-03-25 - Absorb design-qa into design-tests
 
 ### Changed
