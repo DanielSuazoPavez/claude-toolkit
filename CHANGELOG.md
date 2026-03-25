@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.29.2] - 2026-03-24 - Cron script logging
+
+### Fixed
+- **scripts**: All three cron scripts (`backup-transcripts`, `backup-lessons-db`, `index-sessions`) now log timestamped output so `cron.log` isn't empty
+- **gitignore**: Added `scripts/cron/cron.log`
+
 ## [2.29.1] - 2026-03-24 - Stronger session-start hook prompts
 
 ### Changed
