@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.30.1] - 2026-03-25 - Cron index-sessions fix
+
+### Fixed
+- **cron**: `index-sessions.sh` now adds `~/.cargo/bin` to PATH so `uv` is found in cron's minimal environment
+
 ## [2.30.0] - 2026-03-25 - Lessons CLI subcommand
 
 ### Added

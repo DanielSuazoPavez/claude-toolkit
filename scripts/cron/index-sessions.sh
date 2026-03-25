@@ -8,6 +8,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export PATH="$HOME/.cargo/bin:$PATH"
 
 cd "$SCRIPT_DIR/../.."
 uv run scripts/sessions/index.py index
