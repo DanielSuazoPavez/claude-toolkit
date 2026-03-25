@@ -4,7 +4,6 @@ requires-python = ">=3.12"
 
 [[package]]
 name = "claude-toolkit-scripts"
-version = "2.6.1"
 source = { editable = "." }
 
 [package.dev-dependencies]
