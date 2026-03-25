@@ -1353,7 +1353,7 @@
         },
         "top_improvements": [
           "[med] Fix pronoun inconsistency — line 9 uses first person while rest uses second person; pick one voice consistently to strengthen persona (D3)",
-          "[low] Add cross-references to relevant skills like design-qa or design-tests for post-fix test strategy, expanding ecosystem integration (D5)",
+          "[low] Add cross-references to relevant skills like design-tests for post-fix test strategy, expanding ecosystem integration (D5)",
           "[low] Add explicit voice directives in be X, not Y format to further differentiate from default Claude (D3)"
         ]
       },
