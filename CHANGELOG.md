@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.32.11] - 2026-03-25 - Refactor scripts/ to cli/
+
+### Changed
+- **cli**: Renamed `scripts/` Python package to `cli/` — cleaner separation from `.claude/scripts/` bash utilities
+- **cli**: `scripts/shared/formatting.py` absorbed into `cli/lessons/formatting.py` (only used by lessons)
+- **ci**: `scripts/publish.py` moved to `.github/scripts/publish.py` (tied to GitHub Actions workflow)
+- **hooks**: `scripts/cron/` bash scripts moved to `.claude/scripts/cron/` alongside other toolkit bash utilities
+- **pyproject.toml**: Package renamed from `claude-toolkit-scripts` to `claude-toolkit`
+
+> **Note for existing installs:** If upgrading in-place, rebuild the venv to remove the old entry point: `rm -rf .venv && make install`
+
 ## [2.32.10] - 2026-03-25 - Add session-start size logging
 
 ### Changed
