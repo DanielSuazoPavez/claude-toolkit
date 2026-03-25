@@ -1,22 +1,16 @@
+# QA Strategy & Planning Reference
+
+Strategic test planning for greenfield projects, release readiness, and coverage audits. Return to the main skill for pytest implementation patterns.
+
+## Table of Contents
+
+1. [Artifact Selection](#artifact-selection)
+2. [Expert QA Mindset](#expert-qa-mindset)
+3. [Edge Cases](#edge-cases)
+4. [Release Readiness](#release-readiness)
+5. [Quick Reference](#quick-reference)
+
 ---
-name: design-qa
-type: knowledge
-description: Design test plans, QA strategies, regression suites, and bug triage workflows. Use when requests mention "test plan", "QA strategy", "regression testing", "test coverage", "bug report", "acceptance criteria", or "release testing".
-disable-model-invocation: true
----
-
-# QA Test Planner
-
-Create testing documentation with expert-level quality judgment.
-
-## Quick Start
-
-Describe what you need:
-```
-create a test plan for the new checkout flow
-write test cases for user authentication
-design a regression suite for the payments module
-```
 
 ## Artifact Selection
 
@@ -33,18 +27,6 @@ When unclear, start with the test plan — it surfaces scope and risk before com
 ## Expert QA Mindset
 
 **Think like a saboteur**: Your job is to break the system before users do.
-
-### Test Debt Signals
-
-Push back on shipping without tests when you see these:
-- **Changelog churn**: Same module appears in 3+ recent bug fixes — it's accumulating debt faster than you're paying it down
-- **Tribal knowledge gates**: Only one person knows how to test a feature manually — that's unwritten test coverage with a bus factor of 1
-- **"It worked on my machine" frequency**: >2 occurrences/sprint means environment-dependent behavior isn't covered
-- **Regression recidivism**: A bug you fixed last month is back — the fix wasn't verified with a regression test
-
-**Debt accumulation rate**: Each shipped feature without tests adds ~1.5x its original test effort as future debt (context loss, behavior drift, integration surface growth). Three consecutive untest sprints typically means a dedicated test-writing sprint is cheaper than continued ad-hoc fixing.
-
-## Expert Heuristics
 
 ### When to Escalate Bugs
 
@@ -63,20 +45,6 @@ Push back on shipping without tests when you see these:
 - Feature partially broken with workaround
 - Edge cases, cosmetic issues
 - Low-traffic features
-
-### Estimating Test Coverage Time
-
-**Quick estimation formula**: `(features × 2) + (integrations × 3) + (risk_factors × 4)` hours
-
-| Component | Smoke (min) | Full (hours) |
-|-----------|-------------|--------------|
-| Simple CRUD feature | 15 | 2-4 |
-| Payment integration | 30 | 4-8 |
-| Auth/permissions | 30 | 4-6 |
-| File upload/export | 20 | 2-3 |
-| Third-party API | 45 | 6-8 |
-
-**Multipliers**: Mobile +50%, accessibility +30%, i18n +20% per locale
 
 ### Handling Flaky Tests
 
@@ -153,27 +121,6 @@ When you have hours, not days:
 - P1 paths: Happy path only
 - P2/P3: Skip with documented risk
 
-## Anti-Patterns
-
-| Pattern | Problem | Fix |
-|---------|---------|-----|
-| **Testing implementation, not behavior** | Tests break on refactor even when feature works fine | Write tests against observable outcomes, not internal steps |
-| **Over-mocking hides integration bugs** | Unit tests pass, production breaks at boundaries | Reserve mocks for external services; test real integrations where feasible |
-| **Copy-paste test plans** | Reused plans miss feature-specific risks | Start from risk analysis, not templates |
-| **Conflating severity with priority** | P1 cosmetic bugs block release while P3 data loss waits | Severity = impact, priority = business urgency. A low-severity bug on the checkout page can be high priority |
-| **Testing everything equally** | 200 test cases, all medium priority, no one runs them all | Risk-weight: P0 paths get exhaustive coverage, P3 gets smoke only |
-| **Happy path only** | Misses real failures | Boundaries, empty states, error paths, concurrent access |
-
-## Rationalizations
-
-| Rationalization | Counter |
-|-----------------|---------|
-| "These edge cases are unlikely" | Unlikely × high-impact = P1. Check the risk matrix. |
-| "The code looks correct, no need to test" | Code review finds logic errors. Testing finds integration errors. Different coverage. |
-| "We'll catch it in production" | Production bugs cost 10x. Test environment exists for a reason. |
-| "Just a minor UI change, skip regression" | Minor changes break unexpected paths. Smoke test at minimum. |
-| "We don't have time to test everything" | That's what prioritization is for. P0 paths get 100%, P3 gets skipped with documented risk. |
-
 ## Release Readiness
 
 ### Entry Criteria (start testing)
@@ -201,9 +148,3 @@ When you have hours, not days:
 | Test Case | Preconditions, steps, expected result, priority |
 | Bug Report | Steps to reproduce, expected vs actual, environment |
 | Regression Suite | Tiered (smoke/targeted/full), pass/fail criteria |
-
-## See Also
-
-- `/design-tests` — Pytest implementation (fixtures, mocking, async patterns, code-level audits). This skill covers test strategy (what to test, risk assessment, release readiness). If you need both, start here for the plan, then use design-tests to write the code.
-- `code-reviewer` agent — Complements QA with code-level review; may identify test coverage gaps.
-- `code-debugger` agent — For systematic bug investigation after QA identifies failures.
