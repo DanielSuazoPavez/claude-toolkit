@@ -43,7 +43,7 @@ Tests are bash scripts in `tests/` plus pytest for Python modules. Run via Makef
 ### Python tests (pytest)
 
 - **Location:** `tests/test_*.py`
-- **Config:** `pyproject.toml` — `testpaths`, `pythonpath = ["."]` for `from scripts.x import ...`
+- **Config:** `pyproject.toml` — `testpaths`, `pythonpath = ["."]` for `from cli.x import ...`
 - **Dev dep:** `pytest>=8.0` in `[dependency-groups] dev`
 - **Install:** `make install` (`uv sync --dev`)
 - **Pattern:** synthetic JSONL fixtures via `tmp_path`/`tmp_path_factory`, module-scoped where read-only
