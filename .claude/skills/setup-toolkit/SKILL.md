@@ -91,9 +91,25 @@ done < .claude/templates/gitignore.claude-toolkit
 
 If `.gitignore` doesn't exist, all lines are missing.
 
-### Check 6: CLAUDE.md exists
+### Check 6: CLAUDE.md exists and has key principles
 
 Check if `CLAUDE.md` exists in the project root. If missing, flag it. Template available at `.claude/templates/CLAUDE.md.template`.
+
+If `CLAUDE.md` exists, also check for key principles from the template that may be missing:
+
+```bash
+# Extract bullet points from "Key Principles" section of template
+# (lines starting with "- **" between "## Key Principles" and the next "##")
+sed -n '/^## Key Principles/,/^## /{/^- \*\*/p}' .claude/templates/CLAUDE.md.template > /tmp/ct-principles-template.txt
+
+# Check which ones are missing from CLAUDE.md (match on the bold text)
+while IFS= read -r line; do
+    keyword=$(echo "$line" | grep -oP '\*\*[^*]+\*\*' | head -1)
+    grep -qF "$keyword" CLAUDE.md 2>/dev/null || echo "Missing: $line"
+done < /tmp/ct-principles-template.txt
+```
+
+Report missing principles as suggestions (not errors) — the user may have intentionally omitted or reworded them.
 
 ### Present Summary
 
@@ -107,7 +123,7 @@ After all checks, show:
 | 3 | MCP config             | ...    | ...    |
 | 4 | Makefile targets       | ...    | ...    |
 | 5 | .gitignore patterns    | ...    | ...    |
-| 6 | CLAUDE.md              | ...    | ...    |
+| 6 | CLAUDE.md + principles | ...    | ...    |
 ```
 
 If all checks pass, report "All checks passed" and skip to Phase 3.
@@ -196,6 +212,17 @@ If missing, offer to copy from template:
 ```
 "CLAUDE.md not found. Create from template? The template has placeholder sections you'll want to fill in. [y/n]"
 ```
+
+If CLAUDE.md exists but is missing key principles from the template, show the missing ones and offer to add them:
+
+```
+"These key principles from the template are missing from your CLAUDE.md:
+  - **Plan before building**: Use plan mode for non-trivial tasks...
+  - **Zero warnings**: Treat lint/type warnings as errors...
+Add them to your Key Principles section? [y/n/pick]"
+```
+
+If the user picks "pick", present each one individually. These are suggestions — the user may have intentionally omitted or reworded them.
 
 ## Phase 3: Validation
 

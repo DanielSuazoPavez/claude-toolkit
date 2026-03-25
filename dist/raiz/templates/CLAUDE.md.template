@@ -24,7 +24,7 @@ make test
 <!-- Key directories and files. Keep it short — just enough for orientation. -->
 ```
 
-## Conventions
+## Key Principles
 
 - **Plan before building**: Use plan mode for non-trivial tasks, even when they look simple at first glance.
 - **Replace, don't deprecate**: Remove old code. No backward-compat shims, re-exports, or `# removed` comments.
