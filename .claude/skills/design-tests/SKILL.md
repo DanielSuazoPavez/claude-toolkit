@@ -1,28 +1,44 @@
 ---
 name: design-tests
 type: knowledge
-description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "pytest structure", "missing tests", "test audit", or "coverage audit".
+description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "pytest structure", "missing pytest tests", "pytest audit", "coverage audit", "pytest test plan", "pytest QA strategy", "pytest regression testing", "release testing".
 ---
 
 # Test Design Guide
 
 Consistent pytest patterns for reliable, maintainable tests.
 
-## Mindset: Tests Are Specifications
+## What Are You Doing?
 
-Tests are executable behavior contracts. Name them for the behavior (`test_expired_token_returns_401`), not the function (`test_validate_token`). A broken test means the contract changed — decide if the contract or the code is wrong before touching either.
+```
+What's the testing task?
+├─ Starting from scratch / greenfield test plan?
+│   → Read resources/QA_STRATEGY.md first for planning framework
+│   → Then return here for implementation patterns
+│
+├─ Reviewing or auditing existing test coverage?
+│   → Read resources/QA_STRATEGY.md for risk assessment and release readiness
+│   → Use Audit Mode below for gap analysis
+│
+├─ Adding tests for a specific feature or change?
+│   → Use Test Priority Framework below to decide what to test
+│   → May skim resources/QA_STRATEGY.md § Test Debt Signals if unsure about coverage depth
+│
+└─ Debugging test failures?
+    → See resources/TROUBLESHOOTING.md
+```
 
 ## Table of Contents
 
 1. [Test Priority Framework](#test-priority-framework)
-2. [Audit Mode — Gap Analysis](#audit-mode--gap-analysis)
-3. [Fixtures](#fixtures)
-4. [Mocking](#mocking)
-5. [Async Testing](#async-testing)
-6. [High-Risk Scenarios](#high-risk-scenarios)
-7. [Troubleshooting](#troubleshooting)
-8. [Concrete Examples](#concrete-examples)
-9. [Anti-Patterns](#anti-patterns)
+2. [Test Debt Signals](#test-debt-signals)
+3. [Audit Mode — Gap Analysis](#audit-mode--gap-analysis)
+4. [Fixtures](#fixtures)
+5. [Mocking](#mocking)
+6. [Async Testing](#async-testing)
+7. [High-Risk Scenarios](#high-risk-scenarios)
+8. [Anti-Patterns](#anti-patterns)
+9. [Concrete Examples](#concrete-examples)
 
 ---
 
@@ -60,11 +76,37 @@ What type of code is this?
 
 **Rule:** Test behavior, not implementation. If refactoring breaks tests but not behavior, tests are too coupled.
 
+### Estimating Test Coverage Time
+
+**Quick estimation formula**: `(features × 2) + (integrations × 3) + (risk_factors × 4)` hours
+
+| Component | Smoke (min) | Full (hours) |
+|-----------|-------------|--------------|
+| Simple CRUD feature | 15 | 2-4 |
+| Payment integration | 30 | 4-8 |
+| Auth/permissions | 30 | 4-6 |
+| File upload/export | 20 | 2-3 |
+| Third-party API | 45 | 6-8 |
+
+**Multipliers**: Mobile +50%, accessibility +30%, i18n +20% per locale
+
+---
+
+## Test Debt Signals
+
+Push back on shipping without tests when you see these:
+- **Changelog churn**: Same module appears in 3+ recent bug fixes — accumulating debt faster than paying it down
+- **Tribal knowledge gates**: Only one person knows how to test a feature — unwritten coverage with a bus factor of 1
+- **"It worked on my machine" frequency**: >2 occurrences/sprint means environment-dependent behavior isn't covered
+- **Regression recidivism**: A bug you fixed last month is back — the fix wasn't verified with a regression test
+
+**Debt accumulation rate**: Each shipped feature without tests adds ~1.5x its original test effort as future debt. Three consecutive untested sprints typically means a dedicated test-writing sprint is cheaper than continued ad-hoc fixing.
+
 ---
 
 ## Audit Mode — Gap Analysis
 
-Code-level audit: maps source files to pytest files, flags missing test cases. For test *strategy* (risk-based prioritization, release readiness, QA planning), use `/design-qa` instead.
+Code-level audit: maps source files to pytest files, flags missing test cases. For strategic planning (release readiness, regression tiers, risk-based prioritization), see `resources/QA_STRATEGY.md`.
 
 ### Process
 
@@ -149,6 +191,26 @@ What kind of fixture is this?
 │   └─ Stateful (DB transaction)? → function with rollback
 └─ Utility/helper with no state? → module
 ```
+
+### Slow Tests? Check Fixture Scope
+
+When test suites are slow, the most common fix is broadening fixture scope — expensive setup running per-test when it could run once:
+
+```
+Tests are slow. Is a fixture the cause?
+├─ Does the fixture hit a DB, API, or filesystem?
+│   ├─ Do tests only READ the data? → Widen to session/module
+│   ├─ Do tests WRITE but can rollback? → function with rollback (see High-Risk Scenarios)
+│   └─ Do tests WRITE and can't rollback? → function (pay the cost)
+├─ Does the fixture build a large object (model, dataset, index)?
+│   ├─ Tests use it as-is, no mutation? → session
+│   └─ Tests modify it? → Copy per-test from a session-scoped original
+└─ Is setup fast (<100ms) but there are 500+ tests?
+    ├─ Parametrize explosion or I/O in test bodies? → Fix those first
+    └─ Tests are genuinely independent? → Consider `pytest-xdist` (-n auto)
+```
+
+**Diagnosis**: Run `pytest --durations=20` to find the slowest tests, then check which fixtures they share. If the same fixture appears across many slow tests, it's a scoping candidate.
 
 ### Factory Pattern
 
@@ -292,79 +354,6 @@ def test_api_failure_modes(mock_client, error, expected):
 
 ---
 
-## Troubleshooting
-
-Common pytest failures that waste debugging time.
-
-### Fixture Not Found
-
-```
-E fixture 'my_fixture' not found
-```
-
-```
-Is conftest.py in the right directory?
-├─ Same directory as test file? → Should work
-├─ Parent directory? → Should work (pytest walks up)
-├─ Sibling directory? → Won't work — fixtures don't cross branches
-└─ Is conftest.py actually named conftest.py? → Check spelling, no prefix
-```
-
-**Key rule:** `conftest.py` fixtures are available to tests in the same directory and all subdirectories, never sideways.
-
-### Import Errors at Collection
-
-```
-E ModuleNotFoundError: No module named 'myapp'
-```
-
-| Cause | Fix |
-|-------|-----|
-| Missing `__init__.py` in `tests/` | Add it, or use `--import-mode=importlib` in pytest config |
-| Running pytest from wrong directory | Run from project root, or set `rootdir` in config |
-| Package not installed in editable mode | `uv pip install -e .` or `uv run pytest` |
-| `src/` layout without `src` in path | Add `pythonpath = ["src"]` to `[tool.pytest.ini_options]` |
-
-### Fixture Cleanup Failures
-
-When fixture teardown raises, it masks the real test failure:
-
-```python
-# Bad: cleanup can fail and hide the actual error
-@pytest.fixture
-def temp_file():
-    path = Path("/tmp/test.txt")
-    path.write_text("data")
-    yield path
-    path.unlink()  # Fails if test already deleted it
-
-# Good: defensive cleanup
-@pytest.fixture
-def temp_file(tmp_path):  # Use pytest's tmp_path — auto-cleaned
-    path = tmp_path / "test.txt"
-    path.write_text("data")
-    yield path
-    # No manual cleanup needed
-```
-
-**Rule:** Use `tmp_path`/`tmp_path_factory` for filesystem fixtures. For DB/network, wrap cleanup in try/finally.
-
-### Flaky Tests
-
-```
-Is the test flaky?
-├─ Fails only in CI, passes locally?
-│   ├─ Timing-dependent? → Use `freezegun` or `time_machine`, not `time.sleep`
-│   └─ Port/file conflicts? → Use random ports, `tmp_path`
-├─ Fails intermittently everywhere?
-│   ├─ Shared mutable state between tests? → Check fixture scope, use `function` scope
-│   └─ Test order dependency? → Run with `pytest-randomly` to expose it
-└─ Fails only with `-x` (fail-fast)?
-    └─ Previous test's teardown is broken → Check fixture cleanup
-```
-
----
-
 ## Anti-Patterns
 
 See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-patterns.
@@ -380,6 +369,9 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | **Testing only happy path** | Misses rollback bugs, auth bypasses, API failures | See [High-Risk Scenarios](#high-risk-scenarios) |
 | **Fixture scope pollution** | `session`/`module` fixture mutated by one test, breaks others non-deterministically | Use `function` scope for mutable state; reserve broader scopes for read-only or connection fixtures |
 | **conftest.py at wrong level** | Fixtures in root conftest shared everywhere — tests implicitly depend on unrelated setup | Put fixtures in the narrowest conftest that covers their consumers; root conftest only for truly global fixtures (DB connection, app factory) |
+| **Copy-paste test plans** | Reused plans miss feature-specific risks | Start from risk analysis, not templates |
+| **Conflating severity with priority** | P1 cosmetic bugs block release while P3 data loss waits | Severity = impact, priority = business urgency |
+| **Testing everything equally** | 200 test cases, all medium priority | Risk-weight: P0 exhaustive, P3 smoke only |
 
 ## Rationalizations
 
@@ -391,10 +383,14 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | "This is just glue code" | Glue fails silently — wrong argument order, missing await, swapped parameters. Integration bugs are the hardest to trace. |
 | "The function is too hard to test" | Hard to test = hard to use. The test is telling you the interface needs work. Listen to it. |
 | "Existing code has no tests" | You're touching it now. Add tests for what you change — don't inherit the debt. |
+| "These edge cases are unlikely" | Unlikely × high-impact = P1. Check the risk matrix. |
+| "The code looks correct, no need to test" | Code review finds logic errors. Testing finds integration errors. Different coverage. |
+| "We'll catch it in production" | Production bugs cost 10x. Test environment exists for a reason. |
+| "We don't have time to test everything" | That's what prioritization is for. P0 paths get 100%, P3 gets skipped with documented risk. |
 
 ## See Also
 
-- `/design-qa` — Test strategy and planning (what to test, risk prioritization, release readiness). This skill covers pytest implementation (how to write the tests). If you need both, start with design-qa for the plan, then come here to write the code.
 - `code-reviewer` agent — May flag missing tests or over-testing during code review.
+- `/design-db` — Schema and migration design; complements the DB transaction testing section.
 - `/design-docker` — Testing containerized services and CI/CD pipeline test configuration.
 - `/refactor` — If test structure needs updating after module reorganization.
