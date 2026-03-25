@@ -4,15 +4,15 @@
 Builds on the session-index.db created by session_index.py.
 
 Usage:
-    uv run scripts/session_analytics.py sessions [--project <name>] [--days N] [--limit N]
-    uv run scripts/session_analytics.py projects [--days N]
-    uv run scripts/session_analytics.py time [--project <name>] [--days N]
-    uv run scripts/session_analytics.py branches [--project <name>] [--days N] [--limit N]
-    uv run scripts/session_analytics.py memory [--project <name>] [--days N] [--limit N]
-    uv run scripts/session_analytics.py timeline [--days N] [--project <name>]
-    uv run scripts/session_analytics.py files [<pattern>] [--days N] [--project <name>]
-    uv run scripts/session_analytics.py stats
-    uv run scripts/session_analytics.py resource-cost [--type skill|agent] [--project <name>] [--sort tokens|uses|avg]
+    uv run scripts/sessions/analytics.py sessions [--project <name>] [--days N] [--limit N]
+    uv run scripts/sessions/analytics.py projects [--days N]
+    uv run scripts/sessions/analytics.py time [--project <name>] [--days N]
+    uv run scripts/sessions/analytics.py branches [--project <name>] [--days N] [--limit N]
+    uv run scripts/sessions/analytics.py memory [--project <name>] [--days N] [--limit N]
+    uv run scripts/sessions/analytics.py timeline [--days N] [--project <name>]
+    uv run scripts/sessions/analytics.py files [<pattern>] [--days N] [--project <name>]
+    uv run scripts/sessions/analytics.py stats
+    uv run scripts/sessions/analytics.py resource-cost [--type skill|agent] [--project <name>] [--sort tokens|uses|avg]
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from session_db import DB_PATH, _c, _fmt_tokens, init_db  # noqa: E402
+from db import DB_PATH, _c, _fmt_tokens, init_db  # noqa: E402
 
 # Default UTC offset for display (hours). Timestamps in the DB are UTC.
 DEFAULT_UTC_OFFSET = -3

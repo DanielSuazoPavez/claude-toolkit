@@ -2,9 +2,9 @@
 """Full-text search across indexed Claude Code session transcripts.
 
 Usage:
-    uv run scripts/session_search.py search <query> [--project <name>] [--since YYYY-MM-DD] [--type <type>] [--limit N]
+    uv run scripts/sessions/search.py search <query> [--project <name>] [--since YYYY-MM-DD] [--type <type>] [--limit N]
 
-Requires a populated session index — run `uv run scripts/session_index.py index` first.
+Requires a populated session index — run `uv run scripts/sessions/index.py index` first.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from session_db import DB_PATH, _c, init_db  # noqa: E402
+from db import DB_PATH, _c, init_db  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Subcommands

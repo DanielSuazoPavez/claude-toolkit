@@ -1,4 +1,4 @@
-"""Tests for scripts/session_analytics.py — session usage pattern analytics."""
+"""Tests for scripts/sessions/analytics.py — session usage pattern analytics."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from scripts.session_db import init_db
-from scripts.session_index import index_sessions
-from scripts.session_analytics import (
+from scripts.sessions.db import init_db
+from scripts.sessions.index import index_sessions
+from scripts.sessions.analytics import (
     FILTERED_EVENTS_CTE,
     _cte,
     _classify_claude_md,
@@ -169,7 +169,7 @@ def indexed_db(tmp_path: Path) -> sqlite3.Connection:
 
     conn = init_db(db_path)
 
-    import scripts.session_index as si
+    import scripts.sessions.index as si
     original = si.SOURCE_DIRS
     si.SOURCE_DIRS = [tmp_path / "transcripts"]
     try:
@@ -587,7 +587,7 @@ def memory_db(tmp_path: Path) -> sqlite3.Connection:
 
     conn = init_db(db_path)
 
-    import scripts.session_index as si
+    import scripts.sessions.index as si
     original = si.SOURCE_DIRS
     si.SOURCE_DIRS = [tmp_path / "transcripts"]
     try:

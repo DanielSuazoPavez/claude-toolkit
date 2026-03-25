@@ -1,4 +1,4 @@
-"""Tests for scripts/session_index.py — session extraction and indexing."""
+"""Tests for scripts/sessions/index.py — session extraction and indexing."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from scripts.session_db import init_db
-from scripts.session_index import (
+from scripts.sessions.db import init_db
+from scripts.sessions.index import (
     _extract_assistant_text,
     _extract_tool_detail,
     _extract_user_text,
@@ -550,7 +550,7 @@ class TestResourceUsageExtraction:
         db_path = tmp_path / "test.db"
         conn = init_db(db_path)
 
-        import scripts.session_index as si
+        import scripts.sessions.index as si
         original = si.SOURCE_DIRS
         si.SOURCE_DIRS = [tmp_path / "transcripts"]
         try:
@@ -668,7 +668,7 @@ class TestDatabaseRoundTrip:
         conn = init_db(db_path)
 
         # Monkeypatch SOURCE_DIRS for test
-        import scripts.session_index as si
+        import scripts.sessions.index as si
         original = si.SOURCE_DIRS
         si.SOURCE_DIRS = [tmp_path / "transcripts"]
         try:
@@ -711,7 +711,7 @@ class TestDatabaseRoundTrip:
 
         conn = init_db(db_path)
 
-        import scripts.session_index as si
+        import scripts.sessions.index as si
         original = si.SOURCE_DIRS
         si.SOURCE_DIRS = [tmp_path / "backup", tmp_path / "live"]
         try:
@@ -742,7 +742,7 @@ class TestDatabaseRoundTrip:
 
         conn = init_db(db_path)
 
-        import scripts.session_index as si
+        import scripts.sessions.index as si
         original = si.SOURCE_DIRS
         si.SOURCE_DIRS = [tmp_path / "transcripts"]
         try:

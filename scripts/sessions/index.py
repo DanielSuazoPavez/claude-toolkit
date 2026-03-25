@@ -5,9 +5,9 @@ Extracts events from JSONL session files and indexes them into a SQLite
 database with full-text search support.
 
 Usage:
-    uv run scripts/session_index.py index [--full] [--project <name>]
+    uv run scripts/sessions/index.py index [--full] [--project <name>]
 
-Schema design: scripts/session-search/schema-smith/schemas/session_index.yaml
+Schema design: scripts/sessions/schemas/session_index.yaml
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).parent))
-from session_db import (  # noqa: E402
+from db import (  # noqa: E402
     BACKUP_TRANSCRIPTS_DIR,
     DB_PATH,
     DEFAULT_TRANSCRIPTS_DIR,
