@@ -1,5 +1,5 @@
 [project]
-name = "claude-toolkit-scripts"
+name = "claude-toolkit"
 dynamic = ["version"]
 requires-python = ">=3.12"
 
@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 package = true
 
 [project.scripts]
-ct-lessons = "scripts.lessons.db:main"
+ct-lessons = "cli.lessons.db:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
@@ -21,7 +21,7 @@ path = "VERSION"
 pattern = "(?P<version>.+)"
 
 [tool.hatch.build.targets.wheel]
-packages = ["scripts"]
+packages = ["cli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

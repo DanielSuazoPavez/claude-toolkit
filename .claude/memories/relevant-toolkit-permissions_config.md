@@ -25,7 +25,7 @@ Contains only **globally safe** permissions — commands that are safe in any pr
 - Safe filesystem: `mkdir`, `touch`
 - Safe tools: `jq`, `make`
 - Safe git subcommands: `status`, `log`, `diff`, `show`, `blame`, `rev-parse`, `fetch`, `stash`, `add`, `rm`, `checkout`, `switch`, `commit`
-- Hook/script execution: `.claude/hooks/*`, `.claude/scripts/*`, `./scripts/*`
+- Hook/script execution: `.claude/hooks/*`, `.claude/scripts/*`
 - Read-only tool access: `Glob(**)`, `Grep(**)`, `Read(/**)`
 - Output directory writes: `Write(/output/claude-toolkit/**)`, `Edit(/output/claude-toolkit/**)`
 

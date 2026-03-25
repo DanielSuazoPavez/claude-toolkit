@@ -759,9 +759,6 @@ test_approve_safe_commands() {
     expect_approve "$hook" '{"tool_name":"Bash","tool_input":{"command":"./.claude/hooks/git-safety.sh"}}' \
         "approves: ./.claude/hooks/ path"
 
-    expect_approve "$hook" '{"tool_name":"Bash","tool_input":{"command":"./scripts/backup-transcripts.sh"}}' \
-        "approves: ./scripts/ path"
-
     # --- Quoted args with operators inside ---
     expect_approve "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo \"a && b\""}}' \
         "approves: echo with quoted && in args"

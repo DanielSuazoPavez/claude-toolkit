@@ -1,4 +1,4 @@
-"""Tests for scripts/lessons/db.py — lessons database layer."""
+"""Tests for cli/lessons/db.py — lessons database layer."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.lessons.db import (
+from cli.lessons.db import (
     get_metadata,
     get_or_create_project,
     get_or_create_tag,

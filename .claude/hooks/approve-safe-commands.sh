@@ -87,7 +87,6 @@ SAFE_PREFIXES=(
     # Hook/script paths — trust assumption: these dirs are not writable by untrusted sources
     "./.claude/hooks/"
     ".claude/scripts/"
-    "./scripts/"
     # Toolkit CLI
     "claude-toolkit"
 )
