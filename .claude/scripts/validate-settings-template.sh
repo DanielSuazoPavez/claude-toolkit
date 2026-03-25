@@ -4,6 +4,7 @@
 # Checks:
 #   - All hook commands in settings.json exist in the template (and vice versa)
 #   - Both files use the same nested hook format structure
+#   - All hooks in the template are listed in the dist MANIFEST (toolkit mode only)
 #
 # Usage:
 #   bash .claude/scripts/validate-settings-template.sh
@@ -136,6 +137,30 @@ else
     fi
 fi
 echo ""
+
+# === Template hooks → MANIFEST ===
+# Only in toolkit mode (dist/base/MANIFEST exists)
+MANIFEST="dist/base/MANIFEST"
+if [ -f "$MANIFEST" ]; then
+    echo "=== Template Hooks → MANIFEST ==="
+
+    # Extract hook filenames from template — only .claude/hooks/ commands (skip statusLine etc.)
+    TEMPLATE_HOOK_FILES=$(extract_hook_commands "$TEMPLATE" | grep '\.claude/hooks/' | sed 's|^bash ||' | sed 's|.*\.claude/hooks/||' | sort)
+
+    # Extract hook filenames from MANIFEST (lines matching "hooks/*.sh")
+    MANIFEST_HOOK_FILES=$(grep '^hooks/' "$MANIFEST" | sed 's|^hooks/||' | sort)
+
+    MISSING_FROM_MANIFEST=$(comm -23 <(echo "$TEMPLATE_HOOK_FILES") <(echo "$MANIFEST_HOOK_FILES"))
+    if [ -n "$MISSING_FROM_MANIFEST" ]; then
+        echo -e "${RED}In template but missing from MANIFEST (won't sync to projects):${NC}"
+        echo "$MISSING_FROM_MANIFEST" | sed 's/^/  - /'
+        ERRORS=$((ERRORS + $(echo "$MISSING_FROM_MANIFEST" | wc -l)))
+    else
+        HOOK_COUNT=$(echo "$TEMPLATE_HOOK_FILES" | wc -l)
+        echo -e "${GREEN}✓ All $HOOK_COUNT template hooks found in MANIFEST${NC}"
+    fi
+    echo ""
+fi
 
 # === Summary ===
 if [ $ERRORS -eq 0 ]; then

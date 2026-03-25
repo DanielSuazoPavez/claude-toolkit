@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.29.4] - 2026-03-24 - Template→MANIFEST hook sync validation
+
+### Added
+- **validation**: `validate-settings-template.sh` now checks that all hooks in the settings template are listed in `dist/base/MANIFEST`, preventing hooks from being configured but not synced
+
+### Fixed
+- **templates**: Removed obsolete `.claude/usage.log` from gitignore template
+
 ## [2.29.3] - 2026-03-24 - Add missing hook to sync manifest
 
 ### Fixed
