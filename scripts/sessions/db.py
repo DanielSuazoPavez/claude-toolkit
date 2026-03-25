@@ -176,5 +176,4 @@ def find_session_files(
 # Output formatting (re-exported from shared)
 # ---------------------------------------------------------------------------
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
-from formatting import _c, _fmt_tokens  # noqa: E402, F401
+from scripts.shared.formatting import _c, _fmt_tokens  # noqa: F401

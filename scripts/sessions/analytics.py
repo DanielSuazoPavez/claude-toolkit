@@ -23,8 +23,7 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-from db import DB_PATH, _c, _fmt_tokens, init_db  # noqa: E402
+from scripts.sessions.db import DB_PATH, _c, _fmt_tokens, init_db
 
 # Default UTC offset for display (hours). Timestamps in the DB are UTC.
 DEFAULT_UTC_OFFSET = -3

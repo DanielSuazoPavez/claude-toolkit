@@ -2,14 +2,14 @@
 name: learn
 description: Capture a lesson from this session. Use when the user says "remember this", "learn this", "save this lesson", "don't forget", "note this for next time", "keep this in mind", or asks to capture a correction, pattern, convention, or gotcha.
 argument-hint: "[topic-hint]"
-allowed-tools: Read, Bash(uv run scripts/lessons/db.py:*), Bash(sqlite3:*)
+allowed-tools: Read, Bash(claude-toolkit lessons:*), Bash(sqlite3:*)
 ---
 
 # Learn
 
 Capture a lesson from the current session. Lightweight — identify, format, write.
 
-**See also:** `/manage-lessons` (lifecycle: promote, archive, crystallize after capture), `scripts/lessons/db.py` (DB layer and CLI), `session-start.sh` hook (nudges for manage-lessons)
+**See also:** `/manage-lessons` (lifecycle: promote, archive, crystallize after capture), `claude-toolkit lessons` (CLI), `session-start.sh` hook (nudges for manage-lessons)
 
 ## When to Use
 
@@ -37,7 +37,7 @@ No evaluation rubrics, no multi-round iteration. Propose → write.
 Before writing, search existing lessons:
 
 ```bash
-uv run scripts/lessons/db.py search "<key phrase from lesson>" --limit 5
+claude-toolkit lessons search "<key phrase from lesson>" --limit 5
 ```
 
 - If an existing lesson says essentially the same thing → **skip**, tell the user it already exists
@@ -73,7 +73,7 @@ Then write immediately unless the user objects or asks for changes.
 The `add` subcommand handles ID generation, project/branch detection, and domain tag inference:
 
 ```bash
-uv run scripts/lessons/db.py add \
+claude-toolkit lessons add \
   --text "<lesson text>" \
   --tags "<category-tag>,<extra-tag1>,<extra-tag2>"
 ```
@@ -83,7 +83,7 @@ The command auto-detects project name and git branch, generates a unique ID, and
 If duplicate detection flagged `recurring`, include it in tags:
 
 ```bash
-uv run scripts/lessons/db.py add \
+claude-toolkit lessons add \
   --text "<lesson text>" \
   --tags "<category-tag>,recurring,<extra-tags>"
 ```

@@ -21,8 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterator
 
-sys.path.insert(0, str(Path(__file__).parent))
-from db import (  # noqa: E402
+from scripts.sessions.db import (
     BACKUP_TRANSCRIPTS_DIR,
     DB_PATH,
     DEFAULT_TRANSCRIPTS_DIR,

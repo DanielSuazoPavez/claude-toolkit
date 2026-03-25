@@ -88,6 +88,8 @@ SAFE_PREFIXES=(
     "./.claude/hooks/"
     ".claude/scripts/"
     "./scripts/"
+    # Toolkit CLI
+    "claude-toolkit"
 )
 
 # Check if a single command matches any safe prefix

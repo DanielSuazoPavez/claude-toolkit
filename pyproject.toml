@@ -3,8 +3,21 @@ name = "claude-toolkit-scripts"
 version = "2.6.1"
 requires-python = ">=3.12"
 
+[tool.uv]
+package = true
+
+[project.scripts]
+ct-lessons = "scripts.lessons.db:main"
+
 [dependency-groups]
 dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
