@@ -20,6 +20,18 @@ Automation hooks configured in `settings.json`.
 
 ---
 
+### Shared Library
+
+All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
+- Standardized initialization and stdin parsing
+- Outcome helpers (block, approve, inject)
+- Execution timing and logging to `.claude/logs/hook-timing.log`
+- Section-level tracking for session-start
+
+Log format (TSV, 10 columns): session_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected
+
+---
+
 ### session-start.sh
 
 **Trigger**: SessionStart

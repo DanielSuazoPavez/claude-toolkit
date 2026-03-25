@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.33.0] - 2026-03-25 - Hook instrumentation shared library
+
+### Added
+- **hooks**: Shared library `.claude/hooks/lib/hook-utils.sh` — standardized init, tool parsing, outcome helpers (block/approve/inject), and execution timing
+- **hooks**: All hooks now log execution data to `.claude/logs/hook-timing.log` (TSV, 10 columns) for claude-sessions analytics
+
+### Changed
+- **hooks**: All 10 hooks migrated to source shared library, replacing duplicated boilerplate
+- **hooks**: `session-start.sh` per-section logging moved from `session-start-sizes.log` to unified `hook-timing.log` format with `bytes_injected` per section
+
+### Removed
+- **hooks**: `session-start-sizes.log` format superseded by `hook-timing.log`
+
 ## [2.32.11] - 2026-03-25 - Refactor scripts/ to cli/
 
 ### Changed

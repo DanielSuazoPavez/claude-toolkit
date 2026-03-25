@@ -57,6 +57,7 @@ hooks/session-start.sh
 hooks/suggest-read-json.sh
 hooks/approve-safe-commands.sh
 hooks/surface-lessons.sh
+hooks/lib/hook-utils.sh
 
 # memories
 memories/essential-conventions-code_style.md
