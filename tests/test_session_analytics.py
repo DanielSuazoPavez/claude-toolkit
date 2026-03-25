@@ -1,4 +1,4 @@
-"""Tests for scripts/session_analytics.py — session usage pattern analytics."""
+"""Tests for scripts/sessions/analytics.py — session usage pattern analytics."""
 
 from __future__ import annotations
 
@@ -8,24 +8,28 @@ from pathlib import Path
 
 import pytest
 
-from scripts.session_db import init_db
-from scripts.session_index import index_sessions
-from scripts.session_analytics import (
+from scripts.sessions.db import init_db
+from scripts.sessions.index import index_sessions
+from scripts.sessions.analytics import (
     FILTERED_EVENTS_CTE,
     _cte,
     _classify_claude_md,
     _extract_memory_filename,
     compute_active_time,
+    query_agent_usage,
     query_branch_patterns,
     query_claude_md_reads,
     query_daily_activity,
     query_essential_estimates,
+    query_hook_usage,
     query_hourly_activity,
     query_memory_diversity,
     query_memory_reads,
     query_project_patterns,
     query_session_gaps,
     query_session_shapes,
+    query_skill_usage,
+    query_tool_usage,
     query_weekly_volume,
 )
 
@@ -165,13 +169,33 @@ def indexed_db(tmp_path: Path) -> sqlite3.Connection:
 
     conn = init_db(db_path)
 
-    import scripts.session_index as si
+    import scripts.sessions.index as si
     original = si.SOURCE_DIRS
     si.SOURCE_DIRS = [tmp_path / "transcripts"]
     try:
         index_sessions(conn)
     finally:
         si.SOURCE_DIRS = original
+
+    # Insert resource_usage rows for skill/agent test coverage
+    proj_a_id = conn.execute(
+        "SELECT id FROM projects WHERE name LIKE '%alpha%'"
+    ).fetchone()[0]
+    conn.executemany(
+        """INSERT INTO resource_usage
+           (session_id, project_id, resource_type, resource_name,
+            timestamp, input_delta, output_delta, turn_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        [
+            ("sess-a1", proj_a_id, "skill", "learn", "2026-01-10T09:06:00Z", 500, 200, 3),
+            ("sess-a2", proj_a_id, "skill", "learn", "2026-01-12T14:31:00Z", 400, 150, 2),
+            ("sess-a1", proj_a_id, "skill", "commit", "2026-01-10T09:08:00Z", 300, 100, 1),
+            ("sess-a1", proj_a_id, "agent", "Explore", "2026-01-10T09:07:00Z", 1000, 500, 8),
+            ("sess-a2", proj_a_id, "agent", "Explore", "2026-01-12T14:32:00Z", 800, 400, 6),
+            ("sess-a1", proj_a_id, "agent", "Plan", "2026-01-10T09:09:00Z", 600, 300, 4),
+        ],
+    )
+    conn.commit()
 
     return conn
 
@@ -563,7 +587,7 @@ def memory_db(tmp_path: Path) -> sqlite3.Connection:
 
     conn = init_db(db_path)
 
-    import scripts.session_index as si
+    import scripts.sessions.index as si
     original = si.SOURCE_DIRS
     si.SOURCE_DIRS = [tmp_path / "transcripts"]
     try:
@@ -664,3 +688,154 @@ class TestMemoryPatterns:
         """Falls back to parent directory name when project_path is None."""
         result = _classify_claude_md("/proj/src/CLAUDE.md", None)
         assert result == "src/"
+
+
+# ---------------------------------------------------------------------------
+# Tool usage
+# ---------------------------------------------------------------------------
+
+
+class TestToolUsage:
+    def test_returns_all_tools(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_tool_usage(indexed_db)
+        tools = {r["tool"] for r in rows}
+        assert "Write" in tools
+        assert "Read" in tools
+        assert "Bash" in tools
+        assert "Grep" in tools
+
+    def test_counts_correct(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_tool_usage(indexed_db)
+        by_tool = {r["tool"]: r for r in rows}
+        # Read: sess-a1(1) + sess-b1(2) = 3
+        assert by_tool["Read"]["total"] == 3
+        # Write: sess-a1(1) = 1
+        assert by_tool["Write"]["total"] == 1
+
+    def test_all_main_no_subagents(self, indexed_db: sqlite3.Connection) -> None:
+        """All test data is from main context, so subagent=0."""
+        rows = query_tool_usage(indexed_db)
+        for r in rows:
+            assert r["subagent"] == 0
+            assert r["main"] == r["total"]
+
+    def test_filter_by_project(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_tool_usage(indexed_db, project="beta")
+        tools = {r["tool"] for r in rows}
+        # beta only has Read and Grep
+        assert tools == {"Read", "Grep"}
+
+    def test_sorted_by_total_desc(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_tool_usage(indexed_db)
+        totals = [r["total"] for r in rows]
+        assert totals == sorted(totals, reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# Skill usage
+# ---------------------------------------------------------------------------
+
+
+class TestSkillUsage:
+    def test_returns_skills(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_skill_usage(indexed_db)
+        names = {r["resource_name"] for r in rows}
+        assert "learn" in names
+        assert "commit" in names
+
+    def test_counts_correct(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_skill_usage(indexed_db)
+        by_name = {r["resource_name"]: r for r in rows}
+        # learn: 2 uses (sess-a1 + sess-a2)
+        assert by_name["learn"]["total"] == 2
+        # commit: 1 use
+        assert by_name["commit"]["total"] == 1
+
+    def test_tokens_summed(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_skill_usage(indexed_db)
+        by_name = {r["resource_name"]: r for r in rows}
+        # learn: (500+200) + (400+150) = 1250
+        assert by_name["learn"]["tokens"] == 1250
+
+    def test_sorted_by_total_desc(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_skill_usage(indexed_db)
+        totals = [r["total"] for r in rows]
+        assert totals == sorted(totals, reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# Agent usage
+# ---------------------------------------------------------------------------
+
+
+class TestAgentUsage:
+    def test_returns_agents(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_agent_usage(indexed_db)
+        names = {r["resource_name"] for r in rows}
+        assert "Explore" in names
+        assert "Plan" in names
+
+    def test_counts_correct(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_agent_usage(indexed_db)
+        by_name = {r["resource_name"]: r for r in rows}
+        # Explore: 2 uses
+        assert by_name["Explore"]["count"] == 2
+        # Plan: 1 use
+        assert by_name["Plan"]["count"] == 1
+
+    def test_tokens_summed(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_agent_usage(indexed_db)
+        by_name = {r["resource_name"]: r for r in rows}
+        # Explore: (1000+500) + (800+400) = 2700
+        assert by_name["Explore"]["tokens"] == 2700
+
+    def test_tool_calls_summed(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_agent_usage(indexed_db)
+        by_name = {r["resource_name"]: r for r in rows}
+        # Explore: 8 + 6 = 14
+        assert by_name["Explore"]["tool_calls"] == 14
+        # Plan: 4
+        assert by_name["Plan"]["tool_calls"] == 4
+
+    def test_sorted_by_count_desc(self, indexed_db: sqlite3.Connection) -> None:
+        rows = query_agent_usage(indexed_db)
+        counts = [r["count"] for r in rows]
+        assert counts == sorted(counts, reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# Hook usage
+# ---------------------------------------------------------------------------
+
+
+class TestHookUsage:
+    def test_returns_by_event_and_by_hook(self, indexed_db: sqlite3.Connection) -> None:
+        by_event, by_hook = query_hook_usage(indexed_db)
+        assert len(by_event) > 0
+        assert len(by_hook) > 0
+
+    def test_event_types(self, indexed_db: sqlite3.Connection) -> None:
+        by_event, _ = query_hook_usage(indexed_db)
+        events = {r["hook_event"] for r in by_event}
+        assert "PreToolUse" in events
+        assert "PostToolUse" in events
+
+    def test_hook_names(self, indexed_db: sqlite3.Connection) -> None:
+        _, by_hook = query_hook_usage(indexed_db)
+        hooks = {r["hook_name"] for r in by_hook}
+        assert "Write" in hooks
+        assert "Bash" in hooks
+
+    def test_counts_correct(self, indexed_db: sqlite3.Connection) -> None:
+        by_event, _ = query_hook_usage(indexed_db)
+        by_name = {r["hook_event"]: r for r in by_event}
+        # PreToolUse: sess-a1(1 for Write) + sess-a2(1 for Bash) = 2
+        assert by_name["PreToolUse"]["total"] == 2
+        # PostToolUse: sess-a1(1 for Write) = 1
+        assert by_name["PostToolUse"]["total"] == 1
+
+    def test_filter_by_project(self, indexed_db: sqlite3.Connection) -> None:
+        by_event, by_hook = query_hook_usage(indexed_db, project="beta")
+        # beta has no progress events
+        assert len(by_event) == 0
+        assert len(by_hook) == 0

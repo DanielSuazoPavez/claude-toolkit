@@ -120,7 +120,7 @@ elif [ -f "$LEARNED_FILE" ]; then
     # Fallback — learned.json still exists but no lessons.db
     echo ""
     echo "=== LESSONS ==="
-    echo "⚠ lessons.db not found. Run \`uv run scripts/lesson_db.py migrate\` to upgrade lessons to SQLite."
+    echo "⚠ lessons.db not found. Run \`uv run scripts/lessons/db.py migrate\` to upgrade lessons to SQLite."
 
     # Legacy jq path
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')

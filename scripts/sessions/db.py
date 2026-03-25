@@ -173,31 +173,8 @@ def find_session_files(
 
 
 # ---------------------------------------------------------------------------
-# Output formatting
+# Output formatting (re-exported from shared)
 # ---------------------------------------------------------------------------
 
-COLORS = {
-    "bold": "\033[1m",
-    "dim": "\033[2m",
-    "cyan": "\033[36m",
-    "green": "\033[32m",
-    "yellow": "\033[33m",
-    "red": "\033[31m",
-    "reset": "\033[0m",
-}
-NO_COLORS = {k: "" for k in COLORS}
-
-
-def _c() -> dict[str, str]:
-    import os
-    if os.environ.get("NO_COLOR") or not sys.stdout.isatty():
-        return NO_COLORS
-    return COLORS
-
-
-def _fmt_tokens(n: int) -> str:
-    if n >= 1_000_000:
-        return f"{n / 1_000_000:.1f}M"
-    if n >= 1_000:
-        return f"{n / 1_000:.1f}K"
-    return str(n)
+sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
+from formatting import _c, _fmt_tokens  # noqa: E402, F401
