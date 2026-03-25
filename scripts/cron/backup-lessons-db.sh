@@ -3,7 +3,7 @@
 # Intended to run as a daily cron job.
 #
 # Crontab entry:
-#   0 3 * * * /home/hata/projects/personal/claude-toolkit/scripts/cron/backup-lessons-db.sh
+#   30 * * * * /home/hata/projects/personal/claude-toolkit/scripts/cron/backup-lessons-db.sh
 
 set -euo pipefail
 
