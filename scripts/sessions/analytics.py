@@ -13,6 +13,7 @@ Usage:
     uv run scripts/sessions/analytics.py files [<pattern>] [--days N] [--project <name>]
     uv run scripts/sessions/analytics.py stats
     uv run scripts/sessions/analytics.py resource-cost [--type skill|agent] [--project <name>] [--sort tokens|uses|avg]
+    uv run scripts/sessions/analytics.py co-occurrence [--days N] [--by day|week] [--project <name>]
 """
 
 from __future__ import annotations
@@ -1524,6 +1525,179 @@ def cmd_hooks(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Co-occurrence
+# ---------------------------------------------------------------------------
+
+CO_OCCURRENCE_SQL = f"""
+{_cte("""
+project_buckets AS (
+    SELECT DISTINCT
+        e.project_id,
+        p.name AS project,
+        strftime('%Y-%m-%d %H', e.timestamp) AS bucket
+    FROM filtered_events e
+    JOIN projects p ON p.id = e.project_id
+    WHERE e.timestamp IS NOT NULL AND e.date >= ?
+),
+bucket_counts AS (
+    SELECT bucket, COUNT(*) AS n_projects
+    FROM project_buckets
+    GROUP BY bucket
+)
+""")}
+SELECT
+    pb.project,
+    pb.bucket,
+    bc.n_projects > 1 AS is_co_occurring
+FROM project_buckets pb
+JOIN bucket_counts bc ON pb.bucket = bc.bucket
+ORDER BY pb.bucket, pb.project
+"""
+
+
+def query_co_occurrence(
+    conn: sqlite3.Connection,
+    since: str | None = None,
+    project: str | None = None,
+) -> list[dict]:
+    """Get per-project hourly buckets with co-occurrence flag.
+
+    Returns list of dicts with keys: project, bucket, is_co_occurring.
+    A bucket is co-occurring if 2+ projects had events in that hour.
+    """
+    if since is None:
+        since = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(CO_OCCURRENCE_SQL, [since]).fetchall()
+
+    result = [dict(r) for r in rows]
+
+    if project:
+        # Find all buckets where the filtered project appears
+        project_buckets = {
+            r["bucket"] for r in result if project.lower() in r["project"].lower()
+        }
+        # Keep only rows in those buckets
+        result = [r for r in result if r["bucket"] in project_buckets]
+
+    return result
+
+
+def cmd_co_occurrence(args: argparse.Namespace) -> None:
+    """Show project co-occurrence — hours where 2+ projects were active."""
+    conn = init_db(args.db_path)
+    c = _c()
+
+    since = (datetime.now() - timedelta(days=args.days)).strftime("%Y-%m-%d")
+    rows = query_co_occurrence(conn, since=since, project=args.project)
+    conn.close()
+
+    if not rows:
+        print("No activity in this period.")
+        return
+
+    # Collect all projects and time units
+    by_week = args.by == "week"
+    projects: dict[str, dict[str, bool]] = {}  # project -> {time_unit -> has_co_occurrence}
+    project_solo: dict[str, dict[str, bool]] = {}  # project -> {time_unit -> active_at_all}
+
+    for row in rows:
+        proj = row["project"]
+        bucket = row["bucket"]  # "YYYY-MM-DD HH"
+        # Parse into time unit
+        try:
+            dt = datetime.strptime(bucket, "%Y-%m-%d %H")
+        except ValueError:
+            continue
+
+        if by_week:
+            tu = f"W{dt.isocalendar().week:02d}"
+        else:
+            tu = dt.strftime("%m-%d")
+
+        if proj not in projects:
+            projects[proj] = {}
+            project_solo[proj] = {}
+
+        project_solo[proj][tu] = True
+        if row["is_co_occurring"]:
+            projects[proj][tu] = True
+
+    # Build ordered time unit list
+    all_time_units: list[str] = sorted(
+        {tu for p in project_solo.values() for tu in p}
+    )
+
+    # Sort projects by total active hours descending
+    sorted_projects = sorted(
+        projects.keys(),
+        key=lambda p: len(project_solo.get(p, {})),
+        reverse=True,
+    )
+
+    # Grid header
+    unit_label = "weekly" if by_week else "daily"
+    print(
+        f"\n{c['bold']}{c['cyan']}Co-occurrence "
+        f"(last {args.days} days, {unit_label}){c['reset']}\n"
+    )
+
+    # Column headers
+    max_proj_len = max(len(p) for p in sorted_projects) if sorted_projects else 20
+    max_proj_len = min(max_proj_len, 25)
+    header = " " * (max_proj_len + 2)
+    for tu in all_time_units:
+        header += f"{tu:>6}"
+    print(header)
+
+    # Grid rows
+    for proj in sorted_projects:
+        label = proj[:max_proj_len]
+        line = f"  {label:<{max_proj_len}}"
+        for tu in all_time_units:
+            if projects.get(proj, {}).get(tu):
+                line += f"{'◉':>6}"
+            elif project_solo.get(proj, {}).get(tu):
+                line += f"{'●':>6}"
+            else:
+                line += f"{'·':>6}"
+        print(line)
+
+    # Legend
+    print(
+        f"\n  {c['green']}◉{c['reset']} = co-occurring   "
+        f"● = solo   · = inactive"
+    )
+
+    # Summary: count co-occurrence hours and top pairs
+    co_buckets: dict[str, set[str]] = {}  # bucket -> set of projects
+    for row in rows:
+        if row["is_co_occurring"]:
+            co_buckets.setdefault(row["bucket"], set()).add(row["project"])
+
+    total_co_hours = len(co_buckets)
+
+    # Count pair occurrences
+    from collections import Counter
+    pair_counts: Counter[tuple[str, str]] = Counter()
+    for bucket_projects in co_buckets.values():
+        ps = sorted(bucket_projects)
+        for i in range(len(ps)):
+            for j in range(i + 1, len(ps)):
+                pair_counts[(ps[i], ps[j])] += 1
+
+    print(f"\n  {c['bold']}Summary:{c['reset']} {total_co_hours} co-occurrence hours")
+
+    if pair_counts:
+        top_pairs = pair_counts.most_common(3)
+        for (p1, p2), count in top_pairs:
+            print(f"    {p1} + {p2}: {count}h overlap")
+
+    print()
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1618,6 +1792,12 @@ def build_parser() -> argparse.ArgumentParser:
     hk.add_argument("--project", help="Filter by project name")
     hk.add_argument("--days", type=int, help="Limit to last N days")
 
+    # co-occurrence
+    co = sub.add_parser("co-occurrence", help="Project co-occurrence patterns")
+    co.add_argument("--days", type=int, default=30, help="Days to analyze (default: 30)")
+    co.add_argument("--by", choices=["day", "week"], default="week", help="Time unit for columns (default: week)")
+    co.add_argument("--project", help="Filter to buckets involving this project")
+
     return parser
 
 
@@ -1643,6 +1823,7 @@ def main() -> None:
         "skills": cmd_skills,
         "agents": cmd_agents,
         "hooks": cmd_hooks,
+        "co-occurrence": cmd_co_occurrence,
     }
     commands[args.command](args)
 

@@ -19,6 +19,7 @@ from scripts.sessions.analytics import (
     query_agent_usage,
     query_branch_patterns,
     query_claude_md_reads,
+    query_co_occurrence,
     query_daily_activity,
     query_essential_estimates,
     query_hook_usage,
@@ -841,3 +842,136 @@ class TestHookUsage:
         # beta has no progress events
         assert len(by_event) == 0
         assert len(by_hook) == 0
+
+
+# ---------------------------------------------------------------------------
+# Co-occurrence
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def co_occurrence_db(tmp_path_factory: pytest.TempPathFactory) -> sqlite3.Connection:
+    """DB with overlapping sessions across projects for co-occurrence testing.
+
+    Project X: events at 10:00, 10:15, 10:30 on 2026-02-01
+    Project Y: events at 10:20, 10:45, 11:10 on 2026-02-01
+    Project Z: events at 15:00, 15:30 on 2026-02-01
+
+    Expected co-occurrence: X+Y overlap in the 10:00 hour bucket.
+    Y is solo in the 11:00 bucket. Z is solo in the 15:00 bucket.
+    """
+    tmp_path = tmp_path_factory.mktemp("co_occurrence")
+    db_path = tmp_path / "test.db"
+
+    proj_x = tmp_path / "transcripts" / "-home-user-projects-xray"
+    proj_y = tmp_path / "transcripts" / "-home-user-projects-yankee"
+    proj_z = tmp_path / "transcripts" / "-home-user-projects-zulu"
+
+    _write_jsonl(
+        proj_x / "sess-x1.jsonl",
+        [
+            _user_record("2026-02-01T10:00:00Z", "start x"),
+            _assistant_record(
+                "2026-02-01T10:15:00Z",
+                [_tool_use_block("Read", {"file_path": "/src/x.py"})],
+            ),
+            _assistant_record(
+                "2026-02-01T10:30:00Z",
+                [_tool_use_block("Write", {"file_path": "/src/x.py"})],
+            ),
+        ],
+    )
+
+    _write_jsonl(
+        proj_y / "sess-y1.jsonl",
+        [
+            _user_record("2026-02-01T10:20:00Z", "start y"),
+            _assistant_record(
+                "2026-02-01T10:45:00Z",
+                [_tool_use_block("Read", {"file_path": "/src/y.py"})],
+            ),
+            _assistant_record(
+                "2026-02-01T11:10:00Z",
+                [_tool_use_block("Bash", {"command": "pytest"})],
+            ),
+        ],
+    )
+
+    _write_jsonl(
+        proj_z / "sess-z1.jsonl",
+        [
+            _user_record("2026-02-01T15:00:00Z", "start z"),
+            _assistant_record(
+                "2026-02-01T15:30:00Z",
+                [_tool_use_block("Read", {"file_path": "/src/z.py"})],
+            ),
+        ],
+    )
+
+    conn = init_db(db_path)
+
+    import scripts.sessions.index as si
+    original = si.SOURCE_DIRS
+    si.SOURCE_DIRS = [tmp_path / "transcripts"]
+    try:
+        index_sessions(conn)
+    finally:
+        si.SOURCE_DIRS = original
+
+    return conn
+
+
+class TestCoOccurrence:
+    def test_co_occurrence_detected(self, co_occurrence_db: sqlite3.Connection) -> None:
+        """X and Y both flagged as co-occurring in the 10:00 hour bucket."""
+        rows = query_co_occurrence(co_occurrence_db, since="2026-01-01")
+        hour_10 = [r for r in rows if r["bucket"].endswith("10")]
+        projects_10 = {r["project"] for r in hour_10}
+        assert any("xray" in p for p in projects_10)
+        assert any("yankee" in p for p in projects_10)
+        for r in hour_10:
+            assert r["is_co_occurring"], f"{r['project']} should be co-occurring at 10:00"
+
+    def test_solo_hours(self, co_occurrence_db: sqlite3.Connection) -> None:
+        """Z's 15:00 bucket is not co-occurring."""
+        rows = query_co_occurrence(co_occurrence_db, since="2026-01-01")
+        hour_15 = [r for r in rows if r["bucket"].endswith("15")]
+        assert len(hour_15) == 1
+        assert any("zulu" in r["project"] for r in hour_15)
+        assert not hour_15[0]["is_co_occurring"]
+
+    def test_y_solo_in_11(self, co_occurrence_db: sqlite3.Connection) -> None:
+        """Y is solo in the 11:00 bucket."""
+        rows = query_co_occurrence(co_occurrence_db, since="2026-01-01")
+        hour_11 = [r for r in rows if r["bucket"].endswith("11")]
+        assert len(hour_11) == 1
+        assert any("yankee" in r["project"] for r in hour_11)
+        assert not hour_11[0]["is_co_occurring"]
+
+    def test_no_co_occurrence_different_days(
+        self, co_occurrence_db: sqlite3.Connection
+    ) -> None:
+        """Filtering to a day with only one project yields no co-occurrence."""
+        # All test data is on the same day, so filter to a different day
+        rows = query_co_occurrence(co_occurrence_db, since="2026-03-01")
+        assert len(rows) == 0
+
+    def test_filter_by_project(self, co_occurrence_db: sqlite3.Connection) -> None:
+        """--project filter shows only buckets involving that project."""
+        rows = query_co_occurrence(co_occurrence_db, since="2026-01-01", project="zulu")
+        projects = {r["project"] for r in rows}
+        assert any("zulu" in p for p in projects)
+        # Z only has solo hours at 15:00 — no overlap with others
+        assert len(rows) == 1
+
+    def test_filter_by_project_includes_co_occurring_partners(
+        self, co_occurrence_db: sqlite3.Connection
+    ) -> None:
+        """Filtering by X should include Y in the shared 10:00 bucket."""
+        rows = query_co_occurrence(
+            co_occurrence_db, since="2026-01-01", project="xray"
+        )
+        projects = {r["project"] for r in rows}
+        # X is active in 10:00, Y is also in 10:00 — both should appear
+        assert any("xray" in p for p in projects)
+        assert any("yankee" in p for p in projects)
