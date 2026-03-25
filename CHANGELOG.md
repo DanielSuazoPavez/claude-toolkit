@@ -4,11 +4,12 @@
 
 ### Added
 - **hooks**: Shared library `.claude/hooks/lib/hook-utils.sh` — standardized init, tool parsing, outcome helpers (block/approve/inject), and execution timing
-- **hooks**: All hooks now log execution data to `.claude/logs/hook-timing.log` (TSV, 10 columns) for claude-sessions analytics
+- **hooks**: All hooks now log execution data to `.claude/logs/hook-timing.log` (TSV, 10 columns: invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected) for claude-sessions analytics
 
 ### Changed
 - **hooks**: All 10 hooks migrated to source shared library, replacing duplicated boilerplate
 - **hooks**: `session-start.sh` per-section logging moved from `session-start-sizes.log` to unified `hook-timing.log` format with `bytes_injected` per section
+- **hooks**: Log field renamed from `session_id` to `invocation_id` — Claude Code doesn't expose session identity to hooks, so the field is per-invocation not per-session
 
 ### Removed
 - **hooks**: `session-start-sizes.log` format superseded by `hook-timing.log`
