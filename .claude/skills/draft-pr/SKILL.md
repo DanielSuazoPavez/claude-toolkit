@@ -119,5 +119,5 @@ If no — split or improve the description.
 ## See Also
 
 - `/wrap-up` — Run first to update changelog and version before drafting the PR
-- `/review-changes` — Verify code quality before drafting. Use review-changes to catch issues, then draft-pr to describe the result.
+- `code-reviewer` agent — Verify code quality before drafting. Use code-reviewer to catch issues, then draft-pr to describe the result.
 - `goal-verifier` agent — Verify feature completeness against the original goal before shipping

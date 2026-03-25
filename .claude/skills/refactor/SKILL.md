@@ -103,7 +103,7 @@ Show the full analysis to the user. Note the saved file path. Do NOT proceed to 
 **Related resources:**
 - **Before**: Use `/analyze-idea` when you need to research feasibility or gather evidence before committing to a refactoring direction. Use the `code-reviewer` agent for complementary pre-refactoring analysis.
 - **During triage**: If architectural-level issues surface, escalate to `/brainstorm-idea` to explore the design space before writing the analysis.
-- **After**: Use `/review-changes` to verify the refactoring, `/design-tests` if test structure needs updating to match the new module layout.
+- **After**: Use the `code-reviewer` agent to verify the refactoring, `/design-tests` if test structure needs updating to match the new module layout.
 
 ## Example: Shared Patterns Lens
 
@@ -208,7 +208,6 @@ Cohesion issue at helpers.py
 
 - `/analyze-idea` — Research feasibility before committing to a refactoring direction.
 - `/brainstorm-idea` — Explore design space for architectural-level issues.
-- `code-reviewer` agent — Complementary pre-refactoring analysis.
-- `/review-changes` — Verify the refactoring after implementation.
+- `code-reviewer` agent — Pre/post-refactoring code review.
 - `/design-tests` — Update test structure to match new module layout.
 - `/design-diagram` — Visualize dependency structure before and after refactoring.

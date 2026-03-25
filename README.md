@@ -102,7 +102,6 @@ User-invocable skills activated with `/skill-name`:
 | `list-memories` | List available memories with Quick Reference summaries |
 | `read-json` | Read and analyze JSON files efficiently using jq |
 | `refactor` | Structural refactoring analysis |
-| `review-changes` | Fast code review focused on blockers |
 | `review-plan` | Review implementation plans against quality criteria |
 | `setup-worktree` | Reference for git worktrees - setup, usage, and common pitfalls |
 | `snap-back` | Reset tone when Claude drifts into sycophancy |

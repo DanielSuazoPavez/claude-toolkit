@@ -16,7 +16,6 @@ Commands you invoke by typing `/name` in Claude Code. Think of them as repeatabl
 |-------|-------------|
 | `/brainstorm-idea` | Turns a fuzzy idea into a clear design through structured Q&A |
 | `/read-json` | Reads and queries JSON files using jq — handles large files safely |
-| `/review-changes` | Quick code review focused on critical and major issues |
 | `/review-plan` | Reviews a plan against quality criteria before you approve it |
 | `/wrap-up` | Finalizes a feature branch — commits, version bump, changelog |
 | `/write-handoff` | Saves context before ending a session so the next one can pick up |

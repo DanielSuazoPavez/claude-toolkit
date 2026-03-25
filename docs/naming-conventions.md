@@ -32,7 +32,7 @@ Guidelines for naming resources in Claude Toolkit.
 | `create-*` | Creating new toolkit resources | `create-agent`, `create-skill`, `create-hook`, `create-memory` |
 | `write-*` | Writing artifacts/documents | `write-handoff`, `write-docs` |
 | `evaluate-*` | Assessing quality against criteria | `evaluate-agent`, `evaluate-skill`, `evaluate-hook`, `evaluate-memory` |
-| `review-*` | Reviewing work (code, plans, changes) | `review-plan`, `review-changes` |
+| `review-*` | Reviewing work (code, plans, security) | `review-plan`, `review-security` |
 | `design-*` | Architecting systems or artifacts | `design-db`, `design-docker`, `design-diagram`, `design-qa` |
 | `analyze-*` | Deep investigation or research | `analyze-idea`, `analyze-naming` |
 | `read-*` | Reading/querying data sources | `read-json` |

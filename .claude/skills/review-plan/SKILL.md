@@ -5,7 +5,7 @@ argument-hint: Path to plan file (optional, auto-detected from context)
 allowed-tools: Read, Glob
 ---
 
-**See also:** `/brainstorm-idea` (when the plan reveals requirements are still unclear), `/wrap-up` (finalize branch after implementation), `/review-changes` (post-implementation code review), `goal-verifier` agent (verify feature completeness), `implementation-checker` agent (compare implementation to plan)
+**See also:** `/brainstorm-idea` (when the plan reveals requirements are still unclear), `/wrap-up` (finalize branch after implementation), `code-reviewer` agent (post-implementation code review), `goal-verifier` agent (verify feature completeness), `implementation-checker` agent (compare implementation to plan)
 
 ## Your Task
 
