@@ -161,7 +161,7 @@ CREATE UNIQUE INDEX idx_users_email_active ON users(email)
 
 If `schema-smith` is available (`which schema-smith`), generate schemas as YAML instead of raw DDL.
 
-1. **Read the input spec** at `schema-smith-input-spec.md` (in this skill's directory) before writing any YAML
+1. **Read the input spec** at `resources/schema-smith-input-spec.md` before writing any YAML
 2. **Design first** — use the knowledge sections above to make schema decisions (normalization, indexing, types)
 3. **Output as schema-smith YAML** — structure the design as YAML files following the input spec
 4. **Generate DDL** — run schema-smith to produce the SQL:
