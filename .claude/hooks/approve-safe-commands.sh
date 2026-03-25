@@ -26,15 +26,11 @@
 #   echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | ./approve-safe-commands.sh
 #   # Expected: {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow",...}}
 
-INPUT=$(cat)
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "approve-safe-commands" "PermissionRequest"
+hook_require_tool "Bash"
 
-# Parse JSON - exit gracefully if jq fails
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
-if [ "$TOOL_NAME" != "Bash" ]; then
-    exit 0
-fi
-
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
+COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
 
 # Bail on subshells and backticks — can't verify inner commands
@@ -216,7 +212,7 @@ done <<< "$SUBCOMMANDS"
 
 # If we found at least one command and all were safe → approve
 if [ "$FOUND_COMMAND" = true ]; then
-    echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"All subcommands match safe prefixes"}}'
+    hook_approve "All subcommands match safe prefixes"
 fi
 
 exit 0

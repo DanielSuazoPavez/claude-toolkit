@@ -16,16 +16,9 @@
 #     - mv ... targeting the above paths
 #     - NOT read-only commands (grep, cat without redirect)
 
-INPUT=$(cat)
-
-# Parse JSON - exit gracefully if jq fails
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
-
-# Helper function to block with reason
-block() {
-    echo "{\"decision\": \"block\", \"reason\": \"$1\"}"
-    exit 0
-}
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "block-config-edits" "PreToolUse"
+hook_require_tool "Write" "Edit" "Bash"
 
 # List of blocked config files (basenames and paths relative to home)
 # Used for Write/Edit tool path matching
@@ -62,11 +55,11 @@ is_blocked_config() {
 
 # Handle Write tool
 if [ "$TOOL_NAME" = "Write" ]; then
-    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || exit 0
+    FILE_PATH=$(hook_get_input '.tool_input.file_path')
     [ -z "$FILE_PATH" ] && exit 0
 
     if is_blocked_config "$FILE_PATH"; then
-        block "BLOCKED: Writing to shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        hook_block "BLOCKED: Writing to shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
     fi
 
     exit 0
@@ -74,11 +67,11 @@ fi
 
 # Handle Edit tool
 if [ "$TOOL_NAME" = "Edit" ]; then
-    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null) || exit 0
+    FILE_PATH=$(hook_get_input '.tool_input.file_path')
     [ -z "$FILE_PATH" ] && exit 0
 
     if is_blocked_config "$FILE_PATH"; then
-        block "BLOCKED: Editing shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        hook_block "BLOCKED: Editing shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
     fi
 
     exit 0
@@ -86,7 +79,7 @@ fi
 
 # Handle Bash tool
 if [ "$TOOL_NAME" = "Bash" ]; then
-    COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
+    COMMAND=$(hook_get_input '.tool_input.command')
     [ -z "$COMMAND" ] && exit 0
 
     # Home config path pattern: ~/.<config> or $HOME/.<config>
@@ -97,25 +90,25 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     # Block append (>>) to home config
     APPEND_RE=">>.*$HOME_CONFIG"
     if [[ "$COMMAND" =~ $APPEND_RE ]]; then
-        block "BLOCKED: Appending to shell/SSH/git config risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        hook_block "BLOCKED: Appending to shell/SSH/git config risks persistent environment poisoning. Use project-level .envrc or local config instead."
     fi
 
     # Block tee targeting home config files
     TEE_RE="tee[[:space:]].*$HOME_CONFIG"
     if [[ "$COMMAND" =~ $TEE_RE ]]; then
-        block "BLOCKED: Writing to shell/SSH/git config via tee risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        hook_block "BLOCKED: Writing to shell/SSH/git config via tee risks persistent environment poisoning. Use project-level .envrc or local config instead."
     fi
 
     # Block sed -i targeting home config files
     SED_RE="sed[[:space:]]+-i.*$HOME_CONFIG"
     if [[ "$COMMAND" =~ $SED_RE ]]; then
-        block "BLOCKED: Editing shell/SSH/git config in-place risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        hook_block "BLOCKED: Editing shell/SSH/git config in-place risks persistent environment poisoning. Use project-level .envrc or local config instead."
     fi
 
     # Block mv targeting home config files
     MV_RE="mv[[:space:]].*$HOME_CONFIG"
     if [[ "$COMMAND" =~ $MV_RE ]]; then
-        block "BLOCKED: Moving file to shell/SSH/git config risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        hook_block "BLOCKED: Moving file to shell/SSH/git config risks persistent environment poisoning. Use project-level .envrc or local config instead."
     fi
 
     exit 0

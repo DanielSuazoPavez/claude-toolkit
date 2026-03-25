@@ -20,15 +20,11 @@
 #   echo '{"tool_name":"Bash","tool_input":{"command":"uv run python script.py"}}' | bash enforce-uv-run.sh
 #   # Expected: (empty - allowed)
 
-INPUT=$(cat)
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "enforce-uv-run" "PreToolUse"
+hook_require_tool "Bash"
 
-# Parse JSON - exit gracefully if jq fails
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
-if [ "$TOOL_NAME" != "Bash" ]; then
-    exit 0
-fi
-
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) || exit 0
+COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
 
 # Already using uv run - allow
@@ -40,8 +36,7 @@ fi
 # Matches python anywhere in the command (after &&, ||, ;, env vars, etc.)
 PYTHON_RE='(^|&&|;|\|\||[[:space:]])python(3(\.[0-9]+)?)?[[:space:]]'
 if [[ "$COMMAND" =~ $PYTHON_RE ]]; then
-    echo '{"decision": "block", "reason": "Use `uv run python` instead of direct python. The venv is not activated."}'
-    exit 0
+    hook_block "Use \`uv run python\` instead of direct python. The venv is not activated."
 fi
 
 exit 0
