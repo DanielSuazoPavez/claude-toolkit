@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [2.32.4] - 2026-03-25 - Absorb design-qa into design-tests
 
 ### Changed
 - **skills**: Absorbed `design-qa` into `design-tests` — QA strategy content now lives in `design-tests/resources/QA_STRATEGY.md`, accessed via decision tree routing. Added fixture scope diagnosis section, inlined highest-value QA heuristics (debt signals, estimation formula). Extracted troubleshooting to `resources/TROUBLESHOOTING.md`.
