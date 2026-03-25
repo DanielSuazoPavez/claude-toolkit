@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.29.0] - 2026-03-24 - Scripts reorganization and insights migration
+
+### Added
+- **scripts**: `tools`, `skills`, `agents`, `hooks` subcommands for `session_analytics.py` — migrated from `insights.py` using SQL queries against the session-index DB
+- **scripts**: `scripts/shared/formatting.py` — shared terminal formatting utilities (`_c`, `_fmt_tokens`) used across session and lesson tools
+
+### Changed
+- **scripts**: Reorganized flat `scripts/` into domain subdirectories: `sessions/` (db, index, search, analytics, schemas), `lessons/` (db, schemas), `cron/` (shell wrappers), `shared/` (formatting)
+- **scripts**: Renamed modules to drop redundant prefixes: `session_db.py` → `sessions/db.py`, `session_index.py` → `sessions/index.py`, etc.
+- **settings**: Permission glob `Bash(./scripts/*)` → `Bash(./scripts/**)` for recursive subdirectory matching
+- **hooks/skills**: Updated all path references (`lesson_db.py` → `lessons/db.py`, etc.)
+- **validation**: `validate-safe-commands-sync.sh` now handles `**` globs in settings.json permissions
+- **cron**: Lessons backup changed from daily 3am to hourly :30 (WSL misses overnight jobs)
+- **memory**: Updated testing conventions memory for current Makefile targets
+
+### Removed
+- **scripts**: `insights.py` — features migrated to `session_analytics.py` subcommands
+- **scripts**: `session-search/schema-smith/output/` — generated artifacts (schemas moved to domain dirs)
+
 ## [2.28.0] - 2026-03-24 - Lessons DB migration and contextual surfacing
 
 ### Added
