@@ -40,8 +40,8 @@ Before writing, search existing lessons:
 claude-toolkit lessons search "<key phrase from lesson>" --limit 5
 ```
 
-- If an existing lesson says essentially the same thing → **skip**, tell the user it already exists
-- If a similar lesson exists (same topic, different angle) → **write** and add the `recurring` tag
+- If an existing lesson covers the exact same point with no new angle → **skip**, tell the user it already exists
+- Otherwise, if a similar lesson exists (same topic, different angle, or same mistake recurring) → **write** and add the `recurring` tag. Bias toward capturing — `/manage-lessons` handles crystallization and dedup later
 
 ### Tags
 
@@ -98,5 +98,5 @@ claude-toolkit lessons add \
 |---------|---------|-----|
 | Lesson inflation | Saving trivial corrections | Only save lessons that apply to future sessions |
 | Vague lessons | "Be more careful with imports" | Specific: "Use absolute imports in the `api/` package" |
-| Duplicates | Same lesson saved twice | Search existing lessons before proposing |
+| Duplicate suppression | Skipping a lesson because a similar one exists | Add `recurring` tag — crystallization handles merging, not the capture step |
 | Tag confusion | Everything is `correction` | Match category tag to what happened |
