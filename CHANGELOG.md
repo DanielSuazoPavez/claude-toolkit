@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.33.1] - 2026-03-25 - Update skills and validation for hook-utils.sh
+
+### Changed
+- **skills**: `create-hook` templates and examples updated to use shared `lib/hook-utils.sh` library pattern
+- **skills**: `evaluate-hook` rubric D4/D6 now account for shared library usage; added "Manual boilerplate" anti-pattern
+
+### Added
+- **scripts**: `validate-hook-utils.sh` — validates all hooks source `lib/hook-utils.sh` (MANIFEST-aware, 11 tests)
+
 ## [2.33.0] - 2026-03-25 - Hook instrumentation shared library
 
 ### Added
