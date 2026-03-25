@@ -25,8 +25,7 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `refactor` | beta | Structural refactoring analysis |
 | `review-security` | alpha | Targeted security audit of files/modules — trace-based vulnerability analysis |
-| `design-qa` | beta | Design test plans, QA strategies, regression suites, bug triage |
-| `design-tests` | beta | Pytest patterns for fixtures, mocking, organization, test prioritization |
+| `design-tests` | beta | Pytest patterns, QA strategy, fixtures, mocking, test prioritization, coverage audits |
 
 ## Design & Architecture
 

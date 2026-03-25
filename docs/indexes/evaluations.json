@@ -198,50 +198,27 @@
           "[low] Add back-reference from design-tests to design-docker for container testing patterns to complete bidirectional link network"
         ]
       },
-      "design-qa": {
-        "file_hash": "dfe125da",
-        "date": "2026-03-09",
+      "design-tests": {
+        "file_hash": "9d62f386",
+        "date": "2026-03-25",
         "type": "knowledge",
-        "score": 103,
+        "score": 104,
         "max": 120,
-        "percentage": 85.8,
+        "percentage": 86.7,
         "dimensions": {
           "D1": 17,
           "D2": 13,
           "D3": 14,
-          "D4": 8,
+          "D4": 7,
           "D5": 14,
-          "D6": 12,
-          "D7": 12,
-          "D8": 13
-        },
-        "top_improvements": [
-          "[low] D6: Explicitly mark which elements are flexible (test strategy, artifact choice) vs. fixed (release exit criteria, escalation thresholds) to make freedom boundaries clearer",
-          "[low] D7: Consider cross-referencing additional ecosystem resources (e.g., brainstorm-idea for test planning during design, or relevant memories) to strengthen integration breadth",
-          "[low] D8: Add a fully worked example showing a complete mini test plan for a realistic feature to demonstrate end-to-end application"
-        ]
-      },
-      "design-tests": {
-        "file_hash": "cb983635",
-        "date": "2026-03-09",
-        "type": "knowledge",
-        "score": 107,
-        "max": 120,
-        "percentage": 89.2,
-        "dimensions": {
-          "D1": 17,
-          "D2": 14,
-          "D3": 14,
-          "D4": 9,
-          "D5": 12,
           "D6": 13,
-          "D7": 14,
+          "D7": 12,
           "D8": 14
         },
         "top_improvements": [
-          "[low] Move troubleshooting section (with code examples) to resources/ to bring main skill below 350 lines — D5 improvement",
-          "[low] Add a few activation-knowledge items that are truly expert-only to push D1 higher (e.g., pytest plugin pitfalls, xdist gotchas, or marker inheritance edge cases)",
-          "[low] Be more explicit about which patterns are prescriptive vs flexible — add a short note in High-Risk Scenarios indicating these are exact patterns to follow, not suggestions — D6 improvement"
+          "[low] Consider adding pytest-specific anti-patterns (conftest import side effects, autouse cascading)",
+          "[low] Audit mode step ordering rationale could be more explicit",
+          "[low] QA_STRATEGY escalation tiers could reference project-specific severity definitions"
         ]
       },
       "draft-pr": {
