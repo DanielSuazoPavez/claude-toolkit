@@ -29,6 +29,7 @@ make test
 - **Replace, don't deprecate**: Remove old code. No backward-compat shims, re-exports, or `# removed` comments.
 - **Finish the job**: Handle edge cases you can see. Don't leave TODOs for obvious follow-ups.
 - **Zero warnings**: Treat lint/type warnings as errors. Fix or explicitly suppress with justification.
+- **Capture lessons aggressively**: When you notice a correction, gotcha, pattern, or convention worth preserving, use `/learn` without hesitation. Bias toward capturing — pruning happens later via `/manage-lessons`.
 - **Prefer `trash-put` over `rm`**: Use `trash-put` for file deletion to allow recovery.
 
 ## Git Workflow
