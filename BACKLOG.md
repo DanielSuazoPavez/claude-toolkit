@@ -25,6 +25,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
+- **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
+    - **scope**: `hooks, scripts`
+    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count.
+
 - **[TOOLKIT]** Evaluate unifying CLI under `bin/claude-toolkit` (`evaluate-unify-cli-entrypoint`)
     - **scope**: `scripts, toolkit`
     - **notes**: With sessions extracted, `scripts/` only contains `lessons/` and `shared/`. Investigate consolidating remaining CLI into the existing `bin/claude-toolkit` bash entry point — add subcommands like `claude-toolkit lessons`, `claude-toolkit validate`. Move `scripts/lessons/` and `scripts/shared/` into a `cli/` directory at project root. The bash CLI stays bash — it would dispatch to Python (lessons) or bash (validate, backlog) under the hood. Evaluate: does single entry point simplify usage enough to justify the rewiring, or is the current split (bin/claude-toolkit for sync/send, ct-lessons for lessons, make for validate) working fine?
