@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.32.8] - 2026-03-25 - Key Principles in templates, CLAUDE.md drift check
+
+### Changed
+- **templates**: Renamed "Conventions" to "Key Principles" in both base and raiz CLAUDE.md templates
+- **skills**: `setup-toolkit` Check 6 now compares CLAUDE.md key principles against the template and suggests missing ones
+
 ## [2.32.7] - 2026-03-25 - Add "plan before building" principle
 
 ### Changed
