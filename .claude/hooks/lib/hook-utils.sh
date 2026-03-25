@@ -3,7 +3,7 @@
 # initialization, outcome handling, and execution logging.
 #
 # Log format (TSV, 10 columns) consumed by claude-sessions analytics:
-#   session_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected
+#   invocation_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected
 #
 # Usage:
 #   source "$(dirname "$0")/lib/hook-utils.sh"
@@ -18,7 +18,7 @@ INPUT=""  # backward compat alias
 HOOK_NAME=""
 HOOK_EVENT=""
 TOOL_NAME=""
-SESSION_ID=""
+INVOCATION_ID=""
 PROJECT=""
 HOOK_START_MS=0
 OUTCOME="pass"
@@ -35,7 +35,7 @@ hook_init() {
     HOOK_EVENT="$2"
     HOOK_INPUT=$(cat)
     INPUT="$HOOK_INPUT"  # backward compat
-    SESSION_ID="$$-$(date +%s)"
+    INVOCATION_ID="$$-$(date +%s)"
     PROJECT="$(basename "$PWD")"
     HOOK_START_MS=$(date +%s%3N)
     OUTCOME="pass"
@@ -122,7 +122,7 @@ hook_log_section() {
     bytes=$(printf '%s' "$content" | wc -c)
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$SESSION_ID" "$(date -Iseconds)" "$PROJECT" \
+        "$INVOCATION_ID" "$(date -Iseconds)" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
         "0" "pass" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
@@ -142,7 +142,7 @@ _hook_log_timing() {
         bytes=$TOTAL_BYTES_INJECTED
     fi
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$SESSION_ID" "$(date -Iseconds)" "$PROJECT" \
+        "$INVOCATION_ID" "$(date -Iseconds)" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "" \
         "$duration_ms" "$OUTCOME" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
