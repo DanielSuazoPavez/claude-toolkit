@@ -25,10 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[SCRIPTS]** Sessions CLI — add `claude-toolkit sessions` subcommand (`sessions-cli`)
-    - **scope**: `scripts`
-    - **notes**: Extend the CLI pattern from lessons to sessions. Merge index.py, search.py, and analytics.py into a single Click-based entry point. Register as `ct-sessions` in pyproject.toml. Update cron/index-sessions.sh to use `claude-toolkit sessions index`. Consider Click migration (user preference) over argparse.
-
 - **[SCRIPTS]** Session analytics — plan+implementation session pairing (`session-analytics-work-units`)
     - **scope**: `scripts`
     - **notes**: Explore clustering consecutive sessions into "work units" — a planning session followed by implementation sessions. Challenge: planning may start on `main` before branching, or on the feature branch if the hook prompted a branch switch. Signals to use: timing proximity, project, branch transitions, plan mode events, session shape (planning sessions are shorter, read-heavy; implementation sessions are longer, command-heavy). Cross-branch boundary is the hard part.
@@ -37,6 +33,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `scripts`
     - **notes**: Which projects have sessions active on the same days? A project with many sessions compressed into few days alongside another project (e.g., schema-smith appearing on the same days as acustica-marina) suggests a supporting/dependency role rather than independent work. Analyze: daily co-occurrence matrix, identify "primary" vs "supporting" project roles per day, projects that always appear together vs independently.
 
+- **[SCRIPTS]** Sessions CLI — add `claude-toolkit sessions` subcommand (`sessions-cli`)
+    - **scope**: `scripts`
+    - **notes**: Extend the CLI pattern from lessons to sessions. Merge index.py, search.py, and analytics.py into a single Click-based entry point. Register as `ct-sessions` in pyproject.toml. Update cron/index-sessions.sh to use `claude-toolkit sessions index`. Consider Click migration (user preference) over argparse.
 
 ## P3 - Low
 
