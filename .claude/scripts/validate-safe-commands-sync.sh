@@ -35,13 +35,13 @@ if [ ! -f "$HOOK" ]; then
 fi
 
 # Extract Bash permission prefixes from settings.json
-# Matches: Bash(cmd:*) → cmd, Bash(cmd *) → cmd, Bash(path/*) → path/
-# Excludes non-Bash entries and path-only entries like Bash(.claude/scripts/*)
+# Matches: Bash(cmd:*) → cmd, Bash(cmd *) → cmd, Bash(path/**) → path/
+# Excludes non-Bash entries and path-only entries like Bash(.claude/scripts/**)
 extract_settings_prefixes() {
     jq -r '.permissions.allow // [] | .[]' "$SETTINGS" 2>/dev/null \
         | grep '^Bash(' \
         | sed -E 's/^Bash\(//; s/\)$//' \
-        | sed -E 's/:\*$//; s/ \*$//; s/\*$//' \
+        | sed -E 's/:\*+$//; s/ \*+$//; s/\*+$//' \
         | sort -u
 }
 

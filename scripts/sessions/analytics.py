@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Session analytics for Claude Code — usage patterns from the session index DB.
 
-Builds on the session-index.db created by session_index.py.
+Builds on the session-index.db created by sessions/index.py.
 
 Usage:
     uv run scripts/sessions/analytics.py sessions [--project <name>] [--days N] [--limit N]
@@ -1019,7 +1019,7 @@ def cmd_memory(args: argparse.Namespace) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Index-level analytics (moved from session_search.py)
+# Index-level analytics (moved from search.py)
 # ---------------------------------------------------------------------------
 
 

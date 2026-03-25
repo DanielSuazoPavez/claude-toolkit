@@ -34,7 +34,7 @@
       "Bash(git commit:*)",
       "Bash(./.claude/hooks/*)",
       "Bash(.claude/scripts/*)",
-      "Bash(./scripts/*)",
+      "Bash(./scripts/**)",
       "Glob(**)",
       "Grep(**)",
       "Read(/**)",
