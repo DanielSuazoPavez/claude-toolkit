@@ -2,7 +2,6 @@
 # Add these lines to your project's .gitignore
 
 # Claude Code session artifacts
-.claude/usage.log
 output/claude-toolkit/
 
 # Local settings (not committed)
