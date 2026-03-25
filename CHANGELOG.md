@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.31.0] - 2026-03-25 - Session analytics co-occurrence
+
+### Added
+- **analytics**: `co-occurrence` subcommand — shows hours where 2+ projects had concurrent activity using 1h time buckets, with project × time grid and top overlapping pairs
+
 ## [2.30.2] - 2026-03-25 - Clean test output and faster analytics tests
 
 ### Changed
