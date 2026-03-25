@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.32.7] - 2026-03-25 - Add "plan before building" principle
+
+### Changed
+- **templates**: Added "Plan before building" convention to both base and raiz CLAUDE.md templates
+- **docs**: Added `dist/CLAUDE.md` documenting intentional differences between base and raiz distribution profiles
+
 ## [2.32.6] - 2026-03-25 - Surface actionable items at session start
 
 ### Fixed
