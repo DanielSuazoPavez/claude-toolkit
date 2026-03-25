@@ -29,5 +29,5 @@ dist-output/
 
 # Logs
 logs/
-scripts/cron/cron.log
+.claude/scripts/cron/cron.log
 .claude/logs/
