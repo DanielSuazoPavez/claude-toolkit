@@ -23,19 +23,19 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-## P2 - Medium
+- **[SKILLS]** Evaluate consolidating create-* skills (`evaluate-consolidate-create-skills`)
+    - **scope**: `skills`
+    - **notes**: create-skill, create-agent, create-memory, create-hook follow a similar pattern (template + conventions). But each has type-specific guidance (e.g., agent tool selection, hook trigger patterns, memory category rules). Investigate: can a single parameterized skill preserve these nuances, or does merging flatten important distinctions? Potential savings ~500-600 lines, but only worth it if output quality doesn't regress.
 
 - **[SKILLS]** Evaluate consolidating evaluate-* skills (`evaluate-consolidate-evaluate-skills`)
     - **scope**: `skills`
     - **notes**: evaluate-skill, evaluate-agent, evaluate-hook, evaluate-memory are structurally similar (rubric + scoring). evaluate-batch already dispatches by type. However, each resource type has its own rubric nuances — generalizing may dilute quality. Investigate: how much is shared scaffolding vs type-specific expert knowledge? Would a single skill with embedded type references lose scoring precision? Potential savings ~600-800 lines, but only if quality holds.
 
-- **[SKILLS]** Evaluate consolidating create-* skills (`evaluate-consolidate-create-skills`)
-    - **scope**: `skills`
-    - **notes**: create-skill, create-agent, create-memory, create-hook follow a similar pattern (template + conventions). But each has type-specific guidance (e.g., agent tool selection, hook trigger patterns, memory category rules). Investigate: can a single parameterized skill preserve these nuances, or does merging flatten important distinctions? Potential savings ~500-600 lines, but only worth it if output quality doesn't regress.
-
 - **[SKILLS]** Audit design-* skills for knowledge density (`audit-design-skills`)
     - **scope**: `skills`
     - **notes**: design-tests (400 lines), design-docker (331), design-qa (209), design-db (180), design-diagram (156). These are reference skills by design — invoked occasionally, not daily. Low usage alone isn't a signal for removal. Question: how much is expert knowledge beyond Claude's training vs patterns Claude already knows? Review each for lines that wouldn't be generated without the skill. Track usage over time to inform future decisions.
+
+## P2 - Medium
 
 - **[TOOLKIT]** Evaluate unifying CLI under `bin/claude-toolkit` (`evaluate-unify-cli-entrypoint`)
     - **scope**: `scripts, toolkit`
