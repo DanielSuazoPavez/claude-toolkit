@@ -1,9 +1,19 @@
 # Changelog
 
-## [Unreleased]
+## [2.32.5] - 2026-03-25 - Improve design-diagram and related skills
 
 ### Changed
+- **skills**: `design-diagram` — reframed from Mermaid reference to format selection guide (Mermaid vs ASCII vs lists). Added "Diagrams for Documentation" section, backtracking guidance, over-diagramming anti-pattern. Extracted rendering gotchas and syntax patterns to `resources/`
+- **skills**: `design-db` — added Large ERD Strategy section (layered approach for 20+ table schemas, dimension vs transactional classification)
+- **skills**: `write-docs` — added Diagram Integration section (when/where to include diagrams during doc writing, bidirectional with design-diagram)
 - **docs**: Streamlined README — replaced full resource tables with summary counts + link to `docs/indexes/`, added Dependencies section, removed Customization section (covered by create-* skills), expanded Design Philosophy with reducing-entropy reference
+
+### Added
+- **skills**: `design-diagram/resources/mermaid-rendering-gotchas.md` — rendering fixes and non-obvious syntax (extracted from SKILL.md)
+- **skills**: `design-diagram/resources/mermaid-theme-presets.md` — copy-paste theme configs for docs, review, and presentation contexts
+
+### Fixed
+- **toolkit**: `pyproject.toml` version now reads from `VERSION` file via hatchling dynamic versioning — eliminates version drift between the two files
 
 ## [2.32.4] - 2026-03-25 - Absorb design-qa into design-tests
 

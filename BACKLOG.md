@@ -25,11 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[SKILLS]** Improve design-diagram skill (`improve-design-diagram`)
-    - **scope**: `skills`
-    - **notes**: Already highest-scored design-* skill (90%) but has room to push further. Address evaluation suggestions: add backtracking example (wrong diagram type → pivot), add "when NOT to diagram" guidance, trim rendering gotchas to a reference link. Consider adding more ambiguous case examples.
-    - **analysis**: `output/claude-toolkit/analysis/20260325_1101__analyze-idea__audit-design-skills.md`
-
 - **[TOOLKIT]** Evaluate unifying CLI under `bin/claude-toolkit` (`evaluate-unify-cli-entrypoint`)
     - **scope**: `scripts, toolkit`
     - **notes**: With sessions extracted, `scripts/` only contains `lessons/` and `shared/`. Investigate consolidating remaining CLI into the existing `bin/claude-toolkit` bash entry point — add subcommands like `claude-toolkit lessons`, `claude-toolkit validate`. Move `scripts/lessons/` and `scripts/shared/` into a `cli/` directory at project root. The bash CLI stays bash — it would dispatch to Python (lessons) or bash (validate, backlog) under the hood. Evaluate: does single entry point simplify usage enough to justify the rewiring, or is the current split (bin/claude-toolkit for sync/send, ct-lessons for lessons, make for validate) working fine?
