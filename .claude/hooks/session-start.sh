@@ -29,22 +29,8 @@
 # Configuration
 MEMORIES_DIR="${CLAUDE_MEMORIES_DIR:-.claude/memories}"
 
-# Logging setup — session_id is PID + timestamp for correlation
-SESSION_ID="$$-$(date +%s)"
-PROJECT="$(basename "$PWD")"
-LOG_DIR=".claude/logs"
-LOG_FILE="$LOG_DIR/session-start-sizes.log"
-mkdir -p "$LOG_DIR"
-
-_log_section() {
-    local section="$1"
-    local content="$2"
-    local bytes
-    bytes=$(printf '%s' "$content" | wc -c)
-    printf '%s\t%s\t%s\t%s\t%db\t~%dt\n' \
-        "$SESSION_ID" "$(date -Iseconds)" "$PROJECT" "$section" "$bytes" "$((bytes / 4))" \
-        >> "$LOG_FILE"
-}
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "session-start" "SessionStart"
 
 # Check we're in a project with memories
 if [ ! -d "$MEMORIES_DIR" ]; then
@@ -61,7 +47,7 @@ for f in "$MEMORIES_DIR"/essential-*.md; do
     MEMORY_CONTENT="=== $(basename "$f" .md) ===
 $(cat "$f" 2>/dev/null || echo "(Error reading file - permission denied or corrupted)")
 "
-    _log_section "memory:$(basename "$f" .md)" "$MEMORY_CONTENT"
+    hook_log_section "memory:$(basename "$f" .md)" "$MEMORY_CONTENT"
     MEMORIES_OUT="${MEMORIES_OUT}${MEMORY_CONTENT}"
   fi
 done
@@ -73,7 +59,7 @@ OTHER_OUT="=== OTHER MEMORIES AVAILABLE ===
 $([ -n "$OTHER_MEMORIES" ] && echo "$OTHER_MEMORIES" || echo "(none)")
 
 Run /list-memories for Quick Reference summaries, or read specific files when relevant."
-_log_section "memories:other" "$OTHER_OUT"
+hook_log_section "memories:other" "$OTHER_OUT"
 echo "$OTHER_OUT"
 
 # === GIT CONTEXT ===
@@ -82,7 +68,7 @@ MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^re
 GIT_OUT="=== GIT CONTEXT ===
 Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
 Main: $MAIN_BRANCH"
-_log_section "git" "$GIT_OUT"
+hook_log_section "git" "$GIT_OUT"
 echo ""
 echo "$GIT_OUT"
 
@@ -94,7 +80,7 @@ if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; th
     if [ -n "$TOOLKIT_VER" ] && [ -n "$PROJECT_VER" ] && [ "$PROJECT_VER" != "$TOOLKIT_VER" ]; then
         TOOLKIT_OUT="=== TOOLKIT VERSION ===
 Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sync\` then /setup-toolkit"
-        _log_section "toolkit" "$TOOLKIT_OUT"
+        hook_log_section "toolkit" "$TOOLKIT_OUT"
         echo ""
         echo "$TOOLKIT_OUT"
         ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- Toolkit version mismatch: $PROJECT_VER → $TOOLKIT_VER (run \`make claude-toolkit-sync\`)"
@@ -125,7 +111,7 @@ $RECENT_LESSONS"
         [ -n "$BRANCH_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
 This branch:
 $BRANCH_LESSONS"
-        _log_section "lessons" "$LESSONS_OUT"
+        hook_log_section "lessons" "$LESSONS_OUT"
         echo ""
         echo "$LESSONS_OUT"
     fi
@@ -172,7 +158,7 @@ fi
 
 # === MEMORY GUIDANCE ===
 GUIDANCE_OUT="If the user's request relates to a non-essential memory topic, use /list-memories to check Quick Reference summaries, then read relevant memories before proceeding."
-_log_section "guidance" "$GUIDANCE_OUT"
+hook_log_section "guidance" "$GUIDANCE_OUT"
 echo ""
 echo "$GUIDANCE_OUT"
 
