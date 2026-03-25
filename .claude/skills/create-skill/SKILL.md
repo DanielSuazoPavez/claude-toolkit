@@ -199,7 +199,7 @@ Before outputting the skill, evaluate it with `/evaluate-skill`:
 
 ## Naming Convention
 
-Use `verb-noun` format: `create-skill`, `review-changes`, `brainstorm-idea`
+Use `verb-noun` format: `create-skill`, `review-plan`, `brainstorm-idea`
 
 See `docs/naming-conventions.md` for the full naming guide.
 

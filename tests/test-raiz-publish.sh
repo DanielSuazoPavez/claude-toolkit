@@ -124,7 +124,6 @@ setup
 # Included skills
 assert_file_exists "brainstorm-idea included" "$OUTPUT_DIR/.claude/skills/brainstorm-idea/SKILL.md"
 assert_file_exists "read-json included" "$OUTPUT_DIR/.claude/skills/read-json/SKILL.md"
-assert_file_exists "review-changes included" "$OUTPUT_DIR/.claude/skills/review-changes/SKILL.md"
 assert_file_exists "review-plan included" "$OUTPUT_DIR/.claude/skills/review-plan/SKILL.md"
 assert_file_exists "wrap-up included" "$OUTPUT_DIR/.claude/skills/wrap-up/SKILL.md"
 assert_file_exists "write-handoff included" "$OUTPUT_DIR/.claude/skills/write-handoff/SKILL.md"
@@ -177,15 +176,6 @@ teardown
 
 report_section "=== Cross-reference trimming ==="
 setup
-
-# review-changes: /draft-pr and /refactor bullets should be removed
-assert_file_not_contains "review-changes: /draft-pr removed" \
-    "$OUTPUT_DIR/.claude/skills/review-changes/SKILL.md" "/draft-pr"
-assert_file_not_contains "review-changes: /refactor removed" \
-    "$OUTPUT_DIR/.claude/skills/review-changes/SKILL.md" "/refactor"
-# code-reviewer agent should remain
-assert_file_contains "review-changes: code-reviewer kept" \
-    "$OUTPUT_DIR/.claude/skills/review-changes/SKILL.md" "code-reviewer"
 
 # brainstorm-idea: /analyze-idea removed from See also, /review-plan kept
 assert_file_not_contains "brainstorm-idea: /analyze-idea removed" \

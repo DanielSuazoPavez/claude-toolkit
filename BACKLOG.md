@@ -23,10 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS]** Delete `review-changes` skill — `code-reviewer` agent covers this (`delete-review-changes`)
-    - **scope**: `skills`
-    - **notes**: Already flagged with `*` in SKILLS.md. code-reviewer agent is integrated into daily workflow and does the same job.
-
 ## P2 - Medium
 
 - **[SKILLS]** Evaluate consolidating evaluate-* skills (`evaluate-consolidate-evaluate-skills`)

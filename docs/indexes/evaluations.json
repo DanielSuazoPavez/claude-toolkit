@@ -382,29 +382,6 @@
           "[low] Add guidance for when jq output exceeds context limits (jq -c, pipe to head) — D8"
         ]
       },
-      "review-changes": {
-        "file_hash": "da65d765",
-        "date": "2026-03-09",
-        "type": "knowledge",
-        "score": 108,
-        "max": 120,
-        "percentage": 90,
-        "dimensions": {
-          "D1": 17,
-          "D2": 14,
-          "D3": 14,
-          "D4": 9,
-          "D5": 14,
-          "D6": 13,
-          "D7": 13,
-          "D8": 14
-        },
-        "top_improvements": [
-          "[low] Add a brief worked example showing a false-positive caught by Phase 0 context discovery (e.g., missing validation handled at API boundary) — D8 would reach 15",
-          "[low] Make freedom boundaries more explicit — state when to follow the decision tree mechanically vs. use judgment — D6 polish",
-          "[low] Consider connecting to goal-verifier agent for intent verification in Phase 1 — D7 ecosystem gap"
-        ]
-      },
       "review-plan": {
         "file_hash": "c6346779",
         "date": "2026-03-09",
@@ -721,7 +698,7 @@
           "D8": 14
         },
         "top_improvements": [
-          "[high] D7: Add review-security to SKILLS.md index and create inbound references from code-reviewer agent and review-changes skill",
+          "[high] D7: Add review-security to SKILLS.md index and create inbound references from code-reviewer agent",
           "[low] D1: Trim redundant Key insight lines in DOMAINS.md that restate what Claude already knows",
           "[low] D7: Add reverse reference in code-reviewer.md for escalation path to review-security"
         ]

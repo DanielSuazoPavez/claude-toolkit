@@ -7,7 +7,7 @@ allowed-tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*)
 
 Use for on-demand security review of specific files or modules. Complements CC's built-in `/security-review` (PR-level diffs) by supporting targeted, pre-commit, and existing-code audits.
 
-**See also:** `/review-changes` (general code review), `code-reviewer` agent (structural quality), CC's `/security-review` (PR-level security review)
+**See also:** `code-reviewer` agent (general code review, structural quality), CC's `/security-review` (PR-level security review)
 
 ## When to Use
 
