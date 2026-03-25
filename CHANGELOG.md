@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.32.2] - 2026-03-25 - Audit design-* skills, backlog cleanup
+
+### Changed
+- **skills**: Moved `design-db/schema-smith-input-spec.md` into `resources/` subfolder for consistency
+- **backlog**: Removed 3 completed audit tasks, added `merge-design-qa-into-tests` (P1) and `improve-design-diagram` (P2)
+
 ## [2.32.1] - 2026-03-25 - Remove review-changes skill
 
 ### Removed
