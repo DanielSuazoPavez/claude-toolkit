@@ -3,6 +3,7 @@
 #
 # Usage:
 #   bash tests/test-cli.sh           # Run all tests
+#   bash tests/test-cli.sh -q        # Quiet mode (summary + failures only)
 #   bash tests/test-cli.sh -v        # Verbose mode
 #   bash tests/test-cli.sh sync      # Test only sync command
 #   bash tests/test-cli.sh send      # Test only send command
@@ -17,29 +18,10 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CLI_SCRIPT="$TOOLKIT_DIR/bin/claude-toolkit"
-VERBOSE="${VERBOSE:-0}"
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
-
-# Parse args
-FILTER=""
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) FILTER="$1"; shift ;;
-    esac
-done
-
-log_verbose() {
-    [ "$VERBOSE" = "1" ] && echo "  $*"
-}
+source "$SCRIPT_DIR/lib/test-helpers.sh"
+parse_test_args "$@"
+FILTER="${TEST_ARGS[0]:-}"
 
 # === Test Environment Helpers ===
 
@@ -131,11 +113,11 @@ expect_success() {
 
     if [[ $exit_code -eq 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: exit code 0"
         echo "    Got: exit code $exit_code"
         echo "    Output: ${output:-<empty>}"
@@ -153,11 +135,11 @@ expect_failure() {
 
     if [[ $exit_code -ne 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: non-zero exit code"
         echo "    Got: exit code 0"
         echo "    Output: ${output:-<empty>}"
@@ -176,11 +158,11 @@ expect_output() {
 
     if echo "$output" | grep -qF -- "$expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output contains: $expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected output to contain: $expected"
         echo "    Got: ${output:-<empty>}"
     fi
@@ -194,11 +176,11 @@ expect_file_exists() {
 
     if [[ -f "$file_path" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    File exists: $file_path"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected file to exist: $file_path"
     fi
 }
@@ -212,11 +194,11 @@ expect_file_content() {
 
     if [[ -f "$file_path" ]] && grep -qF "$expected" "$file_path"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    File contains: $expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected file $file_path to contain: $expected"
         if [[ -f "$file_path" ]]; then
             echo "    Got: $(cat "$file_path")"
@@ -229,8 +211,7 @@ expect_file_content() {
 # === SYNC COMMAND TESTS ===
 
 test_sync_help() {
-    echo ""
-    echo "=== sync --help ==="
+    report_section "=== sync --help ==="
     setup_test_env
 
     expect_output "sync --help outputs usage" "USAGE:" sync --help
@@ -239,8 +220,7 @@ test_sync_help() {
 }
 
 test_sync_no_version_file() {
-    echo ""
-    echo "=== sync: no VERSION file ==="
+    report_section "=== sync: no VERSION file ==="
     setup_test_env
 
     # Remove VERSION file
@@ -252,8 +232,7 @@ test_sync_no_version_file() {
 }
 
 test_sync_version_equal() {
-    echo ""
-    echo "=== sync: versions equal ==="
+    report_section "=== sync: versions equal ==="
     setup_test_env
 
     # Set project version same as toolkit
@@ -265,8 +244,7 @@ test_sync_version_equal() {
 }
 
 test_sync_version_equal_with_force() {
-    echo ""
-    echo "=== sync: versions equal with --force ==="
+    report_section "=== sync: versions equal with --force ==="
     setup_test_env
 
     # Set project version same as toolkit
@@ -282,8 +260,7 @@ test_sync_version_equal_with_force() {
 }
 
 test_sync_version_newer_project() {
-    echo ""
-    echo "=== sync: project newer than toolkit ==="
+    report_section "=== sync: project newer than toolkit ==="
     setup_test_env
 
     # Set project version newer than toolkit
@@ -295,8 +272,7 @@ test_sync_version_newer_project() {
 }
 
 test_sync_dry_run() {
-    echo ""
-    echo "=== sync: dry run ==="
+    report_section "=== sync: dry run ==="
     setup_test_env
 
     local output
@@ -307,11 +283,11 @@ test_sync_dry_run() {
     if echo "$output" | grep -qF "Run without --dry-run" && \
        [[ ! -f "$TEMP_DIR/project/.claude/skills/test-skill/SKILL.md" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: dry run shows changes without applying"
+        report_pass "dry run shows changes without applying"
         log_verbose "    Output: ${output:0:200}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: dry run shows changes without applying"
+        report_fail "dry run shows changes without applying"
         echo "    Output: ${output:-<empty>}"
         echo "    File exists: $(ls "$TEMP_DIR/project/.claude/" 2>&1)"
     fi
@@ -320,8 +296,7 @@ test_sync_dry_run() {
 }
 
 test_sync_new_files_force() {
-    echo ""
-    echo "=== sync: new files with --force ==="
+    report_section "=== sync: new files with --force ==="
     setup_test_env
 
     run_toolkit sync --force > /dev/null 2>&1 || true
@@ -335,8 +310,7 @@ test_sync_new_files_force() {
 }
 
 test_sync_updated_files_force() {
-    echo ""
-    echo "=== sync: updated files with --force ==="
+    report_section "=== sync: updated files with --force ==="
     setup_test_env
 
     # Create existing files with different content
@@ -354,8 +328,7 @@ test_sync_updated_files_force() {
 }
 
 test_sync_only_filter() {
-    echo ""
-    echo "=== sync: --only filter ==="
+    report_section "=== sync: --only filter ==="
     setup_test_env
 
     run_toolkit sync --only skills --force > /dev/null 2>&1 || true
@@ -367,10 +340,10 @@ test_sync_only_filter() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ ! -f "$TEMP_DIR/project/.claude/hooks/test-hook.sh" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: hook NOT synced with --only skills"
+        report_pass "hook NOT synced with --only skills"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: hook NOT synced with --only skills"
+        report_fail "hook NOT synced with --only skills"
         echo "    Hook file was unexpectedly created"
     fi
 
@@ -378,8 +351,7 @@ test_sync_only_filter() {
 }
 
 test_sync_ignore_patterns() {
-    echo ""
-    echo "=== sync: ignore patterns ==="
+    report_section "=== sync: ignore patterns ==="
     setup_test_env
 
     # Create ignore file
@@ -391,10 +363,10 @@ test_sync_ignore_patterns() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if [[ ! -f "$TEMP_DIR/project/.claude/skills/test-skill/SKILL.md" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: skill ignored via .claude-toolkit-ignore"
+        report_pass "skill ignored via .claude-toolkit-ignore"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: skill ignored via .claude-toolkit-ignore"
+        report_fail "skill ignored via .claude-toolkit-ignore"
         echo "    Skill was unexpectedly synced"
     fi
 
@@ -405,8 +377,7 @@ test_sync_ignore_patterns() {
 }
 
 test_sync_updates_version() {
-    echo ""
-    echo "=== sync: updates version file ==="
+    report_section "=== sync: updates version file ==="
     setup_test_env
 
     # Run sync and capture output for debugging
@@ -422,8 +393,7 @@ test_sync_updates_version() {
 }
 
 test_sync_copies_manifest() {
-    echo ""
-    echo "=== sync: copies MANIFEST to target ==="
+    report_section "=== sync: copies MANIFEST to target ==="
     setup_test_env
 
     run_toolkit sync --force > /dev/null 2>&1 || true
@@ -437,8 +407,7 @@ test_sync_copies_manifest() {
 }
 
 test_validate_indexed_manifest_mode() {
-    echo ""
-    echo "=== validate-resources-indexed: MANIFEST mode ==="
+    report_section "=== validate-resources-indexed: MANIFEST mode ==="
     setup_test_env
 
     # Sync to create target project with MANIFEST
@@ -461,10 +430,10 @@ test_validate_indexed_manifest_mode() {
 
     if [ $exit_code -eq 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: validation passes with extra files in MANIFEST mode"
+        report_pass "validation passes with extra files in MANIFEST mode"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: validation passes with extra files in MANIFEST mode"
+        report_fail "validation passes with extra files in MANIFEST mode"
         echo "    Expected: exit 0 (warnings, not errors)"
         echo "    Got: exit $exit_code"
         echo "    Output: $output"
@@ -474,10 +443,10 @@ test_validate_indexed_manifest_mode() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if echo "$output" | grep -q "no index files in target project"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: skips index checks when no index files (expected for target)"
+        report_pass "skips index checks when no index files (expected for target)"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: skips index checks when no index files (expected for target)"
+        report_fail "skips index checks when no index files (expected for target)"
         echo "    Output: $output"
     fi
 
@@ -485,10 +454,10 @@ test_validate_indexed_manifest_mode() {
     TESTS_RUN=$((TESTS_RUN + 1))
     if echo "$output" | grep -q "MANIFEST mode"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: shows MANIFEST mode indicator"
+        report_pass "shows MANIFEST mode indicator"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: shows MANIFEST mode indicator"
+        report_fail "shows MANIFEST mode indicator"
         echo "    Output: $output"
     fi
 
@@ -496,8 +465,7 @@ test_validate_indexed_manifest_mode() {
 }
 
 test_validate_deps_manifest_mode() {
-    echo ""
-    echo "=== verify-resource-deps: MANIFEST mode ==="
+    report_section "=== verify-resource-deps: MANIFEST mode ==="
     setup_test_env
 
     # Sync to create target project with MANIFEST
@@ -523,10 +491,10 @@ EOF
 
     if [ $exit_code -eq 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: deps validation passes in MANIFEST mode with non-MANIFEST refs"
+        report_pass "deps validation passes in MANIFEST mode with non-MANIFEST refs"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: deps validation passes in MANIFEST mode with non-MANIFEST refs"
+        report_fail "deps validation passes in MANIFEST mode with non-MANIFEST refs"
         echo "    Expected: exit 0"
         echo "    Got: exit $exit_code"
         echo "    Output: $output"
@@ -538,8 +506,7 @@ EOF
 # === SEND COMMAND TESTS ===
 
 test_send_help() {
-    echo ""
-    echo "=== send --help ==="
+    report_section "=== send --help ==="
     setup_test_env
 
     expect_output "send --help outputs usage" "USAGE:" send --help
@@ -548,8 +515,7 @@ test_send_help() {
 }
 
 test_send_missing_type() {
-    echo ""
-    echo "=== send: missing --type ==="
+    report_section "=== send: missing --type ==="
     setup_test_env
 
     # Create a source file
@@ -562,8 +528,7 @@ test_send_missing_type() {
 }
 
 test_send_auto_detect_project() {
-    echo ""
-    echo "=== send: auto-detect project ==="
+    report_section "=== send: auto-detect project ==="
     setup_test_env
 
     # Create a source file
@@ -581,8 +546,7 @@ test_send_auto_detect_project() {
 }
 
 test_send_invalid_type() {
-    echo ""
-    echo "=== send: invalid type ==="
+    report_section "=== send: invalid type ==="
     setup_test_env
 
     # Create a source file
@@ -595,8 +559,7 @@ test_send_invalid_type() {
 }
 
 test_send_file_not_found() {
-    echo ""
-    echo "=== send: file not found ==="
+    report_section "=== send: file not found ==="
     setup_test_env
 
     expect_output "errors when source doesn't exist" "File not found" \
@@ -606,8 +569,7 @@ test_send_file_not_found() {
 }
 
 test_send_happy_path() {
-    echo ""
-    echo "=== send: happy path ==="
+    report_section "=== send: happy path ==="
     setup_test_env
 
     # Create a source file structure like real skill
@@ -628,8 +590,7 @@ test_send_happy_path() {
 }
 
 test_send_issue_missing_description() {
-    echo ""
-    echo "=== send --issue: missing description ==="
+    report_section "=== send --issue: missing description ==="
     setup_test_env
 
     expect_output "errors when issue description missing" "Issue description required" \
@@ -639,8 +600,7 @@ test_send_issue_missing_description() {
 }
 
 test_send_issue_happy_path() {
-    echo ""
-    echo "=== send --issue: happy path ==="
+    report_section "=== send --issue: happy path ==="
     setup_test_env
 
     run_toolkit send --issue "bug with hook X not detecting scripts" \
@@ -652,11 +612,11 @@ test_send_issue_happy_path() {
     issue_file=$(ls "$TEMP_DIR/toolkit/suggestions-box/myapp/"*_issue.txt 2>/dev/null | head -1)
     if [[ -n "$issue_file" && -f "$issue_file" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: creates issue file in suggestions-box"
+        report_pass "creates issue file in suggestions-box"
         log_verbose "    File: $issue_file"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: creates issue file in suggestions-box"
+        report_fail "creates issue file in suggestions-box"
         echo "    Expected: *_issue.txt in suggestions-box/myapp/"
         echo "    Got: $(ls "$TEMP_DIR/toolkit/suggestions-box/myapp/" 2>&1)"
     fi
@@ -737,14 +697,4 @@ else
     esac
 fi
 
-# === SUMMARY ===
-echo ""
-echo "=== Summary ==="
-echo -e "Tests run: $TESTS_RUN"
-echo -e "Passed: ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed: ${RED}$TESTS_FAILED${NC}"
-
-if [ "$TESTS_FAILED" -gt 0 ]; then
-    exit 1
-fi
-exit 0
+print_summary

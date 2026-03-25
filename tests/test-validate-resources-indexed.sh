@@ -3,6 +3,7 @@
 #
 # Usage:
 #   bash tests/test-validate-resources-indexed.sh      # Run all tests
+#   bash tests/test-validate-resources-indexed.sh -q   # Quiet mode (summary + failures only)
 #   bash tests/test-validate-resources-indexed.sh -v   # Verbose mode
 #
 # Exit codes:
@@ -14,27 +15,9 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 VALIDATE_SCRIPT="$TOOLKIT_DIR/.claude/scripts/validate-resources-indexed.sh"
-VERBOSE="${VERBOSE:-0}"
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
-
-# Parse args
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) shift ;;
-    esac
-done
-
-log_verbose() {
-    [ "$VERBOSE" = "1" ] && echo "  $*"
-}
+source "$SCRIPT_DIR/lib/test-helpers.sh"
+parse_test_args "$@"
 
 # === Test Environment ===
 
@@ -137,11 +120,11 @@ expect_success() {
 
     if [[ $exit_code -eq 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:300}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: exit code 0"
         echo "    Got: exit code $exit_code"
         echo "    Output: ${output:-<empty>}"
@@ -159,11 +142,11 @@ expect_failure() {
 
     if [[ $exit_code -ne 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:0:300}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected: non-zero exit code"
         echo "    Got: exit code 0"
         echo "    Output: ${output:-<empty>}"
@@ -182,11 +165,11 @@ expect_output() {
 
     if echo "$output" | grep -qF -- "$expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output contains: $expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected output to contain: $expected"
         echo "    Got: ${output:-<empty>}"
     fi
@@ -204,11 +187,11 @@ expect_not_output() {
 
     if ! echo "$output" | grep -qF -- "$not_expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output does not contain: $not_expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
+        report_fail "$description"
         echo "    Expected output NOT to contain: $not_expected"
         echo "    Got: ${output:-<empty>}"
     fi
@@ -217,8 +200,7 @@ expect_not_output() {
 # === TESTS ===
 
 test_all_synced() {
-    echo ""
-    echo "=== all synced (toolkit mode) ==="
+    report_section "=== all synced (toolkit mode) ==="
     setup_test_env
     create_synced_env
 
@@ -234,8 +216,7 @@ test_all_synced() {
 }
 
 test_missing_from_index() {
-    echo ""
-    echo "=== missing from index ==="
+    report_section "=== missing from index ==="
     setup_test_env
     create_synced_env
 
@@ -251,8 +232,7 @@ test_missing_from_index() {
 }
 
 test_stale_in_index() {
-    echo ""
-    echo "=== stale entry in index ==="
+    report_section "=== stale entry in index ==="
     setup_test_env
     create_synced_env
 
@@ -273,8 +253,7 @@ EOF
 }
 
 test_mixed_errors() {
-    echo ""
-    echo "=== mixed errors across types ==="
+    report_section "=== mixed errors across types ==="
     setup_test_env
     create_synced_env
 
@@ -293,8 +272,7 @@ test_mixed_errors() {
 }
 
 test_idea_personal_exclusion() {
-    echo ""
-    echo "=== idea-*/personal-* exclusion ==="
+    report_section "=== idea-*/personal-* exclusion ==="
     setup_test_env
     create_synced_env
 
@@ -311,8 +289,7 @@ test_idea_personal_exclusion() {
 }
 
 test_missing_dirs() {
-    echo ""
-    echo "=== missing resource dirs ==="
+    report_section "=== missing resource dirs ==="
     setup_test_env
     # Only create scripts dir (needed for the script itself) and indexes
     mkdir -p "$TEMP_DIR/docs/indexes"
@@ -325,8 +302,7 @@ test_missing_dirs() {
 }
 
 test_manifest_mode_activates() {
-    echo ""
-    echo "=== MANIFEST mode activates ==="
+    report_section "=== MANIFEST mode activates ==="
     setup_test_env
 
     # Create MANIFEST but no index files — triggers MANIFEST mode
@@ -344,8 +320,7 @@ EOF
 }
 
 test_manifest_skips_without_indexes() {
-    echo ""
-    echo "=== MANIFEST mode — skips without index files ==="
+    report_section "=== MANIFEST mode — skips without index files ==="
     setup_test_env
 
     # MANIFEST mode activates when MANIFEST exists but index files don't.
@@ -367,8 +342,7 @@ EOF
 }
 
 test_manifest_with_indexes() {
-    echo ""
-    echo "=== MANIFEST + indexes (toolkit mode, not MANIFEST mode) ==="
+    report_section "=== MANIFEST + indexes (toolkit mode, not MANIFEST mode) ==="
     setup_test_env
     create_synced_env
 
@@ -401,14 +375,4 @@ test_manifest_mode_activates
 test_manifest_skips_without_indexes
 test_manifest_with_indexes
 
-# === SUMMARY ===
-echo ""
-echo "=== Summary ==="
-echo -e "Tests run: $TESTS_RUN"
-echo -e "Passed: ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed: ${RED}$TESTS_FAILED${NC}"
-
-if [ "$TESTS_FAILED" -gt 0 ]; then
-    exit 1
-fi
-exit 0
+print_summary

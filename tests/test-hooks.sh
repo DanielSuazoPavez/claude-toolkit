@@ -2,9 +2,10 @@
 # Automated tests for Claude Code hooks
 #
 # Usage:
-#   bash scripts/test-hooks.sh           # Run all tests
-#   bash scripts/test-hooks.sh -v        # Verbose mode
-#   bash scripts/test-hooks.sh <hook>    # Test specific hook
+#   bash tests/test-hooks.sh           # Run all tests
+#   bash tests/test-hooks.sh -q        # Quiet mode (summary + failures only)
+#   bash tests/test-hooks.sh -v        # Verbose mode
+#   bash tests/test-hooks.sh <hook>    # Test specific hook
 #
 # Exit codes:
 #   0 - All tests passed
@@ -14,29 +15,11 @@
 set -uo pipefail
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
-VERBOSE="${VERBOSE:-0}"
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
-
-# Parse args
-FILTER=""
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose) VERBOSE=1; shift ;;
-        *) FILTER="$1"; shift ;;
-    esac
-done
-
-log_verbose() {
-    [ "$VERBOSE" = "1" ] && echo "  $*"
-}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/test-helpers.sh"
+parse_test_args "$@"
+FILTER="${TEST_ARGS[0]:-}"
 
 # Test helper: expects output to contain "block"
 expect_block() {
@@ -50,13 +33,13 @@ expect_block() {
 
     if echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: $output"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: block decision"
-        echo "    Got: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected: block decision"
+        report_detail "Got: ${output:-<empty>}"
     fi
 }
 
@@ -73,13 +56,13 @@ expect_allow() {
     # Allow means either empty output or explicit allow decision
     if [ -z "$output" ] || echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"allow"'; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: ${output:-<empty>}"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: empty or allow decision"
-        echo "    Got: $output"
+        report_fail "$description"
+        report_detail "Expected: empty or allow decision"
+        report_detail "Got: $output"
     fi
 }
 
@@ -95,13 +78,13 @@ expect_approve() {
 
     if echo "$output" | grep -q '"permissionDecision"[[:space:]]*:[[:space:]]*"allow"'; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: $output"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: permissionDecision allow"
-        echo "    Got: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected: permissionDecision allow"
+        report_detail "Got: ${output:-<empty>}"
     fi
 }
 
@@ -117,13 +100,13 @@ expect_silent() {
 
     if [ -z "$output" ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output: <empty>"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected: <empty>"
-        echo "    Got: $output"
+        report_fail "$description"
+        report_detail "Expected: <empty>"
+        report_detail "Got: $output"
     fi
 }
 
@@ -140,20 +123,19 @@ expect_contains() {
 
     if echo "$output" | grep -q "$expected"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: $description"
+        report_pass "$description"
         log_verbose "    Output contains: $expected"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: $description"
-        echo "    Expected to contain: $expected"
-        echo "    Got: ${output:-<empty>}"
+        report_fail "$description"
+        report_detail "Expected to contain: $expected"
+        report_detail "Got: ${output:-<empty>}"
     fi
 }
 
 # === BLOCK DANGEROUS COMMANDS ===
 test_block_dangerous_commands() {
-    echo ""
-    echo "=== block-dangerous-commands.sh ==="
+    report_section "=== block-dangerous-commands.sh ==="
     local hook="block-dangerous-commands.sh"
 
     # Should block
@@ -227,8 +209,7 @@ test_block_dangerous_commands() {
 
 # === SECRETS GUARD ===
 test_secrets_guard() {
-    echo ""
-    echo "=== secrets-guard.sh ==="
+    report_section "=== secrets-guard.sh ==="
     local hook="secrets-guard.sh"
 
     # Should block Read
@@ -390,8 +371,7 @@ test_secrets_guard() {
 
 # === BLOCK CONFIG EDITS ===
 test_block_config_edits() {
-    echo ""
-    echo "=== block-config-edits.sh ==="
+    report_section "=== block-config-edits.sh ==="
     local hook="block-config-edits.sh"
 
     # Should block Write
@@ -423,8 +403,7 @@ test_block_config_edits() {
 
 # === ENFORCE UV RUN ===
 test_enforce_uv_run() {
-    echo ""
-    echo "=== enforce-uv-run.sh ==="
+    report_section "=== enforce-uv-run.sh ==="
     local hook="enforce-uv-run.sh"
 
     # Should block - direct calls
@@ -456,8 +435,7 @@ test_enforce_uv_run() {
 
 # === ENFORCE MAKE COMMANDS ===
 test_enforce_make_commands() {
-    echo ""
-    echo "=== enforce-make-commands.sh ==="
+    report_section "=== enforce-make-commands.sh ==="
     local hook="enforce-make-commands.sh"
 
     # Should block (bare commands = full suite runs)
@@ -483,8 +461,7 @@ test_enforce_make_commands() {
 
 # === SUGGEST JSON READER ===
 test_suggest_json_reader() {
-    echo ""
-    echo "=== suggest-read-json.sh ==="
+    report_section "=== suggest-read-json.sh ==="
     local hook="suggest-read-json.sh"
 
     # Should block (large JSON or unknown JSON)
@@ -504,8 +481,7 @@ test_suggest_json_reader() {
 
 # === GIT SAFETY ===
 test_git_safety() {
-    echo ""
-    echo "=== git-safety.sh ==="
+    report_section "=== git-safety.sh ==="
     local hook="git-safety.sh"
 
     # Create temp git repo for testing
@@ -716,8 +692,7 @@ test_git_safety() {
 
 # === APPROVE SAFE COMMANDS ===
 test_approve_safe_commands() {
-    echo ""
-    echo "=== approve-safe-commands.sh ==="
+    report_section "=== approve-safe-commands.sh ==="
     local hook="approve-safe-commands.sh"
 
     # --- Chained commands that should approve ---
@@ -849,15 +824,14 @@ test_approve_safe_commands() {
         "silent: non-Bash tool"
 
     # --- Validation script sync ---
-    echo ""
-    echo "  --- Sync validation ---"
+    report_section "  --- Sync validation ---"
     TESTS_RUN=$((TESTS_RUN + 1))
     if bash .claude/scripts/validate-safe-commands-sync.sh > /dev/null 2>&1; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "  ${GREEN}PASS${NC}: validate-safe-commands-sync.sh passes"
+        report_pass "validate-safe-commands-sync.sh passes"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "  ${RED}FAIL${NC}: validate-safe-commands-sync.sh failed — hook prefixes out of sync with settings.json"
+        report_fail "validate-safe-commands-sync.sh failed — hook prefixes out of sync with settings.json"
     fi
 }
 
@@ -891,14 +865,4 @@ else
     esac
 fi
 
-# === SUMMARY ===
-echo ""
-echo "=== Summary ==="
-echo -e "Tests run: $TESTS_RUN"
-echo -e "Passed: ${GREEN}$TESTS_PASSED${NC}"
-echo -e "Failed: ${RED}$TESTS_FAILED${NC}"
-
-if [ "$TESTS_FAILED" -gt 0 ]; then
-    exit 1
-fi
-exit 0
+print_summary
