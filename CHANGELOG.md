@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.32.0] - 2026-03-25 - Extract session scripts
+
+### Removed
+- **scripts**: Extracted `scripts/sessions/` (~2,700 lines) to standalone [claude-sessions](~/projects/personal/claude-sessions/) project with unified `claude-sessions` CLI
+- **tests**: Removed `test_session_index.py` and `test_session_analytics.py` (moved to claude-sessions)
+- **make**: Removed `test-session-index` and `test-session-analytics` targets
+
+### Changed
+- **cron**: `index-sessions.sh` now invokes `claude-sessions index` from the extracted project
+- **memory**: Updated `relevant-conventions-testing` to reflect removed targets
+
 ## [2.31.0] - 2026-03-25 - Session analytics co-occurrence
 
 ### Added

@@ -41,6 +41,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: design-tests (400 lines), design-docker (331), design-qa (209), design-db (180), design-diagram (156). These are reference skills by design — invoked occasionally, not daily. Low usage alone isn't a signal for removal. Question: how much is expert knowledge beyond Claude's training vs patterns Claude already knows? Review each for lines that wouldn't be generated without the skill. Track usage over time to inform future decisions.
 
+- **[TOOLKIT]** Evaluate unifying CLI under `bin/claude-toolkit` (`evaluate-unify-cli-entrypoint`)
+    - **scope**: `scripts, toolkit`
+    - **notes**: With sessions extracted, `scripts/` only contains `lessons/` and `shared/`. Investigate consolidating remaining CLI into the existing `bin/claude-toolkit` bash entry point — add subcommands like `claude-toolkit lessons`, `claude-toolkit validate`. Move `scripts/lessons/` and `scripts/shared/` into a `cli/` directory at project root. The bash CLI stays bash — it would dispatch to Python (lessons) or bash (validate, backlog) under the hood. Evaluate: does single entry point simplify usage enough to justify the rewiring, or is the current split (bin/claude-toolkit for sync/send, ct-lessons for lessons, make for validate) working fine?
+
 - **[HOOKS]** Hook router — single dispatch process per trigger instead of N separate hook spawns (`hook-router`)
     - **scope**: `hooks`
     - **notes**: Currently a Bash tool call spawns 7 separate hook processes, each parsing stdin independently. A router script would read stdin once, dispatch to relevant checks based on `$CLAUDE_TOOL_NAME`, and aggregate output. Benefits: cleaner resource_usage analytics in session-index.db (1 entry vs 7), fewer process spawns, defined execution order (blockers → suggestions → context injection), short-circuit on block. Tradeoffs: we own execution order and output aggregation (currently Claude Code handles both), per-project exclusion needs a skip mechanism inside the router. Prototype on a branch to validate.
