@@ -64,6 +64,7 @@ MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^re
 echo "Main: $MAIN_BRANCH"
 
 # === TOOLKIT VERSION ===
+ACTIONABLE_ITEMS=""
 if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; then
     PROJECT_VER=$(cat .claude-toolkit-version 2>/dev/null)
     TOOLKIT_VER=$(claude-toolkit version 2>/dev/null)
@@ -71,6 +72,7 @@ if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; th
         echo ""
         echo "=== TOOLKIT VERSION ==="
         echo "Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sync\` then /setup-toolkit"
+        ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- Toolkit version mismatch: $PROJECT_VER → $TOOLKIT_VER (run \`make claude-toolkit-sync\`)"
     fi
 fi
 
@@ -113,7 +115,10 @@ if [ -f "$LESSONS_DB" ]; then
     fi
 
     ACTIVE_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons WHERE active = 1;" 2>/dev/null || echo 0)
-    [ -n "$NUDGE" ] && echo "⚠ $NUDGE ($ACTIVE_COUNT active lessons). Consider running /manage-lessons"
+    if [ -n "$NUDGE" ]; then
+        echo "⚠ $NUDGE ($ACTIVE_COUNT active lessons). Consider running /manage-lessons"
+        ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- $NUDGE ($ACTIVE_COUNT active lessons) — run /manage-lessons"
+    fi
     echo ""
 
 elif [ -f "$LEARNED_FILE" ]; then
@@ -121,6 +126,7 @@ elif [ -f "$LEARNED_FILE" ]; then
     echo ""
     echo "=== LESSONS ==="
     echo "⚠ MANDATORY: lessons.db not found but learned.json exists. Ask the user to run \`claude-toolkit lessons migrate\` to upgrade lessons to SQLite. Do NOT skip this — surface it immediately at session start."
+    ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- lessons.db missing — run \`claude-toolkit lessons migrate\` to upgrade from learned.json"
 
     # Legacy jq path
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
@@ -145,10 +151,13 @@ elif [ -f "$LEARNED_FILE" ]; then
 fi
 echo ""
 echo "=== SESSION START ==="
-if [ "$LESSON_COUNT" -gt 0 ]; then
-    echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ESSENTIAL_COUNT essential memories loaded, $LESSON_COUNT lessons noted. Do NOT skip this or bury it in other output."
+ACK_MSG="$ESSENTIAL_COUNT essential memories loaded"
+[ "$LESSON_COUNT" -gt 0 ] && ACK_MSG="$ACK_MSG, $LESSON_COUNT lessons noted"
+if [ -n "$ACTIONABLE_ITEMS" ]; then
+    echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ACK_MSG. Then surface these actionable items — do NOT skip or bury them:"
+    echo -e "$ACTIONABLE_ITEMS"
 else
-    echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ESSENTIAL_COUNT essential memories loaded. Do NOT skip this or bury it in other output."
+    echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ACK_MSG. Do NOT skip this or bury it in other output."
 fi
 
 exit 0
