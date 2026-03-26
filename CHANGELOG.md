@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.37.0] - 2026-03-26 - Complete docs migration: rename memory skills to docs skills
+
+### Changed
+- **skills**: Renamed `/create-memory` → `/create-docs`, `/evaluate-memory` → `/evaluate-docs`, `/list-memories` → `/list-docs`
+- **skills**: Renamed `/write-docs` → `/write-documentation` to avoid confusion with `/create-docs`
+- **skills**: Rewrote all three renamed skills for docs scope (`.claude/docs/` creation, evaluation rubric, listing)
+- **skills**: Updated cross-references in 10 other skills (create-agent, create-skill, create-hook, evaluate-*, design-diagram, shape-project)
+- **skills**: Removed `memories` as evaluate-batch resource type — memories are unstructured, no evaluation needed
+- **hooks**: Session-start hook says "essential docs loaded" instead of "essential memories loaded"
+- **hooks**: Guidance message references `/list-docs` instead of `/list-memories`
+- **scripts**: `evaluation-query.sh` uses `docs` type instead of `memories`
+- **docs**: Added `docs/` (user-facing documentation) to directory table in `relevant-toolkit-context`
+- **docs**: Updated naming conventions with new skill names
+- **dist**: Updated MANIFEST and CLAUDE.md.template for renamed skills
+- **cli**: Updated `claude-toolkit` — `memory` type → `doc`, removed `memories` sync category
+- **scripts**: `verify-resource-deps.sh` — `memory` ref type → `doc`
+- **scripts**: `publish.py` — removed `memories` category, updated ref/bullet patterns to docs
+- **tests**: Updated evaluation-query and CLI test fixtures for docs type
+- **indexes**: Renamed evaluation keys in `evaluations.json`
+
+### Removed
+- **backlog**: Removed `complete-docs-migration` (completed)
+
+### Added
+- **backlog**: Added `cli-list-docs` — consider migrating `/list-docs` to CLI
+
 ## [2.36.2] - 2026-03-26 - Drop memory prefixes: memories are just files
 
 ### Changed

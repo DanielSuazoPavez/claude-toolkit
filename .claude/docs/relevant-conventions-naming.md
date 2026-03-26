@@ -40,16 +40,16 @@ Guidelines for naming resources in Claude Toolkit.
 
 | Verb | When to use | Examples |
 |------|-------------|----------|
-| `create-*` | Creating new toolkit resources | `create-agent`, `create-skill`, `create-hook`, `create-memory` |
-| `write-*` | Writing artifacts/documents | `write-handoff`, `write-docs` |
-| `evaluate-*` | Assessing quality against criteria | `evaluate-agent`, `evaluate-skill`, `evaluate-hook`, `evaluate-memory` |
+| `create-*` | Creating new toolkit resources | `create-agent`, `create-skill`, `create-hook`, `create-docs` |
+| `write-*` | Writing artifacts/documents | `write-handoff`, `write-documentation` |
+| `evaluate-*` | Assessing quality against criteria | `evaluate-agent`, `evaluate-skill`, `evaluate-hook`, `evaluate-docs` |
 | `review-*` | Reviewing work (code, plans, security) | `review-plan`, `review-security` |
 | `design-*` | Architecting systems or artifacts | `design-db`, `design-docker`, `design-diagram`, `design-tests` |
 | `analyze-*` | Deep investigation or research | `analyze-idea`, `analyze-naming` |
 | `read-*` | Reading/querying data sources | `read-json` |
 | `setup-*` | Configuring tools or environments | `setup-worktree` |
 | `draft-*` | Creating drafts for review | `draft-pr` |
-| `list-*` | Enumerating resources | `list-memories` |
+| `list-*` | Enumerating resources | `list-docs` |
 
 ### Choosing the Right Verb
 
@@ -64,7 +64,7 @@ Guidelines for naming resources in Claude Toolkit.
 
 - Use the resource/target being acted upon
 - Singular when acting on one thing (`create-agent`, not `create-agents`)
-- Plural only when the action is inherently about multiple items (`list-memories`)
+- Plural only when the action is inherently about multiple items (`list-docs`)
 
 ---
 

@@ -193,9 +193,9 @@ Before outputting the skill, evaluate it with `/evaluate-skill`:
 - **Target: 85%**
 - If below target, iterate on the weakest dimensions
 - Common fixes: add anti-patterns table, add decision tree, remove tutorial content
-- **D7 (Integration Quality)**: Check that references point to real resources, defer to existing content instead of restating it, and connect to related skills/agents/memories
+- **D7 (Integration Quality)**: Check that references point to real resources, defer to existing content instead of restating it, and connect to related skills/agents/docs
 
-**See also:** `/create-agent` (when an agent fits better), `/create-hook` (for enforcement patterns), `/create-memory` (for context persistence), `relevant-toolkit-resource_frontmatter` memory (supported frontmatter fields)
+**See also:** `/create-agent` (when an agent fits better), `/create-hook` (for enforcement patterns), `/create-docs` (for context persistence), `relevant-toolkit-resource_frontmatter` doc (supported frontmatter fields)
 
 ## Naming Convention
 

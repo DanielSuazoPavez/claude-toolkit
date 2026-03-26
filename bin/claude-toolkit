@@ -87,7 +87,7 @@ ARGUMENTS:
     <path>              Path to the resource file (or issue text with --issue)
 
 OPTIONS:
-    --type <type>       Resource type: skill, agent, hook, memory
+    --type <type>       Resource type: skill, agent, hook, doc
     --project <name>    Project name (default: auto-detected from git repo or directory name)
     --issue             Send an issue/bug report instead of a file
     -h, --help          Show this help message
@@ -135,8 +135,8 @@ EOF
     else
         # Resource mode: source_path is a file
         [[ -z "$source_path" ]] && error "Source path required"
-        [[ -z "$type" ]] && error "--type required (skill|agent|hook|memory)"
-        [[ ! "$type" =~ ^(skill|agent|hook|memory)$ ]] && error "Invalid type: $type"
+        [[ -z "$type" ]] && error "--type required (skill|agent|hook|doc)"
+        [[ ! "$type" =~ ^(skill|agent|hook|doc)$ ]] && error "Invalid type: $type"
         [[ ! -f "$source_path" ]] && error "File not found: $source_path"
 
         # Derive name from path
@@ -145,7 +145,7 @@ EOF
         local name
         local dirname_base
         dirname_base=$(basename "$(dirname "$source_path")")
-        if [[ "$dirname_base" == "hooks" || "$dirname_base" == "agents" || "$dirname_base" == "memories" || "$dirname_base" == "." || "$dirname_base" == ".claude" ]]; then
+        if [[ "$dirname_base" == "hooks" || "$dirname_base" == "agents" || "$dirname_base" == "docs" || "$dirname_base" == "." || "$dirname_base" == ".claude" ]]; then
             # Flat file: use filename without extension
             name=$(basename "$source_path")
             name="${name%.*}"
@@ -173,7 +173,6 @@ categorize_file() {
         skills/*) echo "skills" ;;
         agents/*) echo "agents" ;;
         hooks/*) echo "hooks" ;;
-        memories/*) echo "memories" ;;
         docs/*) echo "docs" ;;
         templates/*|dist/*/templates/*) echo "templates" ;;
         scripts/*) echo "scripts" ;;
@@ -262,14 +261,14 @@ OPTIONS:
     --dry-run           Preview changes without applying
     --force             Overwrite all conflicts without prompting
     --only <types>      Sync only specific categories (comma-separated)
-                        Types: skills, agents, hooks, memories, templates, scripts
+                        Types: skills, agents, hooks, docs, templates, scripts
     -h, --help          Show this help message
 
 CATEGORIES:
     skills      User-invocable workflows (/skill-name)
     agents      Specialized task subprocesses
     hooks       Event-driven automation scripts
-    memories    Persistent context templates
+    docs        Prescriptive rules and reference documentation
     templates   Project scaffolding files
     scripts     Internal utility scripts
 
@@ -425,7 +424,7 @@ declare -A CATEGORY_UPDATED_FILES
 declare -a IGNORED_FILES=()
 
 # Initialize category arrays
-for cat in skills agents hooks memories templates scripts other; do
+for cat in skills agents hooks docs templates scripts other; do
     CATEGORY_NEW_FILES[$cat]=""
     CATEGORY_UPDATED_FILES[$cat]=""
 done
@@ -465,7 +464,7 @@ done < <(resolve_manifest)
 # Count total files
 local total_new=0
 local total_updated=0
-for cat in skills agents hooks memories templates scripts other; do
+for cat in skills agents hooks docs templates scripts other; do
     [[ -n "${CATEGORY_NEW_FILES[$cat]}" ]] && total_new=$((total_new + $(echo -n "${CATEGORY_NEW_FILES[$cat]}" | grep -c '^' || true)))
     [[ -n "${CATEGORY_UPDATED_FILES[$cat]}" ]] && total_updated=$((total_updated + $(echo -n "${CATEGORY_UPDATED_FILES[$cat]}" | grep -c '^' || true)))
 done
@@ -474,7 +473,7 @@ done
 echo -e "${BLUE}Files to sync:${NC}"
 local has_files=false
 
-for cat in skills agents hooks memories templates scripts other; do
+for cat in skills agents hooks docs templates scripts other; do
     local new_files="${CATEGORY_NEW_FILES[$cat]}"
     local updated_files="${CATEGORY_UPDATED_FILES[$cat]}"
 
@@ -523,7 +522,7 @@ fi
 # Interactive category selection (if not forced and multiple categories)
 declare -a SELECTED_CATEGORIES=()
 local category_count=0
-for cat in skills agents hooks memories templates scripts other; do
+for cat in skills agents hooks docs templates scripts other; do
     if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
         ((category_count++)) || true
     fi
@@ -535,7 +534,7 @@ if ! $FORCE && [[ $category_count -gt 1 ]]; then
 
     case $choice in
         a|A)
-            for cat in skills agents hooks memories templates scripts other; do
+            for cat in skills agents hooks docs templates scripts other; do
                 if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
                     SELECTED_CATEGORIES+=("$cat")
                 fi
@@ -543,7 +542,7 @@ if ! $FORCE && [[ $category_count -gt 1 ]]; then
             ;;
         s|S)
             echo "Select categories to sync (y/n for each):"
-            for cat in skills agents hooks memories templates scripts other; do
+            for cat in skills agents hooks docs templates scripts other; do
                 if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
                     echo -n "  $cat? [y/N] "
                     read -r cat_choice
@@ -564,7 +563,7 @@ if ! $FORCE && [[ $category_count -gt 1 ]]; then
     esac
 else
     # Force mode or single category - select all available
-    for cat in skills agents hooks memories templates scripts other; do
+    for cat in skills agents hooks docs templates scripts other; do
         if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
             SELECTED_CATEGORIES+=("$cat")
         fi

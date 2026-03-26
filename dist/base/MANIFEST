@@ -14,7 +14,7 @@
 # skills
 skills/analyze-idea/
 skills/brainstorm-idea/
-skills/create-memory/
+skills/create-docs/
 skills/shape-project/
 skills/shape-proposal/
 skills/design-db/
@@ -24,7 +24,7 @@ skills/design-tests/
 skills/draft-pr/
 skills/learn/
 skills/manage-lessons/
-skills/list-memories/
+skills/list-docs/
 skills/read-json/
 skills/refactor/
 skills/review-plan/
@@ -35,7 +35,7 @@ skills/snap-back/
 skills/teardown-worktree/
 skills/wrap-up/
 skills/write-handoff/
-skills/write-docs/
+skills/write-documentation/
 
 # agents
 agents/proposal-reviewer.md

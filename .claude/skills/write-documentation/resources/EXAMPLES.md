@@ -1,4 +1,4 @@
-# write-docs Examples
+# write-documentation Examples
 
 Worked examples and good/bad comparisons for both modes.
 

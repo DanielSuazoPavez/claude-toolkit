@@ -9,7 +9,7 @@ Inbox for resources sent from other projects via `claude-toolkit send`.
 3. Use the appropriate evaluate skill to assess quality:
    - `/evaluate-skill` for skills
    - `/evaluate-hook` for hooks
-   - `/evaluate-memory` for memories
+   - `/evaluate-docs` for docs
    - `/evaluate-agent` for agents
 4. Consider scope: **Is this project-specific or toolkit-worthy?**
    - Project-specific patterns → reject (belongs in that project only)

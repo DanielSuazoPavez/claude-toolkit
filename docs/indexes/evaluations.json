@@ -290,52 +290,6 @@
           "[low] D2: Add branching logic to the evaluation protocol for different hook types"
         ]
       },
-      "evaluate-memory": {
-        "file_hash": "6331fff9",
-        "date": "2026-03-11",
-        "type": "knowledge",
-        "score": 104,
-        "max": 120,
-        "percentage": 86.7,
-        "dimensions": {
-          "D1": 16,
-          "D2": 13,
-          "D3": 14,
-          "D4": 8,
-          "D5": 14,
-          "D6": 13,
-          "D7": 13,
-          "D8": 13
-        },
-        "top_improvements": [
-          "[high] Add frontmatter type and keywords fields to improve routing and specification compliance (D4)",
-          "[low] Add a second worked example showing evaluation of a poor-quality memory to strengthen practical usability (D8)",
-          "[low] Reference list-memories skill for discovery workflow and clarify why D2 is weighted highest at 25 pts (D2/D7)"
-        ]
-      },
-      "list-memories": {
-        "file_hash": "42885898",
-        "date": "2026-03-09",
-        "type": "command",
-        "score": 105,
-        "max": 120,
-        "percentage": 87.5,
-        "dimensions": {
-          "D1": 16,
-          "D2": 13,
-          "D3": 13,
-          "D4": 9,
-          "D5": 14,
-          "D6": 13,
-          "D7": 14,
-          "D8": 13
-        },
-        "top_improvements": [
-          "[low] Add a filtering variant for targeted category discovery (e.g., list-memories essential or list-memories relevant-workflow)",
-          "[low] Document the awk regex matching behavior for non-standard Quick Reference heading formats (numbered headings, etc.)",
-          "[low] Expand anti-pattern fixes with slightly more specific guidance (e.g., \"Use Quick Reference to filter\" could explain the filter decision process)"
-        ]
-      },
       "read-json": {
         "file_hash": "d22c02d2",
         "date": "2026-03-09",
@@ -497,29 +451,6 @@
           "[low] D8: Add When NOT to create a handoff guidance — clean tree with no complex context makes handoff noise"
         ]
       },
-      "write-docs": {
-        "file_hash": "eda89c5f",
-        "date": "2026-03-09",
-        "type": "knowledge",
-        "score": 106,
-        "max": 120,
-        "percentage": 88.3,
-        "dimensions": {
-          "D1": 16,
-          "D2": 13,
-          "D3": 14,
-          "D4": 9,
-          "D5": 14,
-          "D6": 13,
-          "D7": 13,
-          "D8": 14
-        },
-        "top_improvements": [
-          "[high] D1: Add more expert delta — decision tree for when NOT to write docs, or heuristics for doc-to-code ratio by project type",
-          "[low] D7: Reference project-level memories as inputs to style detection in Step 3",
-          "[low] D2: Add decision tree for when to do BOTH user-docs and docstrings simultaneously"
-        ]
-      },
       "refactor": {
         "file_hash": "70fbcdde",
         "date": "2026-03-09",
@@ -610,28 +541,6 @@
           "[low] D5: Move the Notification example to the reference file — the PreToolUse and PostToolUse examples in the main skill sufficiently demonstrate blocking and non-blocking patterns, keeping the core under 200 lines",
           "[low] D2: Add a brief note explaining why testing (step 3) precedes configuration (step 4) — the sequencing judgment is correct but implicit",
           "[low] D8: Expand quality gate recovery guidance — specify which /evaluate-hook dimensions to prioritize when iterating below the 85% target"
-        ]
-      },
-      "create-memory": {
-        "file_hash": "856e398c",
-        "date": "2026-03-12",
-        "score": 102,
-        "max": 120,
-        "percentage": 85,
-        "dimensions": {
-          "D1": 14,
-          "D2": 13,
-          "D3": 13,
-          "D4": 9,
-          "D5": 14,
-          "D6": 13,
-          "D7": 12,
-          "D8": 14
-        },
-        "top_improvements": [
-          "[low] Remove category duplication — the quick reference table and Instructions step 2 restate the decision tree and conventions memory, creating sync risk",
-          "[low] Add explicit type: command to frontmatter — skill value is consistent execution, matching command type",
-          "[low] Add a complete happy-path example showing full output file, not just filename and summary bullets"
         ]
       },
       "shape-proposal": {
@@ -768,6 +677,97 @@
           "[low] Add cross-reference to session-start hook that detects version drift and triggers this skill (D7)",
           "[low] Include example of populated diagnostic summary table showing real issues (D8)",
           "[low] Evaluate whether the CLAUDE.md-exists check adds enough expert curation value vs diluting the checklist (D1)"
+        ]
+      },
+      "create-docs": {
+        "file_hash": "856e398c",
+        "date": "2026-03-12",
+        "score": 102,
+        "max": 120,
+        "percentage": 85,
+        "dimensions": {
+          "D1": 14,
+          "D2": 13,
+          "D3": 13,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 12,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[low] Remove category duplication — the quick reference table and Instructions step 2 restate the decision tree and conventions memory, creating sync risk",
+          "[low] Add explicit type: command to frontmatter — skill value is consistent execution, matching command type",
+          "[low] Add a complete happy-path example showing full output file, not just filename and summary bullets"
+        ]
+      },
+      "evaluate-docs": {
+        "file_hash": "6331fff9",
+        "date": "2026-03-11",
+        "type": "knowledge",
+        "score": 104,
+        "max": 120,
+        "percentage": 86.7,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 14,
+          "D4": 8,
+          "D5": 14,
+          "D6": 13,
+          "D7": 13,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[high] Add frontmatter type and keywords fields to improve routing and specification compliance (D4)",
+          "[low] Add a second worked example showing evaluation of a poor-quality memory to strengthen practical usability (D8)",
+          "[low] Reference list-docs skill for discovery workflow and clarify why D2 is weighted highest at 25 pts (D2/D7)"
+        ]
+      },
+      "list-docs": {
+        "file_hash": "42885898",
+        "date": "2026-03-09",
+        "type": "command",
+        "score": 105,
+        "max": 120,
+        "percentage": 87.5,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 14,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] Add a filtering variant for targeted category discovery (e.g., list-docs essential or list-docs relevant-workflow)",
+          "[low] Document the awk regex matching behavior for non-standard Quick Reference heading formats (numbered headings, etc.)",
+          "[low] Expand anti-pattern fixes with slightly more specific guidance (e.g., \"Use Quick Reference to filter\" could explain the filter decision process)"
+        ]
+      },
+      "write-documentation": {
+        "file_hash": "eda89c5f",
+        "date": "2026-03-09",
+        "type": "knowledge",
+        "score": 106,
+        "max": 120,
+        "percentage": 88.3,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 14,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 13,
+          "D8": 14
+        },
+        "top_improvements": [
+          "[high] D1: Add more expert delta — decision tree for when NOT to write docs, or heuristics for doc-to-code ratio by project type",
+          "[low] D7: Reference project-level memories as inputs to style detection in Step 3",
+          "[low] D2: Add decision tree for when to do BOTH user-docs and docstrings simultaneously"
         ]
       }
     }
@@ -984,37 +984,6 @@
       }
     }
   },
-  "memories": {
-    "evaluate_skill": "/evaluate-memory",
-    "write_skill": "/create-memory",
-    "dimensions": {
-      "D1": {
-        "name": "Category & Naming",
-        "max": 20
-      },
-      "D2": {
-        "name": "Quick Reference Section",
-        "max": 25
-      },
-      "D3": {
-        "name": "Content Scope",
-        "max": 20
-      },
-      "D4": {
-        "name": "Load Timing Appropriateness",
-        "max": 15
-      },
-      "D5": {
-        "name": "Structure & Formatting",
-        "max": 20
-      },
-      "D6": {
-        "name": "Integration Quality",
-        "max": 15
-      }
-    },
-    "resources": {}
-  },
   "agents": {
     "evaluate_skill": "/evaluate-agent",
     "write_skill": "/create-agent",
@@ -1177,6 +1146,8 @@
     }
   },
   "docs": {
+    "evaluate_skill": "/evaluate-docs",
+    "write_skill": "/create-docs",
     "dimensions": {
       "D1": {
         "name": "Category & Naming",
@@ -1203,167 +1174,6 @@
         "max": 15
       }
     },
-    "resources": {
-      "essential-conventions-code_style": {
-        "file_hash": "890c2e81",
-        "date": "2026-03-09",
-        "score": 106,
-        "max": 115,
-        "percentage": 92.2,
-        "dimensions": {
-          "D1": 20,
-          "D2": 22,
-          "D3": 19,
-          "D4": 15,
-          "D5": 17,
-          "D6": 13
-        },
-        "top_improvements": [
-          "[low] Convert Section 2 (Design Principles) from bold-heading-with-bullets to a table format (Principle | Guidance) for faster scanning — matches the density of Section 3 better (D5: +2-3)",
-          "[low] Add a cross-reference to enforce-make-commands hook or relevant-reference-hooks_config since Section 3 make-targets convention is actively enforced by a hook — strengthens ecosystem connection (D6: +1-2)",
-          "[low] Consider using the ONLY READ WHEN pattern in Quick Reference to match the convention-memory pattern defined in relevant-toolkit-memory, even though MANDATORY works for essential auto-loaded content (D2: +1-2)"
-        ]
-      },
-      "essential-preferences-communication_style": {
-        "file_hash": "0afefdee",
-        "date": "2026-03-09",
-        "score": 110,
-        "max": 115,
-        "percentage": 95.7,
-        "dimensions": {
-          "D1": 20,
-          "D2": 23,
-          "D3": 19,
-          "D4": 15,
-          "D5": 19,
-          "D6": 14
-        },
-        "top_improvements": [
-          "[low] Tighten section 2 scope — move tool-usage and verification-focused subsections to a separate relevant-workflow memory or rename section to Working & Communication Patterns to match content (D3: +1)",
-          "[low] Add cross-reference to essential-toolkit-identity in See Also for sibling essential-memory connectivity (D6: +1)",
-          "[low] Add subheading in section 5 to visually separate the key principle statement from the not-sycophancy clarification list (D5: +1)"
-        ]
-      },
-      "relevant-toolkit-resource_frontmatter": {
-        "file_hash": "f34b8027",
-        "date": "2026-03-11",
-        "score": 104,
-        "max": 115,
-        "percentage": 90.4,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 10
-        },
-        "top_improvements": [
-          "[med] Improve discoverability — add cross-references from /create-skill, /create-agent, and /evaluate-skill skills back to this memory so users know it exists (D6)",
-          "[low] Add See Also links to /create-skill and /create-agent skills that consume this frontmatter information (D6)",
-          "[low] Consider whether Model Selection Guide (section 5) should be its own memory to keep this strictly about frontmatter field definitions (D3)"
-        ]
-      },
-      "relevant-conventions-testing": {
-        "file_hash": "86757f48",
-        "date": "2026-03-12",
-        "score": 107,
-        "max": 115,
-        "percentage": 93.0,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "Cross-reference relevant-workflow-branch_development",
-          "Sections 4-6 describe specific test files — consider keeping memory at convention/pattern level",
-          "Add a brief note about test naming conventions"
-        ]
-      },
-      "relevant-workflow-backlog": {
-        "file_hash": "fd39b2e1",
-        "date": "2026-03-12",
-        "score": 107,
-        "max": 115,
-        "percentage": 93.0,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "Reconcile P3 priority tier and graveyard policy with parent CLAUDE.md conventions to avoid divergence",
-          "Split Rules list in section 3 to separate format rules from lifecycle rules (removal policy)",
-          "Add broader ecosystem cross-references to other convention memories for discoverability"
-        ]
-      },
-      "relevant-toolkit-hooks_config": {
-        "file_hash": "99489b6f",
-        "date": "2026-03-11",
-        "score": 106,
-        "max": 115,
-        "percentage": 92.2,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 12
-        },
-        "top_improvements": [
-          "[low] Add cross-reference to essential-toolkit-identity which defines hooks as guardrails — strengthens D6 ecosystem awareness (+1)",
-          "[low] Add a third ONLY READ WHEN bullet (e.g., adding a new hook to a project) to broaden Quick Reference trigger coverage (D2: +1)",
-          "[low] Include hook status (stable/beta) in the Active Hooks tables to match ecosystem information available in HOOKS.md index (D3: +1)"
-        ]
-      },
-      "relevant-project-identity": {
-        "file_hash": "d80f1d83",
-        "date": "2026-03-09",
-        "score": 104,
-        "max": 115,
-        "percentage": 90.4,
-        "dimensions": {
-          "D1": 19,
-          "D2": 21,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "Align Quick Reference with the Purpose/Read at/Not a reference doc pattern from conventions (orientation memory type) instead of MANDATORY format -- D2",
-          "Add cross-reference to .claude/indexes/ system and CLAUDE.md Structure section to strengthen ecosystem integration -- D6",
-          "Minor: the one-line toolkit description in Section 2 echoes CLAUDE.md project overview line -- consider a cross-reference instead of restating -- D3"
-        ]
-      },
-      "relevant-philosophy-reducing_entropy": {
-        "file_hash": "c6d97d69",
-        "date": "2026-03-09",
-        "score": 105,
-        "max": 115,
-        "percentage": 91.3,
-        "dimensions": {
-          "D1": 20,
-          "D2": 24,
-          "D3": 17,
-          "D4": 14,
-          "D5": 16,
-          "D6": 14
-        },
-        "top_improvements": [
-          "[medium] Number all sections consistently (## 2. Core Question, ## 3. Three Questions, etc.) to match convention used in other memories -- D5",
-          "[low] Remove internal repetition: the core message about \"better organized but more code = more entropy\" appears in both Core Question (line 21) and The Uncomfortable Truth (line 57) -- consolidate into one location -- D3",
-          "[low] The Uncomfortable Truth section could be merged into Core Question or deleted entirely since it restates the same point with a slightly different quote -- D3"
-        ]
-      }
-    }
+    "resources": {}
   }
 }

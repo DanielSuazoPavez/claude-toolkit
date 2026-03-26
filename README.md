@@ -1,6 +1,6 @@
 # Claude Toolkit
 
-Curated Claude Code configuration: skills, agents, hooks, and memory templates for productive AI-assisted development.
+Curated Claude Code configuration: skills, agents, hooks, and docs for productive AI-assisted development.
 
 ## Quick Start
 
@@ -42,7 +42,7 @@ When syncing, files are grouped by category for selective updates:
 - **skills** - User-invocable workflows
 - **agents** - Specialized task subprocesses
 - **hooks** - Event-driven automation scripts
-- **memories** - Persistent context templates
+- **docs** - Prescriptive rules and reference documentation
 - **templates** - Project scaffolding files
 - **scripts** - Internal utility scripts
 
@@ -59,19 +59,21 @@ Sync uses semantic versioning to track updates:
 |-----------|------------|---------------|-----------|
 | **Skill** | Triggered workflow/procedure | User invokes with `/skill-name` | Stable once written |
 | **Agent** | Specialized subprocess for complex tasks | Claude spawns via Task tool | Per-task |
-| **Memory** | Persistent context that survives sessions | Auto-loaded at session start or user requests | Evolves with project |
+| **Doc** | Rules, conventions, reference documentation | Auto-loaded (`essential-*`) or on-demand (`relevant-*`) | Stable, rarely changes |
+| **Memory** | Organic context, preferences, ideas | User creates directly in `.claude/memories/` | Evolves with project |
 | **Hook** | Automation script triggered by events | Runs automatically on tool use or session events | Stable once written |
 
-### Skills vs Memories
+### Skills vs Docs vs Memories
 
 Both externalize knowledge, but serve different purposes:
 
 - **Skills** = Step-by-step procedures. "When X happens, do Y then Z."
-- **Memories** = Context and conventions. "Here's how we do things here."
+- **Docs** = Rules, conventions, and reference documentation. "Here's how we do things here."
+- **Memories** = Organic context, preferences, ideas. Unstructured files in `.claude/memories/`.
 
-A skill tells Claude *what to do*. A memory tells Claude *what to know*.
+A skill tells Claude *what to do*. A doc tells Claude *what to know*.
 
-**Example:** `/create-memory` is a skill (procedure for creating memories). `relevant-toolkit-context.md` is a doc (naming conventions to follow).
+**Example:** `/create-docs` is a skill (procedure for creating docs). `relevant-toolkit-context.md` is a doc (naming conventions to follow).
 
 ## What's Included
 
@@ -80,7 +82,7 @@ A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 | **Skills** | 32 | `/brainstorm-idea`, `/draft-pr`, `/refactor`, `/learn` |
 | **Agents** | 7 | `code-reviewer`, `code-debugger`, `pattern-finder` |
 | **Hooks** | 10 | git safety, secrets guard, dangerous command blocking |
-| **Memory templates** | 11 | code style, communication style, testing conventions |
+| **Docs** | 11 | code style, communication style, testing conventions |
 
 Skills cover workflow, code quality, design, development tools, and toolkit development. Hooks cover safety (git, secrets, destructive commands) and convention enforcement (uv, make targets). Some hooks are Python-specific — remove or modify for other stacks.
 

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, and memory templates.
+Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, and docs templates.
 
 ## Quick Start
 
