@@ -10,7 +10,6 @@ Always loaded at session start:
 |--------|--------|---------|
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
-| `essential-toolkit-identity` | stable | What the toolkit is, resource roles, decision checklist |
 
 ## Relevant Memories
 
@@ -23,6 +22,7 @@ Always loaded at session start:
 | `relevant-toolkit-memory` | stable | Memory naming conventions and categories |
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
 | `relevant-context-professional_profile` | stable | Data engineering role, stack, tools, and current trajectory |
+| `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
 
 ## Philosophy
 

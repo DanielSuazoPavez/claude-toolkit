@@ -108,7 +108,7 @@ Hooks are configured in `settings.json` (committed, shared).
 
 ## Design Philosophy
 
-See [`.claude/memories/essential-toolkit-identity.md`](.claude/memories/essential-toolkit-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
+See [`.claude/memories/relevant-project-identity.md`](.claude/memories/relevant-project-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
 
 See also [`.claude/memories/relevant-philosophy-reducing_entropy.md`](.claude/memories/relevant-philosophy-reducing_entropy.md) for the curation philosophy — why less is more, and how to keep the toolkit lean.
 
