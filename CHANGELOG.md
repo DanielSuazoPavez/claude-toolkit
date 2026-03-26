@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.34.1] - 2026-03-26 - Sync feedback fixes from cross-project migration
+
+### Fixed
+- **templates**: Gitignore pattern for project memories changed from `project-*` to `*-project-*`
+- **templates**: Makefile sync command no longer includes hardcoded path argument
+
+### Added
+- **templates/hooks**: `trash-put` added to allowed permissions and approve-safe-commands hook
+- **skills**: `wrap-up` now includes guidance to commit `uv.lock` alongside version bumps
+- **skills**: `setup-toolkit` detects `mcp.json` at project root and moves it to `.claude/mcp.json`
+
 ## [2.34.0] - 2026-03-25 - Session ID propagation to hook timing logs
 
 ### Added
