@@ -104,7 +104,11 @@ hook_approve() {
     local reason="$1"
     reason="${reason//\\/\\\\}"
     reason="${reason//\"/\\\"}"
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"$reason\"}}"
+    if [ "$HOOK_EVENT" = "PermissionRequest" ]; then
+        echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PermissionRequest\",\"decision\":{\"behavior\":\"allow\"}}}"
+    else
+        echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"$reason\"}}"
+    fi
     exit 0
 }
 

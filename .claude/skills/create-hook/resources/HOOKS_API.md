@@ -437,6 +437,30 @@ All hooks receive these fields via stdin JSON:
 | `"deny"` | Block tool, show reason to Claude |
 | `"ask"` | Show permission dialog to user |
 
+#### PermissionRequest Decision
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PermissionRequest",
+    "decision": {
+      "behavior": "allow",
+      "updatedInput": { "command": "modified command" }
+    }
+  }
+}
+```
+
+| Field | Values | Notes |
+|-------|--------|-------|
+| `decision.behavior` | `"allow"`, `"deny"` | No `"ask"` option |
+| `decision.updatedInput` | object | Optional, allow only |
+| `decision.updatedPermissions` | array | Optional, allow only — persists permission rules |
+| `decision.message` | string | Optional, deny only |
+| `decision.interrupt` | boolean | Optional, deny only |
+
+**Note:** PermissionRequest uses `decision.behavior`, NOT `permissionDecision`. Different structure from PreToolUse.
+
 #### Stop/SubagentStop Decision
 
 ```json

@@ -67,7 +67,7 @@ expect_allow() {
     fi
 }
 
-# Test helper: expects hookSpecificOutput with permissionDecision: allow
+# Test helper: expects PermissionRequest approval (decision.behavior: allow)
 expect_approve() {
     local hook="$1"
     local input="$2"
@@ -77,14 +77,14 @@ expect_approve() {
     local output
     output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
 
-    if echo "$output" | grep -q '"permissionDecision"[[:space:]]*:[[:space:]]*"allow"'; then
+    if echo "$output" | grep -q '"behavior"[[:space:]]*:[[:space:]]*"allow"'; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output: $output"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
         report_fail "$description"
-        report_detail "Expected: permissionDecision allow"
+        report_detail "Expected: decision.behavior allow"
         report_detail "Got: ${output:-<empty>}"
     fi
 }
