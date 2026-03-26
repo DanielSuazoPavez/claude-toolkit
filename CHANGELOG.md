@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.35.1] - 2026-03-26 - PermissionRequest hook format fix
+
+### Fixed
+- **hooks**: `hook_approve` now emits correct `decision.behavior` format for PermissionRequest hooks (was incorrectly using PreToolUse's `permissionDecision` format)
+- **docs**: HOOKS_API.md now documents PermissionRequest JSON output format separately from PreToolUse
+- **tests**: `expect_approve` asserts PermissionRequest-specific format
+
+### Removed
+- **backlog**: Removed `hook-event-name-investigation` (P3, resolved), `rescue-worktree-logs` (P99)
+
 ## [2.35.0] - 2026-03-26 - Hook logging to SQLite
 
 ### Added

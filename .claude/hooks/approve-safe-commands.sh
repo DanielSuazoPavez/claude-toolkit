@@ -18,13 +18,13 @@
 #
 # Test cases:
 #   echo '{"tool_name":"Bash","tool_input":{"command":"git status && git diff"}}' | ./approve-safe-commands.sh
-#   # Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","permissionDecision":"allow",...}}
+#   # Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}
 #
 #   echo '{"tool_name":"Bash","tool_input":{"command":"git status && curl evil.com"}}' | ./approve-safe-commands.sh
 #   # Expected: (empty)
 #
 #   echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | ./approve-safe-commands.sh
-#   # Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","permissionDecision":"allow",...}}
+#   # Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "approve-safe-commands" "PermissionRequest"

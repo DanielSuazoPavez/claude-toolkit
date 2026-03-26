@@ -36,10 +36,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[HOOKS]** Investigate hookEventName value for PermissionRequest hooks (`hook-event-name-investigation`)
-    - **scope**: `hooks`
-    - **notes**: `hook_approve` now emits `hookEventName=$HOOK_EVENT` (e.g., "PermissionRequest") but the old create-hook GOTCHA claimed it must be "PreToolUse" even for PermissionRequest. HOOKS_API.md only shows "PreToolUse" in the output spec. Current `approve-safe-commands.sh` works with "PermissionRequest" but this may be undocumented behavior. Investigate if Claude Code enforces specific values.
-
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
     - **notes**: Inspired by `disler/claude-code-hooks-mastery`'s `.claude/output-styles/` directory. Named formatting modes (ultra-concise, table-based, genui/HTML output, etc.) activated per-session. Different from our communication style memory — these are structural formatting preferences, not personality. Relates to `schemas/` folder direction. Explore whether this fits as a convention or is over-engineering.
@@ -54,10 +50,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P99 - Nice to Have
-
-- **[HOOKS]** Rescue worktree hook logs — copy `.claude/logs/` from worktrees before teardown (`rescue-worktree-logs`)
-    - **scope**: `hooks`
-    - **notes**: Worktrees have isolated `.claude/logs/` (including `hook-timing.log` and `.session-id`). When a worktree is torn down, those logs are lost. Consider a pre-teardown hook or wrapper that copies logs to the main project's log directory. Related to session-id feature — worktree sessions are naturally isolated but their data should be preserved.
 
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`

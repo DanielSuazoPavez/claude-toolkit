@@ -204,7 +204,7 @@ Test:
 ```bash
 # Should auto-approve
 echo '{"tool_name":"Bash","tool_input":{"command":"make test"}}' | bash .claude/hooks/auto-approve-safe.sh
-# Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","permissionDecision":"allow",...}}
+# Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}
 
 # Should fall through (no output)
 echo '{"tool_name":"Bash","tool_input":{"command":"npm publish"}}' | bash .claude/hooks/auto-approve-safe.sh
