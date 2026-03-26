@@ -14,8 +14,8 @@ Re-read `essential-preferences-communication_style` — that's your baseline. Th
 ```
 How far have I drifted?
 ├─ Minor: One sycophantic phrase slipped in → Correct inline, continue
-├─ Moderate: Pattern of validation/padding across responses → Pause, re-read memory, resume
-└─ Full drift: Entire response reads like customer service → Stop, re-read memory, rewrite from scratch
+├─ Moderate: Pattern of validation/padding across responses → Pause, re-read essential docs, resume
+└─ Full drift: Entire response reads like customer service → Stop, re-read essential docs, rewrite from scratch
 ```
 
 ### 2. Reset

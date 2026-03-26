@@ -1,6 +1,6 @@
 # Claude Toolkit
 
-Curated Claude Code configuration: skills, agents, hooks, and memory templates for productive AI-assisted development.
+Curated Claude Code configuration: skills, agents, hooks, and docs for productive AI-assisted development.
 
 ## Quick Start
 
@@ -42,7 +42,7 @@ When syncing, files are grouped by category for selective updates:
 - **skills** - User-invocable workflows
 - **agents** - Specialized task subprocesses
 - **hooks** - Event-driven automation scripts
-- **memories** - Persistent context templates
+- **docs** - Prescriptive rules and reference documentation
 - **templates** - Project scaffolding files
 - **scripts** - Internal utility scripts
 
@@ -59,10 +59,11 @@ Sync uses semantic versioning to track updates:
 |-----------|------------|---------------|-----------|
 | **Skill** | Triggered workflow/procedure | User invokes with `/skill-name` | Stable once written |
 | **Agent** | Specialized subprocess for complex tasks | Claude spawns via Task tool | Per-task |
-| **Memory** | Persistent context that survives sessions | Auto-loaded at session start or user requests | Evolves with project |
+| **Doc** | Rules, conventions, reference documentation | Auto-loaded (`essential-*`) or on-demand (`relevant-*`) | Stable, rarely changes |
+| **Memory** | Organic context, preferences, ideas | User creates directly in `.claude/memories/` | Evolves with project |
 | **Hook** | Automation script triggered by events | Runs automatically on tool use or session events | Stable once written |
 
-### Skills vs Memories
+### Skills vs Docs vs Memories
 
 Both externalize knowledge, but serve different purposes:
 

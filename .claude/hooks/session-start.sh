@@ -6,22 +6,21 @@
 #
 # Environment:
 #   CLAUDE_DOCS_DIR     - docs directory (default: .claude/docs)
-#   CLAUDE_MEMORIES_DIR - memories directory (default: .claude/memories)
 #
-# Requires: essential-*.md files in docs and/or memories directory
+# Requires: essential-*.md files in docs directory
 #
 # Test cases:
-#   # Normal operation (from project root with memories)
+#   # Normal operation (from project root with docs)
 #   cd /path/to/project && bash .claude/hooks/session-start.sh
-#   # Expected: outputs essential memories, other memories list, git context
+#   # Expected: outputs essential docs, docs guidance, git context
 #
-#   # No memories directory
-#   CLAUDE_MEMORIES_DIR=/nonexistent bash .claude/hooks/session-start.sh
+#   # No docs directory
+#   CLAUDE_DOCS_DIR=/nonexistent bash .claude/hooks/session-start.sh
 #   # Expected: "Warning: /nonexistent not found..." then exits 0
 #
-#   # Empty memories (no essential-*.md files)
-#   mkdir -p /tmp/empty-mem && CLAUDE_MEMORIES_DIR=/tmp/empty-mem bash .claude/hooks/session-start.sh
-#   # Expected: outputs headers but "0 essential memories loaded"
+#   # Empty docs (no essential-*.md files)
+#   mkdir -p /tmp/empty-docs && CLAUDE_DOCS_DIR=/tmp/empty-docs bash .claude/hooks/session-start.sh
+#   # Expected: outputs headers but "0 essential docs loaded"
 #
 #   # No git repo
 #   cd /tmp && bash /path/to/.claude/hooks/session-start.sh
@@ -29,7 +28,6 @@
 
 # Configuration
 DOCS_DIR="${CLAUDE_DOCS_DIR:-.claude/docs}"
-MEMORIES_DIR="${CLAUDE_MEMORIES_DIR:-.claude/memories}"
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "session-start" "SessionStart"
@@ -43,9 +41,9 @@ else
 fi
 echo "$SESSION_ID" > ".claude/logs/.session-id"
 
-# Check we're in a project with docs or memories
-if [ ! -d "$DOCS_DIR" ] && [ ! -d "$MEMORIES_DIR" ]; then
-    echo "Warning: neither $DOCS_DIR nor $MEMORIES_DIR found. Run from project root."
+# Check we're in a project with docs
+if [ ! -d "$DOCS_DIR" ]; then
+    echo "Warning: $DOCS_DIR not found. Run from project root."
     exit 0
 fi
 
@@ -207,7 +205,7 @@ elif [ -f "$LEARNED_FILE" ]; then
 fi
 
 # === ACKNOWLEDGMENT ===
-# ESSENTIAL_COUNT already set by the memory loop above
+# ESSENTIAL_COUNT already set by the docs loop above
 LESSON_COUNT=0
 if [ -f "$LESSONS_DB" ]; then
     # ACTIVE_COUNT already set by the combined query above

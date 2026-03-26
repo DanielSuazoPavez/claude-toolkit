@@ -106,7 +106,6 @@ def build_resource_lists(manifest_path: Path) -> dict[str, list[str]]:
         "agents": [],
         "hooks": [],
         "docs": [],
-        "memories": [],
     }
     for raw_line in manifest_path.read_text().splitlines():
         line = raw_line.strip()
@@ -128,10 +127,6 @@ def build_resource_lists(manifest_path: Path) -> dict[str, list[str]]:
             # docs/essential-conventions-code_style.md → essential-conventions-code_style
             name = line.removeprefix("docs/").removesuffix(".md")
             resources["docs"].append(name)
-        elif line.startswith("memories/"):
-            # memories/essential-conventions-code_style.md → essential-conventions-code_style
-            name = line.removeprefix("memories/").removesuffix(".md")
-            resources["memories"].append(name)
     return resources
 
 
@@ -150,10 +145,10 @@ def should_keep_ref(ref: str, resources: dict[str, list[str]]) -> bool:
     if m:
         return m.group(1) in resources["agents"]
 
-    # Memory ref: `memory-name` (for|memory|—)
-    m = re.search(r"`([a-z][-a-z_0-9]*)`\s+(for|memory|—)", ref)
+    # Doc ref: `doc-name` (for|doc|—)
+    m = re.search(r"`([a-z][-a-z_0-9]*)`\s+(for|doc|—)", ref)
     if m:
-        return m.group(1) in resources["memories"]
+        return m.group(1) in resources["docs"]
 
     # Unknown ref type — keep it
     return True
@@ -171,9 +166,9 @@ def trim_bullet_line(line: str, resources: dict[str, list[str]]) -> str | None:
     if m and m.group(1) not in resources["agents"]:
         return None
 
-    # Memory bullet: - `memory-name` memory ...
-    m = re.match(r"^\s*-\s+`([a-z][-a-z_0-9]*)`\s+memory", line)
-    if m and m.group(1) not in resources["memories"]:
+    # Doc bullet: - `doc-name` doc ...
+    m = re.match(r"^\s*-\s+`([a-z][-a-z_0-9]*)`\s+doc", line)
+    if m and m.group(1) not in resources["docs"]:
         return None
 
     return line
@@ -312,8 +307,7 @@ def main() -> None:
         f"Resources: {len(resources['skills'])} skills, "
         f"{len(resources['agents'])} agents, "
         f"{len(resources['hooks'])} hooks, "
-        f"{len(resources['docs'])} docs, "
-        f"{len(resources['memories'])} memories"
+        f"{len(resources['docs'])} docs"
     )
     print()
 
@@ -356,7 +350,7 @@ def main() -> None:
 
     # Summary
     print("Contents:")
-    for category in ("skills", "agents", "hooks", "docs", "memories", "templates"):
+    for category in ("skills", "agents", "hooks", "docs", "templates"):
         cat_dir = claude_output / category
         if cat_dir.is_dir():
             count = sum(1 for f in cat_dir.rglob("*") if f.is_file())

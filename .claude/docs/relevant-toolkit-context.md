@@ -3,7 +3,7 @@
 ## 1. Quick Reference
 
 **ONLY READ WHEN:**
-- Creating or evaluating memories or docs
+- Creating or evaluating docs
 - Understanding the docs/memories boundary
 - User asks about context file conventions
 

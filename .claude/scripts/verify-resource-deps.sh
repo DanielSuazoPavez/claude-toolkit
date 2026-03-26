@@ -70,7 +70,7 @@ should_scan() {
 # Report a broken reference — error in toolkit mode, may warn in MANIFEST mode
 report_broken_ref() {
     local source="$1"
-    local ref_type="$2"  # "skill", "agent", "memory", "script"
+    local ref_type="$2"  # "skill", "agent", "doc", "script"
     local ref_name="$3"
     local ref_path="$4"  # expected path
 
@@ -81,12 +81,12 @@ report_broken_ref() {
         case "$ref_type" in
             skill) manifest_path="skills/$ref_name/" ;;
             agent) manifest_path="agents/$ref_name.md" ;;
-            memory)
-                # Check both memories/ and docs/ in MANIFEST
-                if in_manifest "memories/$ref_name.md" || in_manifest "docs/$ref_name.md"; then
+            doc)
+                # Check docs/ in MANIFEST
+                if in_manifest "docs/$ref_name.md"; then
                     manifest_path=""  # found in MANIFEST, don't warn
                 else
-                    manifest_path="memories/$ref_name.md"  # will fail in_manifest check below
+                    manifest_path="docs/$ref_name.md"  # will fail in_manifest check below
                 fi
                 ;;
             hook) manifest_path="hooks/$ref_name" ;;
@@ -109,8 +109,8 @@ is_allowlisted() {
     case "${source}:${ref}" in
         */create-agent/SKILL.md:migration-reviewer) return 0 ;;
         */create-agent/SKILL.md:query-optimizer) return 0 ;;
-        # "skills/agents/memories" in prose — not a real agents/ path reference
-        */create-skill/SKILL.md:memories) return 0 ;;
+        # "skills/agents/docs" in prose — not a real agents/ path reference
+        */create-skill/SKILL.md:docs) return 0 ;;
         *) return 1 ;;
     esac
 }
