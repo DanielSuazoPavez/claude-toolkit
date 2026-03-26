@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.34.3] - 2026-03-26 - Backlog cleanup, key principles, health check
+
+### Fixed
+- **cli**: `lessons health` now warns on historical lessons that are still active (invalid state)
+
+### Changed
+- **CLAUDE.md**: Added "no sudo" and "verify before stating" key principles
+- **templates**: Trimmed key principles — moved zero-warnings to code_style memory, removed duplicates
+- **memories**: Added zero-warnings convention to `essential-conventions-code_style`
+
+### Removed
+- **backlog**: Removed hook-router task (P2), lessons-health-historical-active (P3), add-key-principles (P3)
+
 ## [2.34.2] - 2026-03-26 - Absorb lessons into skills
 
 ### Changed

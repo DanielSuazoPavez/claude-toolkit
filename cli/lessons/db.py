@@ -867,6 +867,14 @@ def cmd_health(args: argparse.Namespace) -> None:
     if orphaned:
         warnings.append(f"{orphaned} orphaned tag(s)")
 
+    hist_active = conn.execute(
+        "SELECT COUNT(*) FROM lessons WHERE tier = 'historical' AND active = 1"
+    ).fetchone()[0]
+    if hist_active:
+        warnings.append(
+            f"{hist_active} historical lesson(s) still active — deactivate or change tier"
+        )
+
     conn.close()
 
     if warnings:

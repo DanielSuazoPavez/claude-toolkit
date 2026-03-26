@@ -38,21 +38,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count.
 
 
-- **[HOOKS]** Hook router — single dispatch process per trigger instead of N separate hook spawns (`hook-router`)
-    - **scope**: `hooks`
-    - **notes**: Currently a Bash tool call spawns 7 separate hook processes, each parsing stdin independently. A router script would read stdin once, dispatch to relevant checks based on `$CLAUDE_TOOL_NAME`, and aggregate output. Benefits: cleaner resource_usage analytics in session-index.db (1 entry vs 7), fewer process spawns, defined execution order (blockers → suggestions → context injection), short-circuit on block. Tradeoffs: we own execution order and output aggregation (currently Claude Code handles both), per-project exclusion needs a skip mechanism inside the router. Prototype on a branch to validate.
-    - **prior art**: `trailofbits/claude-code-config` uses inline one-liners in settings.json for simple guards instead of separate scripts. `disler/claude-code-hooks-mastery` uses a single `pre_tool_use.py` combining rm-rf + .env blocking with internal tool-type dispatch. See exploration summaries in `output/claude-toolkit/exploration/`.
-
 ## P3 - Low
-
-- **[TOOLKIT]** Add health check warning for active historical lessons — `lessons health` should flag `tier='historical' AND active=1` as invalid state (`lessons-health-historical-active`)
-    - **scope**: `toolkit`
-    - **notes**: Discovered during manage-lessons session — a lesson was set to historical but left active=1. Health command should warn about this and optionally auto-fix.
-
-
-- **[TOOLKIT]** Add key principles to CLAUDE.md: no sudo access (provide commands for user), don't state how a system works without checking, don't ask and act in same message (`add-key-principles`)
-    - **scope**: `toolkit`
-    - **notes**: From lessons #6, #15. These are behavioral principles that should be in CLAUDE.md Key Principles section. #15 is recurring — high value.
 
 - **[HOOKS]** Investigate hookEventName value for PermissionRequest hooks (`hook-event-name-investigation`)
     - **scope**: `hooks`
