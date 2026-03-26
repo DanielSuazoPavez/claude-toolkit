@@ -15,7 +15,7 @@ Define a project's identity and boundaries as a `relevant-project-identity` doc.
 ## When NOT to Use
 
 - Project already has a clear `relevant-project-identity` doc (update it instead)
-- You just need a README or CLAUDE.md (use `/write-docs`)
+- You just need a README or CLAUDE.md (use `/write-documentation`)
 - Scope is already obvious from a small, focused codebase
 
 ## Process

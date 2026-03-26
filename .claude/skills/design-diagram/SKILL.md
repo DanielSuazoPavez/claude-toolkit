@@ -134,7 +134,7 @@ When diagrams are destined for docs (READMEs, guides), different rules apply:
 | Alt-text | Add `%% Alt: <description>` for accessibility | Optional |
 | Format bias | Prefer ASCII/lists unless spatial layout genuinely helps | Mermaid is fine |
 
-See `/write-docs` for when and where to insert diagrams during doc writing.
+See `/write-documentation` for when and where to insert diagrams during doc writing.
 
 ## Anti-Patterns
 
@@ -150,4 +150,4 @@ See `/write-docs` for when and where to insert diagrams during doc writing.
 
 For rendering fixes and syntax quirks, see `resources/mermaid-rendering-gotchas.md`.
 
-**See also:** `/design-db` (ERDs for schema design, large ERD strategy), `/design-docker` (multi-container architecture diagrams), `/refactor` (visualizing dependency structure), `/write-docs` (when and where to insert diagrams in documentation)
+**See also:** `/design-db` (ERDs for schema design, large ERD strategy), `/design-docker` (multi-container architecture diagrams), `/refactor` (visualizing dependency structure), `/write-documentation` (when and where to insert diagrams in documentation)
