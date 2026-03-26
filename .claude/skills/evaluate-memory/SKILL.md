@@ -51,21 +51,20 @@ Memories don't load themselves. Loading is driven by:
 
 ## Evaluation Dimensions (115 points)
 
-### D1: Category & Naming (20 pts) - Most Critical
+### D1: Naming & Placement (20 pts) - Most Critical
 
 | Score | Criteria |
 |-------|----------|
-| 18-20 | Correct category, follows naming format exactly |
-| 13-17 | Right category, minor naming deviation |
-| 7-12 | Questionable category choice |
-| 0-6 | Wrong category or broken naming |
+| 18-20 | Descriptive snake_case name, in correct directory (memories vs docs) |
+| 13-17 | Good name, minor clarity issue |
+| 7-12 | Vague name or questionable placement |
+| 0-6 | Generic name (`notes.md`) or wrong directory (should be a doc) |
 
-**Check against categories:**
-- `essential-{context}-{name}` - Permanent, core info (auto-loaded at session start)
-- `relevant-{context}-{name}` - Long-term, may evolve (on-demand)
-- `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific (on-demand)
-- `personal-{context}-{name}` - Private preferences, no eval, no sharing (user on-demand ONLY)
-- `experimental-{context}-{name}` - Testing new approaches (user on-demand ONLY)
+**Check:**
+- Is this organic context (memory) or prescriptive rules (should be in `.claude/docs/`)?
+- Is the filename descriptive enough to identify content without reading?
+- Uses `snake_case` with underscores?
+- Branch WIP has date prefix (`YYYYMMDD-{branch}-{context}`)?
 
 ### D2: Quick Reference Section (25 pts) - Required
 
@@ -98,19 +97,19 @@ Memories don't load themselves. Loading is driven by:
 - Is each section actionable — does it change behavior, or just inform?
 - Would splitting by concern improve clarity?
 
-### D4: Load Timing Appropriateness (15 pts)
+### D4: Relevance & Freshness (15 pts)
 
 | Score | Criteria |
 |-------|----------|
-| 13-15 | Category prefix matches content criticality — essential content auto-loads, reference content is on-demand, temporary content has dates |
-| 9-12 | Category prefix is correct but content criticality is borderline — e.g., relevant- content that arguably should be essential, or essential- content only needed in specific workflows |
-| 4-8 | Mismatch — e.g., essential- memory with content only relevant to one workflow, or relevant- memory with session-critical conventions |
-| 0-3 | Severe mismatch — always loads but rarely needed, or never loads but critical |
+| 13-15 | Content is current, actionable, and clearly useful in the contexts described by Quick Reference |
+| 9-12 | Content is mostly current but some sections feel stale or rarely triggered |
+| 4-8 | Significant stale content or unclear when this memory would be useful |
+| 0-3 | Outdated or no clear use case — should be deleted or merged |
 
 **Guidelines:**
-- Session start: Only `essential-` that affect every interaction
-- On-demand: `relevant-`, reference docs, detailed guides
-- User on-demand ONLY: `personal-`, `experimental-` (user must explicitly request)
+- Memories are loaded on-demand, never at session start
+- Quick Reference should accurately describe when to load this memory
+- Branch WIP memories should be cleaned up after merge
 
 ### D5: Structure & Formatting (20 pts)
 
@@ -143,9 +142,8 @@ Does it work well within the resource ecosystem?
 
 | Situation | Guidance |
 |-----------|----------|
-| **Legacy naming** | Suggest update to current conventions, don't block |
-| **Spans categories** | Choose dominant purpose; if truly mixed, split |
-| **Migrating branch → relevant** | Update prefix, remove date, keep content |
+| **Should be a doc** | Content is prescriptive rules → move to `.claude/docs/` |
+| **Branch WIP after merge** | Clean up or rename to remove date prefix |
 
 ## When to Split vs Combine
 
@@ -165,14 +163,13 @@ Is the memory > 300 lines?
 
 | Pattern | Problem | Fix | Score Impact |
 |---------|---------|-----|--------------|
-| **Missing Quick Reference** | No load guidance | Add as section 1 with correct pattern for memory type | D2: -20 |
-| **Wrong category** | essential for temporary info | Match prefix to content lifetime (essential=permanent, branch=temporary) | D1: -15 |
-| **No date on branch** | Can't track freshness | Add YYYYMMDD after prefix | D1: -10 |
-| **Overlaps other synced resources** | Duplication, drift risk | Delete duplicated content, add cross-reference instead | D3: -10 |
-| **Always loads, rarely needed** | Context bloat | Downgrade from essential- to relevant- | D4: -10 |
+| **Missing Quick Reference** | No load guidance | Add as section 1 with "ONLY READ WHEN" bullets | D2: -20 |
+| **Should be a doc** | Prescriptive rules in memories | Move to `.claude/docs/` | D1: -15 |
+| **Vague filename** | `notes.md` — can't identify content | Use descriptive snake_case name | D1: -10 |
+| **Overlaps other resources** | Duplication, drift risk | Delete duplicated content, add cross-reference instead | D3: -10 |
 | **Wall of text** | Unscannable | Break prose into tables, lists, or code blocks | D5: -10 |
-| **Memory that should be a skill** | Procedures masquerading as context | Extract step-by-step content into a skill, keep only guidelines in memory | D3: -10 |
-| **Stale branch memory** | Abandoned context after merge | Delete after branch merges, or promote to relevant- if still useful | D1: -5 |
+| **Memory that should be a skill** | Procedures masquerading as context | Extract step-by-step content into a skill | D3: -10 |
+| **Stale branch WIP** | Abandoned context after merge | Delete or rename to remove date prefix | D4: -5 |
 
 ## JSON Output Format
 
