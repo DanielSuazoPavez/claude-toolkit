@@ -36,16 +36,17 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[TOOLKIT]** Post-reshape followups — consolidate docs/memories boundary (`post-reshape-followups`)
+- **[TOOLKIT]** Drop memory prefixes — memories don't need category prefixes (`drop-memory-prefixes`)
     - **scope**: `toolkit, skills, memories`
-    - **notes**: Followup items from the memory system reshape (refactor/memory-system-reshape branch):
-        - Move `docs/naming-conventions.md` into `.claude/docs/` (it's reference documentation, not a project-level doc)
-        - Consider moving `docs/indexes/` into `.claude/docs/` (keeps all Claude-facing reference in one place)
-        - Remove the `idea-` memory category — ideas should be drafts in `output/claude-toolkit/`, not memories
-        - Move `relevant-project-identity` to `.claude/docs/` — it's prescriptive identity, not organic context
-        - Move `relevant-philosophy-reducing_entropy` to `.claude/docs/` — it's prescriptive philosophy, not organic context
-        - Resolve naming convention overlap between docs and memories (both use `essential-`/`relevant-` prefixes — consider whether docs need their own scheme)
-        - Review `/create-memory` and `/evaluate-memory` skills — may need renaming or scope adjustment now that rules/config live in docs. Tension with `/write-docs` (different purpose: project documentation vs toolkit context docs). Discuss whether "create context" or similar covers both, or keep separate skills with clearer boundaries.
+    - **notes**: Memories are organic context and don't need `relevant-`/`essential-` prefixes (those are for docs). Remove prefixes from memory filenames, update naming conventions, keep memories out of session-start hook. Also update validation scripts (`validate-resources-indexed.sh`, `verify-resource-deps.sh`) that filter by prefix patterns, all cross-references in skills/docs that mention memory category prefixes, and remove `docs/indexes/MEMORIES.md` index (memories are organic, not indexed). Followup from post-reshape-followups.
+
+- **[SKILLS]** Rename create-memory/evaluate-memory to create-docs/evaluate-docs (`rename-memory-skills-to-docs`)
+    - **scope**: `skills`
+    - **notes**: What these skills managed (prescriptive rules, conventions) is now called "docs". Rename skills, update content to reflect docs scope. `/create-memory` → `/create-docs`, `/evaluate-memory` → `/evaluate-docs`. Followup from post-reshape-followups.
+
+- **[DOCS]** Lessons ecosystem doc — reference doc for the lessons system (`docs-lessons-ecosystem`)
+    - **scope**: `docs`
+    - **notes**: Create a `relevant-toolkit-lessons.md` doc in `.claude/docs/` covering the lessons ecosystem: lessons.db schema, tiers (key/recent), tags, `/learn` and `/manage-lessons` skills, session-start hook integration, nudge logic, and the `claude-toolkit lessons` CLI commands. Currently this knowledge is spread across skills, hooks, and CLI code with no single reference.
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`

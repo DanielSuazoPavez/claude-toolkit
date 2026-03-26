@@ -25,13 +25,11 @@ Is this prescriptive rules or reference documentation?
     │
     └─ No → Is it tied to a specific feature branch?
     ├─ Yes → `branch-` (include date)
-    └─ No → Is it a future implementation idea?
-        ├─ Yes → `idea-` (needs explicit permission note)
-        └─ No → Is it personal preferences/customizations?
-            ├─ Yes → `personal-` (user on-demand only, never auto-load)
-            └─ No → Is it testing a new approach or A/B testing?
-                ├─ Yes → `experimental-` (user on-demand only)
-                └─ No → Consider if a memory is needed at all
+    └─ No → Is it personal preferences/customizations?
+        ├─ Yes → `personal-` (user on-demand only, never auto-load)
+        └─ No → Is it testing a new approach or A/B testing?
+            ├─ Yes → `experimental-` (user on-demand only)
+            └─ No → Consider if a memory is needed at all
 ```
 
 ### Quick Category Reference
@@ -41,11 +39,10 @@ Is this prescriptive rules or reference documentation?
 | `essential-` | Permanent | Auto (session start) | Code style, architecture decisions (typically in `.claude/docs/`) |
 | `relevant-` | Months | On-demand | API patterns, tool configurations |
 | `branch-` | Days/weeks | On-demand | WIP context for feature-x |
-| `idea-` | Until decided | User permission | Future refactoring plans |
 | `personal-` | Private | User on-demand ONLY | Preferences, personal context |
 | `experimental-` | Until proven | User on-demand ONLY | A/B testing behaviors |
 
-**See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `docs/naming-conventions.md`
+**See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `relevant-conventions-naming`
 
 ## Instructions
 
@@ -55,7 +52,6 @@ Is this prescriptive rules or reference documentation?
    - `essential-` → Core, stable project info (auto-loaded at session start)
    - `relevant-` → Important context that may evolve (on-demand)
    - `branch-` → WIP context for a feature branch (on-demand, temporary)
-   - `idea-` → Future implementation ideas (requires permission, temporary)
    - `experimental-` → Testing new approaches (user on-demand ONLY)
 
 3. **Create file** with format: `{category}-{context}-{descriptive_name}.md`
@@ -66,7 +62,7 @@ Is this prescriptive rules or reference documentation?
 
 6. **Update index** (if applicable):
    - `essential` and `relevant` memories → add to `docs/indexes/MEMORIES.md`
-   - `idea`, `personal`, `experimental`, `branch` memories → skip the index (excluded by convention and validation)
+   - `personal`, `experimental`, `branch` memories → skip the index (excluded by convention and validation)
 
 ## File Format
 
@@ -92,7 +88,6 @@ Brief description.
 
 - Use underscores in filenames: `relevant-opensearch-query_patterns.md`
 - Branch memories include date: `branch-20260121-feature_name-context.md`
-- Idea memories need: `**NOTE**: ONLY READ WITH USER EXPLICIT PERMISSION`
 - Experimental memories: User must explicitly request loading (never auto-load or proactively read)
 
 ## Reference Examples
@@ -134,7 +129,6 @@ When content could fit multiple categories:
 |-----------|------------|
 | Stable pattern with WIP additions | Keep in `relevant-`, mark WIP sections |
 | Branch work becoming permanent | Graduate from `branch-` to `relevant-` when merged |
-| Idea that's been approved | Move from `idea-` to `branch-` or `relevant-` |
 | Experimental that proved useful | Graduate to `relevant-` with cleanup |
 
 ## Pre-Save Validation Checklist
@@ -144,7 +138,7 @@ Before writing the memory file, verify:
 - [ ] **Category correct?** Matches stability timeline (essential=permanent, relevant=months, branch=days)
 - [ ] **Quick Reference exists?** Has `**ONLY READ WHEN:**` bullets
 - [ ] **Filename format?** `{category}-{context}-{descriptive_name}.md` with underscores
-- [ ] **No duplicate?** For `essential`/`relevant`: check `docs/indexes/MEMORIES.md`. For `idea`/`personal`/`experimental`: list `.claude/memories/` directly (these categories are excluded from the index)
+- [ ] **No duplicate?** For `essential`/`relevant`: check `docs/indexes/MEMORIES.md`. For `personal`/`experimental`: list `.claude/memories/` directly (these categories are excluded from the index)
 - [ ] **Under 300 lines?** Split if larger
 
 ### Quality Gate

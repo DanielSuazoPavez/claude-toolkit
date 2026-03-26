@@ -68,7 +68,7 @@ Based on Quick References, load only the memories relevant to current work:
 Read .claude/memories/<memory-name>.md
 ```
 
-**Loading priority** is defined in `relevant-toolkit-context` (in `.claude/docs/`) — see the Memory Categories table for category lifetimes and load patterns. Short version: `essential-*` always, `relevant-*` when touching that area, `branch-*` only for that branch, `personal-*`/`idea-*` only with explicit user permission.
+**Loading priority** is defined in `relevant-toolkit-context` (in `.claude/docs/`) — see the Memory Categories table for category lifetimes and load patterns. Short version: `essential-*` always, `relevant-*` when touching that area, `branch-*` only for that branch, `personal-*` only with explicit user permission.
 
 ## Anti-Patterns
 

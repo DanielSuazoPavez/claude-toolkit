@@ -4,7 +4,7 @@ description: Use when defining or refining a project's identity, scope, and boun
 allowed-tools: Read, Write, Glob, AskUserQuestion
 ---
 
-Define a project's identity and boundaries as a `relevant-project-identity` memory. Produces a declaration of what the project is, its core traits, and what belongs (or doesn't).
+Define a project's identity and boundaries as a `relevant-project-identity` doc. Produces a declaration of what the project is, its core traits, and what belongs (or doesn't).
 
 ## When to Use
 
@@ -14,7 +14,7 @@ Define a project's identity and boundaries as a `relevant-project-identity` memo
 
 ## When NOT to Use
 
-- Project already has a clear `relevant-project-identity` memory (update it instead)
+- Project already has a clear `relevant-project-identity` doc (update it instead)
 - You just need a README or CLAUDE.md (use `/write-docs`)
 - Scope is already obvious from a small, focused codebase
 
@@ -72,9 +72,9 @@ Present the draft. Iterate based on user feedback. The user knows their project 
 
 ### Phase 5: Save
 
-Save using `/create-memory` as `relevant-project-identity` in the project's `.claude/memories/`.
+Save as `relevant-project-identity.md` in the project's `.claude/docs/`.
 
-The memory's Quick Reference should use the "ONLY READ WHEN" pattern:
+The doc's Quick Reference should use the "ONLY READ WHEN" pattern:
 ```
 **ONLY READ WHEN:**
 - Planning major refactors or architectural changes
@@ -106,7 +106,7 @@ The generic column applies to any project. The specific column makes real keep/c
 ## See Also
 
 - `/brainstorm-idea` — use first when the project direction itself is unclear
-- `/create-memory` — used in Phase 5 to save the output
+- `.claude/docs/` — where the output is saved (Phase 5)
 - `/refactor` — often follows this skill when cutting scope
 
 ## Anti-Patterns

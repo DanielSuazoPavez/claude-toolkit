@@ -64,7 +64,6 @@ Memories don't load themselves. Loading is driven by:
 - `essential-{context}-{name}` - Permanent, core info (auto-loaded at session start)
 - `relevant-{context}-{name}` - Long-term, may evolve (on-demand)
 - `branch-{YYYYMMDD}-{branch}-{context}` - Temporary, branch-specific (on-demand)
-- `idea-{YYYYMMDD}-{context}-{idea}` - Future work, needs permission (on-demand)
 - `personal-{context}-{name}` - Private preferences, no eval, no sharing (user on-demand ONLY)
 - `experimental-{context}-{name}` - Testing new approaches (user on-demand ONLY)
 
@@ -81,7 +80,6 @@ Memories don't load themselves. Loading is driven by:
 - Reference docs: "ONLY READ WHEN" + bullet list
 - Orientation: "Purpose/Read at/Not a reference doc"
 - Convention: "ONLY READ WHEN" + brief description
-- Ideas: Must include "NOTE: ONLY READ WITH USER EXPLICIT PERMISSION"
 - Branch: Must include status and key results
 
 ### D3: Content Scope (20 pts)
@@ -113,7 +111,6 @@ Memories don't load themselves. Loading is driven by:
 - Session start: Only `essential-` that affect every interaction
 - On-demand: `relevant-`, reference docs, detailed guides
 - User on-demand ONLY: `personal-`, `experimental-` (user must explicitly request)
-- Never auto-load: `idea-` (requires permission)
 
 ### D5: Structure & Formatting (20 pts)
 
@@ -170,7 +167,7 @@ Is the memory > 300 lines?
 |---------|---------|-----|--------------|
 | **Missing Quick Reference** | No load guidance | Add as section 1 with correct pattern for memory type | D2: -20 |
 | **Wrong category** | essential for temporary info | Match prefix to content lifetime (essential=permanent, branch=temporary) | D1: -15 |
-| **No date on branch/idea** | Can't track freshness | Add YYYYMMDD after prefix | D1: -10 |
+| **No date on branch** | Can't track freshness | Add YYYYMMDD after prefix | D1: -10 |
 | **Overlaps other synced resources** | Duplication, drift risk | Delete duplicated content, add cross-reference instead | D3: -10 |
 | **Always loads, rarely needed** | Context bloat | Downgrade from essential- to relevant- | D4: -10 |
 | **Wall of text** | Unscannable | Break prose into tables, lists, or code blocks | D5: -10 |

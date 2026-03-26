@@ -8,14 +8,7 @@ See also: `docs/indexes/DOCS.md` for reference documentation (rules, conventions
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
 | `relevant-context-professional_profile` | stable | Data engineering role, stack, tools, and current trajectory |
-
-## Philosophy
-
-| Memory | Status | Purpose |
-|--------|--------|---------|
-| `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |
 
 ## Memory Categories
 
