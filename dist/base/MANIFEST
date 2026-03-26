@@ -59,15 +59,17 @@ hooks/approve-safe-commands.sh
 hooks/surface-lessons.sh
 hooks/lib/hook-utils.sh
 
+# docs
+docs/essential-conventions-code_style.md
+docs/essential-preferences-communication_style.md
+docs/relevant-toolkit-context.md
+docs/relevant-toolkit-hooks_config.md
+docs/relevant-toolkit-permissions_config.md
+docs/relevant-workflow-backlog.md
+docs/relevant-conventions-testing.md
+
 # memories
-memories/essential-conventions-code_style.md
-memories/relevant-toolkit-memory.md
-memories/essential-preferences-communication_style.md
-memories/relevant-workflow-backlog.md
 memories/relevant-philosophy-reducing_entropy.md
-memories/relevant-toolkit-hooks_config.md
-memories/relevant-toolkit-permissions_config.md
-memories/relevant-conventions-testing.md
 
 # templates
 dist/base/templates/

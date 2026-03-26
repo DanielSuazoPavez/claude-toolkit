@@ -33,11 +33,15 @@ NC = "\033[0m"
 def resolve_source_file(target_path: str, claude_dir: Path, dist_dir: Path) -> Path:
     """Resolve a target path to its source file location.
 
-    docs/*       → repo root (outside .claude/)
+    docs/*       → .claude/docs/ if exists there, else repo root (outside .claude/)
     templates/*  → dist-specific override if exists, else dist/base/templates/
     everything else → claude_dir/{target_path}
     """
     if target_path.startswith("docs/"):
+        # Prefer .claude/docs/ (internal docs), fall back to repo root (external docs)
+        internal = claude_dir / target_path
+        if internal.is_file():
+            return internal
         return claude_dir.parent / target_path
     if target_path.startswith("templates/"):
         basename = target_path.removeprefix("templates/")
@@ -51,12 +55,15 @@ def resolve_source_file(target_path: str, claude_dir: Path, dist_dir: Path) -> P
 def resolve_source_dir(target_path: str, claude_dir: Path, dist_dir: Path) -> Path:
     """Resolve a target directory path to its source directory.
 
-    docs/*       → repo root (outside .claude/)
+    docs/*       → .claude/docs/ if exists there, else repo root (outside .claude/)
     templates/*  → always from dist/base/ (dist only has file-level overrides)
     everything else → claude_dir/{target_path}
     """
     clean = target_path.rstrip("/")
     if clean.startswith("docs/"):
+        internal = claude_dir / clean
+        if internal.is_dir():
+            return internal
         return claude_dir.parent / clean
     if clean.startswith("templates/"):
         return claude_dir.parent / "dist" / "base" / clean
@@ -98,6 +105,7 @@ def build_resource_lists(manifest_path: Path) -> dict[str, list[str]]:
         "skills": [],
         "agents": [],
         "hooks": [],
+        "docs": [],
         "memories": [],
     }
     for raw_line in manifest_path.read_text().splitlines():
@@ -116,6 +124,10 @@ def build_resource_lists(manifest_path: Path) -> dict[str, list[str]]:
         elif line.startswith("hooks/"):
             # hooks/block-config-edits.sh → block-config-edits.sh (keep extension)
             resources["hooks"].append(line.removeprefix("hooks/"))
+        elif line.startswith("docs/"):
+            # docs/essential-conventions-code_style.md → essential-conventions-code_style
+            name = line.removeprefix("docs/").removesuffix(".md")
+            resources["docs"].append(name)
         elif line.startswith("memories/"):
             # memories/essential-conventions-code_style.md → essential-conventions-code_style
             name = line.removeprefix("memories/").removesuffix(".md")
@@ -300,6 +312,7 @@ def main() -> None:
         f"Resources: {len(resources['skills'])} skills, "
         f"{len(resources['agents'])} agents, "
         f"{len(resources['hooks'])} hooks, "
+        f"{len(resources['docs'])} docs, "
         f"{len(resources['memories'])} memories"
     )
     print()
@@ -308,9 +321,13 @@ def main() -> None:
     targets = resolve_manifest(manifest_path, CLAUDE_DIR, dist_dir)
     for target_path in targets:
         source = resolve_source_file(target_path, CLAUDE_DIR, dist_dir)
-        # docs/ files go to output root, everything else to .claude/
+        # Internal docs (.claude/docs/) go inside .claude/, external docs go to output root
         if target_path.startswith("docs/"):
-            dest = output_dir / target_path
+            internal = CLAUDE_DIR / target_path
+            if internal.is_file():
+                dest = claude_output / target_path
+            else:
+                dest = output_dir / target_path
         else:
             dest = claude_output / target_path
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -339,17 +356,17 @@ def main() -> None:
 
     # Summary
     print("Contents:")
-    for category in ("skills", "agents", "hooks", "memories", "templates"):
+    for category in ("skills", "agents", "hooks", "docs", "memories", "templates"):
         cat_dir = claude_output / category
         if cat_dir.is_dir():
             count = sum(1 for f in cat_dir.rglob("*") if f.is_file())
             print(f"  {category}: {count} files")
-    # Root-level directories (docs/, etc.)
+    # Root-level directories (docs/, etc.) — external docs like getting-started.md
     for category in ("docs",):
         cat_dir = output_dir / category
         if cat_dir.is_dir():
             count = sum(1 for f in cat_dir.rglob("*") if f.is_file())
-            print(f"  {category}: {count} files")
+            print(f"  {category} (root): {count} files")
 
 
 if __name__ == "__main__":

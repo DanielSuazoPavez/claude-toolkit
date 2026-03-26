@@ -58,6 +58,9 @@ create_synced_env() {
     mkdir -p "$TEMP_DIR/.claude/memories"
     echo "# Memory A" > "$TEMP_DIR/.claude/memories/mem-a.md"
 
+    mkdir -p "$TEMP_DIR/.claude/docs"
+    echo "# Doc A" > "$TEMP_DIR/.claude/docs/doc-a.md"
+
     mkdir -p "$TEMP_DIR/.claude/scripts"
     cp "$VALIDATE_SCRIPT" "$TEMP_DIR/.claude/scripts/"
     echo "#!/bin/bash" > "$TEMP_DIR/.claude/scripts/helper.sh"
@@ -92,6 +95,13 @@ EOF
 | Name | Status |
 |------|--------|
 | `mem-a` | active |
+EOF
+
+    cat > "$TEMP_DIR/docs/indexes/DOCS.md" << 'EOF'
+# Docs Index
+| Name | Status |
+|------|--------|
+| `doc-a` | active |
 EOF
 
     cat > "$TEMP_DIR/docs/indexes/SCRIPTS.md" << 'EOF'
@@ -210,6 +220,7 @@ test_all_synced() {
     expect_output "shows agents success" "agents properly indexed"
     expect_output "shows hooks success" "hooks properly indexed"
     expect_output "shows memories success" "memories properly indexed"
+    expect_output "shows docs success" "docs properly indexed"
     expect_output "shows scripts success" "scripts properly indexed"
 
     teardown_test_env
@@ -361,6 +372,38 @@ EOF
     teardown_test_env
 }
 
+test_auto_memory_exclusion() {
+    report_section "=== auto-*/MEMORY.md exclusion ==="
+    setup_test_env
+    create_synced_env
+
+    # Add auto-memory files on disk — should not trigger errors
+    echo "# Auto" > "$TEMP_DIR/.claude/memories/auto-project_context.md"
+    echo "# Index" > "$TEMP_DIR/.claude/memories/MEMORY.md"
+
+    expect_success "exits 0 with auto-memory files on disk"
+    expect_not_output "does not report auto memory" "auto-project_context"
+    expect_not_output "does not report MEMORY.md" "MEMORY"
+    expect_output "shows up to date" "All indexes are up to date"
+
+    teardown_test_env
+}
+
+test_docs_missing_from_index() {
+    report_section "=== doc missing from index ==="
+    setup_test_env
+    create_synced_env
+
+    # Add a doc on disk not in the index
+    echo "# Doc B" > "$TEMP_DIR/.claude/docs/doc-b.md"
+
+    expect_failure "exits 1 when doc not indexed"
+    expect_output "reports missing doc" "Not indexed in DOCS.md"
+    expect_output "shows doc name" "doc-b"
+
+    teardown_test_env
+}
+
 # === RUN TESTS ===
 echo "Running validate-resources-indexed tests..."
 echo "Script: $VALIDATE_SCRIPT"
@@ -371,6 +414,8 @@ test_stale_in_index
 test_mixed_errors
 test_idea_personal_exclusion
 test_missing_dirs
+test_auto_memory_exclusion
+test_docs_missing_from_index
 test_manifest_mode_activates
 test_manifest_skips_without_indexes
 test_manifest_with_indexes

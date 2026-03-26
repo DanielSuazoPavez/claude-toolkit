@@ -148,10 +148,10 @@ assert_file_exists "secrets-guard included" "$OUTPUT_DIR/.claude/hooks/secrets-g
 assert_file_not_exists "session-start excluded" "$OUTPUT_DIR/.claude/hooks/session-start.sh"
 assert_file_not_exists "enforce-uv-run excluded" "$OUTPUT_DIR/.claude/hooks/enforce-uv-run.sh"
 assert_file_not_exists "enforce-make-commands excluded" "$OUTPUT_DIR/.claude/hooks/enforce-make-commands.sh"
-# Memories
-assert_file_exists "code_style memory included" "$OUTPUT_DIR/.claude/memories/essential-conventions-code_style.md"
-assert_file_exists "memory conventions included" "$OUTPUT_DIR/.claude/memories/relevant-toolkit-memory.md"
-assert_file_not_exists "communication_style excluded" "$OUTPUT_DIR/.claude/memories/essential-preferences-communication_style.md"
+# Docs (inside .claude/)
+assert_file_exists "code_style doc included" "$OUTPUT_DIR/.claude/docs/essential-conventions-code_style.md"
+assert_file_exists "context conventions doc included" "$OUTPUT_DIR/.claude/docs/relevant-toolkit-context.md"
+assert_file_not_exists "communication_style excluded from raiz" "$OUTPUT_DIR/.claude/docs/essential-preferences-communication_style.md"
 
 # Templates
 assert_file_exists "CLAUDE.md.template included" "$OUTPUT_DIR/.claude/templates/CLAUDE.md.template"

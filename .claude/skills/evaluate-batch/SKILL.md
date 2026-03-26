@@ -60,6 +60,7 @@ Parse from `$ARGUMENTS` (e.g., `/evaluate-batch skills re-evaluate`):
 ```
 skills:   .claude/skills/*/SKILL.md
 hooks:    .claude/hooks/*.sh
+docs:     .claude/docs/*.md
 memories: .claude/memories/*.md
 agents:   .claude/agents/*.md
 ```

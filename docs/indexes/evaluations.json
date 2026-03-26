@@ -79,7 +79,7 @@
         },
         "top_improvements": [
           "[low] D1: Token economics section could add concrete timing data (how long each agent typically takes) to make batch-size recommendations more evidence-based",
-          "[low] D4: Description could explicitly mention orchestration role — orchestrates parallel evaluation agents would differentiate from individual evaluate-* skills more clearly",
+          "[low] D4: Description could explicitly mention orchestration role \u2014 orchestrates parallel evaluation agents would differentiate from individual evaluate-* skills more clearly",
           "[low] D5: Add a brief table of contents at the top for quick navigation given 271 lines with many subsections"
         ]
       },
@@ -101,9 +101,9 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] Trim or remove the report template (lines 132-173) — redundant knowledge Claude already has; replace with 3-line skeleton or just the output path convention — D1",
-          "[low] Add a brief worked example showing a mini-analysis flow (e.g., 5-line vignette of triangulation applied to a concrete finding) — D8",
-          "[low] Add keywords to frontmatter for more precise routing — D4"
+          "[low] Trim or remove the report template (lines 132-173) \u2014 redundant knowledge Claude already has; replace with 3-line skeleton or just the output path convention \u2014 D1",
+          "[low] Add a brief worked example showing a mini-analysis flow (e.g., 5-line vignette of triangulation applied to a concrete finding) \u2014 D8",
+          "[low] Add keywords to frontmatter for more precise routing \u2014 D4"
         ]
       },
       "brainstorm-idea": {
@@ -124,8 +124,8 @@
           "D8": 14
         },
         "top_improvements": [
-          "[high] D1: Elevate Phases 1-2 beyond activation knowledge — add expert heuristics for question sequencing (e.g., when to probe constraints before goals, when abstract questions fail) and criteria for evaluating whether alternatives are genuinely distinct",
-          "[low] D7: Add ecosystem connections — reference memories or project conventions that might inform brainstorming; link to plan mode or create-* skills as follow-on steps",
+          "[high] D1: Elevate Phases 1-2 beyond activation knowledge \u2014 add expert heuristics for question sequencing (e.g., when to probe constraints before goals, when abstract questions fail) and criteria for evaluating whether alternatives are genuinely distinct",
+          "[low] D7: Add ecosystem connections \u2014 reference memories or project conventions that might inform brainstorming; link to plan mode or create-* skills as follow-on steps",
           "[low] D5: Consolidate the When is Brainstorming Complete? section and Quick Completion Checklist to eliminate duplication"
         ]
       },
@@ -170,9 +170,9 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] Add a backtracking example — what happens when you pick the wrong diagram type and need to pivot (D8 edge case coverage)",
-          "[low] Trim Common Gotchas section — rendering fixes are activation knowledge that could be a reference link instead of inline content (D1 purity)",
-          "[low] Consider adding a brief note on when NOT to diagram — over-diagramming is itself an anti-pattern worth calling out (D3 completeness)"
+          "[low] Add a backtracking example \u2014 what happens when you pick the wrong diagram type and need to pivot (D8 edge case coverage)",
+          "[low] Trim Common Gotchas section \u2014 rendering fixes are activation knowledge that could be a reference link instead of inline content (D1 purity)",
+          "[low] Consider adding a brief note on when NOT to diagram \u2014 over-diagramming is itself an anti-pattern worth calling out (D3 completeness)"
         ]
       },
       "design-docker": {
@@ -239,7 +239,7 @@
           "D8": 13
         },
         "top_improvements": [
-          "[high] D2: Clarify what happens after splitting — does the user invoke draft-pr once per sub-PR? Make the split-then-regenerate loop explicit",
+          "[high] D2: Clarify what happens after splitting \u2014 does the user invoke draft-pr once per sub-PR? Make the split-then-regenerate loop explicit",
           "[low] D1: Add guidance on calibrating sizing thresholds per team/project and handling the common test+implementation seam",
           "[low] D7: Reference CHANGELOG.md conventions or relevant memory files to strengthen ecosystem integration"
         ]
@@ -262,7 +262,7 @@
           "D8": 12
         },
         "top_improvements": [
-          "[high] D2: Add deeper procedural insight — e.g., why score D1 before D3, when to revisit D2 after seeing tool list, sequencing traps in agent evaluation",
+          "[high] D2: Add deeper procedural insight \u2014 e.g., why score D1 before D3, when to revisit D2 after seeing tool list, sequencing traps in agent evaluation",
           "[low] D1: Trim activation knowledge (Skill vs Agent table, basic invocation pattern) to sharpen expert-only content ratio",
           "[low] D8: Add a branching decision tree for ambiguous agent types (e.g., agent that is both runner and orchestrator, or read-only analyzer that needs Bash for test execution)"
         ]
@@ -285,7 +285,7 @@
           "D8": 13
         },
         "top_improvements": [
-          "[high] D1: Deepen knowledge delta — add more non-obvious insights about hook evaluation",
+          "[high] D1: Deepen knowledge delta \u2014 add more non-obvious insights about hook evaluation",
           "[low] D7: Reference HOOKS.md index and relevant memories to strengthen ecosystem integration",
           "[low] D2: Add branching logic to the evaluation protocol for different hook types"
         ]
@@ -354,9 +354,9 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] Add JSONL and malformed to keywords since the skill covers these cases substantively — D4",
-          "[low] Trim the basic single-vs-double-quote example (lines 39-43) which is activation knowledge — D1",
-          "[low] Add guidance for when jq output exceeds context limits (jq -c, pipe to head) — D8"
+          "[low] Add JSONL and malformed to keywords since the skill covers these cases substantively \u2014 D4",
+          "[low] Trim the basic single-vs-double-quote example (lines 39-43) which is activation knowledge \u2014 D1",
+          "[low] Add guidance for when jq output exceeds context limits (jq -c, pipe to head) \u2014 D8"
         ]
       },
       "review-plan": {
@@ -402,7 +402,7 @@
         "top_improvements": [
           "[low] Restructure Common Pitfalls into table format (Pattern | Problem | Fix) matching sibling teardown-worktree skill; trim generic git pitfalls that are well-known (D1, D3)",
           "[low] Add a concrete worked example with real branch/plan names showing the full invocation from $ARGUMENTS through verification (D8)",
-          "[low] Add brief WHY annotations to step ordering — e.g. gitignore first to prevent accidental tracking, symlink immediately to avoid running unconfigured agents (D2)"
+          "[low] Add brief WHY annotations to step ordering \u2014 e.g. gitignore first to prevent accidental tracking, symlink immediately to avoid running unconfigured agents (D2)"
         ]
       },
       "snap-back": {
@@ -446,8 +446,8 @@
           "D8": 13
         },
         "top_improvements": [
-          "[low] Add guidance for when implementation-checker agent itself fails or errors out (not just RED health) — covers an unhandled edge case in the execution sequence",
-          "[low] Trim Step 0 (validate path) and Step 3 (run verification) — mostly activation knowledge that could be more concise",
+          "[low] Add guidance for when implementation-checker agent itself fails or errors out (not just RED health) \u2014 covers an unhandled edge case in the execution sequence",
+          "[low] Trim Step 0 (validate path) and Step 3 (run verification) \u2014 mostly activation knowledge that could be more concise",
           "[low] Add worktree remove as a keyword to catch users who think in git terms rather than workflow terms"
         ]
       },
@@ -470,7 +470,7 @@
         },
         "top_improvements": [
           "[high] D1: Add non-obvious items to steps 5-8 (e.g., version consistency checks across multiple files, lock file implications) to elevate routine steps",
-          "[low] D6: Explicitly mark which steps are flexible vs fixed — e.g., can steps 5-7 be reordered? Must step 2 always precede step 3?",
+          "[low] D6: Explicitly mark which steps are flexible vs fixed \u2014 e.g., can steps 5-7 be reordered? Must step 2 always precede step 3?",
           "[low] D8: Add guidance for handling make check / test failures during wrap-up (revert docs commit? fix and re-commit?)"
         ]
       },
@@ -493,8 +493,8 @@
         },
         "top_improvements": [
           "[high] D7: Add cross-references to /learn as pre-handoff step, reference specific memory files in template, connect to sessions output convention",
-          "[low] D1: Upgrade Gather Context commands — replace heuristic find with git diff --stat or project-aware alternatives",
-          "[low] D8: Add When NOT to create a handoff guidance — clean tree with no complex context makes handoff noise"
+          "[low] D1: Upgrade Gather Context commands \u2014 replace heuristic find with git diff --stat or project-aware alternatives",
+          "[low] D8: Add When NOT to create a handoff guidance \u2014 clean tree with no complex context makes handoff noise"
         ]
       },
       "write-docs": {
@@ -515,7 +515,7 @@
           "D8": 14
         },
         "top_improvements": [
-          "[high] D1: Add more expert delta — decision tree for when NOT to write docs, or heuristics for doc-to-code ratio by project type",
+          "[high] D1: Add more expert delta \u2014 decision tree for when NOT to write docs, or heuristics for doc-to-code ratio by project type",
           "[low] D7: Reference project-level memories as inputs to style detection in Step 3",
           "[low] D2: Add decision tree for when to do BOTH user-docs and docstrings simultaneously"
         ]
@@ -561,9 +561,9 @@
           "D8": 13
         },
         "top_improvements": [
-          "[low] D6: Be more explicit about which parts are fixed (template structure) vs flexible (section content) — boundary between mandatory and adaptable is implicit",
+          "[low] D6: Be more explicit about which parts are fixed (template structure) vs flexible (section content) \u2014 boundary between mandatory and adaptable is implicit",
           "[low] D8: Expand the iteration example into a fuller red-green-refactor walkthrough showing each phase with concrete artifacts",
-          "[low] D1: Trim the Token Efficiency section — mostly activation knowledge that Claude already applies"
+          "[low] D1: Trim the Token Efficiency section \u2014 mostly activation knowledge that Claude already applies"
         ]
       },
       "create-agent": {
@@ -584,7 +584,7 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] D1: The Reference section at the bottom is pure activation — consider merging agent pointers into the Template Modifications table",
+          "[low] D1: The Reference section at the bottom is pure activation \u2014 consider merging agent pointers into the Template Modifications table",
           "[low] D6: Be more explicit about which parts of the template are mandatory structure vs. adaptable content",
           "[low] D3: Add a rationalization table for common excuses during agent creation (e.g., it needs all tools to be flexible)"
         ]
@@ -607,9 +607,9 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] D5: Move the Notification example to the reference file — the PreToolUse and PostToolUse examples in the main skill sufficiently demonstrate blocking and non-blocking patterns, keeping the core under 200 lines",
-          "[low] D2: Add a brief note explaining why testing (step 3) precedes configuration (step 4) — the sequencing judgment is correct but implicit",
-          "[low] D8: Expand quality gate recovery guidance — specify which /evaluate-hook dimensions to prioritize when iterating below the 85% target"
+          "[low] D5: Move the Notification example to the reference file \u2014 the PreToolUse and PostToolUse examples in the main skill sufficiently demonstrate blocking and non-blocking patterns, keeping the core under 200 lines",
+          "[low] D2: Add a brief note explaining why testing (step 3) precedes configuration (step 4) \u2014 the sequencing judgment is correct but implicit",
+          "[low] D8: Expand quality gate recovery guidance \u2014 specify which /evaluate-hook dimensions to prioritize when iterating below the 85% target"
         ]
       },
       "create-memory": {
@@ -629,8 +629,8 @@
           "D8": 14
         },
         "top_improvements": [
-          "[low] Remove category duplication — the quick reference table and Instructions step 2 restate the decision tree and conventions memory, creating sync risk",
-          "[low] Add explicit type: command to frontmatter — skill value is consistent execution, matching command type",
+          "[low] Remove category duplication \u2014 the quick reference table and Instructions step 2 restate the decision tree and conventions memory, creating sync risk",
+          "[low] Add explicit type: command to frontmatter \u2014 skill value is consistent execution, matching command type",
           "[low] Add a complete happy-path example showing full output file, not just filename and summary bullets"
         ]
       },
@@ -1014,146 +1014,6 @@
       }
     },
     "resources": {
-      "essential-conventions-code_style": {
-        "file_hash": "890c2e81",
-        "date": "2026-03-09",
-        "score": 106,
-        "max": 115,
-        "percentage": 92.2,
-        "dimensions": {
-          "D1": 20,
-          "D2": 22,
-          "D3": 19,
-          "D4": 15,
-          "D5": 17,
-          "D6": 13
-        },
-        "top_improvements": [
-          "[low] Convert Section 2 (Design Principles) from bold-heading-with-bullets to a table format (Principle | Guidance) for faster scanning — matches the density of Section 3 better (D5: +2-3)",
-          "[low] Add a cross-reference to enforce-make-commands hook or relevant-reference-hooks_config since Section 3 make-targets convention is actively enforced by a hook — strengthens ecosystem connection (D6: +1-2)",
-          "[low] Consider using the ONLY READ WHEN pattern in Quick Reference to match the convention-memory pattern defined in relevant-toolkit-memory, even though MANDATORY works for essential auto-loaded content (D2: +1-2)"
-        ]
-      },
-      "relevant-toolkit-memory": {
-        "file_hash": "c224b39e",
-        "date": "2026-03-09",
-        "score": 105,
-        "max": 115,
-        "percentage": 91.3,
-        "dimensions": {
-          "D1": 19,
-          "D2": 22,
-          "D3": 17,
-          "D4": 14,
-          "D5": 19,
-          "D6": 14
-        },
-        "top_improvements": [
-          "[low] Reduce content overlap with /create-memory skill — the category table and subsection details are partially duplicated in the skill; consider whether the skill can reference this memory more and inline less (D3: +1-2)",
-          "[low] Use the ONLY READ WHEN convention pattern in Quick Reference instead of MANDATORY to match section 3 own guidelines for convention memories, or explicitly document MANDATORY as a valid pattern for essential auto-loaded memories (D2: +1-2)",
-          "[low] Make filename more descriptive — essential-conventions-memory_naming would clarify scope vs the current ambiguous essential-conventions-memory (D1: +1)"
-        ]
-      },
-      "essential-preferences-communication_style": {
-        "file_hash": "0afefdee",
-        "date": "2026-03-09",
-        "score": 110,
-        "max": 115,
-        "percentage": 95.7,
-        "dimensions": {
-          "D1": 20,
-          "D2": 23,
-          "D3": 19,
-          "D4": 15,
-          "D5": 19,
-          "D6": 14
-        },
-        "top_improvements": [
-          "[low] Tighten section 2 scope — move tool-usage and verification-focused subsections to a separate relevant-workflow memory or rename section to Working & Communication Patterns to match content (D3: +1)",
-          "[low] Add cross-reference to essential-toolkit-identity in See Also for sibling essential-memory connectivity (D6: +1)",
-          "[low] Add subheading in section 5 to visually separate the key principle statement from the not-sycophancy clarification list (D5: +1)"
-        ]
-      },
-      "relevant-workflow-task_completion": {
-        "file_hash": "148897f0",
-        "date": "2026-03-09",
-        "score": 103,
-        "max": 115,
-        "percentage": 89.6,
-        "dimensions": {
-          "D1": 19,
-          "D2": 23,
-          "D3": 15,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "[medium] Section 5 (Bug Fix Approach) is tangential to task completion — move to essential-conventions-code_style or add context framing why bug fix philosophy is a completion gate (D3: +3-5)",
-          "[low] Section 3 (Handling Linter Exceptions) is narrowly scoped to PLR09XX ruff errors — either broaden to general linter exception handling or rename to be specific about ruff complexity rules (D3: +1-2)",
-          "[low] Add cross-reference to goal-verifier agent which validates task completion from a different angle (D6: +1-2)"
-        ]
-      },
-      "relevant-workflow-branch_development": {
-        "file_hash": "646ac712",
-        "date": "2026-03-11",
-        "score": 108,
-        "max": 115,
-        "percentage": 93.91,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 14
-        },
-        "top_improvements": [
-          "[low] Section 5 (Exceptions) could use a table format (Condition/Acceptable columns) instead of prose+bullets for visual consistency with sections 2 and 4 (D5: +1)",
-          "[low] Consider adding remote branch cleanup command (git push origin --delete) in Section 3 finish step for completeness (D3: +1)",
-          "[low] The See Also references CLAUDE.md which is toolkit-internal — could add a brief inline note about the --no-ff policy so synced copies remain self-contained (D6: +1)"
-        ]
-      },
-      "relevant-conventions-backlog_schema": {
-        "file_hash": "fd39b2e1",
-        "date": "2026-03-12",
-        "score": 107,
-        "max": 115,
-        "percentage": 93.0,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "Reconcile P3 priority tier and graveyard policy with parent CLAUDE.md conventions to avoid divergence",
-          "Split Rules list in section 3 to separate format rules from lifecycle rules (removal policy)",
-          "Add broader ecosystem cross-references to other convention memories for discoverability"
-        ]
-      },
-      "relevant-reference-hooks_config": {
-        "file_hash": "99489b6f",
-        "date": "2026-03-11",
-        "score": 106,
-        "max": 115,
-        "percentage": 92.2,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 12
-        },
-        "top_improvements": [
-          "[low] Add cross-reference to essential-toolkit-identity which defines hooks as guardrails — strengthens D6 ecosystem awareness (+1)",
-          "[low] Add a third ONLY READ WHEN bullet (e.g., adding a new hook to a project) to broaden Quick Reference trigger coverage (D2: +1)",
-          "[low] Include hook status (stable/beta) in the Active Hooks tables to match ecosystem information available in HOOKS.md index (D3: +1)"
-        ]
-      },
       "relevant-philosophy-reducing_entropy": {
         "file_hash": "c6d97d69",
         "date": "2026-03-09",
@@ -1192,46 +1052,6 @@
           "Align Quick Reference with the Purpose/Read at/Not a reference doc pattern from conventions (orientation memory type) instead of MANDATORY format -- D2",
           "Add cross-reference to .claude/indexes/ system and CLAUDE.md Structure section to strengthen ecosystem integration -- D6",
           "Minor: the one-line toolkit description in Section 2 echoes CLAUDE.md project overview line -- consider a cross-reference instead of restating -- D3"
-        ]
-      },
-      "relevant-toolkit-resource_frontmatter": {
-        "file_hash": "f34b8027",
-        "date": "2026-03-11",
-        "score": 104,
-        "max": 115,
-        "percentage": 90.4,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 10
-        },
-        "top_improvements": [
-          "[med] Improve discoverability — add cross-references from /create-skill, /create-agent, and /evaluate-skill skills back to this memory so users know it exists (D6)",
-          "[low] Add See Also links to /create-skill and /create-agent skills that consume this frontmatter information (D6)",
-          "[low] Consider whether Model Selection Guide (section 5) should be its own memory to keep this strictly about frontmatter field definitions (D3)"
-        ]
-      },
-      "relevant-conventions-testing": {
-        "file_hash": "86757f48",
-        "date": "2026-03-12",
-        "score": 107,
-        "max": 115,
-        "percentage": 93.0,
-        "dimensions": {
-          "D1": 19,
-          "D2": 24,
-          "D3": 18,
-          "D4": 14,
-          "D5": 19,
-          "D6": 13
-        },
-        "top_improvements": [
-          "Cross-reference relevant-workflow-branch_development",
-          "Sections 4-6 describe specific test files — consider keeping memory at convention/pattern level",
-          "Add a brief note about test naming conventions"
         ]
       }
     }
@@ -1276,9 +1096,9 @@
           "D5": 13
         },
         "top_improvements": [
-          "[med] Add Bash to tools frontmatter — Output Requirements references git and date shell commands that require Bash tool access",
+          "[med] Add Bash to tools frontmatter \u2014 Output Requirements references git and date shell commands that require Bash tool access",
           "[low] Strengthen persona voice with explicit be X, not Y directives in Communication Style",
-          "[low] Add calibration guidance for plan complexity — when to do lightweight vs deep investigation based on plan size"
+          "[low] Add calibration guidance for plan complexity \u2014 when to do lightweight vs deep investigation based on plan size"
         ]
       },
       "pattern-finder": {
@@ -1315,7 +1135,7 @@
         },
         "top_improvements": [
           "[low] Strengthen persona voice with a metaphor or 'be X, not Y' framing to match the distinctiveness of code-reviewer (D3: 21->23)",
-          "[low] Remove redundant Verification Checklist (Compact) table at end — it repeats the main checklist without adding value (D1: tighter doc)",
+          "[low] Remove redundant Verification Checklist (Compact) table at end \u2014 it repeats the main checklist without adding value (D1: tighter doc)",
           "[low] Reference relevant memories or additional skills in See Also to deepen ecosystem connectivity (D5: 13->14)"
         ]
       },
@@ -1352,7 +1172,7 @@
           "D5": 12
         },
         "top_improvements": [
-          "[med] Fix pronoun inconsistency — line 9 uses first person while rest uses second person; pick one voice consistently to strengthen persona (D3)",
+          "[med] Fix pronoun inconsistency \u2014 line 9 uses first person while rest uses second person; pick one voice consistently to strengthen persona (D3)",
           "[low] Add cross-references to relevant skills like design-tests for post-fix test strategy, expanding ecosystem integration (D5)",
           "[low] Add explicit voice directives in be X, not Y format to further differentiate from default Claude (D3)"
         ]
@@ -1371,7 +1191,7 @@
           "D5": 13
         },
         "top_improvements": [
-          "[med] Add document templates for INTEGRATIONS.md and STRUCTURE.md — listed in focus areas table but missing templates, creating ambiguity about expected output format (D2)",
+          "[med] Add document templates for INTEGRATIONS.md and STRUCTURE.md \u2014 listed in focus areas table but missing templates, creating ambiguity about expected output format (D2)",
           "[low] Add explicit voice directives ('state facts not opinions', 'describe structure not quality') to strengthen the cartographer persona beyond the role statement (D3)",
           "[low] Add a calibration step to detect project size/type at exploration start, adjusting depth and document sections accordingly (D1)"
         ]
@@ -1390,9 +1210,159 @@
           "D5": 13
         },
         "top_improvements": [
-          "[low] Add Bash to tools frontmatter — Output Path references date shell command requiring Bash tool access",
+          "[low] Add Bash to tools frontmatter \u2014 Output Path references date shell command requiring Bash tool access",
           "[low] Add be X, not Y voice directive to sharpen persona contrast with default Claude behavior",
-          "[low] Add re-review workflow guidance — clarify feedback loop after REVISE verdict"
+          "[low] Add re-review workflow guidance \u2014 clarify feedback loop after REVISE verdict"
+        ]
+      }
+    }
+  },
+  "docs": {
+    "dimensions": {
+      "D1": {
+        "name": "Category & Naming",
+        "max": 20
+      },
+      "D2": {
+        "name": "Quick Reference Section",
+        "max": 25
+      },
+      "D3": {
+        "name": "Content Scope",
+        "max": 20
+      },
+      "D4": {
+        "name": "Load Timing Appropriateness",
+        "max": 15
+      },
+      "D5": {
+        "name": "Structure & Formatting",
+        "max": 20
+      },
+      "D6": {
+        "name": "Integration Quality",
+        "max": 15
+      }
+    },
+    "resources": {
+      "essential-conventions-code_style": {
+        "file_hash": "890c2e81",
+        "date": "2026-03-09",
+        "score": 106,
+        "max": 115,
+        "percentage": 92.2,
+        "dimensions": {
+          "D1": 20,
+          "D2": 22,
+          "D3": 19,
+          "D4": 15,
+          "D5": 17,
+          "D6": 13
+        },
+        "top_improvements": [
+          "[low] Convert Section 2 (Design Principles) from bold-heading-with-bullets to a table format (Principle | Guidance) for faster scanning \u2014 matches the density of Section 3 better (D5: +2-3)",
+          "[low] Add a cross-reference to enforce-make-commands hook or relevant-reference-hooks_config since Section 3 make-targets convention is actively enforced by a hook \u2014 strengthens ecosystem connection (D6: +1-2)",
+          "[low] Consider using the ONLY READ WHEN pattern in Quick Reference to match the convention-memory pattern defined in relevant-toolkit-memory, even though MANDATORY works for essential auto-loaded content (D2: +1-2)"
+        ]
+      },
+      "essential-preferences-communication_style": {
+        "file_hash": "0afefdee",
+        "date": "2026-03-09",
+        "score": 110,
+        "max": 115,
+        "percentage": 95.7,
+        "dimensions": {
+          "D1": 20,
+          "D2": 23,
+          "D3": 19,
+          "D4": 15,
+          "D5": 19,
+          "D6": 14
+        },
+        "top_improvements": [
+          "[low] Tighten section 2 scope \u2014 move tool-usage and verification-focused subsections to a separate relevant-workflow memory or rename section to Working & Communication Patterns to match content (D3: +1)",
+          "[low] Add cross-reference to essential-toolkit-identity in See Also for sibling essential-memory connectivity (D6: +1)",
+          "[low] Add subheading in section 5 to visually separate the key principle statement from the not-sycophancy clarification list (D5: +1)"
+        ]
+      },
+      "relevant-toolkit-resource_frontmatter": {
+        "file_hash": "f34b8027",
+        "date": "2026-03-11",
+        "score": 104,
+        "max": 115,
+        "percentage": 90.4,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 10
+        },
+        "top_improvements": [
+          "[med] Improve discoverability \u2014 add cross-references from /create-skill, /create-agent, and /evaluate-skill skills back to this memory so users know it exists (D6)",
+          "[low] Add See Also links to /create-skill and /create-agent skills that consume this frontmatter information (D6)",
+          "[low] Consider whether Model Selection Guide (section 5) should be its own memory to keep this strictly about frontmatter field definitions (D3)"
+        ]
+      },
+      "relevant-conventions-testing": {
+        "file_hash": "86757f48",
+        "date": "2026-03-12",
+        "score": 107,
+        "max": 115,
+        "percentage": 93.0,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 13
+        },
+        "top_improvements": [
+          "Cross-reference relevant-workflow-branch_development",
+          "Sections 4-6 describe specific test files \u2014 consider keeping memory at convention/pattern level",
+          "Add a brief note about test naming conventions"
+        ]
+      },
+      "relevant-workflow-backlog": {
+        "file_hash": "fd39b2e1",
+        "date": "2026-03-12",
+        "score": 107,
+        "max": 115,
+        "percentage": 93.0,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 13
+        },
+        "top_improvements": [
+          "Reconcile P3 priority tier and graveyard policy with parent CLAUDE.md conventions to avoid divergence",
+          "Split Rules list in section 3 to separate format rules from lifecycle rules (removal policy)",
+          "Add broader ecosystem cross-references to other convention memories for discoverability"
+        ]
+      },
+      "relevant-toolkit-hooks_config": {
+        "file_hash": "99489b6f",
+        "date": "2026-03-11",
+        "score": 106,
+        "max": 115,
+        "percentage": 92.2,
+        "dimensions": {
+          "D1": 19,
+          "D2": 24,
+          "D3": 18,
+          "D4": 14,
+          "D5": 19,
+          "D6": 12
+        },
+        "top_improvements": [
+          "[low] Add cross-reference to essential-toolkit-identity which defines hooks as guardrails \u2014 strengthens D6 ecosystem awareness (+1)",
+          "[low] Add a third ONLY READ WHEN bullet (e.g., adding a new hook to a project) to broaden Quick Reference trigger coverage (D2: +1)",
+          "[low] Include hook status (stable/beta) in the Active Hooks tables to match ecosystem information available in HOOKS.md index (D3: +1)"
         ]
       }
     }
