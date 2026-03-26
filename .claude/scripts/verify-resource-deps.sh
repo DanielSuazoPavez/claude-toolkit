@@ -363,7 +363,6 @@ if [ -d "$DOCS_DIR" ]; then
     section_errors=0
 
     while IFS= read -r docfile; do
-        local doc_name
         doc_name=$(basename "$docfile" .md)
 
         if $MANIFEST_MODE; then
@@ -372,7 +371,7 @@ if [ -d "$DOCS_DIR" ]; then
             fi
         fi
 
-        local self_name="$doc_name"
+        self_name="$doc_name"
 
         while IFS= read -r ref_doc; do
             [ -z "$ref_doc" ] && continue
@@ -406,7 +405,6 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$DOCS_DIR" ]; then
     section_errors=0
 
     while IFS= read -r docfile; do
-        local doc_name
         doc_name=$(basename "$docfile" .md)
 
         if $MANIFEST_MODE; then
