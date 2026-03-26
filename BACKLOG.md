@@ -36,9 +36,12 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SKILLS]** Rename create-memory/evaluate-memory to create-docs/evaluate-docs (`rename-memory-skills-to-docs`)
-    - **scope**: `skills`
-    - **notes**: What these skills managed (prescriptive rules, conventions) is now called "docs". Rename skills, update content to reflect docs scope. `/create-memory` → `/create-docs`, `/evaluate-memory` → `/evaluate-docs`. Followup from post-reshape-followups.
+- **[TOOLKIT]** Complete memory→docs migration — rename memory skills to docs skills (`complete-docs-migration`)
+    - **scope**: `docs, skills`
+    - **notes**: The structured, managed context resources (creation, evaluation, indexing, validation) are now fully docs. Memories still exist as unstructured organic files — `relevant-toolkit-context.md` can still mention them. The migration is about the skills:
+        - **Rename memory skills to docs skills**: `/create-memory` → `/create-docs`, `/evaluate-memory` → `/evaluate-docs`. Update content to reflect docs scope (creation conventions, evaluation rubric, quality gates). Also update `/list-memories` → `/list-docs` or remove if the docs index covers it.
+        - **Update `relevant-toolkit-context.md`**: Ensure the structured conventions (Quick Reference, naming patterns, categories, indexing) are clearly about docs, not memories. Memories section should stay simple — just "plain files in `.claude/memories/`".
+        - **Cross-references**: Update all refs in MANIFEST, settings template, skill descriptions, evaluate-batch resource types.
 
 - **[DOCS]** Lessons ecosystem doc — reference doc for the lessons system (`docs-lessons-ecosystem`)
     - **scope**: `docs`
