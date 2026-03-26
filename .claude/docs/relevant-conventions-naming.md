@@ -27,7 +27,7 @@ Guidelines for naming resources in Claude Toolkit.
 |----------|---------|---------|
 | Skills | `verb-noun` | `create-agent`, `evaluate-skill` |
 | Agents | `context-role` | `code-reviewer`, `goal-verifier` |
-| Memories | `category-context-name` | `essential-workflow-task_completion` |
+| Memories | `category-context-name` | `relevant-context-professional_profile` |
 | Hooks | `functionality-context-detail` | `enforce-feature-branch` |
 
 ---
@@ -110,8 +110,8 @@ See `.claude/docs/relevant-toolkit-context.md` for full documentation.
 
 | Category | Lifespan | Format | Example |
 |----------|----------|--------|---------|
-| `essential` | Permanent | `essential-{context}-{name}` | `essential-workflow-task_completion` |
-| `relevant` | Long-term | `relevant-{context}-{name}` | `relevant-data_model-migration_context` |
+| `essential` | Permanent | `essential-{context}-{name}` | `essential-conventions-code_style` |
+| `relevant` | Long-term | `relevant-{context}-{name}` | `relevant-context-professional_profile` |
 | `branch` | Temporary | `branch-{YYYYMMDD}-{branch}-{context}` | `branch-20251001-feat_auth-schema_notes` |
 
 **Note:** Memories use `snake_case` for multi-word segments within the name (e.g., `code_style`, `task_completion`), while other resources use `kebab-case` throughout.
