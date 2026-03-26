@@ -5,8 +5,8 @@
 # Dual-write: TSV file (hook-timing.log) + SQLite (claude-hook-logs.db).
 # DB write is optional — silently skipped if db doesn't exist.
 #
-# TSV format (11 columns):
-#   session_id | invocation_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected
+# TSV format (12 columns):
+#   session_id | invocation_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected | is_test
 #
 # Usage:
 #   source "$(dirname "$0")/lib/hook-utils.sh"
@@ -130,10 +130,10 @@ hook_log_section() {
     bytes=$(printf '%s' "$content" | wc -c)
     ts=$(date -Iseconds)
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$SESSION_ID" "$INVOCATION_ID" "$ts" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
-        "0" "pass" "$bytes" \
+        "0" "pass" "$bytes" "$IS_TEST" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
     VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, $IS_TEST);"
@@ -180,10 +180,10 @@ _hook_log_timing() {
     if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then
         bytes=$TOTAL_BYTES_INJECTED
     fi
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$SESSION_ID" "$INVOCATION_ID" "$ts" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "" \
-        "$duration_ms" "$OUTCOME" "$bytes" \
+        "$duration_ms" "$OUTCOME" "$bytes" "$IS_TEST" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
     VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, $IS_TEST);"
