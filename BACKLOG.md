@@ -21,10 +21,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
-- **[HOOKS]** Review session-start hook sections and injected content (`review-session-start-content`)
-    - **scope**: `hooks, memories`
-    - **notes**: Now that session-start is faster, review *what* it injects. Are all sections earning their context cost? Review essential memories content — are they too long, redundant, or stale? Evaluate each section (essential memories, other memories list, git context, toolkit version, lessons, nudge, guidance, acknowledgment) for signal-to-noise ratio.
-
 ## P1 - High
 
 ## P2 - Medium
