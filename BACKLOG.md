@@ -36,10 +36,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[TOOLKIT]** Drop memory prefixes — memories don't need category prefixes (`drop-memory-prefixes`)
-    - **scope**: `toolkit, skills, memories`
-    - **notes**: Memories are organic context and don't need `relevant-`/`essential-` prefixes (those are for docs). Remove prefixes from memory filenames, update naming conventions, keep memories out of session-start hook. Also update validation scripts (`validate-resources-indexed.sh`, `verify-resource-deps.sh`) that filter by prefix patterns, all cross-references in skills/docs that mention memory category prefixes, and remove `docs/indexes/MEMORIES.md` index (memories are organic, not indexed). Followup from post-reshape-followups.
-
 - **[SKILLS]** Rename create-memory/evaluate-memory to create-docs/evaluate-docs (`rename-memory-skills-to-docs`)
     - **scope**: `skills`
     - **notes**: What these skills managed (prescriptive rules, conventions) is now called "docs". Rename skills, update content to reflect docs scope. `/create-memory` → `/create-docs`, `/evaluate-memory` → `/evaluate-docs`. Followup from post-reshape-followups.

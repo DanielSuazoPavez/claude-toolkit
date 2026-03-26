@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.36.2] - 2026-03-26 - Drop memory prefixes: memories are just files
+
+### Changed
+- **memories**: Renamed all memory files — dropped category prefixes (`relevant-context-professional_profile` → `professional_profile`, `personal-context-user` → `user`, `personal-preferences-casual_communication_style` → `casual_communication_style`)
+- **memories**: Memories are plain named `.md` files now — no categories, no prefixes, no indexing, no validation
+- **hooks**: Session-start hook only loads essential docs, no longer scans memories dir
+- **docs**: Simplified memory conventions in `relevant-toolkit-context` and `relevant-conventions-naming` — removed category tables and format patterns
+- **skills**: Rewrote `/create-memory` — simple decision tree, plain naming, no category selection
+- **skills**: Updated `/evaluate-memory` — D1 evaluates descriptive naming, D4 evaluates relevance/freshness instead of category-based load timing
+- **validation**: `verify-resource-deps.sh` sections 6-7 now scan only docs, not memories
+- **cli**: Removed `essential-` and `MEMORIES.md` from lesson domain keywords
+
+### Removed
+- **index**: Deleted `docs/indexes/MEMORIES.md` — memories are organic, not indexed
+- **validation**: Removed MEMORIES section from `validate-resources-indexed.sh` and all memory-specific tests
+- **backlog**: Removed `drop-memory-prefixes` (completed)
+
 ## [2.36.1] - 2026-03-26 - Post-reshape followups: file moves and idea- removal
 
 ### Changed
