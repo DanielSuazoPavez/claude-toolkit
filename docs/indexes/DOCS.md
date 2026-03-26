@@ -2,8 +2,6 @@
 
 Reference documentation and prescriptive rules. Loaded at session start or on-demand.
 
-See also: `docs/indexes/MEMORIES.md` for organic context (project identity, user preferences, ideas).
-
 ## Essential Docs
 
 Always loaded at session start:

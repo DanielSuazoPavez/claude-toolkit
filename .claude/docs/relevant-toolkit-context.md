@@ -30,7 +30,7 @@ The toolkit uses two directories for persistent context:
 |------|-------|-----|
 | Code style conventions | `.claude/docs/` | Prescriptive rules applied to all code |
 | Communication preferences | `.claude/docs/` | Prescriptive behavior shaping |
-| Project identity | `.claude/memories/` | Organic context about what the project is |
+| Project identity | `.claude/docs/` | Prescriptive identity and scope boundaries |
 | Professional profile | `.claude/memories/` | User context, evolves over time |
 | Branch WIP notes | `.claude/memories/` | Temporary, contextual |
 

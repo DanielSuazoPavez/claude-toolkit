@@ -60,10 +60,6 @@ Is this prescriptive rules or reference documentation?
 
 5. **Write content** based on what user wants to capture
 
-6. **Update index** (if applicable):
-   - `essential` and `relevant` memories → add to `docs/indexes/MEMORIES.md`
-   - `personal`, `experimental`, `branch` memories → skip the index (excluded by convention and validation)
-
 ## File Format
 
 ```markdown
@@ -138,7 +134,7 @@ Before writing the memory file, verify:
 - [ ] **Category correct?** Matches stability timeline (essential=permanent, relevant=months, branch=days)
 - [ ] **Quick Reference exists?** Has `**ONLY READ WHEN:**` bullets
 - [ ] **Filename format?** `{category}-{context}-{descriptive_name}.md` with underscores
-- [ ] **No duplicate?** For `essential`/`relevant`: check `docs/indexes/MEMORIES.md`. For `personal`/`experimental`: list `.claude/memories/` directly (these categories are excluded from the index)
+- [ ] **No duplicate?** List `.claude/memories/` to check for existing memories on the same topic
 - [ ] **Under 300 lines?** Split if larger
 
 ### Quality Gate
