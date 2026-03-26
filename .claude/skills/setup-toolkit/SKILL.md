@@ -57,6 +57,16 @@ Same reporting as Check 1 — missing are issues, extras are informational.
 
 ### Check 3: MCP config
 
+First, check if `mcp.json` exists at the project root (wrong location). If found, move it to `.claude/mcp.json` before proceeding:
+
+```bash
+if [ -f mcp.json ] && [ ! -f .claude/mcp.json ]; then
+    mv mcp.json .claude/mcp.json
+elif [ -f mcp.json ] && [ -f .claude/mcp.json ]; then
+    echo "WARNING: mcp.json exists at both root and .claude/ — merge manually"
+fi
+```
+
 Compare `.claude/mcp.json` against `.claude/templates/mcp.template.json`:
 
 ```bash
