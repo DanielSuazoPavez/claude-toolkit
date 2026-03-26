@@ -45,6 +45,15 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[TOOLKIT]** Add health check warning for active historical lessons — `lessons health` should flag `tier='historical' AND active=1` as invalid state (`lessons-health-historical-active`)
+    - **scope**: `toolkit`
+    - **notes**: Discovered during manage-lessons session — a lesson was set to historical but left active=1. Health command should warn about this and optionally auto-fix.
+
+
+- **[TOOLKIT]** Add key principles to CLAUDE.md: no sudo access (provide commands for user), don't state how a system works without checking, don't ask and act in same message (`add-key-principles`)
+    - **scope**: `toolkit`
+    - **notes**: From lessons #6, #15. These are behavioral principles that should be in CLAUDE.md Key Principles section. #15 is recurring — high value.
+
 - **[HOOKS]** Investigate hookEventName value for PermissionRequest hooks (`hook-event-name-investigation`)
     - **scope**: `hooks`
     - **notes**: `hook_approve` now emits `hookEventName=$HOOK_EVENT` (e.g., "PermissionRequest") but the old create-hook GOTCHA claimed it must be "PreToolUse" even for PermissionRequest. HOOKS_API.md only shows "PreToolUse" in the output spec. Current `approve-safe-commands.sh` works with "PermissionRequest" but this may be undocumented behavior. Investigate if Claude Code enforces specific values.

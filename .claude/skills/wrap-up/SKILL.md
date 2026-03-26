@@ -69,7 +69,7 @@ Bump the version in the appropriate file (VERSION, pyproject.toml, package.json,
 ### 7. Update `BACKLOG.md`
 - Remove completed items (they're now in CHANGELOG)
 - Exception: If item is part of a larger task, keep checked until parent task is fully done
-- **Surface new issues**: Review the session for any problems discovered, gaps identified, or TODOs that surfaced during the work. Check whether they're already documented in the backlog — if not, propose adding them. Don't dismiss issues just because they're outside the current branch scope.
+- **Surface new issues**: Review the session for any problems discovered, gaps identified, or TODOs that surfaced during the work. Check whether they're already documented in the backlog — if not, add them directly (don't just recommend it in the report). Backlog additions discovered during branch work belong to that branch's changes — commit them with the branch.
 
 ### 8. Commit documentation changes
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
@@ -124,6 +124,7 @@ Output what was updated.
 | **Stale Backlog** | Completed items still in TODO | Remove them (CHANGELOG is the record) |
 | **Bump Everything** | Version bump for CI-only changes | Skip bump for non-user-facing changes |
 | **Scope Tunnel Vision** | Ignoring non-branch artifacts and issues | Check git status for loose ends; ask user about unrelated changes |
+| **Dismissing Test Failures** | Calling failures "pre-existing and unrelated" without proof | Either fix them or explicitly call them out as known issues with a backlog item |
 
 ## Notes
 
