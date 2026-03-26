@@ -1,5 +1,5 @@
 ---
-name: relevant-context-professional_profile
+name: professional_profile
 description: Professional context — data engineering role, stack, tools, and current trajectory for tailoring technical collaboration
 type: user
 ---
@@ -11,7 +11,7 @@ type: user
 - User asks about their stack or professional context
 - Deciding how to frame technical suggestions (what tools/patterns they know well vs learning)
 
-**See also:** `personal-context-user` for non-work context, `essential-preferences-communication_style` for interaction style
+**See also:** `user` for non-work context, `essential-preferences-communication_style` for interaction style
 
 ---
 

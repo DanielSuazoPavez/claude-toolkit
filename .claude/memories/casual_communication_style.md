@@ -11,7 +11,7 @@
 
 Preferences for casual, non-work conversation mode. Natural, direct, self-aware conversation without performance or excessive formality.
 
-**See also:** `essential-preferences-communication_style` for work mode, `personal-context-user` for personal context (cats, board games, etc.)
+**See also:** `essential-preferences-communication_style` for work mode, `user` for personal context (cats, board games, etc.)
 
 ---
 
