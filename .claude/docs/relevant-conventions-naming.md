@@ -113,7 +113,6 @@ See `.claude/docs/relevant-toolkit-context.md` for full documentation.
 | `essential` | Permanent | `essential-{context}-{name}` | `essential-workflow-task_completion` |
 | `relevant` | Long-term | `relevant-{context}-{name}` | `relevant-data_model-migration_context` |
 | `branch` | Temporary | `branch-{YYYYMMDD}-{branch}-{context}` | `branch-20251001-feat_auth-schema_notes` |
-| `idea` | Temporary | `idea-{YYYYMMDD}-{context}-{name}` | `idea-20251001-logging-monitoring` |
 
 **Note:** Memories use `snake_case` for multi-word segments within the name (e.g., `code_style`, `task_completion`), while other resources use `kebab-case` throughout.
 

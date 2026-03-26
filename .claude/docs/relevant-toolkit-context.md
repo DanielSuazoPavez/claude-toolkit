@@ -53,10 +53,9 @@ All docs are indexed in `docs/indexes/DOCS.md`.
 |----------|----------|-------------|--------|
 | `relevant-` | Long-term | On-demand | `relevant-{context}-{name}` |
 | `branch-` | Temporary | On-demand (branch work) | `branch-{YYYYMMDD}-{branch}-{context}` |
-| `idea-` | Temporary | User permission required | `idea-{YYYYMMDD}-{context}-{idea}` |
 | `personal-` | Private | User on-demand ONLY | `personal-{context}-{name}` |
 | `experimental-` | Testing | User on-demand ONLY | `experimental-{context}-{name}` |
-Indexed memories (`relevant-`) go in `docs/indexes/MEMORIES.md`. Ephemeral categories (`idea-`, `personal-`, `experimental-`) are excluded from indexing and validation.
+Indexed memories (`relevant-`) go in `docs/indexes/MEMORIES.md`. Ephemeral categories (`personal-`, `experimental-`) are excluded from indexing and validation. Ideas and explorations go in `output/claude-toolkit/drafts/`, not memories.
 
 ### Auto-memory (`auto/` subdirectory)
 
@@ -94,7 +93,6 @@ Brief description.
 
 ### For special cases
 
-- **`idea-` memories**: Always add `**NOTE**: ONLY READ WITH USER EXPLICIT PERMISSION`
 - **`branch-` memories**: Include status and key results in Quick Reference
 - **`essential-` docs**: Add `**MANDATORY:**` prefix to indicate session-start loading
 
