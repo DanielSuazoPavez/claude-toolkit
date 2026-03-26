@@ -77,14 +77,15 @@ Post-implementation steps check:
 
 **If any required post-implementation steps are missing, add them to the plan yourself before generating the review output.** Do not flag them as issues — just fix the plan. Note the additions in the review summary so the user sees what was added.
 
-### Are files listed?
+### Are files listed and valid?
 
 ```
 File list check:
 ├─ Explicit list of files to modify? → Good
 ├─ "Update relevant files"? → Bad - which ones?
 ├─ New files clearly marked as new? → Good
-└─ Deleted files explicitly noted? → Required for refactors
+├─ Deleted files explicitly noted? → Required for refactors
+└─ Listed files actually exist? → Verify with Glob — code may have moved since the plan was written
 ```
 
 ### Is verification defined?

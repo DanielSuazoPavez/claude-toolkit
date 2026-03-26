@@ -369,6 +369,7 @@ See `resources/EXAMPLES.md` for before/after code examples of the top 3 anti-pat
 | **Testing only happy path** | Misses rollback bugs, auth bypasses, API failures | See [High-Risk Scenarios](#high-risk-scenarios) |
 | **Fixture scope pollution** | `session`/`module` fixture mutated by one test, breaks others non-deterministically | Use `function` scope for mutable state; reserve broader scopes for read-only or connection fixtures |
 | **conftest.py at wrong level** | Fixtures in root conftest shared everywhere — tests implicitly depend on unrelated setup | Put fixtures in the narrowest conftest that covers their consumers; root conftest only for truly global fixtures (DB connection, app factory) |
+| **`__init__.py` with re-exports** | Makes import graphs opaque, hides where things actually live | Keep `__init__.py` to wiring only — no re-exports. Tests should import directly from submodules |
 | **Copy-paste test plans** | Reused plans miss feature-specific risks | Start from risk analysis, not templates |
 | **Conflating severity with priority** | P1 cosmetic bugs block release while P3 data loss waits | Severity = impact, priority = business urgency |
 | **Testing everything equally** | 200 test cases, all medium priority | Risk-weight: P0 exhaustive, P3 smoke only |

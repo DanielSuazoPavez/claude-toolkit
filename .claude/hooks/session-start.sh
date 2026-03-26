@@ -174,7 +174,7 @@ echo "$GUIDANCE_OUT"
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
 LESSON_COUNT=0
 if [ -f "$LESSONS_DB" ]; then
-    LESSON_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons;" 2>/dev/null || echo 0)
+    LESSON_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons WHERE active = 1;" 2>/dev/null || echo 0)
 elif [ -f "$LEARNED_FILE" ]; then
     LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
 fi

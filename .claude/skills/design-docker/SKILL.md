@@ -178,6 +178,7 @@ healthcheck:
 - [ ] Resource limits defined?
 - [ ] Restart policy set?
 - [ ] Profiles for environment separation?
+- [ ] Bridge network subnets pinned for production? (`ipam.config.subnet`)
 
 **Output format:**
 ```markdown
@@ -323,6 +324,8 @@ infra-down:
 | **Shell form CMD** | Signals not forwarded | Exec form: `CMD ["app"]` |
 | **Secrets in ENV** | Visible in history | Runtime secrets, env_file |
 | **No health check** | Orchestrator can't verify readiness | Add with appropriate start_period |
+| **No pinned subnets** | Docker auto-assigns from RFC1918 ranges (incl. 192.168.x.x), colliding with corporate LANs and causing asymmetric routing | Pin subnets via `ipam.config.subnet` in compose or `daemon.json` |
+| **Stale networks after reconfig** | Old subnet assignments persist after `docker compose down` | Run `docker network prune` after down when changing network config |
 
 ## See Also
 
