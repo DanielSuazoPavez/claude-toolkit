@@ -24,20 +24,14 @@ LESSONS_DB="$HOME/.claude/lessons.db"
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "surface-lessons" "PreToolUse"
-hook_require_tool "Bash" "Read" "Write" "Edit"
 
-# Extract context based on tool type
-CONTEXT=""
+# Single jq call: extract tool_name + context (command or file_path)
+read -r TOOL_NAME CONTEXT < <(echo "$HOOK_INPUT" | jq -r '[.tool_name, (.tool_input.command // .tool_input.file_path // "")] | @tsv' 2>/dev/null) || true
+
+# Tool match check (replaces hook_require_tool)
 case "$TOOL_NAME" in
-    Bash)
-        CONTEXT=$(hook_get_input '.tool_input.command')
-        ;;
-    Read|Write|Edit)
-        CONTEXT=$(hook_get_input '.tool_input.file_path')
-        ;;
-    *)
-        exit 0
-        ;;
+    Bash|Read|Write|Edit) _HOOK_ACTIVE=true ;;
+    *) exit 0 ;;
 esac
 
 [ -z "$CONTEXT" ] && exit 0
