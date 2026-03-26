@@ -56,7 +56,7 @@ for word in $WORDS; do
     # Skip very short words
     [ ${#word} -lt 3 ] && continue
     # Escape single quotes for SQL
-    safe_word=$(echo "$word" | sed "s/'/''/g")
+    safe_word="${word//\'/\'\'}"
     if [ -n "$CONDITIONS" ]; then
         CONDITIONS="$CONDITIONS OR t.keywords LIKE '%${safe_word}%'"
     else
