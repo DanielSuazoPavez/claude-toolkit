@@ -23,7 +23,7 @@ find_backlog() {
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-    # Try relative to script (.claude/scripts/ -> project root)
+    # Try relative to script (cli/backlog/ -> project root)
     if [[ -f "$script_dir/../../BACKLOG.md" ]]; then
         echo "$script_dir/../../BACKLOG.md"
     # Try current directory
