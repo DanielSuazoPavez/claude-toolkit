@@ -162,8 +162,8 @@ hook_log_context() {
     local keywords="$2"
     local match_count="$3"
     local matched_ids="$4"
-    _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids, is_test)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids', $IS_TEST);"
+    _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
 }
 
 # ============================================================
