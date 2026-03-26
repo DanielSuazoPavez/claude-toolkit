@@ -21,10 +21,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
-- **[HOOKS]** Add observability to surface-lessons hook — log query context, keywords, match count, and lesson IDs via `hook_log_section` (`surface-lessons-observability`)
-    - **scope**: `hooks`
-    - **notes**: Currently surface-lessons is a black box — timing log only shows duration and bytes injected. Add `hook_log_section` calls for: raw context (command/path), extracted keywords, SQL match count, matched lesson IDs. Data is for claude-sessions analytics, not runtime use. Infrastructure already exists (`hook_log_section`, session-id in timing log).
-
 ## P1 - High
 
 ## P2 - Medium
@@ -37,6 +33,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count.
 
+
+- **[HOOKS]** Add test-triggered flag to hook logging — distinguish test invocations from real hook runs in claude-hook-logs.db (`hook-logging-test-flag`)
+    - **scope**: `hooks`
+    - **notes**: When hooks are invoked by test harnesses (e.g., `make test`), the log entries are indistinguishable from real usage. Add a flag (env var or column) so analytics can filter out test noise.
 
 ## P3 - Low
 
