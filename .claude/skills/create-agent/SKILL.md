@@ -52,7 +52,7 @@ What does this agent do that default Claude doesn't?
 
 Location: `.claude/agents/<agent-name>.md`
 
-Use `context-role` format for agent names. See `docs/naming-conventions.md`.
+Use `context-role` format for agent names. See `relevant-conventions-naming`.
 
 **Required frontmatter:**
 ```yaml

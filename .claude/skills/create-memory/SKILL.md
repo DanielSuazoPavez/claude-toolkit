@@ -45,7 +45,7 @@ Is this prescriptive rules or reference documentation?
 | `personal-` | Private | User on-demand ONLY | Preferences, personal context |
 | `experimental-` | Until proven | User on-demand ONLY | A/B testing behaviors |
 
-**See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `docs/naming-conventions.md`
+**See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `relevant-conventions-naming`
 
 ## Instructions
 

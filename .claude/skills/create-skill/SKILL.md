@@ -201,7 +201,7 @@ Before outputting the skill, evaluate it with `/evaluate-skill`:
 
 Use `verb-noun` format: `create-skill`, `review-plan`, `brainstorm-idea`
 
-See `docs/naming-conventions.md` for the full naming guide.
+See `relevant-conventions-naming` for the full naming guide.
 
 ## Iteration Example
 

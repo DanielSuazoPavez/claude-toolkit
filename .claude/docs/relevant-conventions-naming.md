@@ -1,8 +1,19 @@
 # Naming Conventions
 
+## 1. Quick Reference
+
+**ONLY READ WHEN:**
+- Creating or renaming skills, agents, memories, or hooks
+- Reviewing resource names during evaluation
+- User asks about naming patterns
+
 Guidelines for naming resources in Claude Toolkit.
 
-## Overview
+**See also:** `relevant-toolkit-context` for docs/memories boundary and category conventions
+
+---
+
+## 2. Overview
 
 **Core Principles:**
 
@@ -21,7 +32,7 @@ Guidelines for naming resources in Claude Toolkit.
 
 ---
 
-## Skills
+## 3. Skills
 
 **Pattern:** `verb-noun`
 
@@ -57,7 +68,7 @@ Guidelines for naming resources in Claude Toolkit.
 
 ---
 
-## Agents
+## 4. Agents
 
 **Pattern:** `context-role`
 
@@ -91,7 +102,7 @@ Guidelines for naming resources in Claude Toolkit.
 
 ---
 
-## Memories
+## 5. Memories
 
 **Pattern:** `category-context-name`
 
@@ -108,7 +119,7 @@ See `.claude/docs/relevant-toolkit-context.md` for full documentation.
 
 ---
 
-## Hooks
+## 6. Hooks
 
 **Pattern:** `functionality-context-detail`
 
