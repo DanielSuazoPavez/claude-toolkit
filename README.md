@@ -71,7 +71,7 @@ Both externalize knowledge, but serve different purposes:
 
 A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 
-**Example:** `/create-memory` is a skill (procedure for creating memories). `essential-conventions-memory.md` is a memory (naming conventions to follow).
+**Example:** `/create-memory` is a skill (procedure for creating memories). `relevant-toolkit-memory.md` is a memory (naming conventions to follow).
 
 ## What's Included
 

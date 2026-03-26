@@ -27,7 +27,7 @@ hooks/lib/hook-utils.sh
 
 # memories
 memories/essential-conventions-code_style.md
-memories/essential-conventions-memory.md
+memories/relevant-toolkit-memory.md
 memories/relevant-toolkit-permissions_config.md
 
 # docs (copied to project root, outside .claude/)

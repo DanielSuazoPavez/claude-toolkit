@@ -1031,10 +1031,10 @@
         "top_improvements": [
           "[low] Convert Section 2 (Design Principles) from bold-heading-with-bullets to a table format (Principle | Guidance) for faster scanning — matches the density of Section 3 better (D5: +2-3)",
           "[low] Add a cross-reference to enforce-make-commands hook or relevant-reference-hooks_config since Section 3 make-targets convention is actively enforced by a hook — strengthens ecosystem connection (D6: +1-2)",
-          "[low] Consider using the ONLY READ WHEN pattern in Quick Reference to match the convention-memory pattern defined in essential-conventions-memory, even though MANDATORY works for essential auto-loaded content (D2: +1-2)"
+          "[low] Consider using the ONLY READ WHEN pattern in Quick Reference to match the convention-memory pattern defined in relevant-toolkit-memory, even though MANDATORY works for essential auto-loaded content (D2: +1-2)"
         ]
       },
-      "essential-conventions-memory": {
+      "relevant-toolkit-memory": {
         "file_hash": "c224b39e",
         "date": "2026-03-09",
         "score": 105,

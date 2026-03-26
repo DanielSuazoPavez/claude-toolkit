@@ -48,9 +48,9 @@ Is this information stable for 6+ months?
 
 ## Instructions
 
-1. **Read conventions**: Check `.claude/memories/essential-conventions-memory.md` for naming and format rules
+1. **Read conventions**: Check `.claude/memories/relevant-toolkit-memory.md` for naming and format rules
 
-2. **Determine category** (see `essential-conventions-memory.md` for full details):
+2. **Determine category** (see `relevant-toolkit-memory.md` for full details):
    - `essential-` → Core, stable project info (auto-loaded at session start)
    - `relevant-` → Important context that may evolve (on-demand)
    - `branch-` → WIP context for a feature branch (on-demand, temporary)
@@ -97,7 +97,7 @@ Brief description.
 ## Reference Examples
 
 For format and structure examples, see existing memories:
-- `essential-conventions-memory.md` - naming conventions and format rules
+- `relevant-toolkit-memory.md` - naming conventions and format rules
 - `essential-conventions-code_style.md` - example of stable, permanent memory
 
 ## Edge Cases

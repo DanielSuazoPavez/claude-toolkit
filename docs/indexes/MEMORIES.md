@@ -9,7 +9,6 @@ Always loaded at session start:
 | Memory | Status | Purpose |
 |--------|--------|---------|
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
-| `essential-conventions-memory` | stable | Memory naming conventions and categories |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
 | `essential-toolkit-identity` | stable | What the toolkit is, resource roles, decision checklist |
 
@@ -21,6 +20,7 @@ Always loaded at session start:
 | `relevant-toolkit-hooks_config` | stable | Hooks configuration and environment variables |
 | `relevant-toolkit-permissions_config` | stable | Two-tier permissions convention: toolkit settings.json vs project settings.local.json |
 | `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
+| `relevant-toolkit-memory` | stable | Memory naming conventions and categories |
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
 | `relevant-context-professional_profile` | stable | Data engineering role, stack, tools, and current trajectory |
 
@@ -32,7 +32,7 @@ Always loaded at session start:
 
 ## Memory Categories
 
-See `essential-conventions-memory` for full category definitions, naming conventions, and Quick Reference patterns.
+See `relevant-toolkit-memory` for full category definitions, naming conventions, and Quick Reference patterns.
 
 ## Creating Memories
 
