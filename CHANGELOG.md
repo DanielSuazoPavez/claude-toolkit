@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.34.2] - 2026-03-26 - Absorb lessons into skills
+
+### Changed
+- **skills**: `review-plan` now verifies listed file paths actually exist (Glob check)
+- **skills**: `design-docker` adds bridge subnet pinning anti-pattern and review checklist item
+- **skills**: `wrap-up` adds backlog items directly on branch, flags dismissed test failures
+- **skills**: `design-tests` adds `__init__.py` re-exports anti-pattern
+
+### Fixed
+- **hooks**: `session-start` lesson count now reports only active lessons, not total
+
 ## [2.34.1] - 2026-03-26 - Sync feedback fixes from cross-project migration
 
 ### Fixed
