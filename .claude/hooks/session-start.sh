@@ -57,7 +57,7 @@ for f in "$MEMORIES_DIR"/essential-*.md; do
     ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
     _name="${f##*/}"
     _name="${_name%.md}"
-    _content=$(<"$f") 2>/dev/null || _content="(Error reading file - permission denied or corrupted)"
+    _content=$(cat "$f" 2>/dev/null) || _content="(Error reading file - permission denied or corrupted)"
     MEMORY_CONTENT="=== ${_name} ===
 ${_content}
 "
@@ -153,7 +153,7 @@ SELECT 'C|' || COUNT(*) FROM lessons WHERE active = 1;
             K) KEY_LESSONS+="${_rest}"$'\n' ;;
             R) RECENT_LESSONS+="${_rest}"$'\n' ;;
             B) BRANCH_LESSONS+="${_rest}"$'\n' ;;
-            M) DAYS_SINCE="${_rest}"; _LAST_MANAGE_EXISTS=1 ;;
+            M) DAYS_SINCE="${_rest}"; [ "$DAYS_SINCE" -ge 0 ] 2>/dev/null && _LAST_MANAGE_EXISTS=1 ;;
             T) THRESHOLD_DAYS="${_rest}" ;;
             C) ACTIVE_COUNT="${_rest}" ;;
         esac
