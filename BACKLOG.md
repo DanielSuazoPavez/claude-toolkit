@@ -25,9 +25,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[HOOKS]** Optimize slower/heavier hooks — profile and improve `surface-lessons` and other high-cost hooks (`optimize-heavy-hooks`)
+- **[HOOKS]** Optimize session-start hook — apply same subprocess reduction techniques (`optimize-session-start-hook`)
     - **scope**: `hooks`
-    - **notes**: `surface-lessons` is consistently the slowest hook (~130-230ms). At least one other hook was noted as heavy. Profile with `hook-timing.log` data, identify bottlenecks (sqlite queries, stdin parsing, process startup), and optimize. Could involve caching, short-circuiting early, or reducing redundant work.
+    - **notes**: `session-start` is now the second slowest hook (~98ms avg) after surface-lessons optimization. Uses `hook_log_section` 6 times (now batched), multiple `sqlite3` calls for lessons queries, and several `date`/`jq` forks. The batching and EPOCHREALTIME improvements from `hook-utils.sh` already help, but hook-specific optimizations remain (e.g., single sqlite3 call for all lesson queries).
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
