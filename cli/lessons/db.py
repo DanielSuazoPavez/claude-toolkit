@@ -318,7 +318,7 @@ DOMAIN_TAG_KEYWORDS = {
     "git": ["git", "commit", "merge", "rebase", "branch", "push", "pull", "checkout"],
     "hooks": ["hook", "PreToolUse", "PostToolUse", "session-start"],
     "skills": ["skill", "/learn", "/manage", "SKILL.md", "auto-trigger"],
-    "memories": ["memory", "memories", "essential-", "MEMORIES.md"],
+    "memories": ["memory", "memories"],
     "permissions": ["permission", "allowed-tools", "Bash("],
     "resources": ["MANIFEST", "resource", "sync"],
     "testing": ["test", "pytest", "make check"],

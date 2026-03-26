@@ -67,7 +67,7 @@ agents:   .claude/agents/*.md
 
 ### 2. Filter
 
-- **Always exclude** `personal-` memories — personal memories are not evaluated
+- **Always exclude** memories that are clearly personal/private (e.g., `user.md`) — not evaluated
 - If specific resources are listed in the invocation, evaluate exactly those — skip staleness checks
 - Otherwise, read `docs/indexes/evaluations.json` and include resources that are:
   - **Unevaluated**: Not in `{type}.resources`

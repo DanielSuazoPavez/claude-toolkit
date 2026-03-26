@@ -10,7 +10,7 @@
 
 Personal context accumulated across conversations. Not required for work. Useful for avoiding the "re-discovery tax" in casual conversations.
 
-**See also:** `personal-preferences-casual_communication_style` for how to talk, this file for what's already known.
+**See also:** `casual_communication_style` for how to talk, this file for what's already known.
 
 ---
 

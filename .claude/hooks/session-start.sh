@@ -1,5 +1,5 @@
 #!/bin/bash
-# SessionStart hook: inject essential docs and memories at session start
+# SessionStart hook: inject essential docs at session start
 #
 # Settings.json:
 #   "SessionStart": [{"hooks": [{"type": "command", "command": "bash .claude/hooks/session-start.sh"}]}]
@@ -51,10 +51,10 @@ fi
 
 # === ESSENTIAL CONTEXT (auto-injected) ===
 
-# Output essential docs and memories — these are always relevant
+# Output essential docs — these are always relevant
 ESSENTIAL_OUT=""
 ESSENTIAL_COUNT=0
-for dir in "$DOCS_DIR" "$MEMORIES_DIR"; do
+for dir in "$DOCS_DIR"; do
   [ -d "$dir" ] || continue
   for f in "$dir"/essential-*.md; do
     if [ -f "$f" ]; then

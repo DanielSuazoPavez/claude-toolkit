@@ -46,7 +46,6 @@ Summary and status of all resources:
 - `docs/indexes/AGENTS.md` - All agents with status, descriptions, and tools
 - `docs/indexes/HOOKS.md` - All hooks with triggers and configuration
 - `docs/indexes/DOCS.md` - All docs (reference documentation, rules, conventions)
-- `docs/indexes/MEMORIES.md` - All memories with categories and purposes
 - `docs/indexes/evaluations.json` - Quality scores, grades, and improvement suggestions
 
 ## Changelog

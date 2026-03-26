@@ -2,7 +2,7 @@
 
 You've received a `.claude/` folder — a curated configuration layer for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Anthropic's CLI tool for working with Claude in your terminal.
 
-This toolkit adds skills (commands you invoke), agents (subtask specialists Claude uses), hooks (automatic guardrails), and memories (persistent context) on top of Claude Code. Everything is designed to work together out of the box — except hooks, which need a one-time activation step (see [Activating Hooks](#3-activating-hooks)).
+This toolkit adds skills (commands you invoke), agents (subtask specialists Claude uses), hooks (automatic guardrails), and docs (reference documentation that shapes behavior) on top of Claude Code. Everything is designed to work together out of the box — except hooks, which need a one-time activation step (see [Activating Hooks](#3-activating-hooks)).
 
 ---
 
@@ -43,14 +43,14 @@ Automatic guardrails that run every time Claude uses certain tools. They block d
 | secrets-guard | Blocks access to secret files: `.env`, SSH keys, cloud credentials, tokens |
 | suggest-read-json | Suggests `/read-json` for large JSON files instead of reading them raw |
 
-### Memories
+### Docs
 
-Persistent context that Claude reads at the start of each session. These shape how Claude writes code and organizes information in your project.
+Reference documentation in `.claude/docs/` that shapes how Claude behaves. Essential docs are loaded at the start of each session; others are read on-demand.
 
-| Memory | What it does |
-|--------|-------------|
+| Doc | What it does |
+|-----|-------------|
 | code_style | Code conventions: functions over classes, env vars for config, minimal interfaces |
-| memory | How to name and organize memory files across sessions |
+| context | How docs and memories are organized, naming conventions |
 
 **Edit these to match your project.** The defaults are opinionated — update them so Claude follows your conventions, not someone else's.
 

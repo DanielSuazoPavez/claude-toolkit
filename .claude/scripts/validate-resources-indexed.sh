@@ -30,7 +30,6 @@ MANIFEST_MODE=false
 declare -a MANIFEST_SKILLS=()
 declare -a MANIFEST_AGENTS=()
 declare -a MANIFEST_HOOKS=()
-declare -a MANIFEST_MEMORIES=()
 declare -a MANIFEST_DOCS=()
 declare -a MANIFEST_SCRIPTS=()
 
@@ -61,11 +60,6 @@ if [ -f "$MANIFEST_FILE" ] && [ ! -f "$PROJECT_ROOT/docs/indexes/SKILLS.md" ]; t
             hooks/*.sh)
                 name="${line#hooks/}"
                 MANIFEST_HOOKS+=("$name")
-                ;;
-            memories/*.md)
-                name="${line#memories/}"
-                name="${name%.md}"
-                MANIFEST_MEMORIES+=("$name")
                 ;;
             docs/*.md)
                 name="${line#docs/}"
@@ -247,57 +241,6 @@ elif $MANIFEST_MODE; then
     echo -e "${GREEN}✓ Skipped: no index files in target project (expected)${NC}"
 else
     echo -e "${YELLOW}Skipped: HOOKS.md or hooks/ not found${NC}"
-fi
-echo ""
-
-# === MEMORIES ===
-echo "=== Memories ==="
-MEMORIES_INDEX="$PROJECT_ROOT/docs/indexes/MEMORIES.md"
-MEMORIES_DIR="$CLAUDE_DIR/memories"
-
-if [ -f "$MEMORIES_INDEX" ] && [ -d "$MEMORIES_DIR" ]; then
-    # Exclude ephemeral/private/auto memories (not indexed)
-    DISK_MEMORIES=$(find "$MEMORIES_DIR" -maxdepth 1 -name "*.md" \
-        ! -name "idea-*.md" ! -name "personal-*.md" ! -name "experimental-*.md" \
-        ! -name "auto-*.md" ! -name "MEMORY.md" \
-        -exec basename {} .md \; | sort)
-    # Also exclude ephemeral/auto from index side
-    INDEX_MEMORIES=$(grep -oP '\| `\K[^`]+(?=` \|)' "$MEMORIES_INDEX" | grep -v '^idea-\|^personal-\|^experimental-\|^auto-' | sort)
-
-    if $MANIFEST_MODE; then
-        while IFS= read -r disk_memory; do
-            [ -z "$disk_memory" ] && continue
-            if ! in_array "$disk_memory" "${MANIFEST_MEMORIES[@]}"; then
-                echo -e "${YELLOW}Extra file not in MANIFEST: memories/$disk_memory.md${NC}"
-                WARNINGS=$((WARNINGS + 1))
-            fi
-        done <<< "$DISK_MEMORIES"
-
-        manifest_count=${#MANIFEST_MEMORIES[@]}
-        echo -e "${GREEN}✓ $manifest_count memories from MANIFEST validated${NC}"
-    else
-        MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_MEMORIES") <(echo "$INDEX_MEMORIES"))
-        if [ -n "$MISSING_FROM_INDEX" ]; then
-            echo -e "${RED}Not indexed in MEMORIES.md:${NC}"
-            echo "$MISSING_FROM_INDEX" | sed 's/^/  - /'
-            ERRORS=$((ERRORS + $(echo "$MISSING_FROM_INDEX" | wc -l)))
-        fi
-
-        STALE_IN_INDEX=$(comm -13 <(echo "$DISK_MEMORIES") <(echo "$INDEX_MEMORIES"))
-        if [ -n "$STALE_IN_INDEX" ]; then
-            echo -e "${YELLOW}Stale entries in MEMORIES.md (no file):${NC}"
-            echo "$STALE_IN_INDEX" | sed 's/^/  - /'
-            ERRORS=$((ERRORS + $(echo "$STALE_IN_INDEX" | wc -l)))
-        fi
-
-        if [ -z "$MISSING_FROM_INDEX" ] && [ -z "$STALE_IN_INDEX" ]; then
-            echo -e "${GREEN}✓ All $(echo "$DISK_MEMORIES" | wc -l) memories properly indexed${NC}"
-        fi
-    fi
-elif $MANIFEST_MODE; then
-    echo -e "${GREEN}✓ Skipped: no index files in target project (expected)${NC}"
-else
-    echo -e "${YELLOW}Skipped: MEMORIES.md or memories/ not found${NC}"
 fi
 echo ""
 

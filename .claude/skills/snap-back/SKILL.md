@@ -72,4 +72,4 @@ Just right: "That won't work because X. Try Y instead."
 ## See Also
 
 - `essential-preferences-communication_style` — Source of truth for tone, anti-patterns, pushback handling, and politeness edge cases
-- `personal-preferences-casual_communication_style` — Casual mode has different warmth thresholds; don't snap-back during genuine non-work conversation
+- `casual_communication_style` — Casual mode has different warmth thresholds; don't snap-back during genuine non-work conversation

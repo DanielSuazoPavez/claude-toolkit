@@ -55,9 +55,6 @@ create_synced_env() {
     mkdir -p "$TEMP_DIR/.claude/hooks"
     echo "#!/bin/bash" > "$TEMP_DIR/.claude/hooks/hook-a.sh"
 
-    mkdir -p "$TEMP_DIR/.claude/memories"
-    echo "# Memory A" > "$TEMP_DIR/.claude/memories/mem-a.md"
-
     mkdir -p "$TEMP_DIR/.claude/docs"
     echo "# Doc A" > "$TEMP_DIR/.claude/docs/doc-a.md"
 
@@ -88,13 +85,6 @@ EOF
 | Name | Status |
 |------|--------|
 | `hook-a.sh` | active |
-EOF
-
-    cat > "$TEMP_DIR/docs/indexes/MEMORIES.md" << 'EOF'
-# Memories Index
-| Name | Status |
-|------|--------|
-| `mem-a` | active |
 EOF
 
     cat > "$TEMP_DIR/docs/indexes/DOCS.md" << 'EOF'
@@ -219,7 +209,6 @@ test_all_synced() {
     expect_output "shows skills success" "skills properly indexed"
     expect_output "shows agents success" "agents properly indexed"
     expect_output "shows hooks success" "hooks properly indexed"
-    expect_output "shows memories success" "memories properly indexed"
     expect_output "shows docs success" "docs properly indexed"
     expect_output "shows scripts success" "scripts properly indexed"
 
@@ -271,30 +260,9 @@ test_mixed_errors() {
     # Missing hook from index
     echo "#!/bin/bash" > "$TEMP_DIR/.claude/hooks/hook-b.sh"
 
-    # Missing memory from index
-    echo "# Memory B" > "$TEMP_DIR/.claude/memories/mem-b.md"
-
     expect_failure "exits 1 with multiple errors"
     expect_output "reports missing hook" "Not indexed in HOOKS.md"
-    expect_output "reports missing memory" "Not indexed in MEMORIES.md"
     expect_output "shows error count" "indexing issue(s)"
-
-    teardown_test_env
-}
-
-test_idea_personal_exclusion() {
-    report_section "=== idea-*/personal-* exclusion ==="
-    setup_test_env
-    create_synced_env
-
-    # Add idea and personal memories on disk — should not trigger errors
-    echo "# Idea" > "$TEMP_DIR/.claude/memories/idea-20260320-test.md"
-    echo "# Personal" > "$TEMP_DIR/.claude/memories/personal-prefs.md"
-
-    expect_success "exits 0 with idea/personal memories on disk"
-    expect_not_output "does not report idea memory" "idea-20260320-test"
-    expect_not_output "does not report personal memory" "personal-prefs"
-    expect_output "shows up to date" "All indexes are up to date"
 
     teardown_test_env
 }
@@ -372,23 +340,6 @@ EOF
     teardown_test_env
 }
 
-test_auto_memory_exclusion() {
-    report_section "=== auto-*/MEMORY.md exclusion ==="
-    setup_test_env
-    create_synced_env
-
-    # Add auto-memory files on disk — should not trigger errors
-    echo "# Auto" > "$TEMP_DIR/.claude/memories/auto-project_context.md"
-    echo "# Index" > "$TEMP_DIR/.claude/memories/MEMORY.md"
-
-    expect_success "exits 0 with auto-memory files on disk"
-    expect_not_output "does not report auto memory" "auto-project_context"
-    expect_not_output "does not report MEMORY.md" "MEMORY"
-    expect_output "shows up to date" "All indexes are up to date"
-
-    teardown_test_env
-}
-
 test_docs_missing_from_index() {
     report_section "=== doc missing from index ==="
     setup_test_env
@@ -412,9 +363,7 @@ test_all_synced
 test_missing_from_index
 test_stale_in_index
 test_mixed_errors
-test_idea_personal_exclusion
 test_missing_dirs
-test_auto_memory_exclusion
 test_docs_missing_from_index
 test_manifest_mode_activates
 test_manifest_skips_without_indexes

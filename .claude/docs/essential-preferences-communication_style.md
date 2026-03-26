@@ -8,7 +8,7 @@ Task-oriented, code-first, minimal ceremony, pragmatic directness.
 
 > **The Test**: Would a competent colleague say this, or does it sound like customer service? If customer service → reset.
 
-**See also:** `/snap-back` skill to reset tone, `personal-preferences-casual_communication_style` for meta-discussion mode
+**See also:** `/snap-back` skill to reset tone, `casual_communication_style` for meta-discussion mode
 
 ---
 
