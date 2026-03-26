@@ -2,8 +2,8 @@
 # Shared hook utilities — sourced by all hooks for standardized
 # initialization, outcome handling, and execution logging.
 #
-# Log format (TSV, 10 columns) consumed by claude-sessions analytics:
-#   invocation_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected
+# Log format (TSV, 11 columns) consumed by claude-sessions analytics:
+#   session_id | invocation_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected
 #
 # Usage:
 #   source "$(dirname "$0")/lib/hook-utils.sh"
@@ -19,6 +19,7 @@ HOOK_NAME=""
 HOOK_EVENT=""
 TOOL_NAME=""
 INVOCATION_ID=""
+SESSION_ID=""
 PROJECT=""
 HOOK_START_MS=0
 OUTCOME="pass"
@@ -43,6 +44,7 @@ hook_init() {
     TOTAL_BYTES_INJECTED=0
     HOOK_LOG_FILE=".claude/logs/hook-timing.log"
     mkdir -p ".claude/logs" 2>/dev/null || true
+    SESSION_ID=$(cat ".claude/logs/.session-id" 2>/dev/null || echo "unknown")
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
         _HOOK_ACTIVE=true
@@ -121,8 +123,8 @@ hook_log_section() {
     local bytes
     bytes=$(printf '%s' "$content" | wc -c)
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$INVOCATION_ID" "$(date -Iseconds)" "$PROJECT" \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$SESSION_ID" "$INVOCATION_ID" "$(date -Iseconds)" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
         "0" "pass" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
@@ -141,8 +143,8 @@ _hook_log_timing() {
     if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then
         bytes=$TOTAL_BYTES_INJECTED
     fi
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$INVOCATION_ID" "$(date -Iseconds)" "$PROJECT" \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$SESSION_ID" "$INVOCATION_ID" "$(date -Iseconds)" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "" \
         "$duration_ms" "$OUTCOME" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true

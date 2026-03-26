@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.34.0] - 2026-03-25 - Session ID propagation to hook timing logs
+
+### Added
+- **hooks**: Session ID extraction in `session-start.sh` — writes UUID from `CLAUDE_ENV_FILE` to `.claude/logs/.session-id` for cross-hook access
+- **hooks**: `session_id` column added to `hook-timing.log` (now 11 columns, prepended as column 1)
+- **backlog**: P0 surface-lessons observability, P99 rescue worktree logs
+
+### Changed
+- **hooks**: `hook-utils.sh` reads `.session-id` in `hook_init` and includes it in all log entries
+
 ## [2.33.1] - 2026-03-25 - Update skills and validation for hook-utils.sh
 
 ### Changed

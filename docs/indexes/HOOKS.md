@@ -28,7 +28,7 @@ All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 - Execution timing and logging to `.claude/logs/hook-timing.log`
 - Section-level tracking for session-start
 
-Log format (TSV, 10 columns): invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected
+Log format (TSV, 11 columns): session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected
 
 ---
 
