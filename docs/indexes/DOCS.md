@@ -23,3 +23,5 @@ Always loaded at session start:
 | `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
 | `relevant-workflow-backlog` | stable | BACKLOG.md schema: priority, categories, status values |
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
+| `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
+| `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |

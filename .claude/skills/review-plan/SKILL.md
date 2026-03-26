@@ -34,7 +34,7 @@ First, determine what kind of plan this is:
 
 ### Project identity lens
 
-If a `relevant-project-identity` memory exists in `.claude/memories/`, read it and use it as an additional evaluation lens. Check whether the plan aligns with the project's stated identity, scope boundaries, and core traits. Flag any steps that drift outside the project's declared boundaries.
+If a `relevant-project-identity` doc exists in `.claude/docs/`, read it and use it as an additional evaluation lens. Check whether the plan aligns with the project's stated identity, scope boundaries, and core traits. Flag any steps that drift outside the project's declared boundaries.
 
 ## Step 2: Check Structure
 
