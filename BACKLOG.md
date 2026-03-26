@@ -36,6 +36,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[SCRIPTS]** `cli/lessons/db.py` doesn't consider docs — needs update post-migration (`db-docs-support`)
+    - **scope**: `scripts`
+    - **notes**: `cli/lessons/db.py` still references memories instead of docs for resource tracking. Needs audit and update.
+
 - **[TOOLKIT]** Consider migrating `/list-docs` to the claude-toolkit CLI (`cli-list-docs`)
     - **scope**: `cli, skills`
     - **notes**: `/list-docs` currently runs bash loops in a skill. Could be a native CLI subcommand instead.
