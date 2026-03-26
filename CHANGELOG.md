@@ -14,7 +14,10 @@
 - **docs**: Added `docs/` (user-facing documentation) to directory table in `relevant-toolkit-context`
 - **docs**: Updated naming conventions with new skill names
 - **dist**: Updated MANIFEST and CLAUDE.md.template for renamed skills
-- **tests**: Updated evaluation-query test fixtures for docs type
+- **cli**: Updated `claude-toolkit` — `memory` type → `doc`, removed `memories` sync category
+- **scripts**: `verify-resource-deps.sh` — `memory` ref type → `doc`
+- **scripts**: `publish.py` — removed `memories` category, updated ref/bullet patterns to docs
+- **tests**: Updated evaluation-query and CLI test fixtures for docs type
 - **indexes**: Renamed evaluation keys in `evaluations.json`
 
 ### Removed
