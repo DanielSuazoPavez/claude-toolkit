@@ -50,19 +50,32 @@ fi
 
 # Output essential memories directly - these are always relevant
 MEMORIES_OUT=""
+ESSENTIAL_COUNT=0
 for f in "$MEMORIES_DIR"/essential-*.md; do
   if [ -f "$f" ]; then
-    MEMORY_CONTENT="=== $(basename "$f" .md) ===
-$(cat "$f" 2>/dev/null || echo "(Error reading file - permission denied or corrupted)")
+    ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
+    _name="${f##*/}"
+    _name="${_name%.md}"
+    _content=$(<"$f") 2>/dev/null || _content="(Error reading file - permission denied or corrupted)"
+    MEMORY_CONTENT="=== ${_name} ===
+${_content}
 "
-    hook_log_section "memory:$(basename "$f" .md)" "$MEMORY_CONTENT"
+    hook_log_section "memory:${_name}" "$MEMORY_CONTENT"
     MEMORIES_OUT="${MEMORIES_OUT}${MEMORY_CONTENT}"
   fi
 done
 printf '%s' "$MEMORIES_OUT"
 
 # === AVAILABLE MEMORIES ===
-OTHER_MEMORIES=$(ls -1 "$MEMORIES_DIR"/*.md 2>/dev/null | xargs -r -n1 basename 2>/dev/null | sed 's/.md$//' | grep -v "^essential-")
+OTHER_MEMORIES=""
+for f in "$MEMORIES_DIR"/*.md; do
+    [[ -f "$f" ]] || continue
+    _name="${f##*/}"
+    _name="${_name%.md}"
+    [[ "$_name" == essential-* ]] && continue
+    OTHER_MEMORIES+="${_name}"$'\n'
+done
+OTHER_MEMORIES="${OTHER_MEMORIES%$'\n'}"
 OTHER_OUT="=== OTHER MEMORIES AVAILABLE ===
 $([ -n "$OTHER_MEMORIES" ] && echo "$OTHER_MEMORIES" || echo "(none)")
 
@@ -205,7 +218,7 @@ echo ""
 echo "$GUIDANCE_OUT"
 
 # === ACKNOWLEDGMENT ===
-ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
+# ESSENTIAL_COUNT already set by the memory loop above
 LESSON_COUNT=0
 if [ -f "$LESSONS_DB" ]; then
     # ACTIVE_COUNT already set by the combined query above
