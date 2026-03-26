@@ -32,6 +32,7 @@ HOOK_LOG_FILE=""
 HOOK_LOG_DB="$HOME/.claude/hooks.db"
 IS_TEST=0  # 1 when invoked by test harness (CLAUDE_HOOK_TEST=1)
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
+_HOOK_SQL_BATCH=""  # accumulated SQL statements, flushed once in EXIT trap
 
 # ============================================================
 # hook_init HOOK_NAME HOOK_EVENT
@@ -155,7 +156,16 @@ _sql_escape() {
 # ============================================================
 _hook_log_db() {
     [ -f "$HOOK_LOG_DB" ] || return 0
-    printf '%s\n' "$1" | sqlite3 "$HOOK_LOG_DB" 2>/dev/null || true
+    _HOOK_SQL_BATCH="${_HOOK_SQL_BATCH}${1}
+"
+}
+
+# Flush all accumulated SQL in one sqlite3 call
+_hook_flush_db() {
+    [ -f "$HOOK_LOG_DB" ] || return 0
+    [ -z "$_HOOK_SQL_BATCH" ] && return 0
+    printf '%s' "$_HOOK_SQL_BATCH" | sqlite3 "$HOOK_LOG_DB" 2>/dev/null || true
+    _HOOK_SQL_BATCH=""
 }
 
 # ============================================================
@@ -191,4 +201,5 @@ _hook_log_timing() {
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
     VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, $IS_TEST);"
+    _hook_flush_db
 }
