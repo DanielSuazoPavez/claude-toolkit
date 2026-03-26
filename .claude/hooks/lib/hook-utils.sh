@@ -155,7 +155,7 @@ hook_log_section() {
 # _sql_escape VALUE  (internal — escape single quotes for SQL)
 # ============================================================
 _sql_escape() {
-    printf '%s' "$1" | sed "s/'/''/g"
+    printf '%s' "${1//\'/\'\'}"
 }
 
 # ============================================================
