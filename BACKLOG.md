@@ -21,9 +21,17 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
+- **[HOOKS]** Add observability to surface-lessons hook — log query context, keywords, match count, and lesson IDs via `hook_log_section` (`surface-lessons-observability`)
+    - **scope**: `hooks`
+    - **notes**: Currently surface-lessons is a black box — timing log only shows duration and bytes injected. Add `hook_log_section` calls for: raw context (command/path), extracted keywords, SQL match count, matched lesson IDs. Data is for claude-sessions analytics, not runtime use. Infrastructure already exists (`hook_log_section`, session-id in timing log).
+
 ## P1 - High
 
 ## P2 - Medium
+
+- **[HOOKS]** Optimize slower/heavier hooks — profile and improve `surface-lessons` and other high-cost hooks (`optimize-heavy-hooks`)
+    - **scope**: `hooks`
+    - **notes**: `surface-lessons` is consistently the slowest hook (~130-230ms). At least one other hook was noted as heavy. Profile with `hook-timing.log` data, identify bottlenecks (sqlite queries, stdin parsing, process startup), and optimize. Could involve caching, short-circuiting early, or reducing redundant work.
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
@@ -55,6 +63,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools (Parliament, Policy Sentry, IAM Policy Autopilot) and cost estimation tools (Infracost, AWS Pricing API)
 
 ## P99 - Nice to Have
+
+- **[HOOKS]** Rescue worktree hook logs — copy `.claude/logs/` from worktrees before teardown (`rescue-worktree-logs`)
+    - **scope**: `hooks`
+    - **notes**: Worktrees have isolated `.claude/logs/` (including `hook-timing.log` and `.session-id`). When a worktree is torn down, those logs are lost. Consider a pre-teardown hook or wrapper that copies logs to the main project's log directory. Related to session-id feature — worktree sessions are naturally isolated but their data should be preserved.
 
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`
