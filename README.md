@@ -82,7 +82,7 @@ A skill tells Claude *what to do*. A doc tells Claude *what to know*.
 | **Skills** | 32 | `/brainstorm-idea`, `/draft-pr`, `/refactor`, `/learn` |
 | **Agents** | 7 | `code-reviewer`, `code-debugger`, `pattern-finder` |
 | **Hooks** | 10 | git safety, secrets guard, dangerous command blocking |
-| **Memory templates** | 11 | code style, communication style, testing conventions |
+| **Docs** | 11 | code style, communication style, testing conventions |
 
 Skills cover workflow, code quality, design, development tools, and toolkit development. Hooks cover safety (git, secrets, destructive commands) and convention enforcement (uv, make targets). Some hooks are Python-specific — remove or modify for other stacks.
 

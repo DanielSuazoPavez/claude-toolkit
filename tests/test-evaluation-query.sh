@@ -311,17 +311,17 @@ test_stale_none() {
     setup_test_env
 
     # Create evaluations with correct hashes for all resources
-    local skill_hash hook_hash agent_hash memory_hash
+    local skill_hash hook_hash agent_hash doc_hash
     skill_hash=$(get_hash "$TEMP_DIR/.claude/skills/mock-skill/SKILL.md")
     hook_hash=$(get_hash "$TEMP_DIR/.claude/hooks/mock-hook.sh")
     agent_hash=$(get_hash "$TEMP_DIR/.claude/agents/mock-agent.md")
-    memory_hash=$(get_hash "$TEMP_DIR/.claude/docs/mock-doc.md")
+    doc_hash=$(get_hash "$TEMP_DIR/.claude/docs/mock-doc.md")
 
     cat > "$TEMP_DIR/docs/indexes/evaluations.json" << EOF
 {
     "skills": { "resources": { "mock-skill": { "file_hash": "$skill_hash", "date": "2026-03-20", "score": 95, "max": 100, "percentage": 95.0 } } },
     "hooks": { "resources": { "mock-hook": { "file_hash": "$hook_hash", "date": "2026-03-20", "score": 75, "max": 100, "percentage": 75.0 } } },
-    "docs": { "resources": { "mock-doc": { "file_hash": "$memory_hash", "date": "2026-03-20", "score": 80, "max": 100, "percentage": 80.0 } } },
+    "docs": { "resources": { "mock-doc": { "file_hash": "$doc_hash", "date": "2026-03-20", "score": 80, "max": 100, "percentage": 80.0 } } },
     "agents": { "resources": { "mock-agent": { "file_hash": "$agent_hash", "date": "2026-03-20", "score": 55, "max": 100, "percentage": 55.0 } } }
 }
 EOF

@@ -34,7 +34,7 @@ setup_test_env() {
     # Create mock toolkit structure
     mkdir -p "$TEMP_DIR/toolkit/.claude/skills/test-skill"
     mkdir -p "$TEMP_DIR/toolkit/.claude/hooks"
-    mkdir -p "$TEMP_DIR/toolkit/.claude/memories"
+    mkdir -p "$TEMP_DIR/toolkit/.claude/docs"
     mkdir -p "$TEMP_DIR/toolkit/.claude/agents"
     mkdir -p "$TEMP_DIR/toolkit/bin"
     mkdir -p "$TEMP_DIR/toolkit/suggestions-box"
@@ -45,7 +45,7 @@ setup_test_env() {
     # Create test resources
     echo "# Test Skill" > "$TEMP_DIR/toolkit/.claude/skills/test-skill/SKILL.md"
     echo "#!/bin/bash" > "$TEMP_DIR/toolkit/.claude/hooks/test-hook.sh"
-    echo "# Test Memory" > "$TEMP_DIR/toolkit/.claude/memories/test-memory.md"
+    echo "# Test Doc" > "$TEMP_DIR/toolkit/.claude/docs/test-doc.md"
     echo "# Test Agent" > "$TEMP_DIR/toolkit/.claude/agents/test-agent.md"
 
     # Create MANIFEST
@@ -53,7 +53,7 @@ setup_test_env() {
     cat > "$TEMP_DIR/toolkit/dist/base/MANIFEST" << 'MANIFEST_EOF'
 skills/test-skill/
 hooks/test-hook.sh
-memories/test-memory.md
+docs/test-doc.md
 agents/test-agent.md
 MANIFEST_EOF
 
@@ -303,7 +303,7 @@ test_sync_new_files_force() {
 
     expect_file_exists "new skill copied" "$TEMP_DIR/project/.claude/skills/test-skill/SKILL.md"
     expect_file_exists "new hook copied" "$TEMP_DIR/project/.claude/hooks/test-hook.sh"
-    expect_file_exists "new memory copied" "$TEMP_DIR/project/.claude/memories/test-memory.md"
+    expect_file_exists "new doc copied" "$TEMP_DIR/project/.claude/docs/test-doc.md"
     expect_file_exists "new agent copied" "$TEMP_DIR/project/.claude/agents/test-agent.md"
 
     teardown_test_env
