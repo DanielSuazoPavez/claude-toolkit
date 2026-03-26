@@ -38,8 +38,8 @@ setup_test_env() {
     mkdir -p "$TEMP_DIR/.claude/hooks"
     echo "#!/bin/bash" > "$TEMP_DIR/.claude/hooks/mock-hook.sh"
 
-    mkdir -p "$TEMP_DIR/.claude/memories"
-    echo "# Mock Memory" > "$TEMP_DIR/.claude/memories/mock-memory.md"
+    mkdir -p "$TEMP_DIR/.claude/docs"
+    echo "# Mock Doc" > "$TEMP_DIR/.claude/docs/mock-doc.md"
 
     mkdir -p "$TEMP_DIR/.claude/agents"
     echo "# Mock Agent" > "$TEMP_DIR/.claude/agents/mock-agent.md"
@@ -67,7 +67,7 @@ create_test_evaluations() {
     local skill_hash
     skill_hash=$(get_hash "$TEMP_DIR/.claude/skills/mock-skill/SKILL.md")
     # mock-hook gets a mismatched hash (stale)
-    # mock-memory is not in evaluations.json (unevaluated)
+    # mock-doc is not in evaluations.json (unevaluated)
 
     cat > "$TEMP_DIR/docs/indexes/evaluations.json" << EOF
 {
@@ -106,8 +106,8 @@ create_test_evaluations() {
             }
         }
     },
-    "memories": {
-        "evaluate_skill": "/evaluate-memory",
+    "docs": {
+        "evaluate_skill": "/evaluate-docs",
         "resources": {}
     },
     "agents": {
@@ -315,13 +315,13 @@ test_stale_none() {
     skill_hash=$(get_hash "$TEMP_DIR/.claude/skills/mock-skill/SKILL.md")
     hook_hash=$(get_hash "$TEMP_DIR/.claude/hooks/mock-hook.sh")
     agent_hash=$(get_hash "$TEMP_DIR/.claude/agents/mock-agent.md")
-    memory_hash=$(get_hash "$TEMP_DIR/.claude/memories/mock-memory.md")
+    memory_hash=$(get_hash "$TEMP_DIR/.claude/docs/mock-doc.md")
 
     cat > "$TEMP_DIR/docs/indexes/evaluations.json" << EOF
 {
     "skills": { "resources": { "mock-skill": { "file_hash": "$skill_hash", "date": "2026-03-20", "score": 95, "max": 100, "percentage": 95.0 } } },
     "hooks": { "resources": { "mock-hook": { "file_hash": "$hook_hash", "date": "2026-03-20", "score": 75, "max": 100, "percentage": 75.0 } } },
-    "memories": { "resources": { "mock-memory": { "file_hash": "$memory_hash", "date": "2026-03-20", "score": 80, "max": 100, "percentage": 80.0 } } },
+    "docs": { "resources": { "mock-doc": { "file_hash": "$memory_hash", "date": "2026-03-20", "score": 80, "max": 100, "percentage": 80.0 } } },
     "agents": { "resources": { "mock-agent": { "file_hash": "$agent_hash", "date": "2026-03-20", "score": 55, "max": 100, "percentage": 55.0 } } }
 }
 EOF
@@ -336,10 +336,10 @@ test_unevaluated() {
     setup_test_env
     create_test_evaluations
 
-    # mock-memory is on disk but not in evaluations.json memories.resources
+    # mock-doc is on disk but not in evaluations.json docs.resources
     expect_success "unevaluated command succeeds"
-    expect_output "detects unevaluated mock-memory" "mock-memory" unevaluated
-    expect_output "suggests evaluate skill" "/evaluate-memory" unevaluated
+    expect_output "detects unevaluated mock-doc" "mock-doc" unevaluated
+    expect_output "suggests evaluate skill" "/evaluate-docs" unevaluated
 
     teardown_test_env
 }
@@ -355,7 +355,7 @@ test_unevaluated_all_present() {
 {
     "skills": { "resources": { "mock-skill": { "file_hash": "$skill_hash", "date": "2026-03-20", "score": 95, "max": 100, "percentage": 95.0 } } },
     "hooks": { "resources": { "mock-hook": { "file_hash": "abc", "date": "2026-03-20", "score": 75, "max": 100, "percentage": 75.0 } } },
-    "memories": { "resources": { "mock-memory": { "file_hash": "abc", "date": "2026-03-20", "score": 80, "max": 100, "percentage": 80.0 } } },
+    "docs": { "resources": { "mock-doc": { "file_hash": "abc", "date": "2026-03-20", "score": 80, "max": 100, "percentage": 80.0 } } },
     "agents": { "resources": { "mock-agent": { "file_hash": "abc", "date": "2026-03-20", "score": 55, "max": 100, "percentage": 55.0 } } }
 }
 EOF

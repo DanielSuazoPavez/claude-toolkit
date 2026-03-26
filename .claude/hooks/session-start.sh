@@ -72,8 +72,8 @@ ${_content}
 done
 printf '%s' "$ESSENTIAL_OUT"
 
-# === MEMORY GUIDANCE ===
-GUIDANCE_OUT="Use /list-memories to discover available context when the task relates to a non-essential memory topic."
+# === DOCS GUIDANCE ===
+GUIDANCE_OUT="Use /list-docs to discover available context when the task relates to a non-essential doc topic."
 hook_log_section "guidance" "$GUIDANCE_OUT"
 echo ""
 echo "$GUIDANCE_OUT"
@@ -217,7 +217,7 @@ elif [ -f "$LEARNED_FILE" ]; then
 fi
 echo ""
 echo "=== SESSION START ==="
-ACK_MSG="$ESSENTIAL_COUNT essential memories loaded"
+ACK_MSG="$ESSENTIAL_COUNT essential docs loaded"
 [ "$LESSON_COUNT" -gt 0 ] && ACK_MSG="$ACK_MSG, $LESSON_COUNT lessons noted"
 if [ -n "$ACTIONABLE_ITEMS" ]; then
     echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ACK_MSG. Then surface these actionable items — do NOT skip or bury them:"

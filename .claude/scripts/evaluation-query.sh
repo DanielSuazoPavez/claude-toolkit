@@ -7,7 +7,7 @@
 #     evaluation-query.sh stale              # Resources modified since evaluation
 #     evaluation-query.sh unevaluated        # Resources not yet evaluated
 #     evaluation-query.sh above <min%>       # Filter by minimum percentage (default: 85)
-#     evaluation-query.sh type <type>        # Filter by type (skills, hooks, memories, agents)
+#     evaluation-query.sh type <type>        # Filter by type (skills, hooks, docs, agents)
 #     evaluation-query.sh -v ...             # Verbose output (show dimensions)
 
 set -euo pipefail
@@ -56,7 +56,7 @@ get_resource_path() {
     case "$type" in
         skills) echo "$CLAUDE_DIR/skills/$name/SKILL.md" ;;
         hooks) echo "$CLAUDE_DIR/hooks/$name.sh" ;;
-        memories) echo "$CLAUDE_DIR/memories/$name.md" ;;
+        docs) echo "$CLAUDE_DIR/docs/$name.md" ;;
         agents) echo "$CLAUDE_DIR/agents/$name.md" ;;
     esac
 }
@@ -76,8 +76,8 @@ list_resources() {
                 [[ -f "$f" ]] && basename "$f" .sh
             done
             ;;
-        memories)
-            for f in "$CLAUDE_DIR/memories"/*.md; do
+        docs)
+            for f in "$CLAUDE_DIR/docs"/*.md; do
                 [[ -f "$f" ]] && basename "$f" .md
             done
             ;;
@@ -125,7 +125,7 @@ cmd_list() {
     local filter_type="${1:-}"
     local count=0
 
-    for type in skills hooks memories agents; do
+    for type in skills hooks docs agents; do
         [[ -n "$filter_type" && "$filter_type" != "$type" ]] && continue
 
         local resources
@@ -155,7 +155,7 @@ cmd_list() {
 cmd_stale() {
     local count=0
 
-    for type in skills hooks memories agents; do
+    for type in skills hooks docs agents; do
         local eval_skill
         eval_skill=$(jq -r --arg t "$type" '.[$t].evaluate_skill // "none"' "$EVAL_FILE")
 
@@ -191,7 +191,7 @@ cmd_stale() {
 cmd_unevaluated() {
     local count=0
 
-    for type in skills hooks memories agents; do
+    for type in skills hooks docs agents; do
         local eval_skill
         eval_skill=$(jq -r --arg t "$type" '.[$t].evaluate_skill // "none"' "$EVAL_FILE")
 
@@ -226,7 +226,7 @@ cmd_above() {
     local min_percent="${1:-85}"
     local count=0
 
-    for type in skills hooks memories agents; do
+    for type in skills hooks docs agents; do
         local resources
         resources=$(jq -r --arg t "$type" '.[$t].resources | keys[]' "$EVAL_FILE" 2>/dev/null) || continue
 

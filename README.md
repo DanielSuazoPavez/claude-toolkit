@@ -67,11 +67,12 @@ Sync uses semantic versioning to track updates:
 Both externalize knowledge, but serve different purposes:
 
 - **Skills** = Step-by-step procedures. "When X happens, do Y then Z."
-- **Memories** = Context and conventions. "Here's how we do things here."
+- **Docs** = Rules, conventions, and reference documentation. "Here's how we do things here."
+- **Memories** = Organic context, preferences, ideas. Unstructured files in `.claude/memories/`.
 
-A skill tells Claude *what to do*. A memory tells Claude *what to know*.
+A skill tells Claude *what to do*. A doc tells Claude *what to know*.
 
-**Example:** `/create-memory` is a skill (procedure for creating memories). `relevant-toolkit-context.md` is a doc (naming conventions to follow).
+**Example:** `/create-docs` is a skill (procedure for creating docs). `relevant-toolkit-context.md` is a doc (naming conventions to follow).
 
 ## What's Included
 

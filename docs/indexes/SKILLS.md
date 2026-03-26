@@ -17,7 +17,7 @@ User-invocable skills activated with `/skill-name`.
 | `wrap-up` | stable | Finalize feature branches with changelog, version bump, and backlog updates |
 | `learn` | beta | Lightweight lesson capture with auto-metadata and duplicate detection |
 | `manage-lessons` | beta | Review and manage lesson lifecycle: promote, archive, delete, flag |
-| `list-memories` | stable | List available memories with Quick Reference summaries |
+| `list-docs` | stable | List available docs with Quick Reference summaries |
 
 ## Code Quality
 
@@ -38,7 +38,7 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `write-docs` | beta | Write or update project documentation via gap analysis |
+| `write-documentation` | beta | Write or update project documentation via gap analysis |
 | `draft-pr` | stable | Generate pull request descriptions for the current branch |
 | `setup-toolkit` | beta | Diagnose and fix Claude Toolkit configuration after sync or drift |
 | `setup-worktree` | beta | Set up git worktree with full Claude configuration for branch isolation |
@@ -52,12 +52,12 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `create-skill` | stable | Create new skills using test-driven documentation |
 | `create-agent` | stable | Create new agents for specialized tasks |
-| `create-memory` | stable | Create new memory files following conventions |
+| `create-docs` | stable | Create new doc files following conventions |
 | `create-hook` | stable | Create new hooks for Claude Code |
 | `evaluate-skill` | stable | Evaluate skill design quality against specifications |
 | `evaluate-agent` | stable | Evaluate agent prompt quality and design |
 | `evaluate-hook` | stable | Evaluate hook quality before deployment |
-| `evaluate-memory` | stable | Evaluate memory file quality against conventions |
+| `evaluate-docs` | stable | Evaluate doc file quality against conventions |
 | `evaluate-batch` | stable | Batch evaluate resources by type with parallel agents |
 
 ## Meta

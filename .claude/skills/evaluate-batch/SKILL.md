@@ -49,7 +49,7 @@ Parse from `$ARGUMENTS` (e.g., `/evaluate-batch skills re-evaluate`):
 
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
-| `type` | Yes | - | Resource type: `skills`, `hooks`, `memories`, `agents` |
+| `type` | Yes | - | Resource type: `skills`, `hooks`, `docs`, `agents` |
 | `batch-size` | No | 5 | Max parallel evaluations |
 | `re-evaluate` | No | false | Include already-evaluated resources |
 
@@ -61,13 +61,12 @@ Parse from `$ARGUMENTS` (e.g., `/evaluate-batch skills re-evaluate`):
 skills:   .claude/skills/*/SKILL.md
 hooks:    .claude/hooks/*.sh
 docs:     .claude/docs/*.md
-memories: .claude/memories/*.md
 agents:   .claude/agents/*.md
 ```
 
 ### 2. Filter
 
-- **Always exclude** memories that are clearly personal/private (e.g., `user.md`) — not evaluated
+- **Always exclude** files that are clearly stubs or empty
 - If specific resources are listed in the invocation, evaluate exactly those — skip staleness checks
 - Otherwise, read `docs/indexes/evaluations.json` and include resources that are:
   - **Unevaluated**: Not in `{type}.resources`
@@ -124,7 +123,7 @@ Return results in JSON format:
 Type mapping:
 - `skills` → `/evaluate-skill`
 - `hooks` → `/evaluate-hook`
-- `memories` → `/evaluate-memory`
+- `docs` → `/evaluate-docs`
 - `agents` → `/evaluate-agent`
 
 **3b. Collect batch results:**
@@ -199,7 +198,7 @@ Added N evaluations to docs/indexes/evaluations.json
 Evaluate in this order when doing full audit:
 1. **Skills** first - agents may reference skill patterns
 2. **Hooks** second - independent, no cross-refs
-3. **Memories** third - may reference skills
+3. **Docs** third - may reference skills
 4. **Agents** last - often reference skills and patterns
 
 **Detection:** Check agent files for `/skill-name` references to identify dependencies.

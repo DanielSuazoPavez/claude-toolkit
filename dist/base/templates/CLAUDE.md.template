@@ -41,7 +41,7 @@ make test
 This project uses [claude-toolkit](https://github.com/hata/claude-toolkit) for Claude Code configuration.
 
 - **Hooks**: `.claude/hooks/` — guardrails enforced automatically (dangerous commands, feature branch, secrets)
-- **Skills**: `.claude/skills/` — run `/list-memories` to see available context, or invoke skills by name
-- **Memories**: `.claude/memories/` — persistent context loaded by session-start hook
+- **Skills**: `.claude/skills/` — run `/list-docs` to see available context, or invoke skills by name
+- **Docs**: `.claude/docs/` — prescriptive rules and reference documentation loaded by session-start hook
 - **Validation**: `make claude-toolkit-validate` — check configuration health
 - **Sync**: `make claude-toolkit-sync` — pull latest toolkit updates

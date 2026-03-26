@@ -215,7 +215,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"npm publish"}}' | bash .claud
 
 ## Real-World Reference
 
-See `relevant-toolkit-hooks_config` memory for 10 production hooks in this toolkit (all sourcing the shared library), covering safety (secrets-guard, enforce-uv-run), automation (session-start), and context injection (surface-lessons) patterns.
+See `relevant-toolkit-hooks_config` doc for 10 production hooks in this toolkit (all sourcing the shared library), covering safety (secrets-guard, enforce-uv-run), automation (session-start), and context injection (surface-lessons) patterns.
 
 ## Best Patterns
 

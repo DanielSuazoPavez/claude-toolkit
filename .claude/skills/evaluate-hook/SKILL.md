@@ -203,7 +203,7 @@ Using a separate agent ensures objective assessment without influence from prior
 
 - `/evaluate-skill` — Sibling evaluator for skills (knowledge delta rubric).
 - `/evaluate-agent` — Sibling evaluator for agents (behavioral effectiveness rubric).
-- `/evaluate-memory` — Sibling evaluator for memory files (convention compliance).
+- `/evaluate-docs` — Sibling evaluator for doc files (convention compliance).
 - `/evaluate-batch` — Run evaluations across multiple resources of one type.
 - `/create-hook` — Hook creation workflow that feeds into this evaluator.
 
