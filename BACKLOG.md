@@ -40,10 +40,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `scripts`
     - **notes**: `cli/lessons/db.py` still references memories instead of docs for resource tracking. Needs audit and update.
 
-- **[TOOLKIT]** Consider migrating `/list-docs` to the claude-toolkit CLI (`cli-list-docs`)
-    - **scope**: `cli, skills`
-    - **notes**: `/list-docs` currently runs bash loops in a skill. Could be a native CLI subcommand instead.
-
 - **[DOCS]** Lessons ecosystem doc — reference doc for the lessons system (`docs-lessons-ecosystem`)
     - **scope**: `docs`
     - **notes**: Create a `relevant-toolkit-lessons.md` doc in `.claude/docs/` covering the lessons ecosystem: lessons.db schema, tiers (key/recent), tags, `/learn` and `/manage-lessons` skills, session-start hook integration, nudge logic, and the `claude-toolkit lessons` CLI commands. Currently this knowledge is spread across skills, hooks, and CLI code with no single reference.
