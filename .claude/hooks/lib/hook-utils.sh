@@ -42,9 +42,17 @@ hook_init() {
     HOOK_EVENT="$2"
     HOOK_INPUT=$(cat)
     INPUT="$HOOK_INPUT"  # backward compat
-    INVOCATION_ID="$$-$(date +%s)"
+    INVOCATION_ID="$$-${EPOCHSECONDS:-$(date +%s)}"
     PROJECT="$(basename "$PWD")"
-    HOOK_START_MS=$(date +%s%3N)
+    # Capture timestamp once, reuse in all logging
+    _HOOK_TIMESTAMP=$(date -Iseconds)
+    # Use EPOCHREALTIME for ms timing (bash 5.0+), fallback to date
+    if [ -n "${EPOCHREALTIME:-}" ]; then
+        local _epoch_no_dot="${EPOCHREALTIME/./}"
+        HOOK_START_MS="${_epoch_no_dot:0:13}"
+    else
+        HOOK_START_MS=$(date +%s%3N)
+    fi
     OUTCOME="pass"
     BYTES_INJECTED=0
     TOTAL_BYTES_INJECTED=0
@@ -131,17 +139,16 @@ hook_inject() {
 hook_log_section() {
     local section="$1"
     local content="$2"
-    local bytes ts
+    local bytes
     bytes=$(printf '%s' "$content" | wc -c)
-    ts=$(date -Iseconds)
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$SESSION_ID" "$INVOCATION_ID" "$ts" "$PROJECT" \
+        "$SESSION_ID" "$INVOCATION_ID" "$_HOOK_TIMESTAMP" "$PROJECT" \
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
         "0" "pass" "$bytes" "$IS_TEST" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, $IS_TEST);"
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, $IS_TEST);"
 }
 
 # ============================================================
@@ -177,7 +184,7 @@ hook_log_context() {
     local match_count="$3"
     local matched_ids="$4"
     _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
 }
 
 # ============================================================
@@ -187,7 +194,12 @@ _hook_log_timing() {
     # Skip logging if hook never matched a tool (early exit from hook_require_tool)
     [ "$_HOOK_ACTIVE" = true ] || return 0
     local end_ms ts
-    end_ms=$(date +%s%3N)
+    if [ -n "${EPOCHREALTIME:-}" ]; then
+        local _epoch_no_dot="${EPOCHREALTIME/./}"
+        end_ms="${_epoch_no_dot:0:13}"
+    else
+        end_ms=$(date +%s%3N)
+    fi
     ts=$(date -Iseconds)
     local duration_ms=$(( end_ms - HOOK_START_MS ))
     local bytes=$BYTES_INJECTED
