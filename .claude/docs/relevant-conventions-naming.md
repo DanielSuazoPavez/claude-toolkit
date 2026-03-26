@@ -104,17 +104,16 @@ Guidelines for naming resources in Claude Toolkit.
 
 ## 5. Memories
 
-**Pattern:** `category-context-name`
+**Pattern:** `descriptive_name` (no category prefix)
 
-See `.claude/docs/relevant-toolkit-context.md` for full documentation.
+Memories are organic context — plain named files with underscores. No prefixes, no indexing.
 
-| Category | Lifespan | Format | Example |
-|----------|----------|--------|---------|
-| `essential` | Permanent | `essential-{context}-{name}` | `essential-conventions-code_style` |
-| `relevant` | Long-term | `relevant-{context}-{name}` | `relevant-context-professional_profile` |
-| `branch` | Temporary | `branch-{YYYYMMDD}-{branch}-{context}` | `branch-20251001-feat_auth-schema_notes` |
+| Type | Format | Example |
+|------|--------|---------|
+| Regular | `descriptive_name` | `professional_profile`, `user` |
+| Branch WIP | `YYYYMMDD-{branch}-{context}` | `20251001-feat_auth-schema_notes` |
 
-**Note:** Memories use `snake_case` for multi-word segments within the name (e.g., `code_style`, `task_completion`), while other resources use `kebab-case` throughout.
+**Note:** Memories use `snake_case` for multi-word names, while other resources use `kebab-case` throughout.
 
 ---
 

@@ -47,15 +47,13 @@ The toolkit uses two directories for persistent context:
 
 All docs are indexed in `docs/indexes/DOCS.md`.
 
-### Memory categories
+### Memories
 
-| Category | Lifetime | Load Pattern | Format |
-|----------|----------|-------------|--------|
-| `relevant-` | Long-term | On-demand | `relevant-{context}-{name}` |
-| `branch-` | Temporary | On-demand (branch work) | `branch-{YYYYMMDD}-{branch}-{context}` |
-| `personal-` | Private | User on-demand ONLY | `personal-{context}-{name}` |
-| `experimental-` | Testing | User on-demand ONLY | `experimental-{context}-{name}` |
-Indexed memories (`relevant-`) go in `docs/indexes/MEMORIES.md`. Ephemeral categories (`personal-`, `experimental-`) are excluded from indexing and validation. Ideas and explorations go in `output/claude-toolkit/drafts/`, not memories.
+Memories are plain `.md` files in `.claude/memories/` — no category prefixes, no indexing, no validation. Just descriptive names with underscores: `professional_profile.md`, `user.md`.
+
+For branch-specific WIP context, use a date prefix: `YYYYMMDD-{branch}-{context}.md` (e.g., `20260320-feat_auth-schema_notes.md`).
+
+Ideas and explorations go in `output/claude-toolkit/drafts/`, not memories.
 
 ### Auto-memory (`auto/` subdirectory)
 
@@ -93,7 +91,6 @@ Brief description.
 
 ### For special cases
 
-- **`branch-` memories**: Include status and key results in Quick Reference
 - **`essential-` docs**: Add `**MANDATORY:**` prefix to indicate session-start loading
 
 ---
@@ -101,9 +98,9 @@ Brief description.
 ## 5. Naming Best Practices
 
 - Keep names concise but descriptive
-- Use underscores (`_`) to separate words: `relevant-opensearch-query_patterns.md`
-- Use `YYYYMMDD` date format for branch and idea memories
-- Follow the format patterns defined in section 3 for each category
+- Docs: follow `{category}-{context}-{name}` format with `essential-` or `relevant-` prefix
+- Memories: plain `descriptive_name.md` with underscores (no prefixes)
+- Use `YYYYMMDD` date prefix for branch WIP memories
 
 ---
 
