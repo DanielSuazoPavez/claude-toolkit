@@ -34,9 +34,10 @@ hook_init "session-start" "SessionStart"
 
 # Write session ID for other hooks to read
 if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
-    SESSION_ID=$(basename "$(dirname "$CLAUDE_ENV_FILE")")
+    _dir="${CLAUDE_ENV_FILE%/*}"
+    SESSION_ID="${_dir##*/}"
 else
-    SESSION_ID="unknown-$(date +%Y%m%d_%H%M%S)"
+    SESSION_ID="unknown-${EPOCHSECONDS:-$(date +%Y%m%d_%H%M%S)}"
 fi
 echo "$SESSION_ID" > ".claude/logs/.session-id"
 
@@ -84,10 +85,11 @@ hook_log_section "memories:other" "$OTHER_OUT"
 echo "$OTHER_OUT"
 
 # === GIT CONTEXT ===
-MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+_raw=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null) && MAIN_BRANCH="${_raw##refs/remotes/origin/}" || MAIN_BRANCH=""
 [ -z "$MAIN_BRANCH" ] && MAIN_BRANCH="main"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
 GIT_OUT="=== GIT CONTEXT ===
-Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+Branch: $CURRENT_BRANCH
 Main: $MAIN_BRANCH"
 hook_log_section "git" "$GIT_OUT"
 echo ""
@@ -96,7 +98,7 @@ echo "$GIT_OUT"
 # === TOOLKIT VERSION ===
 ACTIONABLE_ITEMS=""
 if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; then
-    PROJECT_VER=$(cat .claude-toolkit-version 2>/dev/null)
+    PROJECT_VER=$(<.claude-toolkit-version) 2>/dev/null || PROJECT_VER=""
     TOOLKIT_VER=$(claude-toolkit version 2>/dev/null)
     if [ -n "$TOOLKIT_VER" ] && [ -n "$PROJECT_VER" ] && [ "$PROJECT_VER" != "$TOOLKIT_VER" ]; then
         TOOLKIT_OUT="=== TOOLKIT VERSION ===
@@ -113,8 +115,7 @@ LESSONS_DB="$HOME/.claude/lessons.db"
 LEARNED_FILE=".claude/learned.json"
 
 if [ -f "$LESSONS_DB" ]; then
-    # SQLite path — lessons.db exists
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+    # SQLite path — CURRENT_BRANCH already set in git context section
     SAFE_BRANCH="${CURRENT_BRANCH//\'/\'\'}"
 
     # Single sqlite3 call for all lesson data — row prefix disambiguates result sets
