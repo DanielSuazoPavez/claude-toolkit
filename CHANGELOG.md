@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.36.1] - 2026-03-26 - Post-reshape followups: file moves and idea- removal
+
+### Changed
+- **docs**: Moved `relevant-project-identity` and `relevant-philosophy-reducing_entropy` from `.claude/memories/` to `.claude/docs/` (prescriptive, not organic context)
+- **docs**: Moved `docs/naming-conventions.md` to `.claude/docs/relevant-conventions-naming.md` with Quick Reference section
+- **skills**: `/shape-project` now outputs to `.claude/docs/` instead of `.claude/memories/`
+- **skills**: `/review-plan` now looks up project identity in `.claude/docs/`
+- **skills**: Removed `idea-` references from `/create-memory`, `/evaluate-memory`, `/list-memories`
+- **manifest**: `dist/base/MANIFEST` updated for moved files, removed empty `# memories` section
+
+### Removed
+- **memories**: `idea-` memory category — ideas and explorations go to `output/claude-toolkit/drafts/` instead
+- **backlog**: Removed `post-reshape-followups` (completed), split remaining items into `drop-memory-prefixes` and `rename-memory-skills-to-docs`
+
+### Added
+- **backlog**: `docs-lessons-ecosystem` task — reference doc for the lessons system
+
 ## [2.36.0] - 2026-03-26 - Memory system reshape: docs/memories split
 
 ### Added
