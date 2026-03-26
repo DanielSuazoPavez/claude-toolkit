@@ -9,7 +9,7 @@
 
 Defines the two context systems (docs and memories), their categories, naming conventions, and the auto-memory integration.
 
-**See also:** `/create-memory` skill, `/evaluate-memory` for quality audits, `relevant-project-identity` for resource roles
+**See also:** `/create-docs` skill, `/evaluate-docs` for quality audits, `relevant-project-identity` for resource roles
 
 ---
 
@@ -21,6 +21,7 @@ The toolkit uses two directories for persistent context:
 |-----------|---------|----------|
 | `.claude/docs/` | Prescriptive rules, reference documentation, toolkit config | Stable, rarely-changing files that shape behavior |
 | `.claude/memories/` | Organic context, user/project identity, preferences, ideas | Evolving, contextual files that inform decisions |
+| `docs/` | User-facing documentation | Guides, indexes, evaluation scores |
 
 **Decision guide:** If it tells Claude *how to behave* or *what the rules are* → doc. If it tells Claude *who you are* or *what's happening* → memory.
 
