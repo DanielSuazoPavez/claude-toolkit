@@ -1,28 +1,15 @@
 # Memories Index
 
-Memory templates for project context. Customize for your project.
+Organic context — project identity, user preferences, ideas. Loaded on-demand.
 
-## Essential Memories
-
-Always loaded at session start:
-
-| Memory | Status | Purpose |
-|--------|--------|---------|
-| `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
-| `essential-preferences-communication_style` | stable | Communication style preferences |
+See also: `docs/indexes/DOCS.md` for reference documentation (rules, conventions, configs).
 
 ## Relevant Memories
 
 | Memory | Status | Purpose |
 |--------|--------|---------|
-| `relevant-workflow-backlog` | stable | BACKLOG.md schema: priority, categories, status values |
-| `relevant-toolkit-hooks_config` | stable | Hooks configuration and environment variables |
-| `relevant-toolkit-permissions_config` | stable | Two-tier permissions convention: toolkit settings.json vs project settings.local.json |
-| `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
-| `relevant-toolkit-memory` | stable | Memory naming conventions and categories |
-| `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
-| `relevant-context-professional_profile` | stable | Data engineering role, stack, tools, and current trajectory |
 | `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
+| `relevant-context-professional_profile` | stable | Data engineering role, stack, tools, and current trajectory |
 
 ## Philosophy
 
@@ -32,7 +19,7 @@ Always loaded at session start:
 
 ## Memory Categories
 
-See `relevant-toolkit-memory` for full category definitions, naming conventions, and Quick Reference patterns.
+See `relevant-toolkit-context` (in `.claude/docs/`) for full category definitions, naming conventions, and the docs/memories boundary.
 
 ## Creating Memories
 

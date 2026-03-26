@@ -8,7 +8,7 @@ The toolkit publishes two distribution profiles. Each has its own MANIFEST (what
 
 | Profile | Purpose | Audience |
 |---------|---------|----------|
-| `base` | Full toolkit — all skills, agents, hooks, memories | Personal projects with full claude-toolkit sync |
+| `base` | Full toolkit — all skills, agents, hooks, docs, memories | Personal projects with full claude-toolkit sync |
 | `raiz` | Lightweight subset — essential guardrails and workflow | Projects that don't need the full toolkit |
 
 ## Intentional Differences
@@ -28,7 +28,7 @@ Base syncs everything in the toolkit. Raiz cherry-picks:
 - 5 skills (brainstorm-idea, read-json, review-plan, wrap-up, write-handoff)
 - 4 agents (code-debugger, code-reviewer, goal-verifier, implementation-checker)
 - 6 hooks (guardrails only — no session-start, no enforce-make, no surface-lessons, no enforce-uv-run)
-- 3 memories (code style, memory principles, permissions config)
+- 3 docs (code style, context conventions, permissions config)
 
 ## When Editing Templates
 

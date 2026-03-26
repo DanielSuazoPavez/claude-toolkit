@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.36.0] - 2026-03-26 - Memory system reshape: docs/memories split
+
+### Added
+- **docs**: New `.claude/docs/` resource type for prescriptive rules, reference documentation, and toolkit config
+- **docs**: `docs/indexes/DOCS.md` — index for the new resource type
+- **validation**: Docs validation section in `validate-resources-indexed.sh` with MANIFEST support
+- **tests**: `test_docs_indexed`, `test_docs_missing_from_index`, `test_auto_memory_exclusion` test cases
+- **cli**: `docs` category support in `categorize_file()` for sync
+- **publish**: Internal docs (`.claude/docs/`) routing in `publish.py` — distinguished from repo-root docs
+- **auto-memory**: `.claude/memories/auto/` subdirectory with symlink from Claude Code's auto-memory location
+- **auto-memory**: `.claude/memories/.gitignore` excludes `auto/` directory
+- **backlog**: `post-reshape-followups` task (P3) for remaining consolidation items
+
+### Changed
+- **memories→docs**: Moved 8 reference/rules files from `.claude/memories/` to `.claude/docs/` (code style, communication style, hooks config, permissions config, frontmatter spec, backlog schema, testing conventions, context conventions)
+- **memories**: `relevant-toolkit-memory.md` renamed to `relevant-toolkit-context.md` and rewritten to define docs/memories boundary
+- **hooks**: `session-start.sh` loads essential files from both `.claude/docs/` and `.claude/memories/`
+- **validation**: `verify-resource-deps.sh` sections 6-7 scan both memories and docs for cross-references
+- **validation**: Memory exclusions now include `auto-*.md` and `MEMORY.md` (auto-memory files)
+- **skills**: `/create-memory` decision tree starts with "Is this reference docs? → `.claude/docs/`"
+- **skills**: `/evaluate-memory`, `/list-memories`, `/evaluate-batch` updated for new paths
+- **manifests**: `dist/base/MANIFEST` and `dist/raiz/MANIFEST` — moved files from `memories/` to `docs/` sections
+
+### Removed
+- **backlog**: Removed `review-memory-ecosystem` (superseded by reshape)
+
 ## [2.35.4] - 2026-03-26 - Session-start content review
 
 ### Changed
