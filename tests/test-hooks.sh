@@ -15,6 +15,7 @@
 set -uo pipefail
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
+export CLAUDE_HOOK_TEST=1
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"

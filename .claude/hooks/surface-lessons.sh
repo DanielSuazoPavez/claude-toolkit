@@ -71,9 +71,9 @@ done
 
 [ -z "$CONDITIONS" ] && exit 0
 
-# Query matching active lessons
-LESSONS=$(sqlite3 "$LESSONS_DB" "
-    SELECT DISTINCT l.text
+# Query matching active lessons (id + text in one query)
+RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
+    SELECT DISTINCT l.id, l.text
     FROM lessons l
     JOIN lesson_tags lt ON l.id = lt.lesson_id
     JOIN tags t ON lt.tag_id = t.id
@@ -82,6 +82,14 @@ LESSONS=$(sqlite3 "$LESSONS_DB" "
       AND ($CONDITIONS)
     LIMIT 3;
 " 2>/dev/null)
+
+LESSONS=$(echo "$RESULTS" | cut -d'|' -f2-)
+MATCHED_IDS=$(echo "$RESULTS" | cut -d'|' -f1 | tr '\n' ',' | sed 's/,$//')
+MATCH_COUNT=$(echo "$RESULTS" | grep -c . 2>/dev/null || echo "0")
+
+# Log context for observability (even when no matches)
+KEYWORD_LIST=$(echo "$WORDS" | tr '\n' ',' | sed 's/,$//')
+hook_log_context "$CONTEXT" "$KEYWORD_LIST" "$MATCH_COUNT" "$MATCHED_IDS"
 
 [ -z "$LESSONS" ] && exit 0
 

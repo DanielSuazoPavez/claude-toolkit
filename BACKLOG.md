@@ -21,10 +21,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
-- **[HOOKS]** Add observability to surface-lessons hook — log query context, keywords, match count, and lesson IDs via `hook_log_section` (`surface-lessons-observability`)
-    - **scope**: `hooks`
-    - **notes**: Currently surface-lessons is a black box — timing log only shows duration and bytes injected. Add `hook_log_section` calls for: raw context (command/path), extracted keywords, SQL match count, matched lesson IDs. Data is for claude-sessions analytics, not runtime use. Infrastructure already exists (`hook_log_section`, session-id in timing log).
-
 ## P1 - High
 
 ## P2 - Medium
