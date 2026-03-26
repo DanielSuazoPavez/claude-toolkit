@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.38.1] - 2026-03-26 - Fix lessons domain tags and add cli/ docs
+
+### Fixed
+- **cli**: Replace `memories` with `docs` in `DOMAIN_TAG_KEYWORDS` (lessons db.py) to match post-migration resource structure
+
+### Added
+- **docs**: `cli/CLAUDE.md` — internal reference for CLI module structure, wiring, and conventions
+- **docs**: Fix `CLAUDE.md` quick start to use `claude-toolkit backlog` instead of direct script path
+
 ## [2.38.0] - 2026-03-26 - Add backlog and eval CLI subcommands
 
 ### Added
