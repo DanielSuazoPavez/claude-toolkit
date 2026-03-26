@@ -74,7 +74,7 @@ Present the draft. Iterate based on user feedback. The user knows their project 
 
 Save as `relevant-project-identity.md` in the project's `.claude/docs/`.
 
-The memory's Quick Reference should use the "ONLY READ WHEN" pattern:
+The doc's Quick Reference should use the "ONLY READ WHEN" pattern:
 ```
 **ONLY READ WHEN:**
 - Planning major refactors or architectural changes

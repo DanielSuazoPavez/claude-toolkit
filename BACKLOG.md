@@ -44,6 +44,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `skills`
     - **notes**: What these skills managed (prescriptive rules, conventions) is now called "docs". Rename skills, update content to reflect docs scope. `/create-memory` → `/create-docs`, `/evaluate-memory` → `/evaluate-docs`. Followup from post-reshape-followups.
 
+- **[DOCS]** Lessons ecosystem doc — reference doc for the lessons system (`docs-lessons-ecosystem`)
+    - **scope**: `docs`
+    - **notes**: Create a `relevant-toolkit-lessons.md` doc in `.claude/docs/` covering the lessons ecosystem: lessons.db schema, tiers (key/recent), tags, `/learn` and `/manage-lessons` skills, session-start hook integration, nudge logic, and the `claude-toolkit lessons` CLI commands. Currently this knowledge is spread across skills, hooks, and CLI code with no single reference.
+
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
     - **notes**: Inspired by `disler/claude-code-hooks-mastery`'s `.claude/output-styles/` directory. Named formatting modes (ultra-concise, table-based, genui/HTML output, etc.) activated per-session. Different from our communication style memory — these are structural formatting preferences, not personality. Relates to `schemas/` folder direction. Explore whether this fits as a convention or is over-engineering.
