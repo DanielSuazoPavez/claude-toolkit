@@ -23,7 +23,7 @@ Evaluate memory quality against memory-specific conventions and best practices.
 
 Memories must load at the right time, contain actionable guidance, and avoid bloat.
 
-**Reference:** See `essential-conventions-memory.md` for authoritative naming/category conventions.
+**Reference:** See `relevant-toolkit-memory.md` for authoritative naming/category conventions.
 
 ## How Memory Loading Works
 
@@ -249,4 +249,4 @@ Using a separate agent ensures objective assessment without influence from prior
 - `/evaluate-skill` — Sister evaluator for skills (shared calibration philosophy)
 - `/evaluate-agent` — Sister evaluator for agents
 - `/evaluate-hook` — Sister evaluator for hooks
-- `essential-conventions-memory` — Authoritative naming/category conventions (source of truth for D1/D2)
+- `relevant-toolkit-memory` — Authoritative naming/category conventions (source of truth for D1/D2)

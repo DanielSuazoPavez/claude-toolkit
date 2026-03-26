@@ -67,22 +67,11 @@ ${_content}
 done
 printf '%s' "$MEMORIES_OUT"
 
-# === AVAILABLE MEMORIES ===
-OTHER_MEMORIES=""
-for f in "$MEMORIES_DIR"/*.md; do
-    [[ -f "$f" ]] || continue
-    _name="${f##*/}"
-    _name="${_name%.md}"
-    [[ "$_name" == essential-* ]] && continue
-    OTHER_MEMORIES+="${_name}"$'\n'
-done
-OTHER_MEMORIES="${OTHER_MEMORIES%$'\n'}"
-OTHER_OUT="=== OTHER MEMORIES AVAILABLE ===
-$([ -n "$OTHER_MEMORIES" ] && echo "$OTHER_MEMORIES" || echo "(none)")
-
-Run /list-memories for Quick Reference summaries, or read specific files when relevant."
-hook_log_section "memories:other" "$OTHER_OUT"
-echo "$OTHER_OUT"
+# === MEMORY GUIDANCE ===
+GUIDANCE_OUT="Use /list-memories to discover available context when the task relates to a non-essential memory topic."
+hook_log_section "guidance" "$GUIDANCE_OUT"
+echo ""
+echo "$GUIDANCE_OUT"
 
 # === GIT CONTEXT ===
 _raw=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null) && MAIN_BRANCH="${_raw##refs/remotes/origin/}" || MAIN_BRANCH=""
@@ -211,12 +200,6 @@ elif [ -f "$LEARNED_FILE" ]; then
     [ -n "$RECENT_LESSONS" ] && echo "Recent:" && echo "$RECENT_LESSONS"
     echo ""
 fi
-
-# === MEMORY GUIDANCE ===
-GUIDANCE_OUT="If the user's request relates to a non-essential memory topic, use /list-memories to check Quick Reference summaries, then read relevant memories before proceeding."
-hook_log_section "guidance" "$GUIDANCE_OUT"
-echo ""
-echo "$GUIDANCE_OUT"
 
 # === ACKNOWLEDGMENT ===
 # ESSENTIAL_COUNT already set by the memory loop above

@@ -61,7 +61,7 @@ hooks/lib/hook-utils.sh
 
 # memories
 memories/essential-conventions-code_style.md
-memories/essential-conventions-memory.md
+memories/relevant-toolkit-memory.md
 memories/essential-preferences-communication_style.md
 memories/relevant-workflow-backlog.md
 memories/relevant-philosophy-reducing_entropy.md

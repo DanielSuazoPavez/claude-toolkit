@@ -150,7 +150,7 @@ assert_file_not_exists "enforce-uv-run excluded" "$OUTPUT_DIR/.claude/hooks/enfo
 assert_file_not_exists "enforce-make-commands excluded" "$OUTPUT_DIR/.claude/hooks/enforce-make-commands.sh"
 # Memories
 assert_file_exists "code_style memory included" "$OUTPUT_DIR/.claude/memories/essential-conventions-code_style.md"
-assert_file_exists "memory conventions included" "$OUTPUT_DIR/.claude/memories/essential-conventions-memory.md"
+assert_file_exists "memory conventions included" "$OUTPUT_DIR/.claude/memories/relevant-toolkit-memory.md"
 assert_file_not_exists "communication_style excluded" "$OUTPUT_DIR/.claude/memories/essential-preferences-communication_style.md"
 
 # Templates

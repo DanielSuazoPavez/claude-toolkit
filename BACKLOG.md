@@ -21,10 +21,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
-- **[HOOKS]** Review session-start hook sections and injected content (`review-session-start-content`)
-    - **scope**: `hooks, memories`
-    - **notes**: Now that session-start is faster, review *what* it injects. Are all sections earning their context cost? Review essential memories content — are they too long, redundant, or stale? Evaluate each section (essential memories, other memories list, git context, toolkit version, lessons, nudge, guidance, acknowledgment) for signal-to-noise ratio.
-
 ## P1 - High
 
 ## P2 - Medium
@@ -39,6 +35,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: Both `perf-surface-lessons.sh` and `perf-session-start.sh` run an instrumented copy of the *old* hook logic for per-phase timing, so the phase breakdown doesn't reflect the optimized code. The `ACTUAL_HOOK` timing is accurate (runs the real hook), but the per-phase breakdown and `INSTRUMENTED` total are misleading. Either rewrite `run_instrumented()` to match the current implementation, or instrument the actual hook with optional timing probes (e.g., `HOOK_PERF=1` env var).
 
 ## P3 - Low
+
+- **[SKILLS]** Review and restructure the memory resource ecosystem (`review-memory-ecosystem`)
+    - **scope**: `skills, memories`
+    - **notes**: After demoting `essential-conventions-memory` to `relevant-toolkit-memory`, review how `/create-memory`, `/list-memories`, `/evaluate-memory`, and the conventions memory work as a cohesive system. Consider whether Quick Reference template guidelines (section 3 of the memory) should live in the skills that use them rather than the memory file itself.
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`

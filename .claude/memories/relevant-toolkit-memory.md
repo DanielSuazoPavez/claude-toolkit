@@ -4,7 +4,7 @@
 
 **MANDATORY:** Read at session start — defines memory naming, categories, and Quick Reference patterns.
 
-**See also:** `/create-memory` skill, `/evaluate-memory` for quality audits, `essential-toolkit-identity` for resource roles
+**See also:** `/create-memory` skill, `/evaluate-memory` for quality audits, `relevant-project-identity` for resource roles
 
 ---
 

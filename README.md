@@ -71,7 +71,7 @@ Both externalize knowledge, but serve different purposes:
 
 A skill tells Claude *what to do*. A memory tells Claude *what to know*.
 
-**Example:** `/create-memory` is a skill (procedure for creating memories). `essential-conventions-memory.md` is a memory (naming conventions to follow).
+**Example:** `/create-memory` is a skill (procedure for creating memories). `relevant-toolkit-memory.md` is a memory (naming conventions to follow).
 
 ## What's Included
 
@@ -108,7 +108,7 @@ Hooks are configured in `settings.json` (committed, shared).
 
 ## Design Philosophy
 
-See [`.claude/memories/essential-toolkit-identity.md`](.claude/memories/essential-toolkit-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
+See [`.claude/memories/relevant-project-identity.md`](.claude/memories/relevant-project-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
 
 See also [`.claude/memories/relevant-philosophy-reducing_entropy.md`](.claude/memories/relevant-philosophy-reducing_entropy.md) for the curation philosophy — why less is more, and how to keep the toolkit lean.
 

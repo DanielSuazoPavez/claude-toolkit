@@ -95,7 +95,7 @@ Guidelines for naming resources in Claude Toolkit.
 
 **Pattern:** `category-context-name`
 
-See `essential-conventions-memory.md` for full documentation.
+See `relevant-toolkit-memory.md` for full documentation.
 
 | Category | Lifespan | Format | Example |
 |----------|----------|--------|---------|

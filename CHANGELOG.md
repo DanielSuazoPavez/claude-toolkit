@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.35.4] - 2026-03-26 - Session-start content review
+
+### Changed
+- **memories**: Demoted `essential-conventions-memory` → `relevant-toolkit-memory` (5.3KB saved per session — loaded on-demand by skills)
+- **memories**: Demoted `essential-toolkit-identity` → `relevant-project-identity` (2.9KB saved — aligns naming with `/shape-project` convention across projects)
+- **memories**: Trimmed dated sections from `essential-preferences-communication_style` (removed "Task-Oriented and Systematic" and "Tool-Heavy Workflow" — now built into Claude Code defaults)
+- **hooks**: Replaced `session-start` OTHER MEMORIES file list with single `/list-memories` guidance line — richer discovery at lower context cost
+
+### Added
+- **skills**: `/review-plan` now checks for `relevant-project-identity` memory as an additional evaluation lens
+- **backlog**: Added `review-memory-ecosystem` task (P3)
+
+### Removed
+- **backlog**: Removed `review-session-start-content` (done)
+
+### Metrics
+- Session-start injection: ~14KB → ~5KB (64% reduction)
+- Essential memories: 4 → 2
+
 ## [2.35.3] - 2026-03-26 - Session-start hook performance optimization
 
 ### Changed
