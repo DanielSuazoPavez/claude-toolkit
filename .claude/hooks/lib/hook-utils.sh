@@ -29,7 +29,7 @@ OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
 HOOK_LOG_FILE=""
-HOOK_LOG_DB="$HOME/.claude/claude-hook-logs.db"
+HOOK_LOG_DB="$HOME/.claude/hooks.db"
 IS_TEST=0  # 1 when invoked by test harness (CLAUDE_HOOK_TEST=1)
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 
