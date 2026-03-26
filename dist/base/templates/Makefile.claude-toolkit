@@ -25,4 +25,4 @@ claude-toolkit-validate:
 	bash .claude/scripts/validate-all.sh
 
 claude-toolkit-sync:
-	~/projects/personal/claude-toolkit/bin/claude-toolkit sync .
+	claude-toolkit sync

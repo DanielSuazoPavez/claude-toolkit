@@ -17,6 +17,7 @@
       "Bash(echo:*)",
       "Bash(mkdir:*)",
       "Bash(touch:*)",
+      "Bash(trash-put:*)",
       "Bash(jq:*)",
       "Bash(make:*)",
       "Bash(git status:*)",

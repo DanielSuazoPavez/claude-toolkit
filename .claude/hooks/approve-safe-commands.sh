@@ -62,6 +62,7 @@ SAFE_PREFIXES=(
     # Filesystem
     "mkdir"
     "touch"
+    "trash-put"
     # Tools
     "jq"
     "make"

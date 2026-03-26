@@ -10,7 +10,7 @@ output/claude-toolkit/
 # Track project-specific config and memories
 !.claude/settings.json
 !.claude/mcp.json
-!.claude/memories/project-*
+!.claude/memories/*-project-*
 
 # Toolkit sync infrastructure
 .claude-toolkit-version

@@ -128,4 +128,5 @@ Output what was updated.
 ## Notes
 
 - If using pyproject.toml with uv, the uv-lock hook will auto-update uv.lock
+- If uv.lock has changes (usually just the version bump), commit it alongside the version/changelog commit
 - If commit fails due to hooks, re-run the commit
