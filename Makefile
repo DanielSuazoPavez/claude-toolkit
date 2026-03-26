@@ -41,7 +41,7 @@ test-validate-hook-utils:
 	@bash tests/test-validate-hook-utils.sh -q
 
 backlog:
-	@bash .claude/scripts/backlog-query.sh
+	@bash cli/backlog/query.sh
 
 validate:
 	@bash .claude/scripts/validate-all.sh

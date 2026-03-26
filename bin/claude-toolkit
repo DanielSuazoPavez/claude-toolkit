@@ -48,6 +48,8 @@ COMMANDS:
     sync [path]     Sync toolkit updates to a project (default: current dir)
     send <path>     Send a resource from another project to suggestions-box
     lessons <cmd>   Manage lessons database (add, search, list, health, ...)
+    backlog <cmd>   Query backlog (summary, id, status, priority, scope, ...)
+    eval <cmd>      Query evaluation status (stale, unevaluated, above, type)
     version         Print toolkit version
 
 OPTIONS:
@@ -717,5 +719,7 @@ case "${1:-}" in
         fi
         exec "$CT_LESSONS" "$@"
         ;;
+    backlog) shift; exec "$TOOLKIT_DIR/cli/backlog/query.sh" "$@" ;;
+    eval) shift; exec "$TOOLKIT_DIR/cli/eval/query.sh" "$@" ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
 esac

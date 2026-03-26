@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.38.0] - 2026-03-26 - Add backlog and eval CLI subcommands
+
+### Added
+- **cli**: `claude-toolkit backlog` subcommand — routes to `cli/backlog/query.sh`
+- **cli**: `claude-toolkit eval` subcommand — routes to `cli/eval/query.sh`
+
+### Changed
+- **cli**: Moved `backlog-query.sh`, `backlog-validate.sh` from `.claude/scripts/` to `cli/backlog/`
+- **cli**: Moved `evaluation-query.sh` from `.claude/scripts/` to `cli/eval/`
+- **cli**: Fixed `evaluation-query.sh` path resolution for new location (`CLAUDE_DIR` derived from `PROJECT_ROOT`)
+- **docs**: Updated all references to moved scripts (CLAUDE.md, Makefile, SCRIPTS.md, workflow doc, evaluate-batch skill, tests)
+
+### Removed
+- **backlog**: Removed `cli-list-docs` (partially completed — scripts moved, `/list-docs` migration deferred)
+
 ## [2.37.0] - 2026-03-26 - Complete docs migration: rename memory skills to docs skills
 
 ### Changed

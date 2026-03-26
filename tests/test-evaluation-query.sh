@@ -14,7 +14,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-QUERY_SCRIPT="$TOOLKIT_DIR/.claude/scripts/evaluation-query.sh"
+QUERY_SCRIPT="$TOOLKIT_DIR/cli/eval/query.sh"
 
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 parse_test_args "$@"
@@ -27,9 +27,9 @@ setup_test_env() {
     TEMP_DIR=$(mktemp -d)
     log_verbose "Created temp dir: $TEMP_DIR"
 
-    # Create mock .claude/scripts structure and copy script
-    mkdir -p "$TEMP_DIR/.claude/scripts"
-    cp "$QUERY_SCRIPT" "$TEMP_DIR/.claude/scripts/"
+    # Create mock cli/eval structure and copy script
+    mkdir -p "$TEMP_DIR/cli/eval"
+    cp "$QUERY_SCRIPT" "$TEMP_DIR/cli/eval/"
 
     # Create mock resource dirs
     mkdir -p "$TEMP_DIR/.claude/skills/mock-skill"
@@ -132,7 +132,7 @@ EOF
 }
 
 run_query() {
-    (cd "$TEMP_DIR" && bash .claude/scripts/evaluation-query.sh "$@" 2>&1)
+    (cd "$TEMP_DIR" && bash cli/eval/query.sh "$@" 2>&1)
 }
 
 # === Test Assertions ===

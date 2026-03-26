@@ -74,8 +74,8 @@ agents:   .claude/agents/*.md
 
 Use the staleness check:
 ```bash
-.claude/scripts/evaluation-query.sh unevaluated  # missing evaluations
-.claude/scripts/evaluation-query.sh stale        # hash mismatch
+cli/eval/query.sh unevaluated  # missing evaluations
+cli/eval/query.sh stale        # hash mismatch
 ```
 
 **Note:** Hash-based staleness only catches resource changes. If the evaluate-* skill rubric has changed, resources may need re-evaluation even with matching hashes. When the user requests a full re-evaluation, skip staleness checks entirely.
