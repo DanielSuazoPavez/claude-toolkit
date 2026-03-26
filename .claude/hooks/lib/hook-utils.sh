@@ -134,7 +134,7 @@ hook_log_section() {
         "0" "pass" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$TOOL_NAME', '$(_sql_escape "$section")', 0, 'pass', $bytes);"
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes);"
 }
 
 # ============================================================
@@ -161,7 +161,7 @@ hook_log_context() {
     local match_count="$3"
     local matched_ids="$4"
     _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$TOOL_NAME', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
 }
 
 # ============================================================
@@ -184,5 +184,5 @@ _hook_log_timing() {
         "$duration_ms" "$OUTCOME" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$TOOL_NAME', '', $duration_ms, '$OUTCOME', $bytes);"
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes);"
 }
