@@ -55,6 +55,7 @@ Set these in your shell or `.envrc` to customize hook behavior.
 ### Path Configuration
 | Variable | Default | Purpose |
 |----------|---------|---------|
+| `CLAUDE_DOCS_DIR` | `.claude/docs` | Docs directory |
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
 
 ### Thresholds & Configuration

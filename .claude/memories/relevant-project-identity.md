@@ -6,7 +6,7 @@
 
 Claude Toolkit is a personal, curated Claude Code configuration — skills, agents, hooks, and memories — portable across projects, designed for human-in-the-loop workflows.
 
-**See also:** `essential-conventions-code_style` for implementation guidelines, `relevant-toolkit-memory` for memory conventions, `relevant-philosophy-reducing_entropy` for curation philosophy
+**See also:** `essential-conventions-code_style` for implementation guidelines, `relevant-toolkit-context` for context conventions, `relevant-philosophy-reducing_entropy` for curation philosophy
 
 ---
 

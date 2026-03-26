@@ -29,7 +29,8 @@ make backlog                                   # Show backlog (prefer over readi
 ├── skills/     # User-invocable skills (/skill-name)
 ├── agents/     # Specialized task agents
 ├── hooks/      # Automation hooks
-└── memories/   # Memory templates
+├── docs/       # Reference documentation (rules, conventions, configs)
+└── memories/   # Organic context (project identity, user preferences, auto-memory)
 docs/
 ├── indexes/    # Resource indexes and evaluation scores
 └── ...         # Reference documentation
@@ -44,6 +45,7 @@ Summary and status of all resources:
 - `docs/indexes/SKILLS.md` - All skills with status and descriptions
 - `docs/indexes/AGENTS.md` - All agents with status, descriptions, and tools
 - `docs/indexes/HOOKS.md` - All hooks with triggers and configuration
+- `docs/indexes/DOCS.md` - All docs (reference documentation, rules, conventions)
 - `docs/indexes/MEMORIES.md` - All memories with categories and purposes
 - `docs/indexes/evaluations.json` - Quality scores, grades, and improvement suggestions
 

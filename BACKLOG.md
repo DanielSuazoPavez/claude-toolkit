@@ -36,9 +36,16 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SKILLS]** Review and restructure the memory resource ecosystem (`review-memory-ecosystem`)
-    - **scope**: `skills, memories`
-    - **notes**: After demoting `essential-conventions-memory` to `relevant-toolkit-memory`, review how `/create-memory`, `/list-memories`, `/evaluate-memory`, and the conventions memory work as a cohesive system. Consider whether Quick Reference template guidelines (section 3 of the memory) should live in the skills that use them rather than the memory file itself.
+- **[TOOLKIT]** Post-reshape followups — consolidate docs/memories boundary (`post-reshape-followups`)
+    - **scope**: `toolkit, skills, memories`
+    - **notes**: Followup items from the memory system reshape (refactor/memory-system-reshape branch):
+        - Move `docs/naming-conventions.md` into `.claude/docs/` (it's reference documentation, not a project-level doc)
+        - Consider moving `docs/indexes/` into `.claude/docs/` (keeps all Claude-facing reference in one place)
+        - Remove the `idea-` memory category — ideas should be drafts in `output/claude-toolkit/`, not memories
+        - Move `relevant-project-identity` to `.claude/docs/` — it's prescriptive identity, not organic context
+        - Move `relevant-philosophy-reducing_entropy` to `.claude/docs/` — it's prescriptive philosophy, not organic context
+        - Resolve naming convention overlap between docs and memories (both use `essential-`/`relevant-` prefixes — consider whether docs need their own scheme)
+        - Review `/create-memory` and `/evaluate-memory` skills — may need renaming or scope adjustment now that rules/config live in docs. Tension with `/write-docs` (different purpose: project documentation vs toolkit context docs). Discuss whether "create context" or similar covers both, or keep separate skills with clearer boundaries.
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
@@ -62,6 +69,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 - **[SKILLS]** Adopt `${CLAUDE_SKILL_DIR}` — use in skills that reference bundled resources (`skill-claude-skill-dir`)
     - **scope**: `skills`
 
-- **[TOOLKIT]** Native `autoMemoryDirectory` setting — unclear if it actually changes write behavior vs just `/memory` UI folder (`toolkit-auto-memory-dir`)
+- **[TOOLKIT]** Native `autoMemoryDirectory` setting — resolved via symlink, revisit if setting starts working (`toolkit-auto-memory-dir`)
     - **scope**: `toolkit`
-    - **notes**: Tested 2026-03-20. Setting `autoMemoryDirectory` in user settings only affects the "Open auto-memory folder" option in `/memory` UI — didn't observe it redirecting where Claude writes auto-memories. Needs more investigation if Claude Code documents this further.
+    - **notes**: Tested 2026-03-20. Setting only affects the UI "Open folder" link, not write behavior. Worked around with symlink approach (`.claude/memories/auto/` ← `~/.claude/projects/.../memory/`). Revisit if Claude Code fixes the setting in a future release.

@@ -17,12 +17,13 @@ Activate when user says:
 ## Category Decision Tree
 
 ```
-Is this information stable for 6+ months?
-├─ Yes → Is it project-wide architecture or core workflow?
-│   ├─ Yes → `essential-`
-│   └─ No → `relevant-`
+Is this prescriptive rules or reference documentation?
+├─ Yes → `.claude/docs/` (not memories — see relevant-toolkit-context)
 │
-└─ No → Is it tied to a specific feature branch?
+└─ No → Is this information stable for 6+ months?
+    ├─ Yes → `relevant-` memory
+    │
+    └─ No → Is it tied to a specific feature branch?
     ├─ Yes → `branch-` (include date)
     └─ No → Is it a future implementation idea?
         ├─ Yes → `idea-` (needs explicit permission note)
@@ -37,7 +38,7 @@ Is this information stable for 6+ months?
 
 | Category | Lifetime | Load Pattern | Example |
 |----------|----------|--------------|---------|
-| `essential-` | Permanent | Auto (session start) | Code style, architecture decisions |
+| `essential-` | Permanent | Auto (session start) | Code style, architecture decisions (typically in `.claude/docs/`) |
 | `relevant-` | Months | On-demand | API patterns, tool configurations |
 | `branch-` | Days/weeks | On-demand | WIP context for feature-x |
 | `idea-` | Until decided | User permission | Future refactoring plans |
@@ -48,9 +49,9 @@ Is this information stable for 6+ months?
 
 ## Instructions
 
-1. **Read conventions**: Check `.claude/memories/relevant-toolkit-memory.md` for naming and format rules
+1. **Read conventions**: Check `.claude/docs/relevant-toolkit-context.md` for naming and format rules
 
-2. **Determine category** (see `relevant-toolkit-memory.md` for full details):
+2. **Determine category** (see `relevant-toolkit-context.md` for full details):
    - `essential-` → Core, stable project info (auto-loaded at session start)
    - `relevant-` → Important context that may evolve (on-demand)
    - `branch-` → WIP context for a feature branch (on-demand, temporary)
@@ -97,8 +98,8 @@ Brief description.
 ## Reference Examples
 
 For format and structure examples, see existing memories:
-- `relevant-toolkit-memory.md` - naming conventions and format rules
-- `essential-conventions-code_style.md` - example of stable, permanent memory
+- `.claude/docs/relevant-toolkit-context.md` - naming conventions, format rules, docs/memories boundary
+- `.claude/docs/essential-conventions-code_style.md` - example of a stable essential doc
 
 ## Edge Cases
 

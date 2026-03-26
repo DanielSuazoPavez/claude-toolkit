@@ -81,7 +81,14 @@ report_broken_ref() {
         case "$ref_type" in
             skill) manifest_path="skills/$ref_name/" ;;
             agent) manifest_path="agents/$ref_name.md" ;;
-            memory) manifest_path="memories/$ref_name.md" ;;
+            memory)
+                # Check both memories/ and docs/ in MANIFEST
+                if in_manifest "memories/$ref_name.md" || in_manifest "docs/$ref_name.md"; then
+                    manifest_path=""  # found in MANIFEST, don't warn
+                else
+                    manifest_path="memories/$ref_name.md"  # will fail in_manifest check below
+                fi
+                ;;
             hook) manifest_path="hooks/$ref_name" ;;
         esac
         if [ -n "$manifest_path" ] && ! in_manifest "$manifest_path"; then
@@ -102,10 +109,10 @@ is_allowlisted() {
     case "${source}:${ref}" in
         */create-agent/SKILL.md:migration-reviewer) return 0 ;;
         */create-agent/SKILL.md:query-optimizer) return 0 ;;
-        */relevant-toolkit-memory.md:relevant-data_model-migration_context) return 0 ;;
-        */relevant-toolkit-memory.md:branch-20251001-feat_update_data_model-updating_schema_definitions) return 0 ;;
-        */relevant-toolkit-memory.md:idea-20251001-logging-simple_monitoring) return 0 ;;
-        */relevant-toolkit-memory.md:experimental-conventions-alternative_commit_style) return 0 ;;
+        */relevant-toolkit-context.md:relevant-data_model-migration_context) return 0 ;;
+        */relevant-toolkit-context.md:branch-20251001-feat_update_data_model-updating_schema_definitions) return 0 ;;
+        */relevant-toolkit-context.md:idea-20251001-logging-simple_monitoring) return 0 ;;
+        */relevant-toolkit-context.md:experimental-conventions-alternative_commit_style) return 0 ;;
         # "skills/agents/memories" in prose — not a real agents/ path reference
         */create-skill/SKILL.md:memories) return 0 ;;
         *) return 1 ;;
@@ -344,27 +351,38 @@ else
 fi
 echo ""
 
-# === 6. Memories → memories ===
-echo "=== 6. Memories → memories ==="
+# === 6. Memories/Docs → memories/docs ===
+echo "=== 6. Memories/Docs → memories/docs ==="
 MEMORIES_DIR="$CLAUDE_DIR/memories"
+DOCS_DIR="$CLAUDE_DIR/docs"
 
-if [ -d "$MEMORIES_DIR" ]; then
-    count=0
-    section_errors=0
+# Helper: check if a context reference exists in either memories/ or docs/
+context_ref_exists() {
+    local ref_name="$1"
+    [ -f "$MEMORIES_DIR/$ref_name.md" ] && return 0
+    [ -f "$DOCS_DIR/$ref_name.md" ] && return 0
+    return 1
+}
+
+_scan_context_refs() {
+    local scan_dir="$1"
+    local dir_type="$2"  # "memories" or "docs"
+    [ -d "$scan_dir" ] || return
 
     while IFS= read -r memfile; do
+        local mem_name
         mem_name=$(basename "$memfile" .md)
 
-        # Skip idea-*, personal-*, and experimental-* memories (ephemeral/private)
-        case "$mem_name" in idea-*|personal-*|experimental-*) continue ;; esac
+        # Skip idea-*, personal-*, experimental-*, auto-*, MEMORY.md
+        case "$mem_name" in idea-*|personal-*|experimental-*|auto-*|MEMORY) continue ;; esac
 
         if $MANIFEST_MODE; then
-            if ! in_manifest "memories/$mem_name.md"; then
+            if ! in_manifest "$dir_type/$mem_name.md"; then
                 continue
             fi
         fi
 
-        self_name="$mem_name"
+        local self_name="$mem_name"
 
         while IFS= read -r ref_mem; do
             [ -z "$ref_mem" ] && continue
@@ -372,39 +390,48 @@ if [ -d "$MEMORIES_DIR" ]; then
             if is_allowlisted "$memfile" "$ref_mem"; then
                 continue
             fi
-            if [ ! -f "$MEMORIES_DIR/$ref_mem.md" ]; then
-                report_broken_ref "$memfile" "memory" "$ref_mem" "memory file"
+            if ! context_ref_exists "$ref_mem"; then
+                report_broken_ref "$memfile" "memory" "$ref_mem" "memory/doc file"
                 section_errors=$((section_errors + 1))
             else
                 count=$((count + 1))
             fi
         done < <(grep -oP '`\K(?:essential|relevant|branch|idea|personal|experimental)-[a-z][-a-z_]*(?=`)' "$memfile")
 
-    done < <(find "$MEMORIES_DIR" -name "*.md")
+    done < <(find "$scan_dir" -maxdepth 1 -name "*.md")
+}
 
-    if [ $section_errors -eq 0 ]; then
-        echo -e "${GREEN}✓ All $count memory→memory references are valid${NC}"
-    fi
-else
-    echo -e "${YELLOW}Skipped: memories/ not found${NC}"
-fi
-echo ""
-
-# === 7. Memories → skills ===
-echo "=== 7. Memories → skills ==="
-
-if [ -d "$MEMORIES_DIR" ] && [ -d "$SKILLS_DIR" ]; then
+if [ -d "$MEMORIES_DIR" ] || [ -d "$DOCS_DIR" ]; then
     count=0
     section_errors=0
 
+    _scan_context_refs "$MEMORIES_DIR" "memories"
+    _scan_context_refs "$DOCS_DIR" "docs"
+
+    if [ $section_errors -eq 0 ]; then
+        echo -e "${GREEN}✓ All $count memory/doc cross-references are valid${NC}"
+    fi
+else
+    echo -e "${YELLOW}Skipped: memories/ and docs/ not found${NC}"
+fi
+echo ""
+
+# === 7. Memories/Docs → skills ===
+echo "=== 7. Memories/Docs → skills ==="
+
+_scan_skill_refs() {
+    local scan_dir="$1"
+    local dir_type="$2"
+    [ -d "$scan_dir" ] || return
+
     while IFS= read -r memfile; do
+        local mem_name
         mem_name=$(basename "$memfile" .md)
 
-        # Skip idea-*, personal-*, and experimental-* memories (ephemeral/private)
-        case "$mem_name" in idea-*|personal-*|experimental-*) continue ;; esac
+        case "$mem_name" in idea-*|personal-*|experimental-*|auto-*|MEMORY) continue ;; esac
 
         if $MANIFEST_MODE; then
-            if ! in_manifest "memories/$mem_name.md"; then
+            if ! in_manifest "$dir_type/$mem_name.md"; then
                 continue
             fi
         fi
@@ -421,13 +448,21 @@ if [ -d "$MEMORIES_DIR" ] && [ -d "$SKILLS_DIR" ]; then
             fi
         done < <(grep -oP '`/\K[a-z][-a-z]*(?=`)' "$memfile")
 
-    done < <(find "$MEMORIES_DIR" -name "*.md")
+    done < <(find "$scan_dir" -maxdepth 1 -name "*.md")
+}
+
+if [ -d "$SKILLS_DIR" ] && { [ -d "$MEMORIES_DIR" ] || [ -d "$DOCS_DIR" ]; }; then
+    count=0
+    section_errors=0
+
+    _scan_skill_refs "$MEMORIES_DIR" "memories"
+    _scan_skill_refs "$DOCS_DIR" "docs"
 
     if [ $section_errors -eq 0 ]; then
-        echo -e "${GREEN}✓ All $count skill references in memories are valid${NC}"
+        echo -e "${GREEN}✓ All $count skill references in memories/docs are valid${NC}"
     fi
 else
-    echo -e "${YELLOW}Skipped: memories/ or skills/ not found${NC}"
+    echo -e "${YELLOW}Skipped: memories/docs or skills/ not found${NC}"
 fi
 echo ""
 

@@ -135,6 +135,7 @@
   },
   "_env_config": {
     "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
+    "CLAUDE_DOCS_DIR": "Directory for docs (default: .claude/docs)",
     "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
     "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
     "PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"

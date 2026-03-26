@@ -1,13 +1,14 @@
 #!/bin/bash
-# SessionStart hook: inject essential memories at session start
+# SessionStart hook: inject essential docs and memories at session start
 #
 # Settings.json:
 #   "SessionStart": [{"hooks": [{"type": "command", "command": "bash .claude/hooks/session-start.sh"}]}]
 #
 # Environment:
+#   CLAUDE_DOCS_DIR     - docs directory (default: .claude/docs)
 #   CLAUDE_MEMORIES_DIR - memories directory (default: .claude/memories)
 #
-# Requires: essential-*.md files in memories directory
+# Requires: essential-*.md files in docs and/or memories directory
 #
 # Test cases:
 #   # Normal operation (from project root with memories)
@@ -27,6 +28,7 @@
 #   # Expected: Branch shows "unknown", Main shows "main" (fallback)
 
 # Configuration
+DOCS_DIR="${CLAUDE_DOCS_DIR:-.claude/docs}"
 MEMORIES_DIR="${CLAUDE_MEMORIES_DIR:-.claude/memories}"
 
 source "$(dirname "$0")/lib/hook-utils.sh"
@@ -41,31 +43,34 @@ else
 fi
 echo "$SESSION_ID" > ".claude/logs/.session-id"
 
-# Check we're in a project with memories
-if [ ! -d "$MEMORIES_DIR" ]; then
-    echo "Warning: $MEMORIES_DIR not found. Run from project root."
+# Check we're in a project with docs or memories
+if [ ! -d "$DOCS_DIR" ] && [ ! -d "$MEMORIES_DIR" ]; then
+    echo "Warning: neither $DOCS_DIR nor $MEMORIES_DIR found. Run from project root."
     exit 0
 fi
 
 # === ESSENTIAL CONTEXT (auto-injected) ===
 
-# Output essential memories directly - these are always relevant
-MEMORIES_OUT=""
+# Output essential docs and memories — these are always relevant
+ESSENTIAL_OUT=""
 ESSENTIAL_COUNT=0
-for f in "$MEMORIES_DIR"/essential-*.md; do
-  if [ -f "$f" ]; then
-    ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
-    _name="${f##*/}"
-    _name="${_name%.md}"
-    _content=$(cat "$f" 2>/dev/null) || _content="(Error reading file - permission denied or corrupted)"
-    MEMORY_CONTENT="=== ${_name} ===
+for dir in "$DOCS_DIR" "$MEMORIES_DIR"; do
+  [ -d "$dir" ] || continue
+  for f in "$dir"/essential-*.md; do
+    if [ -f "$f" ]; then
+      ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
+      _name="${f##*/}"
+      _name="${_name%.md}"
+      _content=$(cat "$f" 2>/dev/null) || _content="(Error reading file - permission denied or corrupted)"
+      ENTRY_CONTENT="=== ${_name} ===
 ${_content}
 "
-    hook_log_section "memory:${_name}" "$MEMORY_CONTENT"
-    MEMORIES_OUT="${MEMORIES_OUT}${MEMORY_CONTENT}"
-  fi
+      hook_log_section "essential:${_name}" "$ENTRY_CONTENT"
+      ESSENTIAL_OUT="${ESSENTIAL_OUT}${ENTRY_CONTENT}"
+    fi
+  done
 done
-printf '%s' "$MEMORIES_OUT"
+printf '%s' "$ESSENTIAL_OUT"
 
 # === MEMORY GUIDANCE ===
 GUIDANCE_OUT="Use /list-memories to discover available context when the task relates to a non-essential memory topic."

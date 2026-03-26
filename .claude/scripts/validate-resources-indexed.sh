@@ -31,6 +31,7 @@ declare -a MANIFEST_SKILLS=()
 declare -a MANIFEST_AGENTS=()
 declare -a MANIFEST_HOOKS=()
 declare -a MANIFEST_MEMORIES=()
+declare -a MANIFEST_DOCS=()
 declare -a MANIFEST_SCRIPTS=()
 
 # MANIFEST mode: only activate when MANIFEST exists but index files don't.
@@ -65,6 +66,11 @@ if [ -f "$MANIFEST_FILE" ] && [ ! -f "$PROJECT_ROOT/docs/indexes/SKILLS.md" ]; t
                 name="${line#memories/}"
                 name="${name%.md}"
                 MANIFEST_MEMORIES+=("$name")
+                ;;
+            docs/*.md)
+                name="${line#docs/}"
+                name="${name%.md}"
+                MANIFEST_DOCS+=("$name")
                 ;;
             scripts/*.sh)
                 name="${line#scripts/}"
@@ -250,12 +256,13 @@ MEMORIES_INDEX="$PROJECT_ROOT/docs/indexes/MEMORIES.md"
 MEMORIES_DIR="$CLAUDE_DIR/memories"
 
 if [ -f "$MEMORIES_INDEX" ] && [ -d "$MEMORIES_DIR" ]; then
-    # Exclude idea-*, personal-*, and experimental-* memories (ephemeral/private, not indexed)
+    # Exclude ephemeral/private/auto memories (not indexed)
     DISK_MEMORIES=$(find "$MEMORIES_DIR" -maxdepth 1 -name "*.md" \
         ! -name "idea-*.md" ! -name "personal-*.md" ! -name "experimental-*.md" \
+        ! -name "auto-*.md" ! -name "MEMORY.md" \
         -exec basename {} .md \; | sort)
-    # Also exclude idea-*, personal-*, and experimental-* from index side
-    INDEX_MEMORIES=$(grep -oP '\| `\K[^`]+(?=` \|)' "$MEMORIES_INDEX" | grep -v '^idea-\|^personal-\|^experimental-' | sort)
+    # Also exclude ephemeral/auto from index side
+    INDEX_MEMORIES=$(grep -oP '\| `\K[^`]+(?=` \|)' "$MEMORIES_INDEX" | grep -v '^idea-\|^personal-\|^experimental-\|^auto-' | sort)
 
     if $MANIFEST_MODE; then
         while IFS= read -r disk_memory; do
@@ -291,6 +298,53 @@ elif $MANIFEST_MODE; then
     echo -e "${GREEN}✓ Skipped: no index files in target project (expected)${NC}"
 else
     echo -e "${YELLOW}Skipped: MEMORIES.md or memories/ not found${NC}"
+fi
+echo ""
+
+# === DOCS ===
+echo "=== Docs ==="
+DOCS_INDEX="$PROJECT_ROOT/docs/indexes/DOCS.md"
+DOCS_DIR="$CLAUDE_DIR/docs"
+
+if [ -f "$DOCS_INDEX" ] && [ -d "$DOCS_DIR" ]; then
+    DISK_DOCS=$(find "$DOCS_DIR" -maxdepth 1 -name "*.md" \
+        -exec basename {} .md \; | sort)
+    INDEX_DOCS=$(grep -oP '\| `\K[^`]+(?=` \|)' "$DOCS_INDEX" | sort)
+
+    if $MANIFEST_MODE; then
+        while IFS= read -r disk_doc; do
+            [ -z "$disk_doc" ] && continue
+            if ! in_array "$disk_doc" "${MANIFEST_DOCS[@]}"; then
+                echo -e "${YELLOW}Extra file not in MANIFEST: docs/$disk_doc.md${NC}"
+                WARNINGS=$((WARNINGS + 1))
+            fi
+        done <<< "$DISK_DOCS"
+
+        manifest_count=${#MANIFEST_DOCS[@]}
+        echo -e "${GREEN}✓ $manifest_count docs from MANIFEST validated${NC}"
+    else
+        MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_DOCS") <(echo "$INDEX_DOCS"))
+        if [ -n "$MISSING_FROM_INDEX" ]; then
+            echo -e "${RED}Not indexed in DOCS.md:${NC}"
+            echo "$MISSING_FROM_INDEX" | sed 's/^/  - /'
+            ERRORS=$((ERRORS + $(echo "$MISSING_FROM_INDEX" | wc -l)))
+        fi
+
+        STALE_IN_INDEX=$(comm -13 <(echo "$DISK_DOCS") <(echo "$INDEX_DOCS"))
+        if [ -n "$STALE_IN_INDEX" ]; then
+            echo -e "${YELLOW}Stale entries in DOCS.md (no file):${NC}"
+            echo "$STALE_IN_INDEX" | sed 's/^/  - /'
+            ERRORS=$((ERRORS + $(echo "$STALE_IN_INDEX" | wc -l)))
+        fi
+
+        if [ -z "$MISSING_FROM_INDEX" ] && [ -z "$STALE_IN_INDEX" ]; then
+            echo -e "${GREEN}✓ All $(echo "$DISK_DOCS" | wc -l) docs properly indexed${NC}"
+        fi
+    fi
+elif $MANIFEST_MODE; then
+    echo -e "${GREEN}✓ Skipped: no index files in target project (expected)${NC}"
+else
+    echo -e "${YELLOW}Skipped: DOCS.md or docs/ not found${NC}"
 fi
 echo ""
 
