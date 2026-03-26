@@ -102,11 +102,53 @@ LEARNED_FILE=".claude/learned.json"
 if [ -f "$LESSONS_DB" ]; then
     # SQLite path — lessons.db exists
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
+    SAFE_BRANCH="${CURRENT_BRANCH//\'/\'\'}"
 
-    KEY_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- [' || GROUP_CONCAT(t.name, ',') || '] ' || l.text FROM lessons l LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id LEFT JOIN tags t ON t.id = lt.tag_id WHERE l.tier = 'key' AND l.active = 1 GROUP BY l.id ORDER BY l.date DESC;" 2>/dev/null)
-    RECENT_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 ORDER BY l.date DESC LIMIT 5;" 2>/dev/null)
-    SAFE_BRANCH=$(echo "$CURRENT_BRANCH" | sed "s/'/''/g")
-    BRANCH_LESSONS=$(sqlite3 "$LESSONS_DB" "SELECT '- ' || l.text FROM lessons l WHERE l.tier = 'recent' AND l.active = 1 AND l.branch = '${SAFE_BRANCH}' ORDER BY l.date DESC;" 2>/dev/null)
+    # Single sqlite3 call for all lesson data — row prefix disambiguates result sets
+    KEY_LESSONS=""
+    RECENT_LESSONS=""
+    BRANCH_LESSONS=""
+    DAYS_SINCE=-1
+    THRESHOLD_DAYS=7
+    ACTIVE_COUNT=0
+    _LAST_MANAGE_EXISTS=0
+
+    _DB_RESULT=$(sqlite3 -separator '|' "$LESSONS_DB" "
+SELECT 'K|' || '- [' || GROUP_CONCAT(t.name, ',') || '] ' || l.text
+  FROM lessons l
+  LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
+  LEFT JOIN tags t ON t.id = lt.tag_id
+  WHERE l.tier = 'key' AND l.active = 1
+  GROUP BY l.id ORDER BY l.date DESC;
+SELECT 'R|' || '- ' || l.text
+  FROM lessons l WHERE l.tier = 'recent' AND l.active = 1
+  ORDER BY l.date DESC LIMIT 5;
+SELECT 'B|' || '- ' || l.text
+  FROM lessons l WHERE l.tier = 'recent' AND l.active = 1
+  AND l.branch = '${SAFE_BRANCH}'
+  ORDER BY l.date DESC;
+SELECT 'M|' || CAST(COALESCE(julianday('now') - julianday(value), -1) AS INTEGER)
+  FROM metadata WHERE key = 'last_manage_run';
+SELECT 'T|' || COALESCE(value, '7')
+  FROM metadata WHERE key = 'nudge_threshold_days';
+SELECT 'C|' || COUNT(*) FROM lessons WHERE active = 1;
+" 2>/dev/null)
+
+    while IFS='|' read -r _prefix _rest; do
+        case "$_prefix" in
+            K) KEY_LESSONS+="${_rest}"$'\n' ;;
+            R) RECENT_LESSONS+="${_rest}"$'\n' ;;
+            B) BRANCH_LESSONS+="${_rest}"$'\n' ;;
+            M) DAYS_SINCE="${_rest}"; _LAST_MANAGE_EXISTS=1 ;;
+            T) THRESHOLD_DAYS="${_rest}" ;;
+            C) ACTIVE_COUNT="${_rest}" ;;
+        esac
+    done <<< "$_DB_RESULT"
+
+    # Trim trailing newlines
+    KEY_LESSONS="${KEY_LESSONS%$'\n'}"
+    RECENT_LESSONS="${RECENT_LESSONS%$'\n'}"
+    BRANCH_LESSONS="${BRANCH_LESSONS%$'\n'}"
 
     if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
         LESSONS_OUT="=== LESSONS ==="
@@ -124,16 +166,9 @@ $BRANCH_LESSONS"
         echo "$LESSONS_OUT"
     fi
 
-    # Nudge logic — based on time since last manage-lessons run
-    LAST_MANAGE=$(sqlite3 "$LESSONS_DB" "SELECT value FROM metadata WHERE key = 'last_manage_run';" 2>/dev/null)
-    THRESHOLD_DAYS=$(sqlite3 "$LESSONS_DB" "SELECT value FROM metadata WHERE key = 'nudge_threshold_days';" 2>/dev/null)
-    [ -z "$THRESHOLD_DAYS" ] && THRESHOLD_DAYS=7
-
+    # Nudge logic — days_since computed in SQL via julianday()
     NUDGE=""
-    if [ -n "$LAST_MANAGE" ]; then
-        LAST_EPOCH=$(date -d "$LAST_MANAGE" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "$LAST_MANAGE" +%s 2>/dev/null || echo 0)
-        NOW_EPOCH=$(date +%s)
-        DAYS_SINCE=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
+    if [ "$_LAST_MANAGE_EXISTS" = 1 ] && [ "$DAYS_SINCE" -ge 0 ] 2>/dev/null; then
         if [ "$DAYS_SINCE" -ge "$THRESHOLD_DAYS" ] 2>/dev/null; then
             NUDGE="${DAYS_SINCE}d since last /manage-lessons"
         fi
@@ -141,7 +176,6 @@ $BRANCH_LESSONS"
         NUDGE="never run /manage-lessons"
     fi
 
-    ACTIVE_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons WHERE active = 1;" 2>/dev/null || echo 0)
     if [ -n "$NUDGE" ]; then
         echo "⚠ $NUDGE ($ACTIVE_COUNT active lessons). Consider running /manage-lessons"
         ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- $NUDGE ($ACTIVE_COUNT active lessons) — run /manage-lessons"
@@ -174,7 +208,8 @@ echo "$GUIDANCE_OUT"
 ESSENTIAL_COUNT=$(ls -1 "$MEMORIES_DIR"/essential-*.md 2>/dev/null | wc -l)
 LESSON_COUNT=0
 if [ -f "$LESSONS_DB" ]; then
-    LESSON_COUNT=$(sqlite3 "$LESSONS_DB" "SELECT COUNT(*) FROM lessons WHERE active = 1;" 2>/dev/null || echo 0)
+    # ACTIVE_COUNT already set by the combined query above
+    LESSON_COUNT="${ACTIVE_COUNT:-0}"
 elif [ -f "$LEARNED_FILE" ]; then
     LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
 fi
