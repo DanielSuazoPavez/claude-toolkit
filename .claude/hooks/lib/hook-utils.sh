@@ -30,6 +30,7 @@ BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
 HOOK_LOG_FILE=""
 HOOK_LOG_DB="$HOME/.claude/claude-hook-logs.db"
+IS_TEST=0  # 1 when invoked by test harness (CLAUDE_HOOK_TEST=1)
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 
 # ============================================================
@@ -49,6 +50,7 @@ hook_init() {
     HOOK_LOG_FILE=".claude/logs/hook-timing.log"
     mkdir -p ".claude/logs" 2>/dev/null || true
     SESSION_ID=$(cat ".claude/logs/.session-id" 2>/dev/null || echo "unknown")
+    IS_TEST=$([ "${CLAUDE_HOOK_TEST:-0}" = "1" ] && echo 1 || echo 0)
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
         _HOOK_ACTIVE=true
@@ -133,8 +135,8 @@ hook_log_section() {
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
         "0" "pass" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes);"
+    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, $IS_TEST);"
 }
 
 # ============================================================
@@ -160,8 +162,8 @@ hook_log_context() {
     local keywords="$2"
     local match_count="$3"
     local matched_ids="$4"
-    _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
+    _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids, is_test)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$(date -Iseconds)', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids', $IS_TEST);"
 }
 
 # ============================================================
@@ -183,6 +185,6 @@ _hook_log_timing() {
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "" \
         "$duration_ms" "$OUTCOME" "$bytes" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes);"
+    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, $IS_TEST);"
 }
