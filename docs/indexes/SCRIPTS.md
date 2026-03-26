@@ -2,6 +2,8 @@
 
 Internal utility scripts in `.claude/scripts/`.
 
+For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
+
 ## Validation
 
 | Script | Status | Synced | Description |
@@ -12,16 +14,3 @@ Internal utility scripts in `.claude/scripts/`.
 | `verify-resource-deps.sh` | stable | yes | Validates cross-references between resources |
 | `validate-safe-commands-sync.sh` | stable | yes | Checks approve-safe-commands hook prefixes match settings.json |
 | `validate-hook-utils.sh` | stable | yes | Checks all hooks source shared library lib/hook-utils.sh |
-
-## Backlog
-
-| Script | Status | Synced | Description |
-|--------|--------|--------|-------------|
-| `backlog-query.sh` | stable | yes | Query BACKLOG.md by status, priority, ID, scope |
-| `backlog-validate.sh` | stable | yes | Validate BACKLOG.md format and structure |
-
-## Toolkit Only
-
-| Script | Status | Synced | Description |
-|--------|--------|--------|-------------|
-| `evaluation-query.sh` | stable | no | Query evaluation status: stale, unevaluated, by percentage |
