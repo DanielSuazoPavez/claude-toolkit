@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.35.2] - 2026-03-26 - Hook performance optimization
+
+### Changed
+- **hooks**: Batch sqlite3 writes — accumulate SQL in memory, flush once in EXIT trap instead of spawning sqlite3 per log call
+- **hooks**: Use `$EPOCHREALTIME` for ms timing and cache `date -Iseconds` once per invocation, eliminating 3+ `date` subprocess forks
+- **hooks**: Replace `_sql_escape` sed pipe with bash parameter expansion (`${1//\'/\'\'}`)
+- **hooks**: `surface-lessons` now extracts tool_name + context in a single `jq` call (was two separate calls)
+- **hooks**: `surface-lessons` per-word SQL escaping uses bash expansion instead of `echo|sed` per word
+
+### Added
+- **tests**: Performance harness for surface-lessons hook (`tests/perf-surface-lessons.sh`) with synthetic and replay modes
+
+### Removed
+- **backlog**: Removed `optimize-heavy-hooks` (surface-lessons portion done; replaced with targeted `optimize-session-start-hook`)
+
 ## [2.35.1] - 2026-03-26 - PermissionRequest hook format fix
 
 ### Fixed
