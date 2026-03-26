@@ -3,13 +3,14 @@
 ## [2.35.0] - 2026-03-26 - Hook logging to SQLite
 
 ### Added
-- **hooks**: Dual-write hook logs to `hooks.db` — all hooks now INSERT into `hook_logs` table alongside existing TSV writes. DB write is optional (silently skipped if db doesn't exist)
+- **hooks**: Dual-write hook logs to `~/.claude/hooks.db` — all hooks now INSERT into `hook_logs` table alongside existing TSV writes. DB write is optional (silently skipped if db doesn't exist)
 - **hooks**: `surface-lessons` observability — logs raw context, extracted keywords, match count, and matched lesson IDs to `surface_lessons_context` table
-- **hooks**: `is_test` flag in all db INSERTs — detects `CLAUDE_HOOK_TEST=1` env var to distinguish test runs from real usage
+- **hooks**: `is_test` column in hook logs (db + TSV) — detects `CLAUDE_HOOK_TEST=1` env var to distinguish test runs from real usage
 - **hooks**: `_sql_escape`, `_hook_log_db`, `hook_log_context` helpers in `hook-utils.sh`
 
 ### Changed
 - **hooks**: `surface-lessons` query now returns both lesson ID and text in a single query (was text-only)
+- **hooks**: TSV log format expanded from 11 to 12 columns (`is_test` appended)
 
 ## [2.34.3] - 2026-03-26 - Backlog cleanup, key principles, health check
 
