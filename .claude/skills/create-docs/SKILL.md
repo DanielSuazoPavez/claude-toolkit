@@ -1,39 +1,41 @@
 ---
-name: create-memory
-description: Create a new memory file following project conventions. Use when user asks to save/write/create a memory. Keywords: remember this, save context, create memory, persist information.
+name: create-docs
+description: Create a new doc file following project conventions. Use when user asks to create a doc for rules, conventions, or reference documentation. Keywords: create doc, new doc, write doc, add convention, add reference.
 allowed-tools: Read, Write, Glob
 ---
 
-# Write Memory Skill
+# Create Doc Skill
 
 ## When to Use
 
 Activate when user says:
-- "write a memory about..."
-- "save this as a memory"
-- "create a memory for..."
-- "remember this..."
+- "create a doc about..."
+- "write a doc for..."
+- "add a convention for..."
+- "save this as a doc..."
 
-## Decision: Memory or Something Else?
+## Decision: Doc or Something Else?
 
 ```
-Is this prescriptive rules or reference documentation?
-├─ Yes → `.claude/docs/` (not memories — see relevant-toolkit-context)
+Is this prescriptive rules, conventions, or reference documentation?
+├─ Yes → `.claude/docs/` (this skill)
 │
 └─ No → Is this organic context (who you are, what's happening, preferences)?
-    ├─ Yes → Memory in `.claude/memories/`
-    └─ No → Consider if a memory is needed at all
+    ├─ Yes → Memory in `.claude/memories/` (just create the file directly, no skill needed)
+    └─ No → Consider if persistence is needed at all
 ```
 
-For branch WIP context, use a date prefix: `YYYYMMDD-{branch}-{context}.md`
+For procedures (step-by-step workflows), use `/create-skill` instead.
 
-**See also:** `/evaluate-memory` (quality gate), `/list-memories` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `relevant-conventions-naming`
+**See also:** `/evaluate-docs` (quality gate), `/list-docs` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `relevant-conventions-naming`
 
 ## Instructions
 
-1. **Check for duplicates**: List `.claude/memories/` to see existing memories
-2. **Choose a name**: Plain descriptive name with underscores — `professional_profile.md`, `user.md`, `postgresql_patterns.md`
-3. **Include Quick Reference** as section 1 with `**ONLY READ WHEN:**` bullets
+1. **Check for duplicates**: List `.claude/docs/` to see existing docs
+2. **Choose a name**: Follow `{category}-{context}-{name}` format
+   - `essential-` prefix: auto-loaded at session start (use sparingly)
+   - `relevant-` prefix: loaded on-demand when needed
+3. **Include Quick Reference** as section 1
 4. **Write content** based on what user wants to capture
 
 ## File Format
@@ -49,6 +51,8 @@ For branch WIP context, use a date prefix: `YYYYMMDD-{branch}-{context}.md`
 
 Brief description.
 
+**See also:** [Related resources]
+
 ---
 
 ## 2. Main Content
@@ -56,19 +60,29 @@ Brief description.
 [Detailed content here]
 ```
 
+For essential docs (auto-loaded), use `**MANDATORY:**` instead of `**ONLY READ WHEN:**`:
+
+```markdown
+## 1. Quick Reference
+
+**MANDATORY:** Read at session start - affects all [scope].
+
+Brief description.
+```
+
 ## Notes
 
-- Use underscores in filenames: `opensearch_query_patterns.md`
-- Branch WIP memories include date: `20260121-feature_name-context.md`
-- No category prefixes — memories are just named files
+- Use `{category}-{context}-{name}` format: `relevant-workflow-branch_development.md`
+- Categories: `essential-` (auto-loaded) or `relevant-` (on-demand)
+- Context describes the topic area: `toolkit`, `conventions`, `workflow`, `philosophy`, etc.
 
 ## Reference Examples
 
-For format and structure examples, see existing docs (same Quick Reference pattern):
+For format and structure examples, see existing docs:
 - `.claude/docs/relevant-toolkit-context.md` - naming conventions, docs/memories boundary
-- `.claude/docs/essential-conventions-code_style.md` - example of well-structured Quick Reference
+- `.claude/docs/essential-conventions-code_style.md` - example of well-structured essential doc
 
-## When to Merge vs Split Memories
+## When to Merge vs Split Docs
 
 **Merge when:**
 - Topics are always referenced together
@@ -82,46 +96,47 @@ For format and structure examples, see existing docs (same Quick Reference patte
 
 ## Pre-Save Validation Checklist
 
-Before writing the memory file, verify:
+Before writing the doc file, verify:
 
-- [ ] **Not a doc?** Rules/conventions → `.claude/docs/`, not memories
-- [ ] **Quick Reference exists?** Has `**ONLY READ WHEN:**` bullets
-- [ ] **Descriptive name?** Plain `snake_case` name, no prefixes
-- [ ] **No duplicate?** List `.claude/memories/` to check
+- [ ] **Not a memory?** Organic context → `.claude/memories/`, not docs
+- [ ] **Quick Reference exists?** Has appropriate pattern for doc type
+- [ ] **Correct naming?** Follows `{category}-{context}-{name}` format
+- [ ] **No duplicate?** List `.claude/docs/` to check
 - [ ] **Under 300 lines?** Split if larger
 
 ### Quality Gate
 
-Run `/evaluate-memory` on the result:
+Run `/evaluate-docs` on the result:
 - **Target: 85%**
 - If below target, iterate on the weakest dimensions
 
 ## Common Mistakes: Worked Example
 
-**Bad request:** "Remember that we're using PostgreSQL"
+**Bad request:** "Create a doc for our API endpoints"
 
-**Problem:** One-off fact, no actionable context, likely already in project config.
+**Problem:** Too vague — is this conventions for designing APIs, or a reference list of endpoints?
 
-**Good correction:** "Create a memory about our PostgreSQL query patterns, including the pagination approach and how we handle JSON columns"
+**Good correction:** "Create a doc for our API design conventions, including naming patterns, error response format, and pagination approach"
 
-**Result:** `postgresql_patterns.md` with:
-- Quick Reference: "ONLY READ WHEN: Writing database queries, debugging slow queries"
-- Content: Pagination pattern, JSON operators, index usage guidelines
+**Result:** `relevant-conventions-api_design.md` with:
+- Quick Reference: "ONLY READ WHEN: Designing new API endpoints, reviewing API PRs"
+- Content: Naming conventions, error format, pagination pattern
 
 ---
 
-**Bad request:** "Save everything we discussed today"
+**Bad request:** "Create a doc about what I'm working on this sprint"
 
-**Problem:** Session dump, will be stale tomorrow, no focus.
+**Problem:** Ephemeral context — this is a memory, not a doc.
 
-**Good correction:** Use `/write-handoff` for session continuation, or identify the specific reusable pattern: "Create a memory about the retry logic pattern we designed"
+**Good correction:** Use a memory in `.claude/memories/` for organic context, or `/write-handoff` for session continuation.
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| **One-off Info** | Ephemeral data that becomes stale | Use session handoff or inline comment |
-| **Duplicate Memory** | Topic already has a memory | Update existing memory instead |
+| **Organic Context as Doc** | User preferences, branch WIP in docs | Use `.claude/memories/` instead |
+| **Duplicate Doc** | Topic already has a doc | Update existing doc instead |
 | **No Quick Reference** | Full file must be loaded to assess relevance | Always add Quick Reference section |
-| **Giant Memory** | 500+ lines, mixes concerns | Split into focused memories |
-| **Vague Filename** | `notes.md` — impossible to identify | Use descriptive, specific names |
+| **Giant Doc** | 500+ lines, mixes concerns | Split into focused docs |
+| **Vague Filename** | `notes.md` — impossible to identify | Use `{category}-{context}-{name}` format |
+| **Wrong Category** | Essential doc that's rarely needed | Use `relevant-` for on-demand content |
