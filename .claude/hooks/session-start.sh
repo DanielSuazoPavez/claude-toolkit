@@ -32,6 +32,14 @@ MEMORIES_DIR="${CLAUDE_MEMORIES_DIR:-.claude/memories}"
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "session-start" "SessionStart"
 
+# Write session ID for other hooks to read
+if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
+    SESSION_ID=$(basename "$(dirname "$CLAUDE_ENV_FILE")")
+else
+    SESSION_ID="unknown-$(date +%Y%m%d_%H%M%S)"
+fi
+echo "$SESSION_ID" > ".claude/logs/.session-id"
+
 # Check we're in a project with memories
 if [ ! -d "$MEMORIES_DIR" ]; then
     echo "Warning: $MEMORIES_DIR not found. Run from project root."
