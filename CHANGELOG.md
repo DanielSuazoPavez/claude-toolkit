@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.35.3] - 2026-03-26 - Session-start hook performance optimization
+
+### Changed
+- **hooks**: `session-start` consolidated 6 separate `sqlite3` calls into one using row-prefixed multi-query — eliminates 6 forks plus 2 `date` and 1 `sed` fork for nudge/branch logic
+- **hooks**: `session-start` memory loop uses bash builtins (`${f##*/}`, `${name%.md}`) instead of `basename`, and bash glob loop instead of `ls|xargs|sed|grep` pipeline for other memories listing
+- **hooks**: `session-start` hoists `CURRENT_BRANCH` to avoid duplicate `git rev-parse`, uses param expansion for `SESSION_ID` and `MAIN_BRANCH`
+- **hooks**: `hook_log_section` uses `${#content}` instead of `printf|wc -c` pipe — benefits all hooks (6 forks eliminated per session-start invocation)
+
+### Added
+- **tests**: Performance harness for session-start hook (`tests/perf-session-start.sh`)
+
+### Fixed
+- **hooks**: `session-start` nudge logic no longer shows false "never run" when `last_manage_run` metadata row has NULL value
+
+### Removed
+- **backlog**: Removed `optimize-session-start-hook` (done)
+
 ## [2.35.2] - 2026-03-26 - Hook performance optimization
 
 ### Changed

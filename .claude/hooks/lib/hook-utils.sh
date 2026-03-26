@@ -139,8 +139,7 @@ hook_inject() {
 hook_log_section() {
     local section="$1"
     local content="$2"
-    local bytes
-    bytes=$(printf '%s' "$content" | wc -c)
+    local bytes=${#content}
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
         "$SESSION_ID" "$INVOCATION_ID" "$_HOOK_TIMESTAMP" "$PROJECT" \
