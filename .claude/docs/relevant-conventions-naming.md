@@ -27,7 +27,7 @@ Guidelines for naming resources in Claude Toolkit.
 |----------|---------|---------|
 | Skills | `verb-noun` | `create-agent`, `evaluate-skill` |
 | Agents | `context-role` | `code-reviewer`, `goal-verifier` |
-| Memories | `category-context-name` | `relevant-context-professional_profile` |
+| Memories | `descriptive_name` | `professional_profile`, `user` |
 | Hooks | `functionality-context-detail` | `enforce-feature-branch` |
 
 ---
