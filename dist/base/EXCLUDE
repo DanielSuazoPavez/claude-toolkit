@@ -1,0 +1,30 @@
+# Resources excluded from sync to projects.
+#
+# Rules:
+#   - One entry per line, paths relative to .claude/
+#   - Directories end with / — excludes all files recursively (prefix match)
+#   - Individual files listed by exact path
+#   - Lines starting with # are comments
+#   - Empty lines are ignored
+#
+# Everything NOT listed here syncs by default.
+
+# Toolkit-meta skills (not synced to projects)
+skills/build-communication-style/
+skills/create-agent/
+skills/create-hook/
+skills/create-skill/
+skills/evaluate-agent/
+skills/evaluate-batch/
+skills/evaluate-docs/
+skills/evaluate-hook/
+skills/evaluate-skill/
+skills/shape-proposal/
+
+# Toolkit-internal docs
+docs/relevant-conventions-naming.md
+docs/relevant-project-identity.md
+docs/relevant-toolkit-resource_frontmatter.md
+
+# Toolkit maintenance scripts
+scripts/cron/
