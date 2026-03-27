@@ -121,6 +121,17 @@ done < /tmp/ct-principles-template.txt
 
 Report missing principles as suggestions (not errors) — the user may have intentionally omitted or reworded them.
 
+### Check 7: PR template
+
+```bash
+# Check if .github/PULL_REQUEST_TEMPLATE.md exists
+if [ ! -f .github/PULL_REQUEST_TEMPLATE.md ] && [ -f .claude/templates/PULL_REQUEST_TEMPLATE.md ]; then
+    echo "Missing: .github/PULL_REQUEST_TEMPLATE.md (template available)"
+fi
+```
+
+If the template source exists but `.github/PULL_REQUEST_TEMPLATE.md` doesn't, flag as an issue.
+
 ### Present Summary
 
 After all checks, show:
@@ -134,6 +145,7 @@ After all checks, show:
 | 4 | Makefile targets       | ...    | ...    |
 | 5 | .gitignore patterns    | ...    | ...    |
 | 6 | CLAUDE.md + principles | ...    | ...    |
+| 7 | PR template            | ...    | ...    |
 ```
 
 If all checks pass, report "All checks passed" and skip to Phase 3.
@@ -245,6 +257,16 @@ bash .claude/scripts/validate-all.sh
 Report the result:
 - **All passed:** "Setup complete. All validations passed."
 - **Failures:** List what failed and suggest manual resolution.
+
+### PR template (Check 7)
+
+If `.github/PULL_REQUEST_TEMPLATE.md` doesn't exist and `.claude/templates/PULL_REQUEST_TEMPLATE.md` does:
+
+```
+"Copy PR template to .github/PULL_REQUEST_TEMPLATE.md? [y/n]"
+```
+
+If approved, create `.github/` directory if needed and copy the template.
 
 ## Edge Cases
 

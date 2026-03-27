@@ -25,9 +25,9 @@ The toolkit publishes two distribution profiles. Each has its own MANIFEST (what
 ### MANIFEST
 
 Base syncs everything in the toolkit. Raiz cherry-picks:
-- 5 skills (brainstorm-idea, read-json, review-plan, wrap-up, write-handoff)
-- 4 agents (code-debugger, code-reviewer, goal-verifier, implementation-checker)
-- 6 hooks (guardrails only — no session-start, no enforce-make, no surface-lessons, no enforce-uv-run)
+- 8 skills (brainstorm-idea, create-docs, draft-pr, read-json, review-plan, setup-toolkit, wrap-up, write-handoff)
+- 5 agents (codebase-explorer, code-debugger, code-reviewer, goal-verifier, implementation-checker)
+- 7 hooks (guardrails only — no session-start, no enforce-make, no surface-lessons, no enforce-uv-run)
 - 3 docs (code style, context conventions, permissions config)
 
 ## When Editing Templates

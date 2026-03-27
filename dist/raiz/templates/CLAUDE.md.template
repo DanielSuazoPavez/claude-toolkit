@@ -40,7 +40,7 @@ make test
 This project uses claude-toolkit hooks and skills for Claude Code configuration.
 
 - **Hooks**: `.claude/hooks/` — guardrails enforced automatically (dangerous commands, feature branch, secrets)
-- **Skills**: `.claude/skills/` — invoke skills by name (e.g. `/brainstorm-idea`, `/review-plan`)
+- **Skills**: `.claude/skills/` — invoke skills by name (e.g. `/brainstorm-idea`, `/draft-pr`, `/review-plan`)
 - **Memories**: `.claude/memories/` — persistent context loaded at session start
 
 Resources may reference skills or agents from the full toolkit that aren't included here. Ignore any `/skill-name` or agent references you don't recognize — they're not available in this distribution.
