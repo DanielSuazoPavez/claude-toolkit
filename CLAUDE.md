@@ -10,7 +10,7 @@ Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, a
 make check                                     # Run tests and validations
 make test                                      # Run tests only
 make backlog                                   # Show backlog (prefer over reading BACKLOG.md directly)
-cli/backlog/query.sh id <task-id>              # Query specific backlog task by id
+claude-toolkit backlog id <task-id>             # Query specific backlog task by id
 ```
 
 ## Key Principles

@@ -23,26 +23,21 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-## P2 - Medium
+- **[TESTS]** Update perf harnesses to instrument current implementation (`update-perf-harness-instrumentation`)
+    - **scope**: `tests`
+    - **notes**: Both `perf-surface-lessons.sh` and `perf-session-start.sh` run an instrumented copy of the *old* hook logic for per-phase timing, so the phase breakdown doesn't reflect the optimized code. The `ACTUAL_HOOK` timing is accurate (runs the real hook), but the per-phase breakdown and `INSTRUMENTED` total are misleading. Either rewrite `run_instrumented()` to match the current implementation, or instrument the actual hook with optional timing probes (e.g., `HOOK_PERF=1` env var).
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count.
 
-
-- **[TESTS]** Update perf harnesses to instrument current implementation (`update-perf-harness-instrumentation`)
-    - **scope**: `tests`
-    - **notes**: Both `perf-surface-lessons.sh` and `perf-session-start.sh` run an instrumented copy of the *old* hook logic for per-phase timing, so the phase breakdown doesn't reflect the optimized code. The `ACTUAL_HOOK` timing is accurate (runs the real hook), but the per-phase breakdown and `INSTRUMENTED` total are misleading. Either rewrite `run_instrumented()` to match the current implementation, or instrument the actual hook with optional timing probes (e.g., `HOOK_PERF=1` env var).
-
-## P3 - Low
-
-- **[SCRIPTS]** `cli/lessons/db.py` doesn't consider docs — needs update post-migration (`db-docs-support`)
-    - **scope**: `scripts`
-    - **notes**: `cli/lessons/db.py` still references memories instead of docs for resource tracking. Needs audit and update.
+## P2 - Medium
 
 - **[DOCS]** Lessons ecosystem doc — reference doc for the lessons system (`docs-lessons-ecosystem`)
     - **scope**: `docs`
     - **notes**: Create a `relevant-toolkit-lessons.md` doc in `.claude/docs/` covering the lessons ecosystem: lessons.db schema, tiers (key/recent), tags, `/learn` and `/manage-lessons` skills, session-start hook integration, nudge logic, and the `claude-toolkit lessons` CLI commands. Currently this knowledge is spread across skills, hooks, and CLI code with no single reference.
+
+## P3 - Low
 
 - **[TOOLKIT]** Output styles concept — consider switchable response formatting modes (`output-styles-concept`)
     - **scope**: `toolkit`
