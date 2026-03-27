@@ -2,7 +2,7 @@
 name: setup-toolkit
 type: command
 description: Diagnose and fix Claude Toolkit configuration after sync or drift. Keywords: setup, configure, toolkit, settings, hooks, permissions, mcp.
-allowed-tools: Bash(jq:*), Bash(grep:*), Bash(diff:*), Bash(make:*), Bash(bash:*), Bash(ls:*), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(jq:*), Bash(grep:*), Bash(diff:*), Bash(make:*), Bash(bash:*), Bash(ls:*), Bash(rm:*), Read, Write, Edit, Glob, Grep
 ---
 
 Diagnose and fix Claude Toolkit configuration in the current project. Run after `claude-toolkit sync` or when session-start reports version drift.
@@ -18,123 +18,33 @@ Diagnose and fix Claude Toolkit configuration in the current project. Run after 
 
 ## Phase 1: Diagnostic
 
-Run all checks below. Collect results, then present a summary table before proceeding to fixes.
-
-### Check 1: settings.json hooks
-
-Compare hook commands in `.claude/settings.json` against `.claude/templates/settings.template.json`:
+Run the diagnostic script to perform all checks in a single pass:
 
 ```bash
-# Extract hook commands from both files
-jq -r '.. | objects | select(.command?) | .command' .claude/settings.json 2>/dev/null | sort > /tmp/ct-hooks-current.txt
-jq -r '.. | objects | select(.command?) | .command' .claude/templates/settings.template.json 2>/dev/null | sort > /tmp/ct-hooks-template.txt
-
-# Missing from settings.json (need to add)
-comm -23 /tmp/ct-hooks-template.txt /tmp/ct-hooks-current.txt
-
-# Extra in settings.json (informational only)
-comm -13 /tmp/ct-hooks-template.txt /tmp/ct-hooks-current.txt
+bash .claude/scripts/setup-toolkit-diagnose.sh
 ```
 
-- **Missing:** these are issues to fix
-- **Extra:** flag as informational — "These hooks are in your settings.json but not in the template. If project-specific, consider moving to settings.local.json."
+This runs 8 checks and outputs structured results. Parse the output to build the summary table.
 
-### Check 2: settings.json permissions
+### Output format
 
-```bash
-# Extract permission arrays
-jq -r '.permissions.allow // [] | .[]' .claude/settings.json 2>/dev/null | sort > /tmp/ct-perms-current.txt
-jq -r '.permissions.allow // [] | .[]' .claude/templates/settings.template.json 2>/dev/null | sort > /tmp/ct-perms-template.txt
+Section delimiters:
+- `===CHECK:N:name:STATUS===` ... `===CHECK:N:END===` per check
+- `===SUMMARY===` ... `===SUMMARY:END===` for final counts
 
-# Missing from settings.json
-comm -23 /tmp/ct-perms-template.txt /tmp/ct-perms-current.txt
+Line prefixes:
+- `MISSING:` — entry needs to be added (fixable)
+- `EXTRA:` — entry in project but not template (informational)
+- `ORPHAN:` — resource on disk but not in MANIFEST (cleanup candidate)
+- `STALE_REF:` — settings.json references a file that doesn't exist
+- `CLEANUP:` — settings entry references missing file and isn't in template
+- `SUGGESTION:` — optional improvement (not an error)
 
-# Extra in settings.json
-comm -13 /tmp/ct-perms-template.txt /tmp/ct-perms-current.txt
-```
-
-Same reporting as Check 1 — missing are issues, extras are informational.
-
-### Check 3: MCP config
-
-First, check if `mcp.json` exists at the project root (wrong location). If found, move it to `.claude/mcp.json` before proceeding:
-
-```bash
-if [ -f mcp.json ] && [ ! -f .claude/mcp.json ]; then
-    mv mcp.json .claude/mcp.json
-elif [ -f mcp.json ] && [ -f .claude/mcp.json ]; then
-    echo "WARNING: mcp.json exists at both root and .claude/ — merge manually"
-fi
-```
-
-Compare `.claude/mcp.json` against `.claude/templates/mcp.template.json`:
-
-```bash
-# Extract server names from both
-jq -r '.mcpServers | keys[]' .claude/mcp.json 2>/dev/null | sort > /tmp/ct-mcp-current.txt
-jq -r '.mcpServers | keys[]' .claude/templates/mcp.template.json 2>/dev/null | sort > /tmp/ct-mcp-template.txt
-
-# Missing servers
-comm -23 /tmp/ct-mcp-template.txt /tmp/ct-mcp-current.txt
-```
-
-If `.claude/mcp.json` doesn't exist, the entire file is missing — flag as an issue.
-
-### Check 4: Makefile targets
-
-```bash
-grep -q 'claude-toolkit-validate' Makefile 2>/dev/null
-```
-
-If no match (or no Makefile), flag as an issue. The template targets are in `.claude/templates/Makefile.claude-toolkit`.
-
-### Check 5: .gitignore patterns
-
-For each non-comment, non-blank line in `.claude/templates/gitignore.claude-toolkit`, check if it exists in `.gitignore`:
-
-```bash
-while IFS= read -r line; do
-    [[ -z "$line" || "$line" =~ ^# ]] && continue
-    grep -qxF "$line" .gitignore 2>/dev/null || echo "Missing: $line"
-done < .claude/templates/gitignore.claude-toolkit
-```
-
-If `.gitignore` doesn't exist, all lines are missing.
-
-### Check 6: CLAUDE.md exists and has key principles
-
-Check if `CLAUDE.md` exists in the project root. If missing, flag it. Template available at `.claude/templates/CLAUDE.md.template`.
-
-If `CLAUDE.md` exists, also check for key principles from the template that may be missing:
-
-```bash
-# Extract bullet points from "Key Principles" section of template
-# (lines starting with "- **" between "## Key Principles" and the next "##")
-sed -n '/^## Key Principles/,/^## /{/^- \*\*/p}' .claude/templates/CLAUDE.md.template > /tmp/ct-principles-template.txt
-
-# Check which ones are missing from CLAUDE.md (match on the bold text)
-while IFS= read -r line; do
-    keyword=$(echo "$line" | grep -oP '\*\*[^*]+\*\*' | head -1)
-    grep -qF "$keyword" CLAUDE.md 2>/dev/null || echo "Missing: $line"
-done < /tmp/ct-principles-template.txt
-```
-
-Report missing principles as suggestions (not errors) — the user may have intentionally omitted or reworded them.
-
-### Check 7: PR template
-
-```bash
-# Check if .github/PULL_REQUEST_TEMPLATE.md exists
-if [ ! -f .github/PULL_REQUEST_TEMPLATE.md ] && [ -f .claude/templates/PULL_REQUEST_TEMPLATE.md ]; then
-    echo "Missing: .github/PULL_REQUEST_TEMPLATE.md (template available)"
-fi
-```
-
-If the template source exists but `.github/PULL_REQUEST_TEMPLATE.md` doesn't, flag as an issue.
+Status values: `PASS`, `ISSUES_FOUND`, `INFO`, `SKIPPED`
 
 ### Present Summary
 
-After all checks, show:
+After parsing the output, show:
 
 ```
 | # | Check                  | Status | Issues |
@@ -146,9 +56,11 @@ After all checks, show:
 | 5 | .gitignore patterns    | ...    | ...    |
 | 6 | CLAUDE.md + principles | ...    | ...    |
 | 7 | PR template            | ...    | ...    |
+| 8 | Cleanup verification   | ...    | ...    |
 ```
 
-If all checks pass, report "All checks passed" and skip to Phase 3.
+- **EXTRA** items: flag as informational — "These are in your settings.json but not in the template. If project-specific, consider moving to settings.local.json."
+- If all checks pass, report "All checks passed" and skip to Phase 3.
 
 ## Phase 2: Fix
 
@@ -184,6 +96,8 @@ jq '.permissions.allow += ["Bash(new:*)"]' .claude/settings.json
 **Show the user the exact jq transformation before applying.** Write the result back to `.claude/settings.json`.
 
 ### MCP config (Check 3)
+
+If `mcp.json` is at the project root instead of `.claude/mcp.json`, offer to move it first.
 
 If `.claude/mcp.json` doesn't exist, offer to copy from template:
 
@@ -246,6 +160,82 @@ Add them to your Key Principles section? [y/n/pick]"
 
 If the user picks "pick", present each one individually. These are suggestions — the user may have intentionally omitted or reworded them.
 
+### PR template (Check 7)
+
+If `.github/PULL_REQUEST_TEMPLATE.md` doesn't exist and `.claude/templates/PULL_REQUEST_TEMPLATE.md` does:
+
+```
+"Copy PR template to .github/PULL_REQUEST_TEMPLATE.md? [y/n]"
+```
+
+If approved, create `.github/` directory if needed and copy the template.
+
+### Cleanup verification (Check 8)
+
+**Orphaned resources (ORPHAN items):**
+
+For each `ORPHAN:` item, present the resource and ask per-item:
+
+```
+"skills/old-skill/ exists on disk but not in MANIFEST — likely removed from toolkit.
+ Remove? [y/n/re-sync]"
+```
+
+- **y**: Remove the resource directory/file:
+  ```bash
+  # For skill directories
+  rm -rf .claude/skills/old-skill/
+  # For individual files (agents, hooks, docs)
+  rm .claude/agents/<agent-name>.md
+  ```
+- **n**: Skip this resource
+- **re-sync**: Skip all remaining orphan fixes — suggest running `claude-toolkit sync .` to refresh MANIFEST instead
+
+**Stale hook references (STALE_REF items):**
+
+For each `STALE_REF:` item:
+
+```
+"settings.json references .claude/hooks/old-hook.sh but the file doesn't exist.
+ Remove this hook entry from settings.json? [y/n]"
+```
+
+If approved, remove the hook entry using jq. The hook is nested inside an event array — find and filter it:
+
+```bash
+# Remove a hook command from its event array (e.g., PreToolUse)
+jq '(.hooks.PreToolUse // [])[] |= (.hooks = [.hooks[] | select(.command != ".claude/hooks/old-hook.sh")])' .claude/settings.json
+```
+
+After filtering, if a matcher group's hooks array is empty, remove the entire matcher group:
+
+```bash
+# Clean up empty matcher groups
+jq '(.hooks | to_entries[] | .value) |= [.[] | select(.hooks | length > 0)]' .claude/settings.json
+```
+
+**Removal candidates (CLEANUP items):**
+
+For each `CLEANUP:` permission item:
+
+```
+"Permission 'Bash(.claude/hooks/old.sh:*)' references a hook that doesn't exist.
+ Remove this permission? [y/n]"
+```
+
+If approved:
+```bash
+jq '.permissions.allow = [.permissions.allow[] | select(. != "Bash(.claude/hooks/old.sh:*)")]' .claude/settings.json
+```
+
+For `CLEANUP:` hook items (not in template, not on disk):
+```
+"Hook '.claude/hooks/old.sh' is not in the template and doesn't exist on disk.
+ Remove from settings.json? [y/n]"
+```
+
+Apply the same jq hook removal pattern as stale refs above.
+
 ## Phase 3: Validation
 
 After all fixes are applied (or skipped), run the validation suite:
@@ -270,35 +260,29 @@ to get started. [y/skip]"
 
 If yes, invoke `/build-communication-style`.
 
-### PR template (Check 7)
-
-If `.github/PULL_REQUEST_TEMPLATE.md` doesn't exist and `.claude/templates/PULL_REQUEST_TEMPLATE.md` does:
-
-```
-"Copy PR template to .github/PULL_REQUEST_TEMPLATE.md? [y/n]"
-```
-
-If approved, create `.github/` directory if needed and copy the template.
-
 ## Edge Cases
 
 | Scenario | Handling |
 |----------|----------|
-| No `.claude/templates/` directory | "Templates not found. Run `claude-toolkit sync .` first." Exit. |
+| No `.claude/templates/` directory | Script exits: "Templates not found. Run `claude-toolkit sync .` first." |
 | settings.json doesn't exist at all | Offer to copy entire file from template |
 | mcp.json doesn't exist | Offer to copy from template |
 | Makefile doesn't exist | Ask user: create or skip |
 | .gitignore doesn't exist | Offer to create with toolkit patterns |
 | User declines all fixes | Clean exit with summary of skipped items |
-| Running in toolkit repo (`dist/base/` exists) | Warn and exit — this skill is for target projects |
+| Running in toolkit repo (`dist/base/` exists) | Script exits with warning — this skill is for target projects |
 | settings.json has custom hooks not in template | Informational only — don't remove, suggest settings.local.json |
+| No MANIFEST file | Check 8a skipped — "MANIFEST not found. Run `claude-toolkit sync` for cleanup detection." Checks 8b-8c still run. |
+| Resource in `.claude-toolkit-ignore` | Not flagged as orphan — these are project-specific exclusions |
+| User selects "re-sync" for orphans | Skip remaining orphan fixes, suggest `claude-toolkit sync .` |
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
 | Auto-fix without asking | User loses control | Always present and ask before each fix |
-| Remove existing entries | Breaks project config | Additive only — never delete |
+| Remove existing entries (Checks 1-2) | Breaks project config | Additive only for hooks/permissions — never delete |
 | Edit settings.local.json | That's user-private config | Never touch it |
 | Skip final validation | Fixes might be incomplete | Always run validate-all.sh at the end |
 | Overwrite files entirely | Loses project customizations | Merge, don't replace |
+| Auto-delete orphans without asking | User may want to keep them | Always ask per-item, offer re-sync as alternative |

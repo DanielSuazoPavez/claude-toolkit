@@ -39,6 +39,9 @@ docs/relevant-toolkit-permissions_config.md
 # docs (copied to project root, outside .claude/)
 docs/getting-started.md
 
+# scripts
+scripts/setup-toolkit-diagnose.sh
+
 # templates
 templates/CLAUDE.md.template
 templates/gitignore.claude-toolkit

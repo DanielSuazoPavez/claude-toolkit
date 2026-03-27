@@ -17,7 +17,7 @@ help:
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
-test: test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils
+test: test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils test-setup-diag
 
 test-hooks:
 	@bash tests/test-hooks.sh -q
@@ -39,6 +39,9 @@ test-validate-indexed:
 
 test-validate-hook-utils:
 	@bash tests/test-validate-hook-utils.sh -q
+
+test-setup-diag:
+	@bash tests/test-setup-toolkit-diagnose.sh -q
 
 backlog:
 	@bash cli/backlog/query.sh

@@ -50,6 +50,7 @@ COMMANDS:
     lessons <cmd>   Manage lessons database (add, search, list, health, ...)
     backlog <cmd>   Query backlog (summary, id, status, priority, scope, ...)
     eval <cmd>      Query evaluation status (stale, unevaluated, above, type)
+    validate        Validate toolkit configuration in current project
     version         Print toolkit version
 
 OPTIONS:
@@ -242,6 +243,20 @@ resolve_syncable_files() {
             echo "dist/base/templates/${f#$templates_dir/}"
         done < <(find "$templates_dir" -type f -print0 2>/dev/null)
     fi
+}
+
+# === cmd_validate: Validate toolkit configuration ===
+cmd_validate() {
+    local claude_dir="${CLAUDE_DIR:-.claude}"
+    local diag_script="$claude_dir/scripts/setup-toolkit-diagnose.sh"
+
+    if [ ! -f "$diag_script" ]; then
+        echo -e "${RED}Diagnostic script not found at $diag_script${NC}" >&2
+        echo "Run 'claude-toolkit sync' to install toolkit resources." >&2
+        exit 1
+    fi
+
+    exec bash "$diag_script" "$@"
 }
 
 # === cmd_sync: Main sync logic ===
@@ -748,5 +763,6 @@ case "${1:-}" in
         ;;
     backlog) shift; exec "$TOOLKIT_DIR/cli/backlog/query.sh" "$@" ;;
     eval) shift; exec "$TOOLKIT_DIR/cli/eval/query.sh" "$@" ;;
+    validate) shift; cmd_validate "$@" ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
 esac

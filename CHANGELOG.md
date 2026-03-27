@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.42.0] - 2026-03-27 - Setup-toolkit diagnostic script and cleanup verification
+
+### Added
+- **scripts**: `setup-toolkit-diagnose.sh` — consolidated diagnostic that runs all 8 checks in one pass, replacing 15+ individual bash commands in `/setup-toolkit` Phase 1
+- **skills**: Check 8 (cleanup verification) in `/setup-toolkit` — detects orphaned resources via MANIFEST, stale hook references, and removal candidates in settings.json
+- **cli**: `claude-toolkit validate` subcommand — run diagnostic checks outside of Claude sessions
+- **tests**: 40 tests for the diagnostic script covering base and raiz consumer projects
+- **dist**: Add `scripts/setup-toolkit-diagnose.sh` to raiz MANIFEST
+
+### Changed
+- **skills**: `/setup-toolkit` Phase 1 now invokes a single script instead of inline bash blocks — avoids repeated permission prompts
+- **skills**: Check 8 respects `.claude-toolkit-ignore` — project-specific resources not flagged as orphans
+
 ## [2.41.0] - 2026-03-27 - Simplify base distribution system
 
 ### Changed
