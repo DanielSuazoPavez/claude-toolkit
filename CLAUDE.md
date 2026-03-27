@@ -29,14 +29,16 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 ├── skills/     # User-invocable skills (/skill-name)
 ├── agents/     # Specialized task agents
 ├── hooks/      # Automation hooks
-├── docs/       # Reference documentation (rules, conventions, configs)
+├── docs/       # Internal docs — conventions, configs, rules (synced to projects via distributions)
 └── memories/   # Organic context (project identity, user preferences, auto-memory)
 docs/
 ├── indexes/    # Resource indexes and evaluation scores
-└── ...         # Reference documentation
+└── ...         # User-facing docs — getting started, curated resources (synced to project root)
 output/
 └── claude-toolkit/  # Generated artifacts (analysis, reviews, sessions, plans, etc.)
 ```
+
+**`docs/` vs `.claude/docs/`**: Both sync to projects but land in different places. `.claude/docs/` stays inside `.claude/` (agent context — loaded by session-start, referenced by skills). `docs/` copies to the project root (user-facing — getting started guides, reference material). When adding documentation, pick the location by audience: agent-facing → `.claude/docs/`, user-facing → `docs/`.
 
 ## Resource Indexes
 
@@ -67,9 +69,18 @@ Summary and status of all resources:
 
 `suggestions-box/` — inbox for resources and issues sent from other projects via `claude-toolkit send`. Organized by source project. Triage with "check suggestions" — see `suggestions-box/CLAUDE.md` for the full workflow.
 
+## Codebase Orientation
+
+Read these before exploring the codebase:
+
+1. `.claude/docs/codebase-explorer/` — versioned architecture reports (ARCHITECTURE.md, STACK.md, STRUCTURE.md, INTEGRATIONS.md). Read the latest version first.
+2. `docs/indexes/` — resource indexes for skills, agents, hooks, docs, and evaluations
+3. `cli/CLAUDE.md` — CLI module structure (mixed Python + shell)
+4. `dist/CLAUDE.md` — distribution profiles (base vs raiz) and how publishing works
+5. `tests/CLAUDE.md` — test file map, runners, shared helpers
+
 ## See Also
 
 - `README.md` — Full documentation, CLI usage, sync workflow
 - `make backlog` — Show current priorities (use instead of reading BACKLOG.md directly)
-- `docs/indexes/` — Resource indexes (skills, agents, hooks, memories, evaluations)
 - `.claude/docs/relevant-toolkit-lessons.md` — Lessons ecosystem reference (schema, tiers, tags, CLI, lifecycle)
