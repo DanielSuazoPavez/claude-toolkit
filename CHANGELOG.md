@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.40.0] - 2026-03-27 - Add build-communication-style skill
+
+### Added
+- **skills**: `/build-communication-style` — guided discovery to build or refine a communication style doc
+- **dist**: Add `build-communication-style` skill and `session-start.sh` hook to raiz MANIFEST
+- **skills**: `setup-toolkit` now prompts to run `/build-communication-style` after validation
+- **docs**: Update `getting-started.md` to reflect current raiz distribution and recommend `/setup-toolkit`
+
 ## [2.39.0] - 2026-03-27 - Expand raiz distribution
 
 ### Added

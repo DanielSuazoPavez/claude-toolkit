@@ -15,8 +15,12 @@ Commands you invoke by typing `/name` in Claude Code. Think of them as repeatabl
 | Skill | What it does |
 |-------|-------------|
 | `/brainstorm-idea` | Turns a fuzzy idea into a clear design through structured Q&A |
+| `/build-communication-style` | Builds or refines a doc that customizes how Claude communicates with you |
+| `/create-docs` | Creates new doc files following project conventions |
+| `/draft-pr` | Analyzes branch commits and generates a PR title and description |
 | `/read-json` | Reads and queries JSON files using jq — handles large files safely |
 | `/review-plan` | Reviews a plan against quality criteria before you approve it |
+| `/setup-toolkit` | Diagnoses and fixes toolkit configuration — the recommended way to get started |
 | `/wrap-up` | Finalizes a feature branch — commits, version bump, changelog |
 | `/write-handoff` | Saves context before ending a session so the next one can pick up |
 
@@ -26,6 +30,7 @@ Subtask specialists that Claude spawns when needed. You don't invoke these direc
 
 | Agent | What it does |
 |-------|-------------|
+| codebase-explorer | Explores and documents codebase architecture and structure |
 | code-debugger | Investigates bugs methodically with persistent state across context resets |
 | code-reviewer | Pragmatic code review focused on real risks, proportional to project scale |
 | goal-verifier | Checks that work actually achieves its goals, not just that tasks were checked off |
@@ -37,10 +42,12 @@ Automatic guardrails that run every time Claude uses certain tools. They block d
 
 | Hook | What it does |
 |------|-------------|
+| approve-safe-commands | Auto-approves common safe commands (git status, ls, etc.) to reduce prompts |
 | block-config-edits | Prevents modification of shell configs, SSH, and git configuration |
 | block-dangerous-commands | Blocks destructive commands: `rm -rf /`, fork bombs, disk formats |
 | git-safety | Enforces branch safety — blocks commits, force pushes on protected branches |
 | secrets-guard | Blocks access to secret files: `.env`, SSH keys, cloud credentials, tokens |
+| session-start | Loads essential docs and git context at the start of each session |
 | suggest-read-json | Suggests `/read-json` for large JSON files instead of reading them raw |
 
 ### Docs
@@ -73,13 +80,20 @@ The output is a clear design you can take into plan mode (`/plan`) to start impl
 
 ---
 
-## 3. Activating Hooks
+## 3. Setting Up
 
-Hook scripts exist in `.claude/hooks/`, but they're inert until you wire them up in `settings.json`. Without that configuration, Claude Code doesn't know to run them.
+The fastest way to get everything configured is to run `/setup-toolkit` in Claude Code. It will:
 
-### Fresh setup (no existing settings)
+1. Check your `settings.json` for missing hooks and permissions
+2. Verify MCP config, Makefile targets, `.gitignore` patterns, and `CLAUDE.md`
+3. Walk you through fixes one at a time — you approve each change before it's applied
+4. Offer to build a communication style doc (`/build-communication-style`) so Claude matches your preferred tone and working style
 
-Copy the template:
+### Manual setup
+
+If you prefer to set things up yourself:
+
+**Fresh setup (no existing settings):**
 
 ```bash
 cp .claude/templates/settings.template.json .claude/settings.json
@@ -87,29 +101,7 @@ cp .claude/templates/settings.template.json .claude/settings.json
 
 The template includes wiring for all hooks in this distribution, ready to go.
 
-### Existing settings
-
-If you already have a `.claude/settings.json`, merge the `hooks` block from `.claude/templates/settings.template.json` into your existing file. The structure looks like:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/block-dangerous-commands.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Each hook entry has a `matcher` (which Claude Code tool triggers it) and a `command` (the script to run). See the template for the full configuration.
+**Existing settings:** Merge the `hooks` block from `.claude/templates/settings.template.json` into your existing `.claude/settings.json`. Each hook entry has a `matcher` (which Claude Code tool triggers it) and a `command` (the script to run).
 
 ### Customization
 

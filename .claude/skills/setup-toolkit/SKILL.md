@@ -258,6 +258,18 @@ Report the result:
 - **All passed:** "Setup complete. All validations passed."
 - **Failures:** List what failed and suggest manual resolution.
 
+### Communication style doc
+
+After validation, check if `.claude/docs/essential-preferences-communication_style.md` exists. If not, ask:
+
+```
+"Would you also like to build a communication style doc? This customizes how Claude
+communicates with you — tone, verbosity, ceremony, and more. Run /build-communication-style
+to get started. [y/skip]"
+```
+
+If yes, invoke `/build-communication-style`.
+
 ### PR template (Check 7)
 
 If `.github/PULL_REQUEST_TEMPLATE.md` doesn't exist and `.claude/templates/PULL_REQUEST_TEMPLATE.md` does:

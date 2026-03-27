@@ -5,6 +5,7 @@
 
 # skills
 skills/brainstorm-idea/
+skills/build-communication-style/
 skills/create-docs/
 skills/draft-pr/
 skills/read-json/
@@ -27,6 +28,7 @@ hooks/git-safety.sh
 hooks/secrets-guard.sh
 hooks/suggest-read-json.sh
 hooks/approve-safe-commands.sh
+hooks/session-start.sh
 hooks/lib/hook-utils.sh
 
 # docs (inside .claude/)

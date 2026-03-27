@@ -147,7 +147,7 @@ assert_file_exists "implementation-checker included" "$OUTPUT_DIR/.claude/agents
 # Hooks
 assert_file_exists "block-config-edits included" "$OUTPUT_DIR/.claude/hooks/block-config-edits.sh"
 assert_file_exists "secrets-guard included" "$OUTPUT_DIR/.claude/hooks/secrets-guard.sh"
-assert_file_not_exists "session-start excluded" "$OUTPUT_DIR/.claude/hooks/session-start.sh"
+assert_file_exists "session-start included" "$OUTPUT_DIR/.claude/hooks/session-start.sh"
 assert_file_not_exists "enforce-uv-run excluded" "$OUTPUT_DIR/.claude/hooks/enforce-uv-run.sh"
 assert_file_not_exists "enforce-make-commands excluded" "$OUTPUT_DIR/.claude/hooks/enforce-make-commands.sh"
 # Docs (inside .claude/)
@@ -213,7 +213,7 @@ assert_file_contains "has secrets-guard" "$local_settings" "secrets-guard.sh"
 assert_file_contains "has suggest-read-json" "$local_settings" "suggest-read-json.sh"
 
 # Should NOT have excluded hooks
-assert_file_not_contains "no session-start" "$local_settings" "session-start.sh"
+assert_file_contains "has session-start" "$local_settings" "session-start.sh"
 assert_file_not_contains "no enforce-uv-run" "$local_settings" "enforce-uv-run.sh"
 assert_file_not_contains "no enforce-make-commands" "$local_settings" "enforce-make-commands.sh"
 # Should NOT have statusLine
