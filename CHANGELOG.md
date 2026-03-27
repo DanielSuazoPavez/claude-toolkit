@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.43.0] - 2026-03-27 - Telegram notifications for raiz distribution
+
+### Added
+- **workflow**: Telegram notification step in `publish-raiz.yml` — sends changelog summary after successful raiz sync
+- **scripts**: `format-raiz-changelog.sh` — extracts changelog entry, trims to raiz-relevant lines using MANIFEST, formats as Telegram HTML
+- **dist**: `dist/raiz/changelog/` override directory — commit a `{version}.html` file to send a hand-written message instead of auto-generated
+
+### Changed
+- **workflow**: `publish-raiz.yml` sync step now outputs `pushed=true/false` for downstream gating
+
 ## [2.42.0] - 2026-03-27 - Setup-toolkit diagnostic script and cleanup verification
 
 ### Added

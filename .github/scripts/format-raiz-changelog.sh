@@ -55,9 +55,6 @@ VERSION="${VERSION#v}"
 build_keywords() {
   local keywords=()
 
-  # Always match these
-  keywords+=("raiz")
-
   while IFS= read -r line; do
     line="${line%%#*}"     # strip comments
     line="${line// /}"     # strip whitespace
