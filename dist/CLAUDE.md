@@ -2,7 +2,7 @@
 
 ## Overview
 
-The toolkit publishes two distribution profiles. Each has its own MANIFEST (what to sync) and templates (project scaffolding).
+The toolkit publishes two distribution profiles, each with its own templates (project scaffolding) and resource selection mechanism.
 
 ## Profiles
 
@@ -22,9 +22,11 @@ The toolkit publishes two distribution profiles. Each has its own MANIFEST (what
 | Validation/Sync make targets | Present | Omitted | Raiz doesn't include validation scripts |
 | Missing-skills disclaimer | Absent | Present | Raiz resources may reference skills not in the subset |
 
-### MANIFEST
+### Resource Selection
 
-Base syncs everything in the toolkit. Raiz cherry-picks:
+**Base** uses `dist/base/EXCLUDE` — syncs everything in `.claude/` except toolkit-meta resources (create-*, evaluate-*, etc.). New resources sync by default. A MANIFEST is generated at sync time for target project validation.
+
+**Raiz** uses `dist/raiz/MANIFEST` — cherry-picks a specific subset:
 - 9 skills (brainstorm-idea, build-communication-style, create-docs, draft-pr, read-json, review-plan, setup-toolkit, wrap-up, write-handoff)
 - 5 agents (codebase-explorer, code-debugger, code-reviewer, goal-verifier, implementation-checker)
 - 8 hooks (guardrails + session-start — no enforce-make, no surface-lessons, no enforce-uv-run)

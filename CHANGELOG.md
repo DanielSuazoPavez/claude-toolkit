@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.41.0] - 2026-03-27 - Simplify base distribution system
+
+### Changed
+- **dist**: Replace `dist/base/MANIFEST` with `dist/base/EXCLUDE` — new resources sync by default, only toolkit-meta resources need explicit exclusion
+- **dist**: Sync now generates MANIFEST at sync time for target project validation (was copied from static file)
+- **dist**: Add `shape-project`, `refactor`, `review-security` skills to base sync (previously excluded)
+- **validation**: Remove MANIFEST check from `validate-settings-template.sh` (failure mode no longer exists)
+- **agents**: Bump `goal-verifier` and `code-reviewer` effort to `high` (were failing to write review files at `medium`)
+
+### Removed
+- `dist/base/MANIFEST` — replaced by directory walking + EXCLUDE
+
 ## [2.40.0] - 2026-03-27 - Add build-communication-style skill
 
 ### Added

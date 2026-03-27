@@ -42,6 +42,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P99 - Nice to Have
 
+- **[DOCS]** Update resource frontmatter reference with `effort` field (`docs-frontmatter-effort`)
+    - **scope**: `docs`
+    - **notes**: `effort` is a supported agent frontmatter field (values: `low`, `medium`, `high`, `max`) but missing from `relevant-toolkit-resource_frontmatter.md`. Discovered during v2.41.0 work.
+
 - **[HOOKS]** `last_assistant_message` in Stop hooks — output-level hooks for post-response automation (`hook-stop-last-message`)
     - **scope**: `hooks`
     - **notes**: HOOKS_API updated with `last_assistant_message` field and `prompt`/`agent` hook types. Concrete use case: lesson-detection Stop hook (regex-based detection proved unreliable — consider `prompt`-type hook instead).
