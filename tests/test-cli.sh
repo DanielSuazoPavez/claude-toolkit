@@ -48,14 +48,9 @@ setup_test_env() {
     echo "# Test Doc" > "$TEMP_DIR/toolkit/.claude/docs/test-doc.md"
     echo "# Test Agent" > "$TEMP_DIR/toolkit/.claude/agents/test-agent.md"
 
-    # Create MANIFEST
+    # Create EXCLUDE (empty — all test resources sync by default)
     mkdir -p "$TEMP_DIR/toolkit/dist/base"
-    cat > "$TEMP_DIR/toolkit/dist/base/MANIFEST" << 'MANIFEST_EOF'
-skills/test-skill/
-hooks/test-hook.sh
-docs/test-doc.md
-agents/test-agent.md
-MANIFEST_EOF
+    touch "$TEMP_DIR/toolkit/dist/base/EXCLUDE"
 
     # Symlink the actual CLI script (so it can find VERSION relative to itself)
     # Instead, we'll use TOOLKIT_DIR override
@@ -392,16 +387,22 @@ test_sync_updates_version() {
     teardown_test_env
 }
 
-test_sync_copies_manifest() {
-    report_section "=== sync: copies MANIFEST to target ==="
+test_sync_generates_manifest() {
+    report_section "=== sync: generates MANIFEST in target ==="
     setup_test_env
 
     run_toolkit sync --force > /dev/null 2>&1 || true
 
-    expect_file_exists "MANIFEST copied to target" "$TEMP_DIR/project/.claude/MANIFEST"
+    expect_file_exists "MANIFEST generated in target" "$TEMP_DIR/project/.claude/MANIFEST"
     expect_file_content "MANIFEST contains skill entry" \
         "$TEMP_DIR/project/.claude/MANIFEST" \
         "skills/test-skill/"
+    expect_file_content "MANIFEST contains hook entry" \
+        "$TEMP_DIR/project/.claude/MANIFEST" \
+        "hooks/test-hook.sh"
+    expect_file_content "MANIFEST contains auto-generated header" \
+        "$TEMP_DIR/project/.claude/MANIFEST" \
+        "Auto-generated"
 
     teardown_test_env
 }
@@ -647,7 +648,7 @@ if [ -z "$FILTER" ]; then
     test_sync_only_filter
     test_sync_ignore_patterns
     test_sync_updates_version
-    test_sync_copies_manifest
+    test_sync_generates_manifest
     test_validate_indexed_manifest_mode
     test_validate_deps_manifest_mode
 
@@ -675,7 +676,7 @@ else
             test_sync_only_filter
             test_sync_ignore_patterns
             test_sync_updates_version
-            test_sync_copies_manifest
+            test_sync_generates_manifest
             test_validate_indexed_manifest_mode
             test_validate_deps_manifest_mode
             ;;
