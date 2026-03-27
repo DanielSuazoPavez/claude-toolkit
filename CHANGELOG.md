@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.39.0] - 2026-03-27 - Expand raiz distribution
+
+### Added
+- **dist**: Add `draft-pr` and `setup-toolkit` skills to raiz MANIFEST
+- **dist**: Add `codebase-explorer` agent to raiz MANIFEST
+- **dist**: Add `Makefile.claude-toolkit`, `gitignore.claude-toolkit`, and `PULL_REQUEST_TEMPLATE.md` templates to raiz
+- **skills**: Add Check 7 (PR template placement) to `setup-toolkit`
+- **templates**: Generic `PULL_REQUEST_TEMPLATE.md` for both distributions
+
+### Changed
+- **agents**: `codebase-explorer` output now writes to `.claude/docs/codebase-explorer/{version}/` with automatic version detection (was `output/claude-toolkit/reviews/`)
+
 ## [2.38.4] - 2026-03-27 - Fix doc inconsistencies and MANIFEST gaps
 
 ### Fixed
