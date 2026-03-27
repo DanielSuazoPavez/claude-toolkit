@@ -1,6 +1,6 @@
 ---
 name: codebase-explorer
-description: Explores codebase and writes structured analysis to a timestamped folder under output/claude-toolkit/reviews/. Use for onboarding or understanding architecture.
+description: Explores codebase and writes structured analysis to .claude/docs/codebase-explorer/{version}/. Use for onboarding or understanding architecture.
 tools: Read, Bash, Grep, Glob, Write
 color: cyan
 model: sonnet
@@ -37,8 +37,14 @@ Invoke with a focus area:
 ## Focus Areas
 
 Determine the output directory at the start of each run:
-1. Get current timestamp: `date +%Y%m%d_%H%M`
-2. Output directory: `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__codebase-explorer/`
+
+1. Detect the project version from the first source found:
+   - `VERSION` file (read contents, trim whitespace)
+   - `pyproject.toml` → `project.version`
+   - `package.json` → `version`
+   - `Cargo.toml` → `package.version`
+   - If none found, ask the user for the version string
+2. Output directory: `.claude/docs/codebase-explorer/{version}/` (e.g., `.claude/docs/codebase-explorer/2.38.4/`)
 
 Write documents to that timestamped directory:
 
@@ -107,15 +113,16 @@ grep -r "from src" src/ --include="*.py"
 
 ## Output
 
-Write documents to the timestamped directory. Return only a brief confirmation:
+Write documents to the version directory. Return only a brief confirmation:
 
 ```
 ## Codebase Mapped
 
 **Focus**: {area}
+**Version**: 2.38.4
 **Documents written**:
-- `output/claude-toolkit/reviews/20260308_1430__codebase-explorer/STACK.md`
-- `output/claude-toolkit/reviews/20260308_1430__codebase-explorer/INTEGRATIONS.md`
+- `.claude/docs/codebase-explorer/2.38.4/STACK.md`
+- `.claude/docs/codebase-explorer/2.38.4/INTEGRATIONS.md`
 
 **Key findings**:
 - Python 3.12 + FastAPI

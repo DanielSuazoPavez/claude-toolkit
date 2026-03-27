@@ -123,19 +123,21 @@ setup
 
 # Included skills
 assert_file_exists "brainstorm-idea included" "$OUTPUT_DIR/.claude/skills/brainstorm-idea/SKILL.md"
+assert_file_exists "draft-pr included" "$OUTPUT_DIR/.claude/skills/draft-pr/SKILL.md"
 assert_file_exists "read-json included" "$OUTPUT_DIR/.claude/skills/read-json/SKILL.md"
 assert_file_exists "review-plan included" "$OUTPUT_DIR/.claude/skills/review-plan/SKILL.md"
+assert_file_exists "setup-toolkit included" "$OUTPUT_DIR/.claude/skills/setup-toolkit/SKILL.md"
 assert_file_exists "wrap-up included" "$OUTPUT_DIR/.claude/skills/wrap-up/SKILL.md"
 assert_file_exists "write-handoff included" "$OUTPUT_DIR/.claude/skills/write-handoff/SKILL.md"
 
 # Excluded skills
 assert_dir_not_exists "analyze-idea excluded" "$OUTPUT_DIR/.claude/skills/analyze-idea"
-assert_dir_not_exists "draft-pr excluded" "$OUTPUT_DIR/.claude/skills/draft-pr"
 assert_dir_not_exists "snap-back excluded" "$OUTPUT_DIR/.claude/skills/snap-back"
 assert_dir_not_exists "learn excluded" "$OUTPUT_DIR/.claude/skills/learn"
 assert_dir_not_exists "refactor excluded" "$OUTPUT_DIR/.claude/skills/refactor"
 
 # Agents
+assert_file_exists "codebase-explorer included" "$OUTPUT_DIR/.claude/agents/codebase-explorer.md"
 assert_file_exists "code-debugger included" "$OUTPUT_DIR/.claude/agents/code-debugger.md"
 assert_file_exists "code-reviewer included" "$OUTPUT_DIR/.claude/agents/code-reviewer.md"
 assert_file_exists "goal-verifier included" "$OUTPUT_DIR/.claude/agents/goal-verifier.md"
@@ -155,8 +157,11 @@ assert_file_not_exists "communication_style excluded from raiz" "$OUTPUT_DIR/.cl
 
 # Templates
 assert_file_exists "CLAUDE.md.template included" "$OUTPUT_DIR/.claude/templates/CLAUDE.md.template"
-assert_file_exists "settings.template.json included" "$OUTPUT_DIR/.claude/templates/settings.template.json"
+assert_file_exists "gitignore.claude-toolkit included" "$OUTPUT_DIR/.claude/templates/gitignore.claude-toolkit"
+assert_file_exists "Makefile.claude-toolkit included" "$OUTPUT_DIR/.claude/templates/Makefile.claude-toolkit"
 assert_file_exists "mcp.template.json included" "$OUTPUT_DIR/.claude/templates/mcp.template.json"
+assert_file_exists "PULL_REQUEST_TEMPLATE.md included" "$OUTPUT_DIR/.claude/templates/PULL_REQUEST_TEMPLATE.md"
+assert_file_exists "settings.template.json included" "$OUTPUT_DIR/.claude/templates/settings.template.json"
 
 # Raiz CLAUDE.md.template override (not base)
 assert_file_contains "raiz CLAUDE.md.template used (has toolkit note)" \

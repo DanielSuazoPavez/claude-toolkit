@@ -6,12 +6,15 @@
 # skills
 skills/brainstorm-idea/
 skills/create-docs/
+skills/draft-pr/
 skills/read-json/
 skills/review-plan/
+skills/setup-toolkit/
 skills/wrap-up/
 skills/write-handoff/
 
 # agents
+agents/codebase-explorer.md
 agents/code-debugger.md
 agents/code-reviewer.md
 agents/goal-verifier.md
@@ -36,5 +39,8 @@ docs/getting-started.md
 
 # templates
 templates/CLAUDE.md.template
+templates/gitignore.claude-toolkit
+templates/Makefile.claude-toolkit
 templates/mcp.template.json
+templates/PULL_REQUEST_TEMPLATE.md
 templates/settings.template.json
