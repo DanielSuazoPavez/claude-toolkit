@@ -24,21 +24,25 @@ LESSONS_DB="$HOME/.claude/lessons.db"
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "surface-lessons" "PreToolUse"
+_hook_perf_probe "hook_init"
 
 # Single jq call: extract tool_name + context (command or file_path)
 read -r TOOL_NAME CONTEXT < <(echo "$HOOK_INPUT" | jq -r '[.tool_name, (.tool_input.command // .tool_input.file_path // "")] | @tsv' 2>/dev/null) || true
+_hook_perf_probe "jq_parse"
 
 # Tool match check (replaces hook_require_tool)
 case "$TOOL_NAME" in
     Bash|Read|Write|Edit) _HOOK_ACTIVE=true ;;
     *) exit 0 ;;
 esac
+_hook_perf_probe "tool_match"
 
 [ -z "$CONTEXT" ] && exit 0
 
 # Tokenize context into words, lowercase, deduplicate
 # Split on whitespace, slashes, dots, and other non-alphanumeric chars
 WORDS=$(echo "$CONTEXT" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]_-' '\n' | sort -u)
+_hook_perf_probe "tokenize"
 [ -z "$WORDS" ] && exit 0
 
 # Build SQL OR conditions matching context words against tag keywords
@@ -62,6 +66,7 @@ for word in $WORDS; do
         CONDITIONS="$CONDITIONS OR t.keywords LIKE '%${stripped}%'"
     fi
 done
+_hook_perf_probe "build_sql"
 
 [ -z "$CONDITIONS" ] && exit 0
 
@@ -76,6 +81,7 @@ RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
       AND ($CONDITIONS)
     LIMIT 3;
 " 2>/dev/null)
+_hook_perf_probe "sqlite_query"
 
 LESSONS=$(echo "$RESULTS" | cut -d'|' -f2-)
 MATCHED_IDS=$(echo "$RESULTS" | cut -d'|' -f1 | tr '\n' ',' | sed 's/,$//')
@@ -89,5 +95,6 @@ hook_log_context "$CONTEXT" "$KEYWORD_LIST" "$MATCH_COUNT" "$MATCHED_IDS"
 
 # Format as additionalContext — escape for JSON
 ESCAPED=$(echo "$LESSONS" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n- /g')
+_hook_perf_probe "format_output"
 
 hook_inject "Relevant lessons:\\n- ${ESCAPED}"

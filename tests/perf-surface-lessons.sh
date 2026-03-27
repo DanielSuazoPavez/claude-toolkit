@@ -1,9 +1,8 @@
 #!/bin/bash
 # Performance harness for surface-lessons hook
 #
-# Measures each phase of execution to identify bottlenecks.
-# Runs the hook multiple times with different inputs and reports
-# per-phase timing breakdown.
+# Runs the actual hook with HOOK_PERF=1 to get per-phase timing.
+# No reimplemented logic — single source of truth.
 #
 # Usage:
 #   bash tests/perf-surface-lessons.sh              # Run synthetic cases
@@ -131,111 +130,30 @@ build_replay_cases() {
 }
 
 # ============================================================
-# Phase-instrumented version of the hook
+# Run hook with HOOK_PERF=1, parse phase timings from stderr
 # ============================================================
-# Runs the hook logic step-by-step, measuring each phase.
-# Outputs TSV: phase\tduration_ms
-run_instrumented() {
+# Returns phase timings AND a WALL_CLOCK line measured from outside the hook.
+run_hook_with_perf() {
     local input="$1"
-    local t0 t1 t2 t3 t4 t5 t6 t7
-
-    # --- Phase 0: baseline (date call cost) ---
-    t0=$(date +%s%N)
-    t1=$(date +%s%N)
-
-    # --- Phase 1: stdin + jq parse ---
-    TOOL_NAME=$(echo "$input" | jq -r '.tool_name // ""' 2>/dev/null) || true
-    t2=$(date +%s%N)
-
-    # --- Phase 2: tool match check ---
-    local matched=false
-    case "$TOOL_NAME" in
-        Bash|Read|Write|Edit) matched=true ;;
-    esac
-    if [ "$matched" = false ]; then
-        t3=$(date +%s%N)
-        printf "date_overhead\t%d\n" $(( (t1 - t0) / 1000000 ))
-        printf "stdin_jq_parse\t%d\n" $(( (t2 - t1) / 1000000 ))
-        printf "tool_match\t%d\n" $(( (t3 - t2) / 1000000 ))
-        printf "TOTAL\t%d\n" $(( (t3 - t0) / 1000000 ))
-        return
+    local perf_output wall_start wall_end
+    if [ -n "${EPOCHREALTIME:-}" ]; then
+        local _no_dot="${EPOCHREALTIME/./}"
+        wall_start="${_no_dot:0:13}"
+    else
+        wall_start=$(date +%s%3N)
     fi
-    t3=$(date +%s%N)
-
-    # --- Phase 3: extract context ---
-    local context=""
-    case "$TOOL_NAME" in
-        Bash) context=$(echo "$input" | jq -r '.tool_input.command // ""' 2>/dev/null) ;;
-        Read|Write|Edit) context=$(echo "$input" | jq -r '.tool_input.file_path // ""' 2>/dev/null) ;;
-    esac
-    t4=$(date +%s%N)
-
-    # --- Phase 4: tokenize + build SQL ---
-    local words conditions="" safe_word stripped
-    words=$(echo "$context" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]_-' '\n' | sort -u)
-    for word in $words; do
-        [ ${#word} -lt 3 ] && continue
-        safe_word=$(echo "$word" | sed "s/'/''/g")
-        if [ -n "$conditions" ]; then
-            conditions="$conditions OR t.keywords LIKE '%${safe_word}%'"
-        else
-            conditions="t.keywords LIKE '%${safe_word}%'"
-        fi
-        stripped="${safe_word%s}"
-        if [ "$stripped" != "$safe_word" ] && [ ${#stripped} -ge 3 ]; then
-            conditions="$conditions OR t.keywords LIKE '%${stripped}%'"
-        fi
+    # Capture all output (stderr has perf lines), filter by HOOK_PERF prefix
+    perf_output=$(echo "$input" | CLAUDE_HOOK_TEST=1 HOOK_PERF=1 bash "$HOOKS_DIR/surface-lessons.sh" 2>&1 >/dev/null)
+    if [ -n "${EPOCHREALTIME:-}" ]; then
+        local _no_dot="${EPOCHREALTIME/./}"
+        wall_end="${_no_dot:0:13}"
+    else
+        wall_end=$(date +%s%3N)
+    fi
+    echo "$perf_output" | while IFS=$'\t' read -r prefix phase ms; do
+        [ "$prefix" = "HOOK_PERF" ] && printf '%s\t%s\n' "$phase" "$ms"
     done
-    t5=$(date +%s%N)
-
-    # --- Phase 5: sqlite3 query ---
-    local results=""
-    if [ -n "$conditions" ]; then
-        results=$(sqlite3 -separator '|' "$LESSONS_DB" "
-            SELECT DISTINCT l.id, l.text
-            FROM lessons l
-            JOIN lesson_tags lt ON l.id = lt.lesson_id
-            JOIN tags t ON lt.tag_id = t.id
-            WHERE l.active = 1
-              AND t.status = 'active'
-              AND ($conditions)
-            LIMIT 3;
-        " 2>/dev/null) || true
-    fi
-    t6=$(date +%s%N)
-
-    # --- Phase 6: format output + logging overhead ---
-    local match_count=0 keyword_list escaped
-    if [ -n "$results" ]; then
-        match_count=$(echo "$results" | grep -c . 2>/dev/null || echo "0")
-        local lessons
-        lessons=$(echo "$results" | cut -d'|' -f2-)
-        escaped=$(echo "$lessons" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n- /g')
-    fi
-    keyword_list=$(echo "$words" | tr '\n' ',' | sed 's/,$//')
-    t7=$(date +%s%N)
-
-    # --- Output phase timings ---
-    printf "date_overhead\t%d\n" $(( (t1 - t0) / 1000000 ))
-    printf "stdin_jq_parse\t%d\n" $(( (t2 - t1) / 1000000 ))
-    printf "tool_match\t%d\n" $(( (t3 - t2) / 1000000 ))
-    printf "context_extract\t%d\n" $(( (t4 - t3) / 1000000 ))
-    printf "tokenize_sql\t%d\n" $(( (t5 - t4) / 1000000 ))
-    printf "sqlite3_query\t%d\n" $(( (t6 - t5) / 1000000 ))
-    printf "format_output\t%d\n" $(( (t7 - t6) / 1000000 ))
-    printf "TOTAL\t%d\n" $(( (t7 - t0) / 1000000 ))
-}
-
-# ============================================================
-# Also time the actual hook end-to-end for comparison
-# ============================================================
-run_actual_hook() {
-    local input="$1"
-    local t0 t1
-    t0=$(date +%s%N)
-    echo "$input" | CLAUDE_HOOK_TEST=1 bash "$HOOKS_DIR/surface-lessons.sh" >/dev/null 2>&1
-    t1=$(date +%s%N)
-    echo $(( (t1 - t0) / 1000000 ))
+    printf 'WALL_CLOCK\t%d\n' "$(( wall_end - wall_start ))"
 }
 
 # ============================================================
@@ -279,28 +197,21 @@ for test_entry in "${TEST_CASES[@]}"; do
     # Collect phase timings across iterations
     declare -A phase_totals=()
     declare -A phase_counts=()
-    actual_total=0
 
     for ((i=1; i<=ITERATIONS; i++)); do
-        # Instrumented run
         while IFS=$'\t' read -r phase ms; do
             phase_totals[$phase]=$(( ${phase_totals[$phase]:-0} + ms ))
             phase_counts[$phase]=$(( ${phase_counts[$phase]:-0} + 1 ))
-        done < <(run_instrumented "$input")
-
-        # Actual hook run
-        actual_ms=$(run_actual_hook "$input")
-        actual_total=$((actual_total + actual_ms))
+        done < <(run_hook_with_perf "$input")
 
         if [ "$VERBOSE" = 1 ]; then
-            printf "${DIM}  iter %d: instrumented=%dms actual=%dms${NC}\n" \
-                "$i" "${phase_totals[TOTAL]:-0}" "$actual_ms"
+            printf "${DIM}  iter %d: total=%dms${NC}\n" \
+                "$i" "${phase_totals[TOTAL]:-0}"
         fi
     done
 
     # Print phase averages
-    # Ordered list of phases (to control output order)
-    phases=("date_overhead" "stdin_jq_parse" "tool_match" "context_extract" "tokenize_sql" "sqlite3_query" "format_output")
+    phases=("hook_init" "jq_parse" "tool_match" "tokenize" "build_sql" "sqlite_query" "format_output")
     for phase in "${phases[@]}"; do
         count=${phase_counts[$phase]:-0}
         [ "$count" -eq 0 ] && continue
@@ -311,17 +222,13 @@ for test_entry in "${TEST_CASES[@]}"; do
     done
 
     # Totals
-    instrumented_avg=0
     if [ "${phase_counts[TOTAL]:-0}" -gt 0 ]; then
-        instrumented_avg=$(( ${phase_totals[TOTAL]} / ${phase_counts[TOTAL]} ))
+        total_avg=$(( ${phase_totals[TOTAL]} / ${phase_counts[TOTAL]} ))
+        printf "  ${YELLOW}%-18s %4dms${NC}  ${DIM}(inside hook)${NC}\n" "TOTAL" "$total_avg"
     fi
-    actual_avg=$((actual_total / ITERATIONS))
-    overhead=$((actual_avg - instrumented_avg))
-
-    printf "  ${YELLOW}%-18s %4dms${NC}\n" "INSTRUMENTED" "$instrumented_avg"
-    printf "  ${GREEN}%-18s %4dms${NC}\n" "ACTUAL_HOOK" "$actual_avg"
-    if [ "$overhead" -gt 0 ]; then
-        printf "  ${DIM}%-18s %4dms (hook_init + logging + EXIT trap)${NC}\n" "OVERHEAD" "$overhead"
+    if [ "${phase_counts[WALL_CLOCK]:-0}" -gt 0 ]; then
+        wall_avg=$(( ${phase_totals[WALL_CLOCK]} / ${phase_counts[WALL_CLOCK]} ))
+        printf "  ${GREEN}%-18s %4dms${NC}  ${DIM}(process start → exit)${NC}\n" "WALL_CLOCK" "$wall_avg"
     fi
     echo ""
 
