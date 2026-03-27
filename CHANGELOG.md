@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.38.2] - 2026-03-26 - Add lessons ecosystem reference doc
+
+### Added
+- **docs**: `relevant-toolkit-lessons.md` — single reference for the lessons system (schema, tiers, tags, skills, hooks, CLI, lifecycle)
+- **docs**: Cross-references from `/learn`, `/manage-lessons` skills, `CLAUDE.md`, and docs index
+
 ## [2.38.1] - 2026-03-26 - Fix lessons domain tags and add cli/ docs
 
 ### Fixed
