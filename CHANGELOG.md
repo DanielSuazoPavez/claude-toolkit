@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.38.4] - 2026-03-27 - Fix doc inconsistencies and MANIFEST gaps
+
+### Fixed
+- **docs**: HOOKS.md secrets-guard matcher missing `Grep` (now `Read|Bash|Grep`)
+- **docs**: HOOKS.md configuration example was stale — replaced with pointer to `settings.json`
+- **docs**: HOOKS.md hook environment section incorrectly claimed env vars — hooks use stdin JSON
+- **docs**: README doc count was 11, actual is 12
+- **docs**: README git clone URL had placeholder username
+
+### Added
+- **dist**: Add `relevant-toolkit-lessons.md` to base MANIFEST (now synced to projects)
+- **dist**: Add `create-docs` skill to raiz MANIFEST
+
 ## [2.38.3] - 2026-03-26 - Fix perf harness instrumentation drift
 
 ### Fixed

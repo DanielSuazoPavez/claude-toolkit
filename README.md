@@ -6,7 +6,7 @@ Curated Claude Code configuration: skills, agents, hooks, and docs for productiv
 
 ```bash
 # Clone the toolkit
-git clone https://github.com/yourusername/claude-toolkit.git
+git clone https://github.com/DanielSuazoPavez/claude-toolkit.git
 
 # Add to PATH (makes claude-toolkit available in all shells, including non-interactive)
 ln -s ~/claude-toolkit/bin/claude-toolkit ~/.local/bin/claude-toolkit
@@ -82,7 +82,7 @@ A skill tells Claude *what to do*. A doc tells Claude *what to know*.
 | **Skills** | 32 | `/brainstorm-idea`, `/draft-pr`, `/refactor`, `/learn` |
 | **Agents** | 7 | `code-reviewer`, `code-debugger`, `pattern-finder` |
 | **Hooks** | 10 | git safety, secrets guard, dangerous command blocking |
-| **Docs** | 11 | code style, communication style, testing conventions |
+| **Docs** | 12 | code style, communication style, testing conventions |
 
 Skills cover workflow, code quality, design, development tools, and toolkit development. Hooks cover safety (git, secrets, destructive commands) and convention enforcement (uv, make targets). Some hooks are Python-specific — remove or modify for other stacks.
 

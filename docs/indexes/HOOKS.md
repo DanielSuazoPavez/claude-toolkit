@@ -9,7 +9,7 @@ Automation hooks configured in `settings.json`.
 | `session-start.sh` | stable | SessionStart | Loads essential memories, git context, and toolkit version drift check |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `block-dangerous-commands.sh` | stable | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `secrets-guard.sh` | stable | PreToolUse (Read\|Bash) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
+| `secrets-guard.sh` | stable | PreToolUse (Read\|Bash\|Grep) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
 | `suggest-read-json.sh` | stable | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
 | `enforce-uv-run.sh` | stable | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
@@ -167,41 +167,7 @@ Auto-approves chained Bash commands when all subcommands match safe prefixes fro
 
 ## Configuration
 
-Hooks are configured in `settings.json`:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "EnterPlanMode",
-        "hooks": [
-          {"type": "command", "command": ".claude/hooks/git-safety.sh"}
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {"type": "command", "command": "bash .claude/hooks/block-dangerous-commands.sh"},
-          {"type": "command", "command": ".claude/hooks/enforce-uv-run.sh"}
-        ]
-      },
-      {
-        "matcher": "Read|Bash",
-        "hooks": [
-          {"type": "command", "command": "bash .claude/hooks/secrets-guard.sh"}
-        ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {"type": "command", "command": "bash .claude/hooks/suggest-read-json.sh"}
-        ]
-      }
-    ]
-  }
-}
-```
+Hooks are configured in `.claude/settings.json`. See that file for the current hook registrations, matchers, and timeouts.
 
 ## Creating New Hooks
 
@@ -221,6 +187,9 @@ Hooks are configured in `settings.json`:
 
 ### Hook Environment
 
-Hooks receive context via environment variables:
-- `TOOL_INPUT` - JSON of tool parameters
-- `TOOL_NAME` - Name of the tool being used
+Hooks receive tool context as **JSON on stdin**, parsed by `hook_init()` in `lib/hook-utils.sh`. The JSON includes tool name, tool input, and session metadata.
+
+Some hooks also read **environment variables** for configuration:
+- `PROTECTED_BRANCHES` — regex for protected branches (default: `^(main|master)$`)
+- `JSON_SIZE_THRESHOLD_KB` — size threshold for JSON blocking (default: 50)
+- `CLAUDE_HOOK_TEST` — set to `1` to signal test mode
