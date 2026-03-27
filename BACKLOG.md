@@ -42,14 +42,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P99 - Nice to Have
 
-- **[DOCS]** Internal navigation docs for under-documented areas (`docs-internal-navigation`)
-    - **scope**: `docs`
-    - **notes**: Gap analysis (2026-03-27) found agents waste time in these areas. Three docs needed:
-        - `.claude/hooks/` overview — hook execution model, lib/hook-utils.sh reference, which hooks are active
-        - `tests/` guide — test strategy, pytest vs bash split, how to run both, perf benchmarks
-        - `docs/` vs `.claude/docs/` boundary — which location syncs where, when to use each
-
-
 - **[DOCS]** Update resource frontmatter reference with `effort` field (`docs-frontmatter-effort`)
     - **scope**: `docs`
     - **notes**: `effort` is a supported agent frontmatter field (values: `low`, `medium`, `high`, `max`) but missing from `relevant-toolkit-resource_frontmatter.md`. Discovered during v2.41.0 work.

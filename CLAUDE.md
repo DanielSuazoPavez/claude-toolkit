@@ -77,6 +77,7 @@ Read these before exploring the codebase:
 2. `docs/indexes/` — resource indexes for skills, agents, hooks, docs, and evaluations
 3. `cli/CLAUDE.md` — CLI module structure (mixed Python + shell)
 4. `dist/CLAUDE.md` — distribution profiles (base vs raiz) and how publishing works
+5. `tests/CLAUDE.md` — test file map, runners, shared helpers
 
 ## See Also
 

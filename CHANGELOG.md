@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.43.1] - 2026-03-27 - Codebase navigation docs
+
+### Added
+- **docs**: Codebase Orientation section in root CLAUDE.md — points to explorer reports, indexes, and subfolder docs
+- **docs**: `docs/` vs `.claude/docs/` boundary explanation in Structure section
+- **docs**: `tests/CLAUDE.md` — file map, shared helpers, running instructions, perf benchmarks
+
 ## [2.43.0] - 2026-03-27 - Telegram notifications for raiz distribution
 
 ### Added
