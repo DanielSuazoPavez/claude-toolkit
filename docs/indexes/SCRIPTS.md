@@ -4,6 +4,12 @@ Internal utility scripts in `.claude/scripts/`.
 
 For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 
+## Diagnostic
+
+| Script | Status | Synced | Description |
+|--------|--------|--------|-------------|
+| `setup-toolkit-diagnose.sh` | stable | yes | Consolidated diagnostic — runs all 8 setup-toolkit checks in one pass |
+
 ## Validation
 
 | Script | Status | Synced | Description |
