@@ -31,6 +31,7 @@ DOCS_DIR="${CLAUDE_DOCS_DIR:-.claude/docs}"
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "session-start" "SessionStart"
+_hook_perf_probe "hook_init"
 
 # Write session ID for other hooks to read
 if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
@@ -40,6 +41,7 @@ else
     SESSION_ID="unknown-${EPOCHSECONDS:-$(date +%Y%m%d_%H%M%S)}"
 fi
 echo "$SESSION_ID" > ".claude/logs/.session-id"
+_hook_perf_probe "session_id"
 
 # Check we're in a project with docs
 if [ ! -d "$DOCS_DIR" ]; then
@@ -69,12 +71,14 @@ ${_content}
   done
 done
 printf '%s' "$ESSENTIAL_OUT"
+_hook_perf_probe "essential_docs"
 
 # === DOCS GUIDANCE ===
 GUIDANCE_OUT="Use /list-docs to discover available context when the task relates to a non-essential doc topic."
 hook_log_section "guidance" "$GUIDANCE_OUT"
 echo ""
 echo "$GUIDANCE_OUT"
+_hook_perf_probe "docs_guidance"
 
 # === GIT CONTEXT ===
 _raw=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null) && MAIN_BRANCH="${_raw##refs/remotes/origin/}" || MAIN_BRANCH=""
@@ -86,6 +90,7 @@ Main: $MAIN_BRANCH"
 hook_log_section "git" "$GIT_OUT"
 echo ""
 echo "$GIT_OUT"
+_hook_perf_probe "git_context"
 
 # === TOOLKIT VERSION ===
 ACTIONABLE_ITEMS=""
@@ -101,6 +106,7 @@ Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sy
         ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- Toolkit version mismatch: $PROJECT_VER → $TOOLKIT_VER (run \`make claude-toolkit-sync\`)"
     fi
 fi
+_hook_perf_probe "toolkit_version"
 
 # === LESSONS ===
 LESSONS_DB="$HOME/.claude/lessons.db"
@@ -171,6 +177,7 @@ $BRANCH_LESSONS"
         echo ""
         echo "$LESSONS_OUT"
     fi
+    _hook_perf_probe "lessons"
 
     # Nudge logic — days_since computed in SQL via julianday()
     NUDGE=""
@@ -187,6 +194,7 @@ $BRANCH_LESSONS"
         ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- $NUDGE ($ACTIVE_COUNT active lessons) — run /manage-lessons"
     fi
     echo ""
+    _hook_perf_probe "nudge"
 
 elif [ -f "$LEARNED_FILE" ]; then
     # Fallback — learned.json still exists but no lessons.db
@@ -223,5 +231,6 @@ if [ -n "$ACTIONABLE_ITEMS" ]; then
 else
     echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ACK_MSG. Do NOT skip this or bury it in other output."
 fi
+_hook_perf_probe "acknowledgment"
 
 exit 0

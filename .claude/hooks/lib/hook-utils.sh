@@ -68,6 +68,29 @@ hook_init() {
 }
 
 # ============================================================
+# _hook_perf_probe PHASE_NAME
+# ============================================================
+# Emits "HOOK_PERF\t<phase>\t<delta_ms>" to stderr when HOOK_PERF=1.
+# Delta = time since last probe (or since HOOK_START_MS for first call).
+# No-op when unset — zero overhead (short-circuit on first test).
+_HOOK_PERF_LAST_MS=0
+_hook_perf_probe() {
+    [ "${HOOK_PERF:-}" = "1" ] || return 0
+    local now_ms
+    if [ -n "${EPOCHREALTIME:-}" ]; then
+        local _no_dot="${EPOCHREALTIME/./}"
+        now_ms="${_no_dot:0:13}"
+    else
+        now_ms=$(date +%s%3N)
+    fi
+    local prev="${_HOOK_PERF_LAST_MS:-$HOOK_START_MS}"
+    [ "$prev" -eq 0 ] && prev="$HOOK_START_MS"
+    local delta=$(( now_ms - prev ))
+    _HOOK_PERF_LAST_MS="$now_ms"
+    printf 'HOOK_PERF\t%s\t%d\n' "$1" "$delta" >&2
+}
+
+# ============================================================
 # hook_require_tool TOOL1 [TOOL2 ...]
 # ============================================================
 hook_require_tool() {
@@ -190,6 +213,18 @@ hook_log_context() {
 # _hook_log_timing  (internal — EXIT trap)
 # ============================================================
 _hook_log_timing() {
+    # Emit HOOK_PERF TOTAL before the _HOOK_ACTIVE guard — perf timing
+    # is orthogonal to hook logging and should cover early exits too.
+    if [ "${HOOK_PERF:-}" = "1" ]; then
+        local _perf_end_ms
+        if [ -n "${EPOCHREALTIME:-}" ]; then
+            local _perf_no_dot="${EPOCHREALTIME/./}"
+            _perf_end_ms="${_perf_no_dot:0:13}"
+        else
+            _perf_end_ms=$(date +%s%3N)
+        fi
+        printf 'HOOK_PERF\tTOTAL\t%d\n' "$(( _perf_end_ms - HOOK_START_MS ))" >&2
+    fi
     # Skip logging if hook never matched a tool (early exit from hook_require_tool)
     [ "$_HOOK_ACTIVE" = true ] || return 0
     local end_ms ts

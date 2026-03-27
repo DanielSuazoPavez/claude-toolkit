@@ -23,15 +23,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[TESTS]** Update perf harnesses to instrument current implementation (`update-perf-harness-instrumentation`)
-    - **scope**: `tests`
-    - **notes**: Both `perf-surface-lessons.sh` and `perf-session-start.sh` run an instrumented copy of the *old* hook logic for per-phase timing, so the phase breakdown doesn't reflect the optimized code. The `ACTUAL_HOOK` timing is accurate (runs the real hook), but the per-phase breakdown and `INSTRUMENTED` total are misleading. Either rewrite `run_instrumented()` to match the current implementation, or instrument the actual hook with optional timing probes (e.g., `HOOK_PERF=1` env var).
+## P2 - Medium
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
-    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count.
-
-## P2 - Medium
+    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
 
 ## P3 - Low
 

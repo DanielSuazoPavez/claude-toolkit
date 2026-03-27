@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.38.3] - 2026-03-26 - Fix perf harness instrumentation drift
+
+### Fixed
+- **tests**: Replace reimplemented `run_instrumented()` in perf harnesses with `HOOK_PERF=1` probes in actual hooks — eliminates drift between harness and hook logic
+- **hooks**: Add `_hook_perf_probe` to hook-utils.sh for opt-in per-phase timing (zero overhead when disabled)
+- **tests**: Add `WALL_CLOCK` measurement to harnesses for honest end-to-end timing alongside per-phase breakdown
+
 ## [2.38.2] - 2026-03-26 - Add lessons ecosystem reference doc
 
 ### Added
