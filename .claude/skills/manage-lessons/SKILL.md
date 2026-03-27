@@ -8,7 +8,7 @@ allowed-tools: Bash(claude-toolkit lessons:*), Bash(sqlite3:*), Read, Write
 
 Review lessons and work toward crystallization, absorption, and pruning.
 
-**See also:** `/learn` (capture new lessons), `claude-toolkit lessons` (CLI), `session-start.sh` hook (nudges for this skill)
+**See also:** `/learn` (capture new lessons), `relevant-toolkit-lessons` doc (full ecosystem reference), `claude-toolkit lessons` (CLI)
 
 ## When to Use
 

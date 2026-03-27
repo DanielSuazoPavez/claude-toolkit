@@ -22,5 +22,6 @@ Always loaded at session start:
 | `relevant-workflow-backlog` | stable | BACKLOG.md schema: priority, categories, status values |
 | `relevant-conventions-naming` | stable | Naming conventions for all resource types (skills, agents, memories, hooks) |
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
+| `relevant-toolkit-lessons` | stable | Lessons ecosystem: schema, tiers, tags, skills, hooks, CLI, lifecycle |
 | `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
 | `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |

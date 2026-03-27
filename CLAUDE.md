@@ -68,3 +68,4 @@ Summary and status of all resources:
 - `README.md` — Full documentation, CLI usage, sync workflow
 - `make backlog` — Show current priorities (use instead of reading BACKLOG.md directly)
 - `docs/indexes/` — Resource indexes (skills, agents, hooks, memories, evaluations)
+- `.claude/docs/relevant-toolkit-lessons.md` — Lessons ecosystem reference (schema, tiers, tags, CLI, lifecycle)
