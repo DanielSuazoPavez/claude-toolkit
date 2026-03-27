@@ -23,10 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS]** Craft communication style skill — guided process to help users define their own communication preferences with Claude (`craft-communication-style`)
-    - **scope**: `skills`
-    - **notes**: Instead of shipping personal communication preferences in raiz, create a skill that helps users craft their own. Fits the "build your own workflow" philosophy. Could be included in raiz once built.
-
 ## P2 - Medium
 
 ## P3 - Low
