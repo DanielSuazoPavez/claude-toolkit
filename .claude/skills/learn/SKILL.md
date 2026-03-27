@@ -9,7 +9,7 @@ allowed-tools: Read, Bash(claude-toolkit lessons:*), Bash(sqlite3:*)
 
 Capture a lesson from the current session. Lightweight — identify, format, write.
 
-**See also:** `/manage-lessons` (lifecycle: promote, archive, crystallize after capture), `claude-toolkit lessons` (CLI), `session-start.sh` hook (nudges for manage-lessons)
+**See also:** `/manage-lessons` (lifecycle: promote, archive, crystallize after capture), `relevant-toolkit-lessons` doc (full ecosystem reference), `claude-toolkit lessons` (CLI)
 
 ## When to Use
 
