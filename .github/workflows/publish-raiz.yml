@@ -11,6 +11,7 @@ on:
       - 'dist/**'
       - '.github/scripts/publish.py'
       - '.github/scripts/format-raiz-changelog.sh'
+      - '.github/workflows/publish-raiz.yml'
 
 jobs:
   publish:
