@@ -194,48 +194,54 @@ target_path() {
     fi
 }
 
-# === resolve_manifest: Read MANIFEST and expand to file list ===
+# === resolve_syncable_files: Walk .claude/ and expand to file list ===
 # Outputs relative paths one per line (relative to .claude/, except dist/* from project root)
-resolve_manifest() {
-    local manifest="$TOOLKIT_DIR/dist/base/MANIFEST"
-    if [[ ! -f "$manifest" ]]; then
-        echo "Error: MANIFEST not found at $manifest" >&2
-        return 1
+# Loads dist/base/EXCLUDE to skip toolkit-meta resources.
+resolve_syncable_files() {
+    local exclude_file="$TOOLKIT_DIR/dist/base/EXCLUDE"
+    local -a exclude_patterns=()
+
+    # Load exclude patterns (same semantics as .claude-toolkit-ignore)
+    if [[ -f "$exclude_file" ]]; then
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ -z "$line" || "$line" =~ ^# ]] && continue
+            line="${line## }"
+            line="${line%% }"
+            exclude_patterns+=("$line")
+        done < "$exclude_file"
     fi
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        # Skip empty lines and comments
-        [[ -z "$line" || "$line" =~ ^# ]] && continue
-
-        # Trim whitespace
-        line="${line## }"
-        line="${line%% }"
-
-        # dist/ entries resolve from project root, everything else from .claude/
-        local base_dir="$TOOLKIT_DIR/.claude"
-        if [[ "$line" == dist/* ]]; then
-            base_dir="$TOOLKIT_DIR"
-        fi
-
-        if [[ "$line" == */ ]]; then
-            # Directory entry: expand recursively
-            local dir="$base_dir/$line"
-            if [[ -d "$dir" ]]; then
-                while IFS= read -r -d '' f; do
-                    echo "${f#$base_dir/}"
-                done < <(find "$dir" -type f -print0 2>/dev/null)
+    # Check if a relative path matches any exclude pattern
+    is_excluded() {
+        local path="$1"
+        for pattern in "${exclude_patterns[@]:-}"; do
+            if [[ "$pattern" == */ ]]; then
+                [[ "$path" == "$pattern"* ]] && return 0
             else
-                echo "Warning: manifest directory not found: $line" >&2
+                [[ "$path" == "$pattern" ]] && return 0
             fi
-        else
-            # File entry: verify exists
-            if [[ -f "$base_dir/$line" ]]; then
-                echo "$line"
-            else
-                echo "Warning: manifest file not found: $line" >&2
-            fi
-        fi
-    done < "$manifest"
+        done
+        return 1
+    }
+
+    # Walk .claude/ resource directories
+    local claude_dir="$TOOLKIT_DIR/.claude"
+    for category in skills agents hooks docs scripts; do
+        local dir="$claude_dir/$category"
+        [[ -d "$dir" ]] || continue
+        while IFS= read -r -d '' f; do
+            local rel="${f#$claude_dir/}"
+            is_excluded "$rel" || echo "$rel"
+        done < <(find "$dir" -type f -print0 2>/dev/null)
+    done
+
+    # Walk dist/base/templates/
+    local templates_dir="$TOOLKIT_DIR/dist/base/templates"
+    if [[ -d "$templates_dir" ]]; then
+        while IFS= read -r -d '' f; do
+            echo "dist/base/templates/${f#$templates_dir/}"
+        done < <(find "$templates_dir" -type f -print0 2>/dev/null)
+    fi
 }
 
 # === cmd_sync: Main sync logic ===
@@ -461,7 +467,7 @@ while IFS= read -r rel_path; do
     elif ! diff -q "$toolkit_file" "$target_file" > /dev/null 2>&1; then
         CATEGORY_UPDATED_FILES[$category]+="$rel_path"$'\n'
     fi
-done < <(resolve_manifest)
+done < <(resolve_syncable_files)
 
 # Count total files
 local total_new=0
