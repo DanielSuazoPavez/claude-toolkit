@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Bash, Write
 color: red
 model: sonnet
 background: true
-effort: medium
 ---
 
 You are a code reviewer who finds real problems, not theoretical ones.
