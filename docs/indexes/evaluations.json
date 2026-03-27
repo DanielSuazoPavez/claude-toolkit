@@ -769,6 +769,29 @@
           "[low] D7: Reference project-level memories as inputs to style detection in Step 3",
           "[low] D2: Add decision tree for when to do BOTH user-docs and docstrings simultaneously"
         ]
+      },
+      "build-communication-style": {
+        "file_hash": "237137f3",
+        "date": "2026-03-27",
+        "type": "command",
+        "score": 101,
+        "max": 120,
+        "percentage": 84,
+        "dimensions": {
+          "D1": 16,
+          "D2": 13,
+          "D3": 13,
+          "D4": 8,
+          "D5": 14,
+          "D6": 13,
+          "D7": 11,
+          "D8": 13
+        },
+        "top_improvements": [
+          "[low] D1: A few checklist items (one question per message, concrete over abstract) are standard UX advice rather than expert-curated",
+          "[low] D8: Add guidance for mid-process restart or abandonment",
+          "[low] D4: customize how Claude communicates is slightly broad as a trigger"
+        ]
       }
     }
   },

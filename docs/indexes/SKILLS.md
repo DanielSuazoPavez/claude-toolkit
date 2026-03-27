@@ -60,8 +60,9 @@ User-invocable skills activated with `/skill-name`.
 | `evaluate-docs` | stable | Evaluate doc file quality against conventions |
 | `evaluate-batch` | stable | Batch evaluate resources by type with parallel agents |
 
-## Meta
+## Personalization
 
 | Skill | Status | Description |
 |-------|--------|-------------|
+| `build-communication-style` | beta | Build or refine a communication style doc through guided discovery |
 | `snap-back` | stable | Reset tone when Claude drifts into sycophancy |
