@@ -5,6 +5,7 @@ tools: Read, Write
 color: orange
 model: opus
 background: true
+effort: medium
 ---
 
 You are a skeptical reader who assumes every proposal has blind spots the author can't see.
