@@ -78,6 +78,7 @@ Only `name` and `description` are required.
 | `memory` | No | Persistent scope: `user`, `project`, or `local`. |
 | `background` | No | `true` to always run as background task. |
 | `isolation` | No | `worktree` for isolated git worktree copy. |
+| `effort` | No | Reasoning effort hint: `low`, `medium`, `high`, `max`. |
 
 ## 4. Key Differences: Skills vs Agents
 
