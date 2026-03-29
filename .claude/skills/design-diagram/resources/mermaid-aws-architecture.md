@@ -39,7 +39,7 @@ architecture-beta
     group api(cloud)[API Layer]
 
     service gw(internet)[API Gateway] in api
-    service fn(server)[Lambda: Handler] in api
+    service fn(server)[Lambda Handler] in api
 
     gw:R --> L:fn
 ```
@@ -54,10 +54,10 @@ architecture-beta
     group processing(cloud)[Processing]
     group storage(cloud)[Storage]
 
-    service eb(server)[EventBridge: Cron] in trigger
-    service fn(server)[Lambda: Cleanup] in processing
-    service ddb(database)[DynamoDB: Records] in storage
-    service s3(disk)[S3: Archive] in storage
+    service eb(server)[EventBridge Cron] in trigger
+    service fn(server)[Lambda Cleanup] in processing
+    service ddb(database)[DynamoDB Records] in storage
+    service s3(disk)[S3 Archive] in storage
 
     eb:R --> L:fn
     fn:R --> L:ddb
@@ -74,9 +74,9 @@ architecture-beta
     group public(cloud)[Public Subnet] in vpc
     group private(cloud)[Private Subnet] in vpc
 
-    service s3(disk)[S3: Documents]
-    service fn(server)[Lambda: Indexer] in public
-    service os(database)[OpenSearch: Cluster] in private
+    service s3(disk)[S3 Documents]
+    service fn(server)[Lambda Indexer] in public
+    service os(database)[OpenSearch Cluster] in private
 
     s3:R --> L:fn
     fn:R --> L:os
@@ -101,4 +101,5 @@ architecture-beta
 | Service declared before its group | Declare `group` first, then `service ... in group` |
 | Custom icons for GitHub targets | Use only: `cloud`, `database`, `disk`, `internet`, `server` |
 | `{group}` modifier on group ID | Apply `{group}` to a service within the group, not the group itself |
+| Colons in labels: `[Lambda: Handler]` | Colons conflict with edge syntax — use `[Lambda Handler]` or `[Lambda - Handler]` |
 | Too many services (>12) in one diagram | Split by bounded context — one diagram per subsystem |
