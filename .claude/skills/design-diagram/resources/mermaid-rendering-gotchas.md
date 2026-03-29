@@ -34,3 +34,13 @@ flowchart LR
   end
   a2 --> b1
 ```
+
+## architecture-beta Gotchas
+
+| Issue | Fix |
+|-------|-----|
+| Edges render without direction | Always specify positions: `A:R -- L:B`, not `A -- B` |
+| Custom icons show as blue "?" on GitHub | Use only built-in: `cloud`, `database`, `disk`, `internet`, `server` |
+| Service declared before its group | Declare `group` first, then `service ... in group` |
+| Edge from group boundary fails | Use `{group}` modifier on a service: `svc{group}:R --> L:other`, not on group ID |
+| Groups can have icons too | `group vpc(cloud)[VPC]` — use to visually distinguish group types |
