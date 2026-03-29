@@ -31,16 +31,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
 
-- **[SKILLS]** Evaluate model AWS knowledge gaps — test what Claude gets right/wrong for reference doc scoping (`design-aws-knowledge-gaps`)
-    - **scope**: `skills`
-    - **notes**: Research task. Test model accuracy on IAM scoping patterns, service selection nuances, security patterns, Terraform gotchas. Determines what goes in the `design-aws` reference doc as "activation knowledge" vs "expert knowledge" vs redundant with base model. Informs the reference doc content.
-    - **design**: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`
-
-- **[SKILLS]** `design-aws` reference doc — AWS knowledge base for the skill (`design-aws-reference-doc`)
-    - **scope**: `skills`
-    - **depends-on**: `design-aws-knowledge-gaps`
-    - **notes**: Lives in `.claude/skills/design-aws/resources/`. Activation + expert knowledge: service selection guidance, IAM scoping patterns, security review checklist, common architecture patterns, mapping from architecture concepts to aws-toolkit input format. Content scoped by knowledge gap evaluation.
-
 - **[SKILLS]** AWS architecture diagram icons for `/design-diagram` (`design-aws-diagram-icons`)
     - **scope**: `skills`
     - **notes**: Investigate which icon format `/design-diagram` best supports, add AWS icon set to diagram skill resources. Enables architecture diagrams with proper AWS service icons.
