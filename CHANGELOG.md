@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **skills**: AWS reference doc for `/design-aws` — two-layer design with checklists (security, monitoring, quotas, backups) and precision corrections (IAM evaluation, cost crossover, API Gateway matrix, Terraform gotchas)
+
 ## [2.43.2] - 2026-03-29 - Clear context on plan accept
 
 ### Added
