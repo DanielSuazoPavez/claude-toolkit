@@ -17,10 +17,12 @@ Diagrams are for humans, not agents. Pick the lightest format that communicates.
 | Entity relationships (ERD) | Mermaid | Connections aren't linear — visual layout helps |
 | Temporal flows (sequence) | Mermaid | Participant lanes need 2D |
 | Architecture overview (C4) | Mermaid | Spatial relationships matter |
+| Cloud/infra architecture (AWS, GCP) | Mermaid (architecture-beta) | Built-in icons map to service categories |
 
 **Backtracking:** If you picked Mermaid and the diagram is fighting you (too dense, wrong topology), step back and ask: "Would an ASCII tree or numbered list work here?" Switching format early is cheap; polishing the wrong format is expensive.
 
 For theme presets (documentation, review, presentation), see `resources/mermaid-theme-presets.md`.
+For AWS/cloud architecture diagrams with service icons, see `resources/mermaid-aws-architecture.md`.
 
 ## Which Mermaid Diagram Type?
 
@@ -30,6 +32,7 @@ For theme presets (documentation, review, presentation), see `resources/mermaid-
 | Team review | Class, ERD | Structural types anchor discussion on "what exists" rather than "what happens" — stable enough for monthly review |
 | External stakeholders | C4 Context/Container | Hides implementation detail; named abstraction levels (Context, Container) prevent accidental over-detail |
 | Documentation | Sequence, State | Temporal types answer "what happens when..." — the question readers actually have |
+| Cloud/infra | Architecture (architecture-beta) | Built-in icons (`cloud`, `database`, `disk`, `internet`, `server`) map to AWS service categories |
 
 **Rule:** Match diagram complexity to how often it will be viewed and updated. Over-detailed diagrams become stale.
 
@@ -44,6 +47,7 @@ When the obvious type doesn't work or multiple types seem to apply:
 | State machine with side effects | State diagram alone | State + Sequence pair | State shows valid transitions; sequence shows what happens during each transition |
 | DB schema for review | Class diagram | ERD | Class diagrams imply methods/behavior; ERDs focus on relationships and cardinality |
 | Build/deploy pipeline | Sequence | Flowchart with subgraphs | Pipelines branch and merge; sequence diagrams are linear and can't show parallelism |
+| AWS/cloud topology | C4 Context | Architecture (architecture-beta) | architecture-beta shows infra detail with service icons; C4 is better for abstract system boundaries |
 
 **Default order for new systems**: C4 Context → ERD → Sequence → Class (broad to narrow)
 
