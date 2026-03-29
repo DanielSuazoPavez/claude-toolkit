@@ -3,6 +3,7 @@
   "_comment": "Claude Toolkit - Reference settings.json template",
   "_instructions": "Copy this to .claude/settings.json and customize for your project. Shared permissions are included below \u2014 for project-specific trust (skills, MCP tools, etc.), create .claude/settings.local.json (not committed to git).",
   "enableAllProjectMcpServers": false,
+  "showClearContextOnPlanAccept": true,
   "plansDirectory": "output/claude-toolkit/plans",
   "permissions": {
     "allow": [
