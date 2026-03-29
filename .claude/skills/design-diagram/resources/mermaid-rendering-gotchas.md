@@ -44,3 +44,4 @@ flowchart LR
 | Service declared before its group | Declare `group` first, then `service ... in group` |
 | Edge from group boundary fails | Use `{group}` modifier on a service: `svc{group}:R --> L:other`, not on group ID |
 | Groups can have icons too | `group vpc(cloud)[VPC]` — use to visually distinguish group types |
+| Colons in labels break parsing | `:` conflicts with edge position syntax — use `[Lambda Handler]` not `[Lambda: Handler]` |
