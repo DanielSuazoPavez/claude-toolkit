@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.43.2] - 2026-03-29 - Clear context on plan accept
+
+### Added
+- **settings**: `showClearContextOnPlanAccept: true` in settings.json and base template — shows option to clear context and pass plan forward when accepting a plan
+
 ## [2.43.1] - 2026-03-27 - Codebase navigation docs
 
 ### Added
