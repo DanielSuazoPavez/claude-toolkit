@@ -25,6 +25,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
+- **[AGENTS]** Agent context exhaustion — agents run out of context before writing reports (`agent-context-exhaustion`)
+    - **scope**: `agents`
+    - **notes**: goal-verifier, codebase-explorer, and code-reviewer repeatedly hit context limits on larger codebases, dying before writing their output file. Root cause: agents do extensive exploration (reading files, git diffs, grepping) and write the report as the final step — if context fills during exploration, the report never gets written. Not project-specific; worse on bigger codebases. Proposed fixes: (1) **Incremental writing** — write report skeleton early, append findings as you go (survive context death). (2) **Trim agent prompts** — goal-verifier is 253 lines; shorter prompts leave more room for actual work (target ~100 lines). (3) **Prefer grep/glob over full file reads** where possible (cheaper context cost). (4) **Scoped inputs from caller** — parent conversation pre-digests scope instead of agent discovering everything. (5) Consider formalizing an "agentic docs" convention after validating the approach. Converting to skills was considered but rejected — loses `background: true` and parallel execution.
+
 ## P3 - Low
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
