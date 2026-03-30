@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.43.5] - 2026-03-30 - Powerline config refresh
+
+### Changed
+- **config**: Reorganized powerline layout to 2 lines — directory+git on line 1, model+version+block+context on line 2 (auto-wraps on narrow terminals)
+- **config**: Pruned git segment (removed sha, timeSinceCommit, repoName), switched block to weighted type
+- **config**: Fixed powerline config not being loaded — added `--config=` flag to settings.json command
+
+### Added
+- **makefile**: `make tag` target — creates git tag from VERSION file for powerline git tag display
+- **skills**: Tagging step (step 9) in `/wrap-up` — runs `make tag` after version bump commit
+
 ## [2.43.4] - 2026-03-29 - Adversarial goal-verifier (experimental)
 
 ### Changed
