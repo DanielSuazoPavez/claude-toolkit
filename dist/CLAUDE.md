@@ -32,6 +32,10 @@ The toolkit publishes two distribution profiles, each with its own templates (pr
 - 8 hooks (guardrails + session-start — no enforce-make, no surface-lessons, no enforce-uv-run)
 - 3 docs (code style, context conventions, permissions config)
 
+## Skipping Raiz Publish
+
+Include `[skip-raiz]` in the commit message to skip the `publish-raiz` workflow (and Telegram notification). Use for versions with no raiz-relevant changes. Manual `workflow_dispatch` is unaffected.
+
 ## When Editing Templates
 
 - Changes to shared principles (e.g., "Plan before building") go in **both** templates

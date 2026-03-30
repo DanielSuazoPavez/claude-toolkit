@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.43.6] - 2026-03-30 - Skip-raiz flag for publish workflow
+
+### Added
+- **workflow**: `[skip-raiz]` commit message flag — skips `publish-raiz` workflow and Telegram notification for versions with no raiz-relevant changes
+- **docs**: Raiz evaluation flow in CLAUDE.md Changelog section — check MANIFEST before deciding to skip or draft notification
+
 ## [2.43.5] - 2026-03-30 - Powerline config refresh
 
 ### Changed
