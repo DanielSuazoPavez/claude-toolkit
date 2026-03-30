@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.43.4] - 2026-03-29 - Adversarial goal-verifier (experimental)
+
+### Changed
+- **agents**: goal-verifier now includes mandatory devil's advocate and negative cases sections to reduce false-green rate (experimental)
+
 ## [2.43.3] - 2026-03-29 - AWS architecture diagrams for design-diagram
 
 ### Added
