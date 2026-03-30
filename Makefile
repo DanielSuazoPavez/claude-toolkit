@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils validate check backlog help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils validate check backlog tag help
 
 install:
 	@uv sync --dev
@@ -14,6 +14,7 @@ help:
 	@echo "  make test-validate-indexed - Run validate-resources-indexed tests only"
 	@echo "  make test-validate-hook-utils - Run validate-hook-utils tests only"
 	@echo "  make validate          - Run all validations (indexes + deps)"
+	@echo "  make tag               - Create git tag from VERSION file"
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
@@ -42,6 +43,14 @@ test-validate-hook-utils:
 
 test-setup-diag:
 	@bash tests/test-setup-toolkit-diagnose.sh -q
+
+tag:
+	@version=$$(cat VERSION) && \
+	if git rev-parse "v$$version" >/dev/null 2>&1; then \
+		echo "Tag v$$version already exists"; \
+	else \
+		git tag "v$$version" && echo "Tagged v$$version"; \
+	fi
 
 backlog:
 	@bash cli/backlog/query.sh

@@ -7,30 +7,26 @@
       {
         "segments": {
           "directory": { "enabled": true, "showBasename": true },
-          "model": { "enabled": true },
-          "version": { "enabled": true }
-        }
-      },
-      {
-        "segments": {
           "git": {
             "enabled": true,
-            "showSha": true,
+            "showSha": false,
             "showWorkingTree": true,
             "showOperation": true,
             "showTag": true,
-            "showTimeSinceCommit": true,
+            "showTimeSinceCommit": false,
             "showUpstream": false,
-            "showRepoName": true
+            "showRepoName": false
           }
         }
       },
       {
         "segments": {
+          "model": { "enabled": true },
+          "version": { "enabled": true },
           "block": {
             "enabled": true,
-            "type": "tokens",
-            "burnType": "tokens"
+            "type": "weighted",
+            "burnType": "none"
           },
           "context": { "enabled": true, "showPercentageOnly": true }
         }
