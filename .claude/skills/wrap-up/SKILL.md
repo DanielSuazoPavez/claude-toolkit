@@ -74,8 +74,8 @@ Bump the version in the appropriate file (VERSION, pyproject.toml, package.json,
 ### 8. Commit documentation changes
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 
-### 9. Tag the version
-Run `make tag` to create a git tag from the VERSION file. This makes the version visible in the powerline git segment (`showTag`).
+### 9. Tag the version (if available)
+If the project has a `make tag` target, run it to create a git tag from the VERSION file. Skip silently if not available.
 
 ### 10. Report summary
 Output what was updated.
