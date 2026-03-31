@@ -13,7 +13,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `code-reviewer` | stable | Pragmatic code reviewer focused on real risks, proportional to project scale | Read, Grep, Glob, Bash, Write |
+| `code-reviewer` | stable | Pragmatic code reviewer focused on real risks, proportional to project scale. Related: code-debugger digs into root causes, goal-verifier checks completeness, /refactor for structural issues, /review-security for deeper vulnerability analysis. | Read, Grep, Glob, Bash, Write |
 | `code-debugger` | alpha | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
 
 ## Document Review
@@ -26,7 +26,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `goal-verifier` | experimental | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `output/claude-toolkit/reviews/`. **Experimental:** devil's advocate + negative cases added to reduce false-green rate. Restore to `245dba0` if experiment fails. | Read, Bash, Grep, Glob, Write |
+| `goal-verifier` | experimental | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `output/claude-toolkit/reviews/`. Complementary: implementation-checker checks plan alignment, code-reviewer checks code quality/risks, /wrap-up may invoke verification before merge. **Experimental:** devil's advocate + negative cases added to reduce false-green rate. Restore to `245dba0` if experiment fails. | Read, Bash, Grep, Glob, Write |
 | `implementation-checker` | stable | Compares implementation to planning docs, writes report to `output/claude-toolkit/reviews/`. Complementary: goal-verifier checks goal achievement, code-reviewer checks code quality independent of plan, /review-plan reviews plan quality before implementation. | Read, Bash, Grep, Glob, Write |
 
 ## Usage
