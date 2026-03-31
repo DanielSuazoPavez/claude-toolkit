@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.43.7] - 2026-03-31 - Trim reviewer agent prompts
+
+### Changed
+- **agents**: code-reviewer — model bumped to opus, effort set to medium, merged 3 "don't" sections into unified What to Skip (-17%)
+- **agents**: implementation-checker — compacted beliefs/anti-patterns/scope into single section, removed redundant Tools/What I Don't Do/Status Values (-31%)
+- **agents**: goal-verifier — removed duplicate checklists, L3 example, anti-patterns; merged Trust Nothing into core principle, compacted verification depth and negative cases (-41%)
+- **agents**: Migrated See Also sections from all 3 agents to `docs/indexes/AGENTS.md`
+
 ## [2.43.6] - 2026-03-30 - Skip-raiz flag for publish workflow
 
 ### Added

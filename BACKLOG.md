@@ -25,19 +25,14 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[AGENTS]** Agent prompt trim — reduce reviewer agent prompt size to leave more budget for actual work (`agent-prompt-trim`)
-    - **scope**: `agents`
-    - **notes**: Reviewer agents (goal-verifier, implementation-checker, code-reviewer, proposal-reviewer) exhaust context before writing reports. The prompt itself competes with investigation work for the same token budget. goal-verifier is 1,592 words / 252 lines — the heaviest. Approach: trim structural overhead (anti-patterns, "What I Don't Do", "See Also", verbose edge cases) targeting ~100 lines per agent. Also standardize write instructions — goal-verifier/implementation-checker use IMPORTANT+MUST, code-reviewer/proposal-reviewer use plain prose. Secondary: consider incremental writing (skeleton first, fill in findings) and scoped inputs from caller. Converting to skills was considered but rejected — loses `background: true` and parallel execution.
-    - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
-
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
     - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
 
-- **[AGENTS]** Move "See Also" sections from agent prompts to indexes (`agent-see-also-to-indexes`)
+- **[AGENTS]** Move "See Also" sections from remaining agent prompts to indexes (`agent-see-also-to-indexes`)
     - **scope**: `agents, docs`
-    - **notes**: Agent prompts include "See Also" cross-references that consume token budget but aren't used by the agent itself — they're navigation aids for humans. Move this content to `docs/indexes/AGENTS.md` descriptions instead. implementation-checker already migrated as part of prompt trim work.
+    - **notes**: Agent prompts include "See Also" cross-references that consume token budget but aren't used by the agent itself — navigation aids for humans. Move to `docs/indexes/AGENTS.md` descriptions. Done: code-reviewer, goal-verifier, implementation-checker. Remaining: codebase-explorer, code-debugger, pattern-finder, proposal-reviewer.
 
 ## P3 - Low
 
