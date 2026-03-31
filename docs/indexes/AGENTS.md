@@ -27,7 +27,7 @@ Specialized agents for complex, multi-step tasks.
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
 | `goal-verifier` | experimental | Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `output/claude-toolkit/reviews/`. **Experimental:** devil's advocate + negative cases added to reduce false-green rate. Restore to `245dba0` if experiment fails. | Read, Bash, Grep, Glob, Write |
-| `implementation-checker` | stable | Compares implementation to planning docs, writes report to `output/claude-toolkit/reviews/` | Read, Bash, Grep, Glob, Write |
+| `implementation-checker` | stable | Compares implementation to planning docs, writes report to `output/claude-toolkit/reviews/`. Complementary: goal-verifier checks goal achievement, code-reviewer checks code quality independent of plan, /review-plan reviews plan quality before implementation. | Read, Bash, Grep, Glob, Write |
 
 ## Usage
 

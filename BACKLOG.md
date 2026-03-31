@@ -25,9 +25,19 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[AGENTS]** Agent context exhaustion — agents run out of context before writing reports (`agent-context-exhaustion`)
+- **[AGENTS]** Agent prompt trim — reduce reviewer agent prompt size to leave more budget for actual work (`agent-prompt-trim`)
     - **scope**: `agents`
-    - **notes**: goal-verifier, codebase-explorer, and code-reviewer repeatedly hit context limits on larger codebases, dying before writing their output file. Root cause: agents do extensive exploration (reading files, git diffs, grepping) and write the report as the final step — if context fills during exploration, the report never gets written. Not project-specific; worse on bigger codebases. Proposed fixes: (1) **Incremental writing** — write report skeleton early, append findings as you go (survive context death). (2) **Trim agent prompts** — goal-verifier is 253 lines; shorter prompts leave more room for actual work (target ~100 lines). (3) **Prefer grep/glob over full file reads** where possible (cheaper context cost). (4) **Scoped inputs from caller** — parent conversation pre-digests scope instead of agent discovering everything. (5) Consider formalizing an "agentic docs" convention after validating the approach. Converting to skills was considered but rejected — loses `background: true` and parallel execution.
+    - **notes**: Reviewer agents (goal-verifier, implementation-checker, code-reviewer, proposal-reviewer) exhaust context before writing reports. The prompt itself competes with investigation work for the same token budget. goal-verifier is 1,592 words / 252 lines — the heaviest. Approach: trim structural overhead (anti-patterns, "What I Don't Do", "See Also", verbose edge cases) targeting ~100 lines per agent. Also standardize write instructions — goal-verifier/implementation-checker use IMPORTANT+MUST, code-reviewer/proposal-reviewer use plain prose. Secondary: consider incremental writing (skeleton first, fill in findings) and scoped inputs from caller. Converting to skills was considered but rejected — loses `background: true` and parallel execution.
+    - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
+
+- **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
+    - **scope**: `skills`
+    - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
+    - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
+
+- **[AGENTS]** Move "See Also" sections from agent prompts to indexes (`agent-see-also-to-indexes`)
+    - **scope**: `agents, docs`
+    - **notes**: Agent prompts include "See Also" cross-references that consume token budget but aren't used by the agent itself — they're navigation aids for humans. Move this content to `docs/indexes/AGENTS.md` descriptions instead. implementation-checker already migrated as part of prompt trim work.
 
 ## P3 - Low
 
