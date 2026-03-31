@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.43.8] - 2026-03-31 - Migrate remaining agent See Also to indexes
+
+### Changed
+- **agents**: Removed See Also sections from codebase-explorer, code-debugger, pattern-finder, proposal-reviewer (-27 lines total)
+- **docs**: Migrated cross-references to `docs/indexes/AGENTS.md` descriptions — all agents now have See Also in index only
+
 ## [2.43.7] - 2026-03-31 - Trim reviewer agent prompts
 
 ### Changed

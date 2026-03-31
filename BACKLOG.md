@@ -30,10 +30,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
     - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
 
-- **[AGENTS]** Move "See Also" sections from remaining agent prompts to indexes (`agent-see-also-to-indexes`)
-    - **scope**: `agents, docs`
-    - **notes**: Agent prompts include "See Also" cross-references that consume token budget but aren't used by the agent itself — navigation aids for humans. Move to `docs/indexes/AGENTS.md` descriptions. Done: code-reviewer, goal-verifier, implementation-checker. Remaining: codebase-explorer, code-debugger, pattern-finder, proposal-reviewer.
-
 ## P3 - Low
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
