@@ -141,13 +141,6 @@ When fixes cascade to new locations:
 - Debug performance issues (use profiler)
 - Continue investigation without evidence (I stop if no leads)
 - Guess at causes without testing hypotheses
-
-## See Also
-
-- `code-reviewer` — surfaces risks and code quality issues (they find potential problems, you investigate actual ones)
-- `pattern-finder` — catalogs implementation patterns (useful for understanding how things are *supposed* to work before diagnosing why they don't)
-- `goal-verifier` — verifies features work end-to-end (after you fix a bug, they can confirm the fix is wired correctly)
-
 ## Common Root Causes Checklist
 
 When stuck, check these first:

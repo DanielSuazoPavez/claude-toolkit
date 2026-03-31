@@ -6,21 +6,21 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `codebase-explorer` | stable | Explores codebase and writes structured analysis to `output/claude-toolkit/reviews/codebase/`. Use for onboarding or understanding architecture. | Read, Bash, Grep, Glob, Write |
-| `pattern-finder` | beta | Documents how things are implemented - finds examples of patterns | Read, Bash, Grep, Glob |
+| `codebase-explorer` | stable | Explores codebase and writes structured analysis to `output/claude-toolkit/reviews/codebase/`. Use for onboarding or understanding architecture. Related: pattern-finder catalogs specific implementation patterns, code-reviewer assesses code quality, /write-docs turns output into documentation. | Read, Bash, Grep, Glob, Write |
+| `pattern-finder` | beta | Documents how things are implemented - finds examples of patterns. Related: codebase-explorer maps high-level architecture, code-reviewer assesses quality, code-debugger uses pattern catalog for expected behavior. | Read, Bash, Grep, Glob |
 
 ## Code Quality
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
 | `code-reviewer` | stable | Pragmatic code reviewer focused on real risks, proportional to project scale. Related: code-debugger digs into root causes, goal-verifier checks completeness, /refactor for structural issues, /review-security for deeper vulnerability analysis. | Read, Grep, Glob, Bash, Write |
-| `code-debugger` | alpha | Investigates bugs using scientific method with persistent state | Read, Write, Edit, Bash, Grep, Glob |
+| `code-debugger` | alpha | Investigates bugs using scientific method with persistent state. Related: code-reviewer surfaces potential problems, pattern-finder shows how things are supposed to work, goal-verifier confirms fixes end-to-end. | Read, Write, Edit, Bash, Grep, Glob |
 
 ## Document Review
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots | Read, Grep, Glob, Write |
+| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots. Related: /shape-proposal creates documents to review, /brainstorm-idea for earlier-stage designs, code-reviewer for code quality (vs document quality). | Read, Grep, Glob, Write |
 
 ## Verification
 
