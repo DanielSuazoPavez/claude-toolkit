@@ -32,6 +32,14 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[SKILLS]** General-purpose brainstorm skill — lighter alternative to brainstorm-idea, not focused on software design docs (`brainstorm-general`)
+    - **scope**: `skills`
+    - **notes**: Feedback from raiz user: brainstorm-idea pushes toward software solution design documents, but not every brainstorm needs a technical output. This skill would focus on exploring ideas, clarifying problems, weighing tradeoffs — valid output is "now I understand better", not necessarily an architecture. Separate skill, not a modification to brainstorm-idea.
+
+- **[AGENTS]** Reviewer agents: incremental report writing (`reviewer-incremental-output`)
+    - **scope**: `agents`
+    - **notes**: All three reviewer agents (code-reviewer, proposal-reviewer, implementation-checker) accumulate findings in context and write the full report at the end. If the agent hits context issues, the entire report is lost. Change to incremental pattern: write skeleton first, edit/append findings as discovered, finalize status at the end. Partial results survive context problems. Possibly related to broader token usage surge reported across the ecosystem (2026-03).
+
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability.
