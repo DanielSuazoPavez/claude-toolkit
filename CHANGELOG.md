@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.44.0] - 2026-03-31 - General-purpose brainstorm skill
+
+### Added
+- **skills**: `/brainstorm` — general-purpose brainstorm facilitation (Frame → Explore → Land), converges on clarity instead of design docs
+- **dist**: Added brainstorm skill to raiz manifest
+
 ## [2.43.8] - 2026-03-31 - Migrate remaining agent See Also to indexes
 
 ### Changed

@@ -4,6 +4,7 @@
 # Reference-trimming script strips cross-references to anything not listed.
 
 # skills
+skills/brainstorm/
 skills/brainstorm-idea/
 skills/build-communication-style/
 skills/create-docs/

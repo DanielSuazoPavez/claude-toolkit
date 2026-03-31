@@ -792,6 +792,29 @@
           "[low] D8: Add guidance for mid-process restart or abandonment",
           "[low] D4: customize how Claude communicates is slightly broad as a trigger"
         ]
+      },
+      "brainstorm": {
+        "file_hash": "81370890",
+        "date": "2026-03-31",
+        "type": "knowledge",
+        "score": 103,
+        "max": 120,
+        "percentage": 85.8,
+        "dimensions": {
+          "D1": 15,
+          "D2": 13,
+          "D3": 13,
+          "D4": 9,
+          "D5": 14,
+          "D6": 13,
+          "D7": 14,
+          "D8": 12
+        },
+        "top_improvements": [
+          "[high] Add a worked example showing a short brainstorm exchange through Frame and into Explore — demonstrates the technique in action",
+          "[low] Elevate Key Principles beyond activation knowledge — add non-obvious facilitation insights (e.g., when to deliberately slow down vs speed up)",
+          "[low] Add a brief note on connecting brainstorms to existing project memory/docs for context-aware facilitation"
+        ]
       }
     }
   },
