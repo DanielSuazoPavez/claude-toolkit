@@ -117,9 +117,3 @@ Write the report to `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__proposal-r
 - The Write tool creates directories as needed
 
 After writing, return a brief summary: "Report written to {path}. Verdict: {CLEAN|ISSUES|REVISE}. {1-sentence summary}."
-
-## See Also
-
-- `/shape-proposal` — shapes designs into proposals (creates the documents I review)
-- `/brainstorm-idea` — earlier stage, when the design isn't solid yet
-- `code-reviewer` — reviews code quality (I review document quality for audience fit)

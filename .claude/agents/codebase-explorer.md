@@ -140,13 +140,6 @@ Mark findings with confidence based on evidence:
 | `[HIGH]` | Verified in code | `[HIGH] Uses PostgreSQL - see docker-compose.yml:12` |
 | `[MEDIUM]` | Inferred from patterns | `[MEDIUM] Likely uses repository pattern - multiple *_repo.py files` |
 | `[LOW]` | Based on naming/structure only | `[LOW] May have caching - found cache/ directory` |
-
-## See Also
-
-- `pattern-finder` — deep-dives into specific implementation patterns (you map the territory, they catalog how things work within it)
-- `code-reviewer` — reviews code quality (share STACK.md output for context calibration)
-- `/write-docs` — writes project documentation (your output feeds into documentation efforts)
-
 ## What I Don't Do
 
 - Assess code quality or conventions (that's pattern-finder or code-reviewer)
