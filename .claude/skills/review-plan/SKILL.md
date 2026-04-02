@@ -63,23 +63,29 @@ Step granularity check:
 └─ Plan states "commit after each step"? → Required
 ```
 
-### Does the plan include post-implementation steps?
+### Does the plan include final steps?
 
-Every plan must end with closing steps that verify and finalize the work. If missing, **add them to the plan before presenting the review**.
+The last steps of every plan should include review and finalization. These are the **last numbered steps** in the plan — not a separate "post-implementation" phase.
+
+Which final steps are needed depends on plan complexity:
 
 ```
-Post-implementation steps check:
-├─ Implementation check (plans with 5+ steps only)?
-│   └─ "Launch implementation-checker agent to compare implementation against the plan"
-├─ Goal verification?
+Final steps (tiered by complexity):
+│
+├─ Always required:
+│   ├─ "Launch code-reviewer agent to review changes on this branch"
+│   └─ "Run /wrap-up to update changelog, bump version, and finalize the branch"
+│
+├─ Medium+ complexity plans (multi-step features, refactors, integrations):
 │   └─ "Launch goal-verifier agent to confirm the feature works (L1→L2→L3 verification)"
-├─ Code review?
-│   └─ "Launch code-reviewer agent to review changes on this branch"
-└─ Wrap up?
-    └─ "Run /wrap-up to update changelog, bump version, and finalize the branch"
+│
+└─ Detailed plans with strict step-by-step requirements (migrations, infrastructure):
+    └─ "Launch implementation-checker agent to compare implementation against the plan"
 ```
 
-**If any required post-implementation steps are missing, add them to the plan yourself before generating the review output.** Do not flag them as issues — just fix the plan. Note the additions in the review summary so the user sees what was added.
+**Token budget context:** implementation-checker and goal-verifier are expensive agents. Don't require them for simple plans where code-reviewer covers the risk. Reserve implementation-checker for plans where step ordering and completeness genuinely matter.
+
+If final steps are missing, flag it as an issue in the review — do not silently fix the plan.
 
 ### Are files listed and valid?
 
@@ -107,7 +113,7 @@ Verification check:
 
 | Anti-Pattern | Signal | Default Severity | Fix |
 |--------------|--------|-----------------|-----|
-| **The Vague Step** | "Handle", "Set up", "Implement" with no specifics | Medium | List the specific edge cases |
+| **The Vague Step** | "Handle", "Set up", "Implement" with no specifics | **Medium–High** | List the specific actions, files, and edge cases |
 | **Hidden Dependency** | Step N assumes Step M but doesn't say so | High | Reorder or make explicit |
 | **The Kitchen Sink** | Step combines 3+ distinct operations | Medium | Split into separate steps |
 | **The Wishful Step** | Assumes something works without verification | Medium | Add verification |
@@ -119,6 +125,12 @@ Verification check:
 
 **Wishful Delegation** — Plans are instructions for an agent. Every step must be self-contained. If a step requires context not written in the plan (e.g., "update the tests accordingly", "handle edge cases", "adjust as needed"), the implementing agent will either guess wrong or skip it. The plan should carry the full cognitive load, not the executor.
 
+**How to spot delegation gaps:** For each step, ask: "If I handed this step to someone with no context beyond this plan, would they know exactly what to do?" If the answer is "they'd figure it out" — that's a gap. The implementing agent doesn't "figure things out"; it follows instructions or guesses. Common tells:
+- Pronouns without referents ("update it", "fix the issue")
+- Implied knowledge ("handle the edge cases" — which ones?)
+- Deferred decisions ("choose an appropriate approach")
+- Vague scope ("and any related files")
+
 ## Step 4: Rate Issues and Determine Verdict
 
 ### Issue Severity Definitions
@@ -129,7 +141,7 @@ Verification check:
 | **Medium** | Would degrade plan quality or increase implementation risk, but unlikely to cause outright failure | Vague step that could be misinterpreted; kitchen sink step; missing verification for non-trivial change |
 | **Low** | Cosmetic or minor improvement; implementation would likely succeed without fixing | Scope creep on a low-risk addition; step ordering preference; minor naming clarity |
 
-**Severity calibration rule:** Consider the implementing agent's perspective. If an issue would force the agent to make assumptions or decisions not covered by the plan, raise severity by one level. The plan is the *only* context the executor has.
+**Severity calibration rule:** Consider the implementing agent's perspective. If a step would force the agent to make assumptions or decisions not covered by the plan, that is **Medium at minimum** — never Low. The implementing agent has no context beyond the plan text. "The agent will figure it out" is not a valid assumption; agents that guess tend to either do the wrong thing or spin in circles. When in doubt, raise severity — a false Medium is cheap, but a false Low causes real implementation pain.
 
 ### Verdict Rules
 
@@ -252,9 +264,9 @@ Use color and visual emphasis to make the review scannable at a glance:
 
 ## Before Presenting the Review
 
-Before outputting the review to the user, ensure the plan has been updated:
+**Do not edit the plan.** Review it as-is. If something is missing, flag it as an issue in the review output — don't silently fix it. The user needs to see the gaps to decide whether to address them or accept the risk.
 
-1. **Commit cadence** — if the plan doesn't state "commit after each step", add it to the plan's preamble or first step.
-2. **Post-implementation steps** — if any required closing steps are missing (see "Does the plan include post-implementation steps?" above), add them to the plan.
+Specifically, check for these structural requirements and flag as issues if missing:
 
-These are not suggestions — they are structural requirements. Fix the plan first, then present the review of the fixed version. Note any additions you made in the review summary.
+1. **Commit cadence** — plan should state "commit after each step". If missing, flag as **Medium**.
+2. **Final steps** — plan should include appropriate review/finalization steps (see "Does the plan include final steps?" above). If missing, flag as **Medium** and specify which steps are needed based on plan complexity.
