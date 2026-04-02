@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.44.1] - 2026-04-02 - Review-plan severity calibration
+
+### Changed
+- **skills**: `/review-plan` — stop silently auto-fixing plans; review as-is and flag gaps as issues instead
+- **skills**: `/review-plan` — agent-guess gaps are Medium minimum (never Low) to prevent false approvals that cause implementation spinning
+- **skills**: `/review-plan` — tiered final steps by complexity: code-reviewer always, goal-verifier for medium+, implementation-checker only for strict plans
+
 ## [2.44.0] - 2026-03-31 - General-purpose brainstorm skill
 
 ### Added
