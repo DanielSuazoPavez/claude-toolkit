@@ -145,6 +145,11 @@ SELECT 'T|' || COALESCE(value, '7')
   FROM metadata WHERE key = 'nudge_threshold_days';
 SELECT 'C|' || COUNT(*) FROM lessons WHERE active = 1;
 " 2>/dev/null)
+    _DB_EXIT=$?
+
+    if [ "$_DB_EXIT" -ne 0 ]; then
+        ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- lessons.db query failed (exit $_DB_EXIT) — lesson data needs verification"
+    fi
 
     while IFS='|' read -r _prefix _rest; do
         case "$_prefix" in
