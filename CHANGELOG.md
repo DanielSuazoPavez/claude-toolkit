@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.44.2] - 2026-04-02 - Session-start silent DB failure fix
+
+### Fixed
+- **hooks**: session-start — surface lessons.db query failures as actionable items instead of silently reporting 0 lessons (thanks Huskbane)
+
 ## [2.44.1] - 2026-04-02 - Review-plan severity calibration
 
 ### Changed
