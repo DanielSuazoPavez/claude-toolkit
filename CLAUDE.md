@@ -55,15 +55,13 @@ Summary and status of all resources:
 - Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
 - Code/resource changes: version bump + changelog entry under version
 - When adding a version entry, fold any existing `[Unreleased]` changes into it
-- **Raiz notification on version bump**: The publish-raiz workflow auto-detects raiz-relevant changes by trimming changelog entries against the MANIFEST — no manual flagging needed. To customize the Telegram message:
-    1. Run `.github/scripts/format-raiz-changelog.sh <version>` to preview the auto-trimmed output
-    2. If the message needs refinement, generate with `--html --out dist/raiz/changelog/<version>.html`, edit by hand, and commit with the version bump
-    3. CI picks up the override file if it exists, otherwise auto-generates from the changelog
+- **Raiz notification on version bump**: The publish-raiz workflow auto-detects raiz-relevant changes by trimming changelog entries against the MANIFEST — no manual flagging needed. CI picks up an override file at `dist/raiz/changelog/<version>.html` if it exists, otherwise auto-generates from the changelog
 
 ## When You're Done
 
 - Run `make check` to run all tests and validations
 - Verify skill/agent changes work with real tests
+- **Raiz message check** (version bumps only): Run `.github/scripts/format-raiz-changelog.sh <version> [--from <prev>]` to preview the Telegram notification. If it needs refinement, generate an override with `--html --out dist/raiz/changelog/<version>.html`, edit by hand, and commit with the version bump
 
 ## Suggestions Box
 
