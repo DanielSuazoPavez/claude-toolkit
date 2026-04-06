@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.45.7] - 2026-04-06 - Wrap-up tag push reminder
+
+### Changed
+- **skills**: `/wrap-up` step 9 now reminds user to push the tag after `make tag`
+
 ## [2.45.6] - 2026-04-06 - Gapless raiz Telegram notifications
 
 ### Fixed
