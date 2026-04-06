@@ -17,7 +17,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="${FORMAT_RAIZ_PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 CHANGELOG="$PROJECT_ROOT/CHANGELOG.md"
 MANIFEST="$PROJECT_ROOT/dist/raiz/MANIFEST"
 VERSION_FILE="$PROJECT_ROOT/VERSION"
