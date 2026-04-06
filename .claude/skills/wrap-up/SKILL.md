@@ -75,7 +75,7 @@ Bump the version in the appropriate file (VERSION, pyproject.toml, package.json,
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 
 ### 9. Tag the version (after merge on main)
-Do NOT tag on the feature branch. After the merge commit lands on main, run `make tag` (if available) to tag the merge commit. Skip silently if no `make tag` target exists.
+Do NOT tag on the feature branch. After the merge commit lands on main, run `make tag` (if available) to tag the merge commit. Skip silently if no `make tag` target exists. Then remind the user to push the tag: `git push origin v<version>`
 
 ### 10. Report summary
 Output what was updated.
