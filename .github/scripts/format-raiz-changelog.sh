@@ -12,6 +12,7 @@
 #   format-raiz-changelog.sh latest               # use VERSION file
 #   format-raiz-changelog.sh 2.42.0 --html --out msg.html   # write to file
 #   format-raiz-changelog.sh 2.42.0 --override msg.html     # use hand-written message
+#   format-raiz-changelog.sh 2.45.1 --from 2.44.2 --html    # all versions after 2.44.2 up to 2.45.1
 
 set -euo pipefail
 
@@ -24,6 +25,7 @@ VERSION_FILE="$PROJECT_ROOT/VERSION"
 # --- argument parsing ---
 
 VERSION=""
+FROM_VERSION=""
 MODE="both"
 OUT_FILE=""
 OVERRIDE_FILE=""
@@ -33,13 +35,14 @@ while [[ $# -gt 0 ]]; do
     --raw|--html) MODE="$1"; shift ;;
     --out) OUT_FILE="$2"; shift 2 ;;
     --override) OVERRIDE_FILE="$2"; shift 2 ;;
+    --from) FROM_VERSION="${2#v}"; shift 2 ;;
     -*) echo "Unknown flag: $1" >&2; exit 1 ;;
     *) VERSION="$1"; shift ;;
   esac
 done
 
 if [[ -z "$VERSION" ]]; then
-  echo "Usage: format-raiz-changelog.sh <version|latest> [--raw|--html] [--out <file>] [--override <file>]" >&2
+  echo "Usage: format-raiz-changelog.sh <version|latest> [--raw|--html] [--out <file>] [--from <version>]" >&2
   exit 1
 fi
 
@@ -130,6 +133,35 @@ extract_entry() {
     echo "Error: version $version not found in CHANGELOG.md" >&2
     return 1
   fi
+}
+
+# --- list versions in range (from_version, to_version] ---
+# Returns versions in changelog order (newest first).
+
+list_versions_in_range() {
+  local from="$1" to="$2"
+  local collecting=false
+  local versions=()
+
+  # Same version → empty range (nothing between X and X)
+  [[ "$from" == "$to" ]] && return 0
+
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^##\ \[([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
+      local v="${BASH_REMATCH[1]}"
+      if [[ "$v" == "$to" ]]; then
+        collecting=true
+        versions+=("$v")
+        continue
+      fi
+      if [[ "$v" == "$from" ]]; then
+        break
+      fi
+      $collecting && versions+=("$v")
+    fi
+  done < "$CHANGELOG"
+
+  printf '%s\n' "${versions[@]}"
 }
 
 # --- trim entry to raiz-relevant lines ---
@@ -247,36 +279,84 @@ if [[ -n "$OVERRIDE_FILE" ]]; then
   exit 0
 fi
 
-ENTRY="$(extract_entry "$VERSION")"
-TRIMMED="$(trim_for_raiz "$ENTRY")"
+# Build list of versions to process
+VERSIONS_TO_PROCESS=()
+if [[ -n "$FROM_VERSION" ]]; then
+  while IFS= read -r v; do
+    [[ -n "$v" ]] && VERSIONS_TO_PROCESS+=("$v")
+  done < <(list_versions_in_range "$FROM_VERSION" "$VERSION")
+else
+  VERSIONS_TO_PROCESS=("$VERSION")
+fi
 
-# Check if anything survived the trim
-BODY_LINES="$(echo "$TRIMMED" | tail -n +2 | grep -c '.' || true)"
-if [[ "$BODY_LINES" -eq 0 ]]; then
-  echo "(no raiz-relevant changes in v${VERSION})" >&2
+if [[ ${#VERSIONS_TO_PROCESS[@]} -eq 0 ]]; then
+  echo "(no versions found between $FROM_VERSION and $VERSION)" >&2
+  exit 0
+fi
+
+# Process each version: use override file if it exists, otherwise extract+trim
+COMBINED_TRIMMED=""
+COMBINED_HTML=""
+
+for v in "${VERSIONS_TO_PROCESS[@]}"; do
+  override_path="$PROJECT_ROOT/dist/raiz/changelog/${v}.html"
+
+  if [[ -f "$override_path" ]]; then
+    echo "Using override for v${v}: $override_path" >&2
+    COMBINED_HTML+="$(cat "$override_path")"$'\n\n'
+    # For raw output, extract+trim as usual
+    entry="$(extract_entry "$v" 2>/dev/null)" || continue
+    trimmed="$(trim_for_raiz "$entry")"
+    body_lines="$(echo "$trimmed" | tail -n +2 | grep -c '.' || true)"
+    [[ "$body_lines" -gt 0 ]] && COMBINED_TRIMMED+="$trimmed"$'\n\n'
+  else
+    entry="$(extract_entry "$v" 2>/dev/null)" || { echo "Skipping v${v}: not found in CHANGELOG.md" >&2; continue; }
+    trimmed="$(trim_for_raiz "$entry")"
+    body_lines="$(echo "$trimmed" | tail -n +2 | grep -c '.' || true)"
+    if [[ "$body_lines" -eq 0 ]]; then
+      echo "Skipping v${v}: no raiz-relevant changes" >&2
+      continue
+    fi
+    COMBINED_TRIMMED+="$trimmed"$'\n\n'
+    COMBINED_HTML+="$(to_telegram_html "$trimmed")"$'\n\n'
+  fi
+done
+
+# Strip trailing whitespace
+COMBINED_TRIMMED="$(echo "$COMBINED_TRIMMED" | sed -e :a -e '/^[[:space:]]*$/d;N;ba')"
+COMBINED_HTML="$(echo "$COMBINED_HTML" | sed -e :a -e '/^[[:space:]]*$/d;N;ba')"
+
+if [[ -z "${COMBINED_TRIMMED// /}" && -z "${COMBINED_HTML// /}" ]]; then
+  echo "(no raiz-relevant changes in range)" >&2
   exit 0
 fi
 
 case "$MODE" in
   --raw)
-    emit "$TRIMMED"
+    emit "$COMBINED_TRIMMED"
     ;;
   --html)
-    emit "$(to_telegram_html "$TRIMMED")"
+    emit "$COMBINED_HTML"
     ;;
   *)
     echo "=== Trimmed Markdown ==="
-    echo "$TRIMMED"
+    echo "$COMBINED_TRIMMED"
     echo
     echo "=== Telegram HTML ==="
-    to_telegram_html "$TRIMMED"
+    echo "$COMBINED_HTML"
     echo
     echo "=== Stats ==="
-    FULL_LINES="$(echo "$ENTRY" | grep -c '^- ' || true)"
-    KEPT_LINES="$(echo "$TRIMMED" | grep -c '^- ' || true)"
-    HTML="$(to_telegram_html "$TRIMMED")"
+    FULL_LINES=0
+    KEPT_LINES=0
+    for v in "${VERSIONS_TO_PROCESS[@]}"; do
+      entry="$(extract_entry "$v" 2>/dev/null)" || continue
+      trimmed="$(trim_for_raiz "$entry")"
+      FULL_LINES=$(( FULL_LINES + $(echo "$entry" | grep -c '^- ' || true) ))
+      KEPT_LINES=$(( KEPT_LINES + $(echo "$trimmed" | grep -c '^- ' || true) ))
+    done
+    echo "Versions: ${#VERSIONS_TO_PROCESS[@]} (${VERSIONS_TO_PROCESS[*]})"
     echo "Full entry: $FULL_LINES bullet lines"
     echo "After trim: $KEPT_LINES bullet lines"
-    echo "Message length: ${#HTML} chars (limit: 4096)"
+    echo "Message length: ${#COMBINED_HTML} chars (limit: 4096)"
     ;;
 esac

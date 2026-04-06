@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.45.2] - 2026-04-06 - Multi-version raiz notifications
+
+### Fixed
+- **toolkit**: `publish-raiz.yml` now sends Telegram notifications for all versions since last push, not just the latest — reads target repo's `.claude-toolkit-version` to detect the range
+- **toolkit**: `format-raiz-changelog.sh` supports `--from <version>` to extract and combine multiple changelog entries into one message
+
+### Removed
+- **workflow**: `[skip-raiz]` commit message flag — replaced by automatic raiz-relevance detection via MANIFEST trimming
+
 ## [2.45.1] - 2026-04-06 - Session ID from stdin JSON
 
 ### Fixed

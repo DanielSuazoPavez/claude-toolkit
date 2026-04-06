@@ -29,6 +29,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
+- **[SKILLS]** `/wrap-up` — defer tagging to after final commit (`wrap-up-defer-tag`)
+    - **scope**: `skills`
+    - **notes**: Current wrap-up skill tags at the version bump step (step 9), but changes often come after (review fixes, changelog updates), forcing tag deletion and re-creation. Move tagging to the very end, right before merge.
+
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.

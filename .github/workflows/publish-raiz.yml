@@ -16,7 +16,6 @@ on:
 
 jobs:
   publish:
-    if: "!contains(github.event.head_commit.message, '[skip-raiz]')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout toolkit
@@ -36,6 +35,15 @@ jobs:
           repository: DanielSuazoRaiz/claude-toolkit-raiz
           ssh-key: ${{ secrets.RAIZ_DEPLOY_KEY }}
           path: target-repo
+
+      - name: Read previous version from target
+        id: prev
+        run: |
+          if [[ -f target-repo/.claude-toolkit-version ]]; then
+            echo "version=$(cat target-repo/.claude-toolkit-version)" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Sync distribution to target
         id: sync
@@ -69,14 +77,15 @@ jobs:
         id: msg
         run: |
           VERSION=$(cat VERSION)
-          OVERRIDE="dist/raiz/changelog/${VERSION}.html"
+          PREV_VERSION="${{ steps.prev.outputs.version }}"
 
-          if [[ -f "$OVERRIDE" ]]; then
-            # Override exists — always send, regardless of sync result
-            MSG=$(cat "$OVERRIDE")
-          elif [[ "${{ steps.sync.outputs.pushed }}" == "true" ]]; then
-            # No override — only auto-generate if raiz was actually updated
-            MSG=$(.github/scripts/format-raiz-changelog.sh "$VERSION" --html)
+          FROM_FLAG=""
+          if [[ -n "$PREV_VERSION" && "$PREV_VERSION" != "$VERSION" ]]; then
+            FROM_FLAG="--from $PREV_VERSION"
+          fi
+
+          if [[ "${{ steps.sync.outputs.pushed }}" == "true" || -n "$FROM_FLAG" ]]; then
+            MSG=$(.github/scripts/format-raiz-changelog.sh "$VERSION" $FROM_FLAG --html)
           fi
 
           if [[ -z "${MSG:-}" ]]; then
