@@ -391,11 +391,19 @@ assert_not_contains "skips no-match version: no 1.0.5 in output" "$out" "## [1.0
 stderr_out=$(cat "$TEMP_DIR/stderr")
 assert_contains "skips no-match version: Skipping on stderr" "$stderr_out" "Skipping v1.0.5: no raiz-relevant changes"
 
-# 3. All versions skipped exits clean (1.0.5 alone has zero matches)
+# 3. All versions skipped produces minimal message (1.0.5 alone has zero matches)
 rc=0; out=$(run_fmt_stderr 1.0.5 --raw) || rc=$?
 assert_exit_zero "all-skipped exits 0" "$rc"
+assert_contains "all-skipped: has minimal message" "$out" "no raiz-relevant changes"
 stderr_out=$(cat "$TEMP_DIR/stderr")
-assert_contains "all-skipped: message on stderr" "$stderr_out" "no raiz-relevant changes"
+assert_contains "all-skipped: skip on stderr" "$stderr_out" "Skipping v1.0.5"
+
+# 4. Single version no matches with --html produces minimal HTML
+rc=0; out=$(run_fmt_stderr 1.0.5 --html) || rc=$?
+assert_exit_zero "no-match html exits 0" "$rc"
+assert_contains "no-match html: has header" "$out" "claude-toolkit-raiz"
+assert_contains "no-match html: has version" "$out" "v1.0.5"
+assert_contains "no-match html: has italic note" "$out" "no raiz-relevant changes"
 
 teardown_fixtures
 

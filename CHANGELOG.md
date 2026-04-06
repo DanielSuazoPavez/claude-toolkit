@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.45.6] - 2026-04-06 - Gapless raiz Telegram notifications
+
+### Fixed
+- **toolkit**: `format-raiz-changelog.sh` now emits a minimal "no raiz-relevant changes" message instead of exiting silently when no bullets survive trimming — keeps the Telegram notification chain contiguous across all versions
+- **workflow**: `publish-raiz.yml` always calls the formatter and sends a Telegram message, removing the skip conditions that caused version gaps
+
+### Added
+- **tests**: new test cases for empty-content formatting — minimal raw message, HTML header with version, and italic "no raiz-relevant changes" line
+
 ## [2.45.5] - 2026-04-06 - Wrap-up tagging after merge
 
 ### Fixed
