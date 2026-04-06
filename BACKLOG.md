@@ -50,9 +50,5 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
 
-- **[HOOKS]** Session ID relay flakiness — hooks depend on file-based `.claude/logs/.session-id` written by session-start (`session-id-relay`)
-    - **scope**: `hooks`
-    - **notes**: Non-session-start hooks read session ID from a file that session-start writes. If session-start hasn't run or the file is stale, hooks log `"unknown"` as session_id. Consider deriving session ID directly in `hook_init()` from `CLAUDE_SESSION_ID` env var (if available) or falling back to the file relay.
-
 ## P99 - Nice to Have
 
