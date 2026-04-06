@@ -36,6 +36,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[TOOLKIT]** Address global configs for base dist projects (`global-configs-dist`)
+    - **scope**: `toolkit`
+    - **notes**: Global shared files (lessons.db, session-index.db in `~/.claude/`) leak into project directories as stray untracked files. Base dist projects need a proper story: ensure `.gitignore` templates cover known global artifacts, document which files are global vs project-scoped, and consider whether sync should clean up or warn about misplaced globals.
+
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability.
