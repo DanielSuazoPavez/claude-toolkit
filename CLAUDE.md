@@ -55,9 +55,7 @@ Summary and status of all resources:
 - Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
 - Code/resource changes: version bump + changelog entry under version
 - When adding a version entry, fold any existing `[Unreleased]` changes into it
-- **Raiz evaluation on version bump**: During wrap-up, check if changes affect raiz by comparing against `dist/raiz/MANIFEST`:
-  - **No raiz-relevant changes**: Include `[skip-raiz]` in the version bump commit message to skip publishing and Telegram notification
-  - **Raiz-relevant changes**: Draft the Telegram notification message:
+- **Raiz notification on version bump**: The publish-raiz workflow auto-detects raiz-relevant changes by trimming changelog entries against the MANIFEST — no manual flagging needed. To customize the Telegram message:
     1. Run `.github/scripts/format-raiz-changelog.sh <version>` to preview the auto-trimmed output
     2. If the message needs refinement, generate with `--html --out dist/raiz/changelog/<version>.html`, edit by hand, and commit with the version bump
     3. CI picks up the override file if it exists, otherwise auto-generates from the changelog

@@ -21,10 +21,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
-- **[TOOLKIT]** Raiz publish workflow loses notifications when multiple versions are pushed at once (`raiz-multi-version-notify`)
-    - **scope**: `toolkit`
-    - **notes**: `publish-raiz.yml` reads `cat VERSION` and sends one Telegram message for the current version. When multiple versions accumulate between pushes (e.g., v2.45.0 + v2.45.1), only the latest version's notification is sent — earlier versions' raiz-relevant changes are silently lost. Fix: detect all version bumps since the last pushed version (compare against target repo's `.claude-toolkit-version` or origin), aggregate changelog entries, and send a combined notification.
-
 - **[AGENTS]** Validate v2.45.0 reviewer agent protocols in real usage (`validate-reviewer-protocols`)
     - **scope**: `agents`
     - **notes**: v2.45.0 changed investigation protocols for code-reviewer, goal-verifier, and implementation-checker (incremental writes, risk categorization, magnitude-aware depth). Ship-and-observe: on the next real branch, confirm each agent writes its skeleton early and completes the report. If any agent fails to produce a report or quality regresses, rollback that agent's file to v2.44.2. Remove this task after first successful run of all three.
@@ -32,6 +28,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 ## P1 - High
 
 ## P2 - Medium
+
+- **[SKILLS]** `/wrap-up` — defer tagging to after final commit (`wrap-up-defer-tag`)
+    - **scope**: `skills`
+    - **notes**: Current wrap-up skill tags at the version bump step (step 9), but changes often come after (review fixes, changelog updates), forcing tag deletion and re-creation. Move tagging to the very end, right before merge.
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`

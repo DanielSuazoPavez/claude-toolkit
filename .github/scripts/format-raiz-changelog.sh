@@ -302,7 +302,7 @@ for v in "${VERSIONS_TO_PROCESS[@]}"; do
   override_path="$PROJECT_ROOT/dist/raiz/changelog/${v}.html"
 
   if [[ -f "$override_path" ]]; then
-    # Override exists for this version — use it for HTML
+    echo "Using override for v${v}: $override_path" >&2
     COMBINED_HTML+="$(cat "$override_path")"$'\n\n'
     # For raw output, extract+trim as usual
     entry="$(extract_entry "$v" 2>/dev/null)" || continue
@@ -310,10 +310,13 @@ for v in "${VERSIONS_TO_PROCESS[@]}"; do
     body_lines="$(echo "$trimmed" | tail -n +2 | grep -c '.' || true)"
     [[ "$body_lines" -gt 0 ]] && COMBINED_TRIMMED+="$trimmed"$'\n\n'
   else
-    entry="$(extract_entry "$v" 2>/dev/null)" || continue
+    entry="$(extract_entry "$v" 2>/dev/null)" || { echo "Skipping v${v}: not found in CHANGELOG.md" >&2; continue; }
     trimmed="$(trim_for_raiz "$entry")"
     body_lines="$(echo "$trimmed" | tail -n +2 | grep -c '.' || true)"
-    [[ "$body_lines" -eq 0 ]] && continue
+    if [[ "$body_lines" -eq 0 ]]; then
+      echo "Skipping v${v}: no raiz-relevant changes" >&2
+      continue
+    fi
     COMBINED_TRIMMED+="$trimmed"$'\n\n'
     COMBINED_HTML+="$(to_telegram_html "$trimmed")"$'\n\n'
   fi

@@ -16,7 +16,6 @@ on:
 
 jobs:
   publish:
-    if: "!contains(github.event.head_commit.message, '[skip-raiz]')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout toolkit
