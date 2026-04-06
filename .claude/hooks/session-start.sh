@@ -33,16 +33,6 @@ source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "session-start" "SessionStart"
 _hook_perf_probe "hook_init"
 
-# Write session ID for other hooks to read
-if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
-    _dir="${CLAUDE_ENV_FILE%/*}"
-    SESSION_ID="${_dir##*/}"
-else
-    SESSION_ID="unknown-${EPOCHSECONDS:-$(date +%Y%m%d_%H%M%S)}"
-fi
-echo "$SESSION_ID" > ".claude/logs/.session-id"
-_hook_perf_probe "session_id"
-
 # Check we're in a project with docs
 if [ ! -d "$DOCS_DIR" ]; then
     echo "Warning: $DOCS_DIR not found. Run from project root."

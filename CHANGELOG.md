@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.45.1] - 2026-04-06 - Session ID from stdin JSON
+
+### Fixed
+- **hooks**: `hook-utils.sh` reads `session_id` from stdin JSON instead of file-based `.session-id` relay — eliminates race condition when multiple sessions run from the same project folder
+- **hooks**: `hook_init` validates stdin JSON — PreToolUse hooks now block on malformed input (fail-closed) instead of silently passing
+- **hooks**: removed orphaned perf probe from `session-start.sh` after file-write block removal
+
+### Removed
+- **hooks**: debug session-id hooks and relay file `.claude/logs/.session-id`
+
 ## [2.45.0] - 2026-04-06 - Token-disciplined reviewer agents
 
 ### Changed

@@ -6,7 +6,7 @@ Automation hooks configured in `settings.json`.
 
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
-| `session-start.sh` | stable | SessionStart | Loads essential memories, git context, and toolkit version drift check |
+| `session-start.sh` | stable | SessionStart | Loads essential docs, git context, lessons, and toolkit version drift check |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `block-dangerous-commands.sh` | stable | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Read\|Bash\|Grep) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |

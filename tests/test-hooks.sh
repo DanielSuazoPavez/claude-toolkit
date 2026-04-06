@@ -833,6 +833,157 @@ test_approve_safe_commands() {
     fi
 }
 
+# === SESSION ID FROM STDIN JSON ===
+test_session_id_from_stdin() {
+    report_section "=== session_id from stdin JSON ==="
+    local hook="block-dangerous-commands.sh"
+    local test_log
+    test_log=$(mktemp)
+
+    # Override log file so we don't pollute real logs
+    # hook-utils.sh writes to .claude/logs/hook-timing.log — we check
+    # the session_id column (first field) in the log output.
+
+    # --- session_id present in JSON → appears in log ---
+    local test_session="test-session-$(date +%s)"
+    echo "{\"session_id\":\"$test_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
+        | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if grep -q "$test_session" .claude/logs/hook-timing.log 2>/dev/null; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "session_id from stdin JSON propagates to hook log"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "session_id from stdin JSON not found in hook log"
+        report_detail "Expected session_id: $test_session"
+        report_detail "Last log line: $(tail -1 .claude/logs/hook-timing.log 2>/dev/null)"
+    fi
+
+    # Verify session_id is in the first column
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local logged_sid
+    logged_sid=$(grep "$test_session" .claude/logs/hook-timing.log 2>/dev/null | tail -1 | cut -f1)
+    if [ "$logged_sid" = "$test_session" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "session_id is in column 1 of log entry"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "session_id not in column 1"
+        report_detail "Expected: $test_session"
+        report_detail "Got column 1: ${logged_sid:-<empty>}"
+    fi
+
+    # --- session_id missing from JSON → falls back to "unknown" ---
+    echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
+        | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local last_sid
+    last_sid=$(tail -1 .claude/logs/hook-timing.log 2>/dev/null | cut -f1)
+    if [ "$last_sid" = "unknown" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "missing session_id falls back to 'unknown'"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "missing session_id should fall back to 'unknown'"
+        report_detail "Got: ${last_sid:-<empty>}"
+    fi
+
+    # --- session_id=null in JSON → falls back to "unknown" ---
+    echo '{"session_id":null,"tool_name":"Bash","tool_input":{"command":"ls"}}' \
+        | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    last_sid=$(tail -1 .claude/logs/hook-timing.log 2>/dev/null | cut -f1)
+    if [ "$last_sid" = "unknown" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "null session_id falls back to 'unknown'"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "null session_id should fall back to 'unknown'"
+        report_detail "Got: ${last_sid:-<empty>}"
+    fi
+
+    # --- session_id with UUID format (realistic) ---
+    local uuid_session="a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    echo "{\"session_id\":\"$uuid_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
+        | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    logged_sid=$(grep "$uuid_session" .claude/logs/hook-timing.log 2>/dev/null | tail -1 | cut -f1)
+    if [ "$logged_sid" = "$uuid_session" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "UUID-format session_id propagates correctly"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "UUID session_id not logged correctly"
+        report_detail "Expected: $uuid_session"
+        report_detail "Got: ${logged_sid:-<empty>}"
+    fi
+
+    # --- malformed stdin → PreToolUse hooks block (fail-closed) ---
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local malformed_output
+    malformed_output=$(echo "not valid json at all" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+    if echo "$malformed_output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "malformed stdin → PreToolUse hook blocks (fail-closed)"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "malformed stdin should block for PreToolUse hooks"
+        report_detail "Got: ${malformed_output:-<empty>}"
+    fi
+
+    # --- malformed stdin → PermissionRequest hooks exit 0 (fail-open → user prompted) ---
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local perm_hook="approve-safe-commands.sh"
+    local perm_output
+    perm_output=$(echo "not valid json" | "$HOOKS_DIR/$perm_hook" 2>/dev/null) || true
+    if [ -z "$perm_output" ] || ! echo "$perm_output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "malformed stdin → PermissionRequest hook passes (fail-open)"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "malformed stdin should not block for PermissionRequest hooks"
+        report_detail "Got: ${perm_output:-<empty>}"
+    fi
+
+    # --- session_id propagates to hooks.db (SQLite) ---
+    local hooks_db="$HOME/.claude/hooks.db"
+    if [ -f "$hooks_db" ]; then
+        TESTS_RUN=$((TESTS_RUN + 1))
+        local db_sid
+        db_sid=$(sqlite3 "$hooks_db" "SELECT session_id FROM hook_logs WHERE session_id = '$uuid_session' LIMIT 1" 2>/dev/null)
+        if [ "$db_sid" = "$uuid_session" ]; then
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+            report_pass "session_id propagates to hooks.db"
+        else
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+            report_fail "session_id not found in hooks.db"
+            report_detail "Expected: $uuid_session"
+            report_detail "Got: ${db_sid:-<empty>}"
+        fi
+
+        # Verify test_session (unique per run) also reached DB
+        TESTS_RUN=$((TESTS_RUN + 1))
+        db_sid=$(sqlite3 "$hooks_db" "SELECT session_id FROM hook_logs WHERE session_id = '$test_session' LIMIT 1" 2>/dev/null)
+        if [ "$db_sid" = "$test_session" ]; then
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+            report_pass "dynamic session_id also reaches hooks.db"
+        else
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+            report_fail "dynamic session_id not found in hooks.db"
+            report_detail "Expected: $test_session"
+            report_detail "Got: ${db_sid:-<empty>}"
+        fi
+    else
+        log_verbose "hooks.db not found — skipping DB tests"
+    fi
+
+    rm -f "$test_log"
+}
+
 # === RUN TESTS ===
 echo "Running hook tests..."
 echo "Hooks directory: $HOOKS_DIR"
@@ -847,6 +998,7 @@ if [ -z "$FILTER" ]; then
     test_suggest_json_reader
     test_git_safety
     test_approve_safe_commands
+    test_session_id_from_stdin
 else
     # Run specific test
     case "$FILTER" in
@@ -858,6 +1010,7 @@ else
         json*|suggest-json*) test_suggest_json_reader ;;
         git*|safety*|branch*|feature*) test_git_safety ;;
         approve*|safe*|permission*) test_approve_safe_commands ;;
+        session*|session-id*|stdin*) test_session_id_from_stdin ;;
         capture*|lesson*) echo "capture-lesson hook removed (failed experiment)" ;;
         *) echo "Unknown hook: $FILTER"; exit 1 ;;
     esac
