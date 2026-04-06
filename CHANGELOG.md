@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.45.5] - 2026-04-06 - Wrap-up tagging after merge
+
+### Fixed
+- **skills**: `/wrap-up` step 9 now tags on the merge commit on main, not on the feature branch — avoids tag delete/re-create when follow-up changes land after the version bump
+
 ## [2.45.4] - 2026-04-06 - Consolidated raiz notification format
 
 ### Changed

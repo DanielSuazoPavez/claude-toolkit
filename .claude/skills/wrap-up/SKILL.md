@@ -74,8 +74,8 @@ Bump the version in the appropriate file (VERSION, pyproject.toml, package.json,
 ### 8. Commit documentation changes
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 
-### 9. Tag the version (if available)
-If the project has a `make tag` target, run it to create a git tag from the VERSION file. Skip silently if not available.
+### 9. Tag the version (after merge on main)
+Do NOT tag on the feature branch. After the merge commit lands on main, run `make tag` (if available) to tag the merge commit. Skip silently if no `make tag` target exists.
 
 ### 10. Report summary
 Output what was updated.
