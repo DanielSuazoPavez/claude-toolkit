@@ -6,6 +6,9 @@
 - **toolkit**: `publish-raiz.yml` now sends Telegram notifications for all versions since last push, not just the latest — reads target repo's `.claude-toolkit-version` to detect the range
 - **toolkit**: `format-raiz-changelog.sh` supports `--from <version>` to extract and combine multiple changelog entries into one message
 
+### Changed
+- **toolkit**: deduplicated extract+trim logic in `format-raiz-changelog.sh` version loop
+
 ### Removed
 - **workflow**: `[skip-raiz]` commit message flag — replaced by automatic raiz-relevance detection via MANIFEST trimming
 
