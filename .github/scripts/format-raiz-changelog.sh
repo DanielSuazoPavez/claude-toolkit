@@ -399,8 +399,17 @@ elif $HAS_CONTENT; then
 fi
 
 if [[ -z "${COMBINED_TRIMMED// /}" && -z "${COMBINED_HTML// /}" ]]; then
-  echo "(no raiz-relevant changes in range)" >&2
-  exit 0
+  COMBINED_TRIMMED="(no raiz-relevant changes)"
+  if [[ -n "$FROM_VERSION" ]]; then
+    COMBINED_HTML="🔄 <b>claude-toolkit-raiz</b> v${FROM_VERSION} → v${VERSION}"$'\n'"<i>no raiz-relevant changes</i>"
+  else
+    COMBINED_HTML="🔄 <b>claude-toolkit-raiz</b> v${VERSION}"
+    if [[ -n "$TARGET_DATE" ]]; then
+      COMBINED_HTML+=$'\n'"<i>${TARGET_DATE} — no raiz-relevant changes</i>"
+    else
+      COMBINED_HTML+=$'\n'"<i>no raiz-relevant changes</i>"
+    fi
+  fi
 fi
 
 case "$MODE" in
