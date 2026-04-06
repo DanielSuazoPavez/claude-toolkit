@@ -292,11 +292,13 @@ assert_contains "emoji + project header" "$out" "🔄 <b>claude-toolkit-raiz</b>
 # 2. Date and description in italics
 assert_contains "date+description italics" "$out" "<i>2026-04-01 — Alpha skill & hook improvements</i>"
 
-# 3. Section headers bold
-assert_contains "section headers bold" "$out" "<b>Added</b>"
+# 3. Resource group headers bold
+assert_contains "resource group: skills header" "$out" "<b>Skills</b>"
+assert_contains "resource group: hooks header" "$out" "<b>Hooks</b>"
 
-# 4. Bold-prefixed bullets converted (- **X** → <b>X</b>)
-assert_contains "bold bullet conversion" "$out" "<b>skills</b>"
+# 4. Bold prefix stripped, bullet has • prefix
+assert_contains "bullet has dot prefix: skill" "$out" "• <code>/alpha-skill</code>"
+assert_not_contains "no inline resource bold" "$out" "<b>skills</b>:"
 
 # 5. Backtick to code tag
 assert_contains "backtick to code tag" "$out" "<code>"
@@ -305,6 +307,36 @@ assert_contains "backtick to code tag" "$out" "<code>"
 out_11=$(run_fmt 1.1.0 --html 2>/dev/null) || true
 assert_contains "HTML escaping: angle brackets" "$out_11" "&lt;tree&gt;"
 assert_contains "HTML escaping: ampersand" "$out_11" "R&amp;D"
+
+# 7. Single version has date line
+assert_contains "single version: date line" "$out" "<i>2026-04-01"
+
+# 8. Bullet has • prefix for hook too
+assert_contains "bullet has dot prefix: hook" "$out" "• "
+
+teardown_fixtures
+
+# --- Consolidated format (range) ---
+
+report_section "=== Consolidated format (range) ==="
+setup_fixtures
+
+out=$(run_fmt 1.3.0 --from 1.1.0 --html 2>/dev/null) || true
+
+# 1. Range header format
+assert_contains "range header: from version" "$out" "v1.1.0 →"
+assert_contains "range header: to version" "$out" "→ v1.3.0"
+
+# 2. Range has no date line
+assert_not_contains "range: no date line" "$out" "<i>"
+
+# 3. Cross-version grouping: bullets from 1.2.0 and 1.3.0 under resource types
+assert_contains "cross-version: alpha-skill from 1.3.0" "$out" "alpha-skill"
+assert_contains "cross-version: beta-agent from 1.2.0" "$out" "beta-agent"
+assert_contains "cross-version: agents header" "$out" "<b>Agents</b>"
+
+# 4. No per-version emoji headers in consolidated HTML
+assert_not_contains "no per-version emoji header" "$out" "claude-toolkit-raiz</b> v1.2.0"
 
 teardown_fixtures
 
@@ -349,7 +381,7 @@ setup_fixtures
 # 1. Combines versions
 out=$(run_fmt 1.3.0 --from 1.1.0 --html 2>/dev/null) || true
 assert_contains "combines versions: has 1.3.0" "$out" "v1.3.0"
-assert_contains "combines versions: has 1.2.0" "$out" "v1.2.0"
+assert_contains "range header format" "$out" "v1.1.0 →"
 
 # 2. Skips version with no matches (1.0.5 has only non-matching config/makefile bullets)
 # Range (0.9.0, 1.1.0] includes 1.1.0 (has matches) and 1.0.5 (no matches → skipped)
