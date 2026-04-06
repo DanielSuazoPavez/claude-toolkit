@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.45.4] - 2026-04-06 - Consolidated raiz notification format
+
+### Changed
+- **toolkit**: `format-raiz-changelog.sh` — Telegram messages now group bullets by resource type (Skills, Agents, Hooks, etc.) instead of repeating per-version changelog sections. Single version shows date line; ranges show `vX → vY` header only
+- **toolkit**: auto-override check simplified — looks for `dist/raiz/changelog/{VERSION}.html` once for the target version, not per-version in the loop
+
+### Fixed
+- **toolkit**: bold-prefixed bullets (`- **X**`) in Telegram HTML now correctly get `•` prefix (was dead code due to sed ordering)
+
 ## [2.45.3] - 2026-04-06 - Raiz changelog formatter tests
 
 ### Added
