@@ -58,7 +58,7 @@ hook_init() {
     TOTAL_BYTES_INJECTED=0
     HOOK_LOG_FILE=".claude/logs/hook-timing.log"
     mkdir -p ".claude/logs" 2>/dev/null || true
-    SESSION_ID=$(cat ".claude/logs/.session-id" 2>/dev/null || echo "unknown")
+    SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
     IS_TEST=$([ "${CLAUDE_HOOK_TEST:-0}" = "1" ] && echo 1 || echo 0)
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
