@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.45.0] - 2026-04-06 - Token-disciplined reviewer agents
+
+### Changed
+- **agents**: implementation-checker — phased investigation protocol (`--stat` first, per-item targeted diffs, incremental report writes), model bumped to opus
+- **agents**: code-reviewer — risk-categorized investigation (high→medium→low priority), skeleton written early, incremental report updates
+- **agents**: goal-verifier — magnitude-aware depth (trivial/standard/complex), per-must-have verification with immediate writes, restored working-tree intent and stopping criterion
+
 ## [2.44.2] - 2026-04-02 - Session-start silent DB failure fix
 
 ### Fixed

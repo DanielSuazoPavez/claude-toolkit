@@ -21,6 +21,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
+- **[AGENTS]** Validate v2.45.0 reviewer agent protocols in real usage (`validate-reviewer-protocols`)
+    - **scope**: `agents`
+    - **notes**: v2.45.0 changed investigation protocols for code-reviewer, goal-verifier, and implementation-checker (incremental writes, risk categorization, magnitude-aware depth). Ship-and-observe: on the next real branch, confirm each agent writes its skeleton early and completes the report. If any agent fails to produce a report or quality regresses, rollback that agent's file to v2.44.2. Remove this task after first successful run of all three.
+
 ## P1 - High
 
 ## P2 - Medium
@@ -32,9 +36,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[AGENTS]** Reviewer agents: incremental report writing (`reviewer-incremental-output`)
-    - **scope**: `agents`
-    - **notes**: All three reviewer agents (code-reviewer, proposal-reviewer, implementation-checker) accumulate findings in context and write the full report at the end. If the agent hits context issues, the entire report is lost. Change to incremental pattern: write skeleton first, edit/append findings as discovered, finalize status at the end. Partial results survive context problems. Possibly related to broader token usage surge reported across the ecosystem (2026-03).
+- **[TOOLKIT]** Address global configs for base dist projects (`global-configs-dist`)
+    - **scope**: `toolkit`
+    - **notes**: Global shared files (lessons.db, session-index.db in `~/.claude/`) leak into project directories as stray untracked files. Base dist projects need a proper story: ensure `.gitignore` templates cover known global artifacts, document which files are global vs project-scoped, and consider whether sync should clean up or warn about misplaced globals.
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
