@@ -922,16 +922,31 @@ test_session_id_from_stdin() {
         report_detail "Got: ${logged_sid:-<empty>}"
     fi
 
-    # --- malformed stdin → hook exits 0 without crashing ---
+    # --- malformed stdin → PreToolUse hooks block (fail-closed) ---
     TESTS_RUN=$((TESTS_RUN + 1))
-    echo "not valid json at all" | "$HOOKS_DIR/$hook" > /dev/null 2>&1
-    local malformed_exit=$?
-    if [ "$malformed_exit" = "0" ]; then
+    local malformed_output
+    malformed_output=$(echo "not valid json at all" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+    if echo "$malformed_output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "malformed stdin → graceful exit 0 (no crash)"
+        report_pass "malformed stdin → PreToolUse hook blocks (fail-closed)"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "malformed stdin should exit 0, got $malformed_exit"
+        report_fail "malformed stdin should block for PreToolUse hooks"
+        report_detail "Got: ${malformed_output:-<empty>}"
+    fi
+
+    # --- malformed stdin → PermissionRequest hooks exit 0 (fail-open → user prompted) ---
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local perm_hook="approve-safe-commands.sh"
+    local perm_output
+    perm_output=$(echo "not valid json" | "$HOOKS_DIR/$perm_hook" 2>/dev/null) || true
+    if [ -z "$perm_output" ] || ! echo "$perm_output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "malformed stdin → PermissionRequest hook passes (fail-open)"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "malformed stdin should not block for PermissionRequest hooks"
+        report_detail "Got: ${perm_output:-<empty>}"
     fi
 
     # --- session_id propagates to hooks.db (SQLite) ---

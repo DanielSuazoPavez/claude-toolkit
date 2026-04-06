@@ -58,8 +58,29 @@ hook_init() {
     TOTAL_BYTES_INJECTED=0
     HOOK_LOG_FILE=".claude/logs/hook-timing.log"
     mkdir -p ".claude/logs" 2>/dev/null || true
-    SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
     IS_TEST=$([ "${CLAUDE_HOOK_TEST:-0}" = "1" ] && echo 1 || echo 0)
+
+    # Validate stdin is parseable JSON — malformed input means nothing
+    # downstream is reliable (tool_name, session_id, tool_input).
+    if ! echo "$HOOK_INPUT" | jq empty 2>/dev/null; then
+        OUTCOME="error"
+        SESSION_ID="unknown"
+        case "$HOOK_EVENT" in
+            PreToolUse)
+                # Safety hooks must fail-closed: block rather than silently pass
+                _HOOK_ACTIVE=true
+                trap '_hook_log_timing' EXIT
+                hook_block "hook $HOOK_NAME received malformed stdin — blocking as safety precaution"
+                ;;
+            SessionStart)
+                echo "Warning: $HOOK_NAME received malformed stdin — hook output may be incomplete" >&2
+                ;;
+            # PermissionRequest: exit 0 → user gets normal permission prompt (fail-open)
+        esac
+        # For non-PreToolUse events, continue with best effort
+    fi
+
+    SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
         _HOOK_ACTIVE=true
