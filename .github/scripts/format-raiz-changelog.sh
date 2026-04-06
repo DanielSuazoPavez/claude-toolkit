@@ -211,45 +211,101 @@ trim_for_raiz() {
   echo "$output"
 }
 
-# --- convert trimmed markdown to Telegram HTML ---
+# --- parse version header ---
+
+parse_version_header() {
+  local header_line="$1"
+  PARSED_VERSION="" PARSED_DATE="" PARSED_DESC=""
+  if [[ "$header_line" =~ ^##\ \[([0-9.]+)\]\ -\ ([0-9-]+)\ -\ (.+)$ ]]; then
+    PARSED_VERSION="${BASH_REMATCH[1]}"
+    PARSED_DATE="${BASH_REMATCH[2]}"
+    PARSED_DESC="${BASH_REMATCH[3]}"
+  fi
+}
+
+# --- group bullets by resource type ---
+# Input: multi-line trimmed markdown (all versions concatenated).
+# Output: grouped sections (Skills, Agents, etc.) with • bullets.
+
+group_bullets_by_resource() {
+  local input="$1"
+  local skills="" agents="" hooks="" docs="" scripts="" templates="" other=""
+
+  while IFS= read -r line; do
+    # Only process bullet lines
+    [[ "$line" =~ ^-\  ]] || continue
+
+    # Classify by bold prefix: - **type**: body
+    if [[ "$line" =~ ^-\ \*\*([^*]+)\*\*:\ (.*)$ ]]; then
+      local rtype="${BASH_REMATCH[1]}"
+      local body="${BASH_REMATCH[2]}"
+      case "$rtype" in
+        skills)     skills+="• ${body}"$'\n' ;;
+        agents)     agents+="• ${body}"$'\n' ;;
+        hooks)      hooks+="• ${body}"$'\n' ;;
+        docs)       docs+="• ${body}"$'\n' ;;
+        scripts)    scripts+="• ${body}"$'\n' ;;
+        templates)  templates+="• ${body}"$'\n' ;;
+        *)          other+="• ${body}"$'\n' ;;
+      esac
+    else
+      # No bold prefix — strip leading "- " and put in Other
+      other+="• ${line#- }"$'\n'
+    fi
+  done <<< "$input"
+
+  # Emit sections in fixed order, skip empty
+  local output=""
+  local first=true
+  for pair in "Skills:$skills" "Agents:$agents" "Hooks:$hooks" "Docs:$docs" "Scripts:$scripts" "Templates:$templates" "Other:$other"; do
+    local name="${pair%%:*}"
+    local bullets="${pair#*:}"
+    if [[ -n "$bullets" ]]; then
+      $first || output+=$'\n'
+      first=false
+      output+="${name}"$'\n'
+      output+="${bullets}"
+    fi
+  done
+
+  echo -n "$output"
+}
+
+# --- convert grouped text to Telegram HTML ---
 
 to_telegram_html() {
-  local trimmed="$1"
-  local version_line desc_line body html_body
+  local grouped="$1"
+  local version="$2"
+  local from_version="${3:-}"
+  local date_str="${4:-}"
+  local description="${5:-}"
 
-  # Parse version header: ## [X.Y.Z] - DATE - Description
-  version_line="$(echo "$trimmed" | head -1)"
-  local version_num date_str description
-  if [[ "$version_line" =~ ^##\ \[([0-9.]+)\]\ -\ ([0-9-]+)\ -\ (.+)$ ]]; then
-    version_num="${BASH_REMATCH[1]}"
-    date_str="${BASH_REMATCH[2]}"
-    description="${BASH_REMATCH[3]}"
+  # Build header
+  local msg
+  if [[ -n "$from_version" ]]; then
+    msg="🔄 <b>claude-toolkit-raiz</b> v${from_version} → v${version}"
   else
-    echo "Error: could not parse version header" >&2
-    return 1
+    msg="🔄 <b>claude-toolkit-raiz</b> v${version}"
+    if [[ -n "$date_str" && -n "$description" ]]; then
+      msg+=$'\n'"<i>${date_str} — ${description}</i>"
+    fi
   fi
 
-  body="$(echo "$trimmed" | tail -n +2)"
-
-  # Escape HTML entities in body
-  html_body="$(echo "$body" \
+  # HTML-escape body (entities first, before adding tags)
+  local html_body
+  html_body="$(echo "$grouped" \
     | sed 's/&/\&amp;/g' \
     | sed 's/</\&lt;/g' \
     | sed 's/>/\&gt;/g')"
 
-  # Convert markdown formatting to HTML
+  # Convert section headers to bold (lines that aren't bullets)
+  # Convert backticks to code tags
   html_body="$(echo "$html_body" \
-    | sed 's/^### \(.*\)/<b>\1<\/b>/' \
-    | sed 's/^- \*\*\([^*]*\)\*\*/<b>\1<\/b>/' \
-    | sed 's/`\([^`]*\)`/<code>\1<\/code>/g' \
-    | sed 's/^- /• /')"
+    | sed '/^•/!{ /^$/!s/.*/<b>&<\/b>/; }' \
+    | sed 's/`\([^`]*\)`/<code>\1<\/code>/g')"
 
-  # Build message
-  local msg
-  msg="🔄 <b>claude-toolkit-raiz</b> v${version_num}"
-  msg+=$'\n'"<i>${date_str} — ${description}</i>"
   if [[ -n "${html_body// /}" ]]; then
-    msg+=$'\n'"${html_body}"
+    msg+=$'\n\n'"${html_body}"
   fi
 
   echo "$msg"
@@ -294,35 +350,53 @@ if [[ ${#VERSIONS_TO_PROCESS[@]} -eq 0 ]]; then
   exit 0
 fi
 
-# Process each version: use override file if it exists, otherwise extract+trim
+# Auto-override: check for override file for the TARGET version only
+OVERRIDE_HTML=""
+override_path="$PROJECT_ROOT/dist/raiz/changelog/${VERSION}.html"
+if [[ -f "$override_path" ]]; then
+  echo "Using override for v${VERSION}: $override_path" >&2
+  OVERRIDE_HTML="$(cat "$override_path")"
+fi
+
+# Collect trimmed content across all versions
 COMBINED_TRIMMED=""
-COMBINED_HTML=""
+ALL_BULLETS=""
+TARGET_DATE=""
+TARGET_DESC=""
+HAS_CONTENT=false
 
 for v in "${VERSIONS_TO_PROCESS[@]}"; do
-  override_path="$PROJECT_ROOT/dist/raiz/changelog/${v}.html"
-  has_override=false
-  [[ -f "$override_path" ]] && has_override=true
-
-  # Extract and trim from changelog (used for raw output and auto-generated HTML)
   entry="$(extract_entry "$v" 2>/dev/null)" || { echo "Skipping v${v}: not found in CHANGELOG.md" >&2; continue; }
   trimmed="$(trim_for_raiz "$entry")"
   body_lines="$(echo "$trimmed" | tail -n +2 | grep -c '.' || true)"
 
-  if $has_override; then
-    echo "Using override for v${v}: $override_path" >&2
-    COMBINED_HTML+="$(cat "$override_path")"$'\n\n'
-    [[ "$body_lines" -gt 0 ]] && COMBINED_TRIMMED+="$trimmed"$'\n\n'
-  elif [[ "$body_lines" -gt 0 ]]; then
+  if [[ "$body_lines" -gt 0 ]]; then
     COMBINED_TRIMMED+="$trimmed"$'\n\n'
-    COMBINED_HTML+="$(to_telegram_html "$trimmed")"$'\n\n'
+    ALL_BULLETS+="$(echo "$trimmed" | tail -n +2)"$'\n'
+    HAS_CONTENT=true
   else
     echo "Skipping v${v}: no raiz-relevant changes" >&2
   fi
+
+  # Capture date/description for the target version (used in single-version header)
+  if [[ "$v" == "$VERSION" ]]; then
+    parse_version_header "$(echo "$trimmed" | head -1)"
+    TARGET_DATE="$PARSED_DATE"
+    TARGET_DESC="$PARSED_DESC"
+  fi
 done
 
-# Strip trailing whitespace
+# Strip trailing whitespace from raw output
 COMBINED_TRIMMED="$(echo "$COMBINED_TRIMMED" | sed -e :a -e '/^[[:space:]]*$/d;N;ba')"
-COMBINED_HTML="$(echo "$COMBINED_HTML" | sed -e :a -e '/^[[:space:]]*$/d;N;ba')"
+
+# Generate HTML (unless override already provides it)
+COMBINED_HTML=""
+if [[ -n "$OVERRIDE_HTML" ]]; then
+  COMBINED_HTML="$OVERRIDE_HTML"
+elif $HAS_CONTENT; then
+  GROUPED="$(group_bullets_by_resource "$ALL_BULLETS")"
+  COMBINED_HTML="$(to_telegram_html "$GROUPED" "$VERSION" "$FROM_VERSION" "$TARGET_DATE" "$TARGET_DESC")"
+fi
 
 if [[ -z "${COMBINED_TRIMMED// /}" && -z "${COMBINED_HTML// /}" ]]; then
   echo "(no raiz-relevant changes in range)" >&2
