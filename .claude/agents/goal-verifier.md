@@ -27,7 +27,7 @@ A checklist of done tasks means nothing if the feature doesn't work. Verify from
 ### Phase 0: Scope & Skeleton
 
 1. Run `git diff main...HEAD --stat` to see what changed and how much
-2. Run `git status` to check for uncommitted changes
+2. Run `git status` to check for uncommitted changes — you verify the **working tree** (committed + uncommitted), so gaps can be fixed before committing
 3. Read the goal/plan documents (as specified, or `output/claude-toolkit/plans/`)
 4. Assess change magnitude:
    - **Trivial**: Docs-only, config-only, or <5 files changed
@@ -61,6 +61,8 @@ Based on what's already verified (not more reading unless needed to disprove):
 3. **Update the report** with both sections
 
 ### Final: Set Status
+
+**When to stop:** Every must-have checked at appropriate depth AND Devil's Advocate and Negative Cases sections complete. The checklist being satisfied is necessary but not sufficient — you must also have actively tried to break things.
 
 1. Review the filled report
 2. Set Status based on findings (see Status Criteria)
