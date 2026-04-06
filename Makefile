@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils validate check backlog tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils validate check backlog tag help
 
 install:
 	@uv sync --dev
@@ -10,6 +10,7 @@ help:
 	@echo "  make test-cli          - Run CLI tests only"
 	@echo "  make test-backlog      - Run backlog-query tests only"
 	@echo "  make test-raiz         - Run raiz publish tests only"
+	@echo "  make test-raiz-changelog - Run raiz changelog format tests only"
 	@echo "  make test-eval         - Run evaluation-query tests only"
 	@echo "  make test-validate-indexed - Run validate-resources-indexed tests only"
 	@echo "  make test-validate-hook-utils - Run validate-hook-utils tests only"
@@ -18,7 +19,7 @@ help:
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
-test: test-hooks test-cli test-backlog test-raiz test-eval test-validate-indexed test-validate-hook-utils test-setup-diag
+test: test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-setup-diag
 
 test-hooks:
 	@bash tests/test-hooks.sh -q
@@ -31,6 +32,9 @@ test-backlog:
 
 test-raiz:
 	@bash tests/test-raiz-publish.sh -q
+
+test-raiz-changelog:
+	@bash tests/test-raiz-changelog.sh -q
 
 test-eval:
 	@bash tests/test-evaluation-query.sh -q

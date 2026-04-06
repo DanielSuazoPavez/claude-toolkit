@@ -38,6 +38,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
     - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
 
+- **[TOOLKIT]** `format-raiz-changelog.sh` — bold-prefixed bullets skip `•` replacement (`raiz-changelog-bullet-cosmetic`)
+    - **scope**: `toolkit`
+    - **notes**: In `to_telegram_html`, the sed `s/^- \*\*\([^*]*\)\*\*/<b>\1<\/b>/` fires before `s/^- /• /`, so bullets starting with `- **keyword**` (all real changelog bullets) never get the `•` prefix. The `•` sed is effectively dead code for typical entries. Fix during the planned message format redesign — either reorder the seds or apply `•` unconditionally after bold conversion.
+
 ## P3 - Low
 
 - **[TOOLKIT]** Address global configs for base dist projects (`global-configs-dist`)

@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.45.3] - 2026-04-06 - Raiz changelog formatter tests
+
+### Added
+- **tests**: 62-test suite for `format-raiz-changelog.sh` — covers entry extraction, raiz filtering, version ranges, HTML conversion, override files (both `--override` flag and auto-detected), multi-version output, output modes, and edge cases
+- **toolkit**: `FORMAT_RAIZ_PROJECT_ROOT` env var override in `format-raiz-changelog.sh` for test isolation
+
 ## [2.45.2] - 2026-04-06 - Multi-version raiz notifications
 
 ### Fixed
