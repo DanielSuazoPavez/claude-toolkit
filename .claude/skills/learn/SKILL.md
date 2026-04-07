@@ -26,9 +26,13 @@ Capture a lesson from the current session. Lightweight — identify, format, wri
 ## Process
 
 1. **Search** for duplicates — check existing lessons via FTS
-2. **Infer** tags and draft one-line lesson text
-3. **Present** the proposed lesson (tags + text) — write unless user objects
+2. **Infer** tags, scope, and draft one-line lesson text
+3. **Present** the proposed lesson (tags + scope + text) — write unless user objects
 4. **Write** to lessons.db with full metadata
+
+### Scope
+
+Default: `global` (surfaces in all projects). Use `project` when the lesson is specific to this project's codebase and would not help other projects (e.g., "this repo uses X pattern for Y").
 
 No evaluation rubrics, no multi-round iteration. Propose → write.
 
@@ -63,6 +67,7 @@ Tags replace the old fixed categories. Assign one category-equivalent tag plus a
 ```
 Proposed lesson:
 - Tags: <category-tag>, <domain-tag1>, <domain-tag2>
+- Scope: <global|project>
 - Lesson: <one-line actionable rule>
 ```
 
@@ -75,17 +80,19 @@ The `add` subcommand handles ID generation, project/branch detection, and domain
 ```bash
 claude-toolkit lessons add \
   --text "<lesson text>" \
-  --tags "<category-tag>,<extra-tag1>,<extra-tag2>"
+  --tags "<category-tag>,<extra-tag1>,<extra-tag2>" \
+  --scope <global|project>
 ```
 
-The command auto-detects project name and git branch, generates a unique ID, and infers additional domain tags from the lesson text.
+The command auto-detects project name and git branch, generates a unique ID, and infers additional domain tags from the lesson text. Omit `--scope` for global (default).
 
 If duplicate detection flagged `recurring`, include it in tags:
 
 ```bash
 claude-toolkit lessons add \
   --text "<lesson text>" \
-  --tags "<category-tag>,recurring,<extra-tags>"
+  --tags "<category-tag>,recurring,<extra-tags>" \
+  --scope <global|project>
 ```
 
 ## Quality Heuristic

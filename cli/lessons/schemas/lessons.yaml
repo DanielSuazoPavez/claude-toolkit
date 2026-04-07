@@ -7,6 +7,9 @@ enums:
   tag_status:
     values: [active, deprecated, merged]
     description: "Tag lifecycle: active (in use), deprecated (being phased out), merged (consolidated into another tag)"
+  lesson_scope:
+    values: [global, project]
+    description: "Visibility scope: global (surfaces in all projects) or project (only surfaces in the originating project)"
 
 tables:
   projects:
@@ -93,6 +96,11 @@ tables:
         required: true
         default_value: "TRUE"
         description: "Whether this lesson is eligible for contextual surfacing. Active = loaded when tags match. Inactive = searchable only."
+      scope:
+        type: lesson_scope
+        required: true
+        default_value: "'global'"
+        description: "Visibility scope: 'global' (surfaces in all projects) or 'project' (only surfaces in the originating project)"
       text:
         type: text
         required: true
@@ -136,6 +144,9 @@ tables:
         description: "Primary query path: active lessons filtered by tier"
       idx_lessons_date:
         columns: [date]
+      idx_lessons_scope:
+        columns: [scope]
+        description: "Filter path: scope-aware lesson surfacing in hooks"
 
   metadata:
     description: "Key-value store for system state — last manage-lessons run, config, thresholds"

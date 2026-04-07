@@ -50,10 +50,12 @@ metadata          key-value store for system state
 |-------|-------------|-------|
 | `projects` | `id`, `name` | Auto-ID, unique name |
 | `tags` | `name`, `status`, `keywords`, `lesson_count` | Status: active / deprecated / merged |
-| `lessons` | `id`, `tier`, `active`, `text`, `branch` | ID format: `{project}_{YYYYMMDD}T{HHMM}_{NNN}` |
+| `lessons` | `id`, `tier`, `active`, `scope`, `text`, `branch` | ID format: `{project}_{YYYYMMDD}T{HHMM}_{NNN}` |
 | `lesson_tags` | `lesson_id`, `tag_id` | Many-to-many junction |
 | `metadata` | `key`, `value` | Tracks `last_manage_run`, `nudge_threshold_days` |
 | `lessons_fts` | `text` | FTS5 with `unicode61 tokenchars '-_./~'` |
+
+**Scope column on `lessons`:** `scope` — `global` (default, surfaces in all projects) or `project` (only surfaces in the originating project). Hooks filter by scope + project name.
 
 **Lifecycle columns on `lessons`:** `crystallized_from`, `absorbed_into`, `promoted`, `archived` — track lineage as lessons mature.
 
@@ -150,6 +152,8 @@ This branch:
 - Branch-specific lesson text
 ```
 
+**Scope filtering:** Both hooks filter by `scope` — project-scoped lessons only surface when the current project name matches. Global lessons surface everywhere.
+
 **Nudge logic:** suggests `/manage-lessons` if threshold exceeded or never run.
 
 **Legacy fallback:** if `lessons.db` missing but `.claude/learned.json` exists, displays migration alert.
@@ -171,9 +175,9 @@ Entry point: `claude-toolkit lessons` (dispatches to `ct-lessons` Python script)
 
 ```bash
 # CRUD
-claude-toolkit lessons add --text "lesson" --tags "gotcha,git"
+claude-toolkit lessons add --text "lesson" --tags "gotcha,git" [--scope project]
 claude-toolkit lessons search "keyword" [--limit N]
-claude-toolkit lessons list [--tier recent|key|historical] [--active] [--tags t1,t2] [--project P]
+claude-toolkit lessons list [--tier recent|key|historical] [--active] [--tags t1,t2] [--project P] [--scope global|project]
 claude-toolkit lessons summary
 
 # Management

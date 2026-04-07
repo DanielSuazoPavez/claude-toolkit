@@ -8,7 +8,7 @@ Schema design: cli/lessons/schemas/lessons.yaml
 
 Usage:
     claude-toolkit lessons migrate [--json-path PATH]
-    claude-toolkit lessons add --text TEXT --tags t1,t2 [--project NAME] [--branch B]
+    claude-toolkit lessons add --text TEXT --tags t1,t2 [--project NAME] [--branch B] [--scope global|project]
     claude-toolkit lessons search <query> [--limit N]
     claude-toolkit lessons list [--tier T] [--active] [--tags t1,t2] [--project P]
     claude-toolkit lessons summary
@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS lessons (
     tier                TEXT NOT NULL DEFAULT 'recent'
                             CHECK(tier IN ('recent', 'key', 'historical')),
     active              INTEGER NOT NULL DEFAULT 1,
+    scope               TEXT NOT NULL DEFAULT 'global'
+                            CHECK(scope IN ('global', 'project')),
     text                TEXT NOT NULL,
     branch              TEXT,
     crystallized_from   TEXT,
@@ -77,6 +79,7 @@ CREATE TABLE IF NOT EXISTS lessons (
 CREATE INDEX IF NOT EXISTS idx_lessons_project ON lessons(project_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_active_tier ON lessons(active, tier);
 CREATE INDEX IF NOT EXISTS idx_lessons_date ON lessons(date);
+CREATE INDEX IF NOT EXISTS idx_lessons_scope ON lessons(scope);
 
 CREATE TABLE IF NOT EXISTS metadata (
     key         TEXT PRIMARY KEY,
@@ -231,20 +234,22 @@ def insert_lesson(
     crystallized_from: str | None = None,
     promoted: str | None = None,
     archived: str | None = None,
+    scope: str = "global",
 ) -> str:
     """Insert a lesson with project and tags. Returns the lesson id."""
     project_id = get_or_create_project(conn, project_name)
     conn.execute(
         """INSERT INTO lessons
-           (id, project_id, date, tier, active, text, branch,
+           (id, project_id, date, tier, active, scope, text, branch,
             crystallized_from, promoted, archived)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             lesson_id,
             project_id,
             date,
             tier,
             1 if active else 0,
+            scope,
             text,
             branch,
             crystallized_from,
@@ -266,7 +271,7 @@ def update_lesson(
     """Update lesson fields by id."""
     allowed = {
         "tier", "active", "text", "branch", "crystallized_from",
-        "absorbed_into", "promoted", "archived",
+        "absorbed_into", "promoted", "archived", "scope",
     }
     to_set = {k: v for k, v in fields.items() if k in allowed}
     if not to_set:
@@ -466,6 +471,7 @@ def cmd_add(args: argparse.Namespace) -> None:
         text=args.text,
         tag_names=tag_names,
         branch=branch,
+        scope=args.scope,
     )
     conn.close()
 
@@ -473,6 +479,8 @@ def cmd_add(args: argparse.Namespace) -> None:
     print(f"{c['green']}Added:{c['reset']} {lesson_id}")
     if tag_names:
         print(f"  Tags: {', '.join(tag_names)}")
+    if args.scope == "project":
+        print(f"  Scope: project ({project})")
 
 
 def cmd_search(args: argparse.Namespace) -> None:
@@ -513,7 +521,7 @@ def cmd_list(args: argparse.Namespace) -> None:
 
     sql = """
         SELECT l.id, l.date, l.tier, l.active, l.text, p.name,
-               GROUP_CONCAT(t.name, ', ') AS tags
+               GROUP_CONCAT(t.name, ', ') AS tags, l.scope
         FROM lessons l
         JOIN projects p ON p.id = l.project_id
         LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
@@ -541,6 +549,9 @@ def cmd_list(args: argparse.Namespace) -> None:
             )
         """
         params.extend(filter_tags)
+    if args.scope:
+        sql += " AND l.scope = ?"
+        params.append(args.scope)
 
     sql += " GROUP BY l.id ORDER BY l.date DESC LIMIT ?"
     params.append(args.limit)
@@ -549,10 +560,11 @@ def cmd_list(args: argparse.Namespace) -> None:
     conn.close()
 
     print(f"\n{c['bold']}{len(rows)} lesson(s){c['reset']}\n")
-    for lid, date, tier, active, text, project, tags in rows:
+    for lid, date, tier, active, text, project, tags, scope in rows:
         active_mark = "" if active else f" {c['dim']}(inactive){c['reset']}"
+        scope_mark = "[P]" if scope == "project" else ""
         tag_str = f" {c['dim']}[{tags}]{c['reset']}" if tags else ""
-        print(f"  {c['dim']}{date}{c['reset']} [{tier}]{active_mark}{tag_str}")
+        print(f"  {c['dim']}{date}{c['reset']} [{tier}]{scope_mark}{active_mark}{tag_str}")
         print(f"    {text[:120]}")
         print()
 
@@ -693,6 +705,18 @@ def cmd_crystallize(args: argparse.Namespace) -> None:
         (source_ids[0],),
     ).fetchone()[0]
 
+    # Determine scope: project only if ALL sources are project-scoped for the same project
+    source_scopes = conn.execute(
+        f"SELECT DISTINCT l.scope, p.name FROM lessons l "  # noqa: S608
+        f"JOIN projects p ON l.project_id = p.id "
+        f"WHERE l.id IN ({','.join('?' for _ in source_ids)})",
+        source_ids,
+    ).fetchall()
+    if all(s == "project" for s, _ in source_scopes) and len({p for _, p in source_scopes}) == 1:
+        crystallized_scope = "project"
+    else:
+        crystallized_scope = "global"
+
     tag_names = [t.strip() for t in args.tags.split(",") if t.strip()] if args.tags else []
     inferred = _infer_domain_tags(args.text)
     tag_names = list(dict.fromkeys(tag_names + inferred))
@@ -717,6 +741,7 @@ def cmd_crystallize(args: argparse.Namespace) -> None:
         branch=_detect_branch(),
         crystallized_from=",".join(source_ids),
         promoted=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        scope=crystallized_scope,
     )
 
     # Deactivate sources
@@ -947,6 +972,8 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--text", required=True, help="Lesson text")
     add.add_argument("--tags", default="", help="Comma-separated tag names")
     add.add_argument("--branch", default=None, help="Git branch (auto-detected)")
+    add.add_argument("--scope", choices=["global", "project"], default="global",
+                     help="Scope: global (all projects) or project (this project only)")
 
     # search
     srch = sub.add_parser("search", help="Full-text search")
@@ -959,6 +986,7 @@ def build_parser() -> argparse.ArgumentParser:
     lst.add_argument("--active", action="store_true", help="Active lessons only")
     lst.add_argument("--tags", help="Comma-separated tags to filter by")
     lst.add_argument("--project", help="Filter by project name")
+    lst.add_argument("--scope", choices=["global", "project"], help="Filter by scope")
     lst.add_argument("--limit", type=int, default=50, help="Max results")
 
     # summary

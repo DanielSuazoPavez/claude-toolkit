@@ -213,6 +213,105 @@ class TestLessons:
         count_after = db.execute("SELECT lesson_count FROM tags WHERE name = 'test-tag'").fetchone()[0]
         assert count_after == 0
 
+    def test_insert_with_scope_project(self, db: sqlite3.Connection) -> None:
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_001",
+            project_name="proj",
+            date="2026-03-24",
+            text="Project-specific lesson",
+            tag_names=["convention"],
+            scope="project",
+        )
+        row = db.execute(
+            "SELECT scope FROM lessons WHERE id = ?",
+            ("proj_20260324T1200_001",),
+        ).fetchone()
+        assert row[0] == "project"
+
+    def test_insert_default_scope_global(self, db: sqlite3.Connection) -> None:
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_001",
+            project_name="proj",
+            date="2026-03-24",
+            text="Global lesson",
+            tag_names=["pattern"],
+        )
+        row = db.execute(
+            "SELECT scope FROM lessons WHERE id = ?",
+            ("proj_20260324T1200_001",),
+        ).fetchone()
+        assert row[0] == "global"
+
+    def test_update_scope(self, db: sqlite3.Connection) -> None:
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_001",
+            project_name="proj",
+            date="2026-03-24",
+            text="Lesson to rescope",
+            tag_names=["gotcha"],
+        )
+        update_lesson(db, "proj_20260324T1200_001", scope="project")
+        row = db.execute(
+            "SELECT scope FROM lessons WHERE id = ?",
+            ("proj_20260324T1200_001",),
+        ).fetchone()
+        assert row[0] == "project"
+
+    def test_scope_check_constraint(self, db: sqlite3.Connection) -> None:
+        get_or_create_project(db, "proj")
+        with pytest.raises(sqlite3.IntegrityError):
+            db.execute(
+                """INSERT INTO lessons (id, project_id, date, tier, active, scope, text)
+                   VALUES ('x', 1, '2026-01-01', 'recent', 1, 'invalid_scope', 'test')"""
+            )
+
+    def test_crystallize_scope_inherits_project(self, db: sqlite3.Connection) -> None:
+        """All project-scoped sources from same project -> project scope."""
+        insert_lesson(
+            db, lesson_id="p_001", project_name="proj", date="2026-03-24",
+            text="Source 1", tag_names=["a"], scope="project",
+        )
+        insert_lesson(
+            db, lesson_id="p_002", project_name="proj", date="2026-03-24",
+            text="Source 2", tag_names=["a"], scope="project",
+        )
+        source_ids = ["p_001", "p_002"]
+        placeholders = ",".join("?" for _ in source_ids)
+        rows = db.execute(
+            f"SELECT DISTINCT l.scope, p.name FROM lessons l "  # noqa: S608
+            f"JOIN projects p ON l.project_id = p.id "
+            f"WHERE l.id IN ({placeholders})",
+            source_ids,
+        ).fetchall()
+        all_project = all(s == "project" for s, _ in rows)
+        one_project = len({p for _, p in rows}) == 1
+        assert all_project and one_project
+
+    def test_crystallize_scope_global_when_mixed(self, db: sqlite3.Connection) -> None:
+        """Mixed scopes -> global scope."""
+        insert_lesson(
+            db, lesson_id="p_001", project_name="proj", date="2026-03-24",
+            text="Source 1", tag_names=["a"], scope="project",
+        )
+        insert_lesson(
+            db, lesson_id="p_002", project_name="proj", date="2026-03-24",
+            text="Source 2", tag_names=["a"], scope="global",
+        )
+        source_ids = ["p_001", "p_002"]
+        placeholders = ",".join("?" for _ in source_ids)
+        rows = db.execute(
+            f"SELECT DISTINCT l.scope, p.name FROM lessons l "  # noqa: S608
+            f"JOIN projects p ON l.project_id = p.id "
+            f"WHERE l.id IN ({placeholders})",
+            source_ids,
+        ).fetchall()
+        all_project = all(s == "project" for s, _ in rows)
+        one_project = len({p for _, p in rows}) == 1
+        assert not (all_project and one_project)
+
     def test_duplicate_id_raises(self, db: sqlite3.Connection) -> None:
         insert_lesson(
             db,

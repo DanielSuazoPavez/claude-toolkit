@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.46.0] - 2026-04-07 - Lesson scope field
+
+### Added
+- **lessons**: `scope` column on lessons table — `global` (default, surfaces everywhere) or `project` (only surfaces in the originating project)
+- **lessons**: `--scope` flag on `lessons add` and `lessons list` CLI commands
+- **lessons**: `[P]` marker in `lessons list` output for project-scoped lessons
+- **lessons**: crystallize inherits `project` scope when all sources are project-scoped for the same project
+- **hooks**: `session-start.sh` and `surface-lessons.sh` filter lessons by scope + project name
+- **skills**: `/learn` skill includes scope guidance and `--scope` in command examples
+- **gitignore**: template now covers `lessons.db`, `session-index.db`, `hooks.db` at project root
+- **tests**: 6 new scope tests (insert, default, update, CHECK constraint, crystallize inheritance)
+
+### Removed
+- **backlog**: completed `global-configs-dist` task
+
 ## [2.45.7] - 2026-04-06 - Wrap-up tag push reminder
 
 ### Changed
