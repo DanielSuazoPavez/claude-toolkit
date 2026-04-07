@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS lessons (
     tier                TEXT NOT NULL DEFAULT 'recent'
                             CHECK(tier IN ('recent', 'key', 'historical')),
     active              INTEGER NOT NULL DEFAULT 1,
+    scope               TEXT NOT NULL DEFAULT 'global'
+                            CHECK(scope IN ('global', 'project')),
     text                TEXT NOT NULL,
     branch              TEXT,
     crystallized_from   TEXT,
@@ -77,6 +79,7 @@ CREATE TABLE IF NOT EXISTS lessons (
 CREATE INDEX IF NOT EXISTS idx_lessons_project ON lessons(project_id);
 CREATE INDEX IF NOT EXISTS idx_lessons_active_tier ON lessons(active, tier);
 CREATE INDEX IF NOT EXISTS idx_lessons_date ON lessons(date);
+CREATE INDEX IF NOT EXISTS idx_lessons_scope ON lessons(scope);
 
 CREATE TABLE IF NOT EXISTS metadata (
     key         TEXT PRIMARY KEY,
@@ -231,20 +234,22 @@ def insert_lesson(
     crystallized_from: str | None = None,
     promoted: str | None = None,
     archived: str | None = None,
+    scope: str = "global",
 ) -> str:
     """Insert a lesson with project and tags. Returns the lesson id."""
     project_id = get_or_create_project(conn, project_name)
     conn.execute(
         """INSERT INTO lessons
-           (id, project_id, date, tier, active, text, branch,
+           (id, project_id, date, tier, active, scope, text, branch,
             crystallized_from, promoted, archived)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             lesson_id,
             project_id,
             date,
             tier,
             1 if active else 0,
+            scope,
             text,
             branch,
             crystallized_from,
@@ -266,7 +271,7 @@ def update_lesson(
     """Update lesson fields by id."""
     allowed = {
         "tier", "active", "text", "branch", "crystallized_from",
-        "absorbed_into", "promoted", "archived",
+        "absorbed_into", "promoted", "archived", "scope",
     }
     to_set = {k: v for k, v in fields.items() if k in allowed}
     if not to_set:
