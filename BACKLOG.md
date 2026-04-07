@@ -46,6 +46,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
 
+- **[HOOKS]** Address SQL injection in lesson hooks (`lessons-sql-injection`)
+    - **scope**: `hooks`
+    - **notes**: `session-start.sh` and `surface-lessons.sh` interpolate `PROJECT` and `BRANCH` into SQL via single-quote doubling (`SAFE_PROJECT="${PROJECT//\'/\'\'}"`) — standard SQLite escaping but still string interpolation, not parameterized queries. `PROJECT` comes from `basename "$PWD"` (filesystem), so practical risk is low, but a directory name with crafted quotes could theoretically inject SQL. Options: (1) use sqlite3 parameterized queries from bash (tricky), (2) move lesson queries to a Python helper invoked by hooks, (3) accept current risk with documented rationale.
+
 ## P99 - Nice to Have
 
 - **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
