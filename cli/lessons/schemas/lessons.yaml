@@ -97,8 +97,7 @@ tables:
         default_value: "TRUE"
         description: "Whether this lesson is eligible for contextual surfacing. Active = loaded when tags match. Inactive = searchable only."
       scope:
-        type: varchar
-        size: 7
+        type: lesson_scope
         required: true
         default_value: "'global'"
         description: "Visibility scope: 'global' (surfaces in all projects) or 'project' (only surfaces in the originating project)"
