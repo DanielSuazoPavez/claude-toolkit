@@ -70,15 +70,18 @@ _hook_perf_probe "build_sql"
 
 [ -z "$CONDITIONS" ] && exit 0
 
-# Query matching active lessons (id + text in one query)
+# Query matching active lessons (id + text in one query), scope-filtered
+SAFE_PROJECT="${PROJECT//\'/\'\'}"
 RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
     SELECT DISTINCT l.id, l.text
     FROM lessons l
     JOIN lesson_tags lt ON l.id = lt.lesson_id
     JOIN tags t ON lt.tag_id = t.id
+    LEFT JOIN projects p ON p.id = l.project_id
     WHERE l.active = 1
       AND t.status = 'active'
       AND ($CONDITIONS)
+      AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
     LIMIT 3;
 " 2>/dev/null)
 _hook_perf_probe "sqlite_query"

@@ -105,6 +105,7 @@ LEARNED_FILE=".claude/learned.json"
 if [ -f "$LESSONS_DB" ]; then
     # SQLite path — CURRENT_BRANCH already set in git context section
     SAFE_BRANCH="${CURRENT_BRANCH//\'/\'\'}"
+    SAFE_PROJECT="${PROJECT//\'/\'\'}"
 
     # Single sqlite3 call for all lesson data — row prefix disambiguates result sets
     KEY_LESSONS=""
@@ -120,14 +121,22 @@ SELECT 'K|' || '- [' || GROUP_CONCAT(t.name, ',') || '] ' || l.text
   FROM lessons l
   LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
   LEFT JOIN tags t ON t.id = lt.tag_id
+  LEFT JOIN projects p ON p.id = l.project_id
   WHERE l.tier = 'key' AND l.active = 1
+    AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
   GROUP BY l.id ORDER BY l.date DESC;
 SELECT 'R|' || '- ' || l.text
-  FROM lessons l WHERE l.tier = 'recent' AND l.active = 1
+  FROM lessons l
+  LEFT JOIN projects p ON p.id = l.project_id
+  WHERE l.tier = 'recent' AND l.active = 1
+    AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
   ORDER BY l.date DESC LIMIT 5;
 SELECT 'B|' || '- ' || l.text
-  FROM lessons l WHERE l.tier = 'recent' AND l.active = 1
-  AND l.branch = '${SAFE_BRANCH}'
+  FROM lessons l
+  LEFT JOIN projects p ON p.id = l.project_id
+  WHERE l.tier = 'recent' AND l.active = 1
+    AND l.branch = '${SAFE_BRANCH}'
+    AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
   ORDER BY l.date DESC;
 SELECT 'M|' || CAST(COALESCE(julianday('now') - julianday(value), -1) AS INTEGER)
   FROM metadata WHERE key = 'last_manage_run';
