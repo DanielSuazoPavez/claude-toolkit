@@ -8,7 +8,7 @@ Schema design: cli/lessons/schemas/lessons.yaml
 
 Usage:
     claude-toolkit lessons migrate [--json-path PATH]
-    claude-toolkit lessons add --text TEXT --tags t1,t2 [--project NAME] [--branch B]
+    claude-toolkit lessons add --text TEXT --tags t1,t2 [--project NAME] [--branch B] [--scope global|project]
     claude-toolkit lessons search <query> [--limit N]
     claude-toolkit lessons list [--tier T] [--active] [--tags t1,t2] [--project P]
     claude-toolkit lessons summary

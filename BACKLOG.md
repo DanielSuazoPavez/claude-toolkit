@@ -36,10 +36,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[TOOLKIT]** Address global configs for base dist projects (`global-configs-dist`)
-    - **scope**: `toolkit`
-    - **notes**: Global shared files (lessons.db, session-index.db in `~/.claude/`) leak into project directories as stray untracked files. Base dist projects need a proper story: ensure `.gitignore` templates cover known global artifacts, document which files are global vs project-scoped, and consider whether sync should clean up or warn about misplaced globals.
-
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability.
@@ -51,4 +47,8 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
 
 ## P99 - Nice to Have
+
+- **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
+    - **scope**: `skills`
+    - **notes**: AskUserQuestion supports single-select, multi-select, and preview panes — but most skills default to open-ended questions. Audit skills that use AskUserQuestion (brainstorm-idea may already use options organically) and convert categorical decision points to structured option selection where it fits. Keep free-text for creative/descriptive input.
 
