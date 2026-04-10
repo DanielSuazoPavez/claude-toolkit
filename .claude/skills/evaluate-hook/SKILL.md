@@ -2,6 +2,7 @@
 name: evaluate-hook
 description: Evaluate Claude Code hook quality. Use when reviewing, auditing, or improving hooks before deployment. Keywords: hook quality, hook review, evaluate hook, audit hook.
 argument-hint: "[hook-name-or-path]"
+compatibility: jq
 allowed-tools: Read, Write, Glob, Agent, Bash(jq:*)
 ---
 
