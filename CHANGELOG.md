@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.47.0] - 2026-04-10 - Review-plan subagent delegation
+
+### Changed
+- **skills**: `/review-plan` now delegates to a subagent by default — review runs in isolation, writes output to `output/claude-toolkit/reviews/`, and returns a summary to the main agent. Reduces context window pressure from repeated reviews.
+- **skills**: `/review-plan inline` flag preserves the previous inline behavior when needed
+
 ## [2.46.0] - 2026-04-07 - Lesson scope field
 
 ### Added

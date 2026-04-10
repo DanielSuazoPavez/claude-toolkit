@@ -29,6 +29,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
+- **[SKILLS]** Re-evaluate review-plan subagent changes from v2.47.0 (`review-plan-subagent-eval`)
+    - **scope**: `skills`
+    - **notes**: v2.47.0 introduced subagent delegation for `/review-plan`. After real usage across a few branches, evaluate: (1) Is the context brief adequate — does the subagent miss verbal constraints? (2) Is the summary-only relay sufficient or do users need more detail? (3) Does the `inline` escape hatch get used, and why? (4) Token savings vs quality tradeoff. Remove this task after 3+ real reviews confirm the pattern works.
+
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
