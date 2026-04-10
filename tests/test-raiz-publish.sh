@@ -131,7 +131,7 @@ assert_file_exists "wrap-up included" "$OUTPUT_DIR/.claude/skills/wrap-up/SKILL.
 assert_file_exists "write-handoff included" "$OUTPUT_DIR/.claude/skills/write-handoff/SKILL.md"
 
 # Excluded skills
-assert_dir_not_exists "analyze-idea excluded" "$OUTPUT_DIR/.claude/skills/analyze-idea"
+assert_file_exists "analyze-idea included" "$OUTPUT_DIR/.claude/skills/analyze-idea/SKILL.md"
 assert_dir_not_exists "snap-back excluded" "$OUTPUT_DIR/.claude/skills/snap-back"
 assert_dir_not_exists "learn excluded" "$OUTPUT_DIR/.claude/skills/learn"
 assert_dir_not_exists "refactor excluded" "$OUTPUT_DIR/.claude/skills/refactor"
@@ -182,8 +182,8 @@ teardown
 report_section "=== Cross-reference trimming ==="
 setup
 
-# brainstorm-idea: /analyze-idea removed from See also, /review-plan kept
-assert_file_not_contains "brainstorm-idea: /analyze-idea removed" \
+# brainstorm-idea: /analyze-idea kept (now in manifest), /review-plan kept
+assert_file_contains "brainstorm-idea: /analyze-idea kept" \
     "$OUTPUT_DIR/.claude/skills/brainstorm-idea/SKILL.md" "/analyze-idea"
 assert_file_contains "brainstorm-idea: /review-plan kept" \
     "$OUTPUT_DIR/.claude/skills/brainstorm-idea/SKILL.md" "/review-plan"

@@ -97,6 +97,8 @@ Are anti-patterns specific with reasoning, not vague warnings?
 ### D4: Specification Compliance (10 pts)
 Is the description clear about WHAT and WHEN? Keywords should be precise — penalize over-broad trigger lists that cause false-positive routing.
 
+**Negative triggers:** Skills sharing keyword space with siblings should include explicit exclusion language ("Do NOT use for X"). Deduct 1-2 pts if obvious overlap exists without disambiguation.
+
 **Tool scoping (command skills only):** Does the skill declare `allowed-tools` in frontmatter? Are the tools appropriately scoped — not too broad (e.g. `Bash` without pattern) and not missing tools it actually uses? Knowledge skills are exempt. Deduct 2-3 pts if missing or misconfigured.
 
 **External dependencies:** If the skill uses external tools via `allowed-tools` (e.g., `Bash(jq:*)`, `Bash(sqlite3:*)`), does it declare `compatibility` listing those tools? Deduct 1-2 pts if missing.

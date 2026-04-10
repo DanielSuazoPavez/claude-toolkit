@@ -88,6 +88,13 @@ The first line (description) must:
 
 **Why this matters:** Claude's tool routing uses the description to decide whether to load the skill. If the description contains workflow steps (e.g., "Updates changelog, bumps version"), Claude may execute those steps directly from the description without reading the full SKILL.md body—missing nuances, anti-patterns, and edge cases. Keep descriptions as pure triggers.
 
+### Disambiguation
+
+When your skill shares keyword space with another:
+- Add negative triggers at the end of the description: "Do NOT use for X (use /other-skill)."
+- Name the alternative skill explicitly so Claude can route correctly
+- Stay under 1024 characters total (hard platform limit)
+
 ### Arguments
 
 If the skill accepts input (file paths, modes, targets):
