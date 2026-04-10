@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.48.1] - 2026-04-10 - Setup-toolkit statusline step
+
+### Added
+- **skills**: `/setup-toolkit` now includes statusline (powerline) configuration step — sets up `@owloops/claude-powerline` with Nord-themed two-line layout (directory/git + model/version/block/context)
+
 ## [2.48.0] - 2026-04-10 - Lessons get-by-ID
 
 ### Added
