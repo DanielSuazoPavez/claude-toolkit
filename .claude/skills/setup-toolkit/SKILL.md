@@ -2,6 +2,7 @@
 name: setup-toolkit
 type: command
 description: Diagnose and fix Claude Toolkit configuration after sync or drift. Keywords: setup, configure, toolkit, settings, hooks, permissions, mcp.
+compatibility: jq
 allowed-tools: Bash(jq:*), Bash(grep:*), Bash(diff:*), Bash(make:*), Bash(bash:*), Bash(ls:*), Bash(rm:*), Read, Write, Edit, Glob, Grep
 ---
 

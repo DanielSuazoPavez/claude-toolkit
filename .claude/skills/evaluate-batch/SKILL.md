@@ -2,6 +2,7 @@
 name: evaluate-batch
 description: Use when evaluating multiple resources of one type. Keywords: batch evaluation, parallel evaluation, bulk evaluate, evaluate all, mass evaluation.
 argument-hint: "[type] [re-evaluate]"
+compatibility: jq
 allowed-tools: Read, Write, Glob, Agent, Bash(jq:*)
 ---
 

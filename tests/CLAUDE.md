@@ -16,6 +16,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `test-raiz-publish.sh` | Raiz distribution builder (`publish.py`) | bash |
 | `test-setup-toolkit-diagnose.sh` | Diagnostic script (40 tests, base + raiz) | bash |
 | `test-validate-hook-utils.sh` | `lib/hook-utils.sh` shared library | bash |
+| `test-verify-external-deps.sh` | External tool dependency checker | bash |
 | `test-validate-resources-indexed.sh` | Resource index completeness | bash |
 | `test_lesson_db.py` | Lessons database (Python, 28 tests) | pytest |
 | `perf-session-start.sh` | Session-start hook performance benchmark | bash |

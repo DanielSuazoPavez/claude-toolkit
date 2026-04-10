@@ -2,6 +2,7 @@
 name: evaluate-docs
 description: Evaluate doc file quality against conventions. Use when reviewing, auditing, or improving docs in .claude/docs/.
 argument-hint: "[doc-name-or-path]"
+compatibility: jq
 allowed-tools: Read, Write, Glob, Agent, Bash(jq:*)
 ---
 

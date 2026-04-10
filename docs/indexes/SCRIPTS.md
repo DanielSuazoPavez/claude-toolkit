@@ -20,3 +20,4 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | `verify-resource-deps.sh` | stable | yes | Validates cross-references between resources |
 | `validate-safe-commands-sync.sh` | stable | yes | Checks approve-safe-commands hook prefixes match settings.json |
 | `validate-hook-utils.sh` | stable | yes | Checks all hooks source shared library lib/hook-utils.sh |
+| `verify-external-deps.sh` | stable | no | Checks external tools declared in skill compatibility fields are installed |
