@@ -1,23 +1,74 @@
 ---
 name: review-plan
 description: Review a plan against quality criteria before approving. Use when requests mention "review plan", "check plan", "verify plan", or "approve plan".
-argument-hint: Path to plan file (optional, auto-detected from context)
-allowed-tools: Read, Glob
+argument-hint: "[inline] [path-to-plan]"
+allowed-tools: Read, Glob, Agent
 ---
 
 **See also:** `/brainstorm-idea` (when the plan reveals requirements are still unclear), `/wrap-up` (finalize branch after implementation), `code-reviewer` agent (post-implementation code review), `goal-verifier` agent (verify feature completeness), `implementation-checker` agent (compare implementation to plan)
 
-## Your Task
+## Dispatch
 
-Review the plan and provide structured feedback before the user decides to approve or request changes.
+Check `$ARGUMENTS` for the word `inline`.
 
-## Finding the Plan
+- **`inline` present** → execute the review framework below directly in the main agent. Skip "Before Spawning".
+- **`inline` absent** (default) → follow "Before Spawning", then spawn a subagent.
+
+## Before Spawning
+
+Before spawning the subagent, assemble a **context brief** — a short block of text (3-5 sentences max) that captures what the subagent can't see:
+
+1. **Why this plan exists** — the motivation or problem that led to it
+2. **Verbal constraints** — anything the user said in conversation that isn't written in the plan (e.g., "keep it simple", "don't touch module X", "this is time-sensitive")
+3. **What the user cares about** — where they want scrutiny, what they'd consider over-engineered, any expressed preferences
+
+Then spawn a general-purpose agent with this prompt structure:
+
+```
+You are reviewing a plan. Write the full review to a file — do NOT return the review content in your response.
+
+## Output
+
+Write the review to: output/claude-toolkit/reviews/{timestamp}__review_plan__{plan-name}.md
+
+Where:
+- {timestamp} — run `date +%Y%m%d_%H%M%S` to get the current datetime
+- {plan-name} is the plan filename without extension (e.g., if the plan is `add-caching.md`, use `add-caching`)
+
+After writing, respond with only the file path you wrote to.
+
+## Context Brief
+
+{assembled context brief}
+
+## Plan Location
+
+Read the plan at: {plan file path}
+
+## Project Identity
+
+If `.claude/docs/relevant-project-identity.md` exists, read it and use it as an additional evaluation lens.
+
+## Review Framework
+
+{paste the entire "Review Framework" section below}
+```
+
+After the subagent returns the file path, read the review and present the path to the user with a brief summary (verdict, issue counts, key flags). Do NOT relay the full review — keep the summary concise.
+
+---
+
+## Review Framework
+
+Everything below this line is the review framework. When running inline, execute it directly. When spawning a subagent, include it verbatim in the prompt.
+
+### Finding the Plan
 
 1. If `$ARGUMENTS` contains a path, read that file
 2. Otherwise, look for the plan path in recent conversation context (usually mentioned when exiting plan mode)
 3. If still not found, check `~/.claude/plans/` for the most recently modified `.md` file
 
-## Step 1: Identify Plan Type and Calibrate
+### Step 1: Identify Plan Type and Calibrate
 
 First, determine what kind of plan this is:
 
@@ -32,13 +83,13 @@ First, determine what kind of plan this is:
 
 **Calibration rule:** Match review depth to plan risk. A 3-step bug fix doesn't need the same scrutiny as a database migration.
 
-### Project identity lens
+#### Project identity lens
 
 If a `relevant-project-identity` doc exists in `.claude/docs/`, read it and use it as an additional evaluation lens. Check whether the plan aligns with the project's stated identity, scope boundaries, and core traits. Flag any steps that drift outside the project's declared boundaries.
 
-## Step 2: Check Structure
+### Step 2: Check Structure
 
-### Is the goal clear?
+#### Is the goal clear?
 
 ```
 Goal statement check:
@@ -48,7 +99,7 @@ Goal statement check:
 └─ Missing entirely? → High
 ```
 
-### Are steps commit-sized?
+#### Are steps commit-sized?
 
 Each step should be a commit-able unit of work — small enough to verify, large enough to be meaningful. The plan must explicitly state that each step produces a commit.
 
@@ -63,7 +114,7 @@ Step granularity check:
 └─ Plan states "commit after each step"? → Required
 ```
 
-### Does the plan include final steps?
+#### Does the plan include final steps?
 
 The last steps of every plan should include review and finalization. These are the **last numbered steps** in the plan — not a separate "post-implementation" phase.
 
@@ -87,7 +138,7 @@ Final steps (tiered by complexity):
 
 If final steps are missing, flag it as an issue in the review — do not silently fix the plan.
 
-### Are files listed and valid?
+#### Are files listed and valid?
 
 ```
 File list check:
@@ -98,7 +149,7 @@ File list check:
 └─ Listed files actually exist? → Verify with Glob — code may have moved since the plan was written
 ```
 
-### Is verification defined?
+#### Is verification defined?
 
 ```
 Verification check:
@@ -109,7 +160,7 @@ Verification check:
 └─ For data changes: before/after comparison method? → Required
 ```
 
-## Step 3: Check for Anti-Patterns
+### Step 3: Check for Anti-Patterns
 
 | Anti-Pattern | Signal | Default Severity | Fix |
 |--------------|--------|-----------------|-----|
@@ -131,9 +182,9 @@ Verification check:
 - Deferred decisions ("choose an appropriate approach")
 - Vague scope ("and any related files")
 
-## Step 4: Rate Issues and Determine Verdict
+### Step 4: Rate Issues and Determine Verdict
 
-### Issue Severity Definitions
+#### Issue Severity Definitions
 
 | Severity | Criteria | Examples |
 |----------|----------|----------|
@@ -143,7 +194,7 @@ Verification check:
 
 **Severity calibration rule:** Consider the implementing agent's perspective. If a step would force the agent to make assumptions or decisions not covered by the plan, that is **Medium at minimum** — never Low. The implementing agent has no context beyond the plan text. "The agent will figure it out" is not a valid assumption; agents that guess tend to either do the wrong thing or spin in circles. When in doubt, raise severity — a false Medium is cheap, but a false Low causes real implementation pain.
 
-### Verdict Rules
+#### Verdict Rules
 
 The verdict is derived from the issue list. Issues set a **floor** — the approach assessment can raise the verdict (make it stricter) but never lower it below what the issues demand.
 
@@ -176,7 +227,7 @@ Approach assessment (can only raise, never lower):
 | **REVISE** | High issues or multiple Medium issues, but approach is correct | List exact changes needed in the plan |
 | **RETHINK** | 3+ High issues, or fundamental approach problems | Explain what's wrong and suggest alternative approach |
 
-## Output Format
+### Output Format
 
 Use color and visual emphasis to make the review scannable at a glance:
 - Verdicts: `APPROVE` in **bold green** (wrap in a blockquote with >), `REVISE` in **bold yellow**, `RETHINK` in **bold red**
@@ -243,7 +294,7 @@ Use color and visual emphasis to make the review scannable at a glance:
 > **REVISE** — [1-2 sentences. Reference the issue count that drove this verdict.]
 ```
 
-## Calibration Guidance
+### Calibration Guidance
 
 **Be stricter when:**
 - Plan involves data loss risk (migrations, deletions)
@@ -262,7 +313,7 @@ Use color and visual emphasis to make the review scannable at a glance:
 - Hidden dependencies between steps
 - Security implications not addressed
 
-## Before Presenting the Review
+### Before Presenting the Review
 
 **Do not edit the plan.** Review it as-is. If something is missing, flag it as an issue in the review output — don't silently fix it. The user needs to see the gaps to decide whether to address them or accept the risk.
 
