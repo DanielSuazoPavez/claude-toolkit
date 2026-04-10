@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.49.1] - 2026-04-10 - Code reviewer test coverage check
+
+### Changed
+- **agents**: `code-reviewer` Phase 4 — flags high/medium-risk files with no corresponding test changes as a Risk (defers quality assessment to `/design-tests`)
+
 ## [2.49.0] - 2026-04-10 - Skill compatibility field
 
 ### Added
