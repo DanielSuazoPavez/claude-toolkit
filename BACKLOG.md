@@ -40,6 +40,14 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[SKILLS]** Add `compatibility` frontmatter to skills that require external tools (`skill-compatibility-field`)
+    - **scope**: `skills`
+    - **notes**: Some skills depend on tools not available in all environments — jq, Python, sqlite3, etc. The `compatibility` field (from Agent Skills spec) signals environment requirements so skills degrade gracefully or warn when dependencies are missing. Audit skills for external tool usage and add `compatibility` to their frontmatter. Update create-skill template and evaluate-skill D4 to account for this field.
+
+- **[SKILLS]** Improve skill descriptions — negative triggers and 1024-char limit (`skill-description-improvements`)
+    - **scope**: `skills`
+    - **notes**: Two improvements from the Anthropic skills guide: (1) Add negative triggers ("Do NOT use for X") to descriptions that over-trigger or share ambiguous keyword space with other skills. (2) Enforce 1024-char limit on description fields — audit current skills for violations. Update create-skill guidance and evaluate-skill D4 scoring to check both.
+
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability.
@@ -53,6 +61,14 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 - **[HOOKS]** Address SQL injection in lesson hooks (`lessons-sql-injection`)
     - **scope**: `hooks`
     - **notes**: `session-start.sh` and `surface-lessons.sh` interpolate `PROJECT` and `BRANCH` into SQL via single-quote doubling (`SAFE_PROJECT="${PROJECT//\'/\'\'}"`) — standard SQLite escaping but still string interpolation, not parameterized queries. `PROJECT` comes from `basename "$PWD"` (filesystem), so practical risk is low, but a directory name with crafted quotes could theoretically inject SQL. Options: (1) use sqlite3 parameterized queries from bash (tricky), (2) move lesson queries to a Python helper invoked by hooks, (3) accept current risk with documented rationale.
+
+- **[AGENTS]** Explore resource-aware model routing for agent spawning (`agent-model-routing`)
+    - **scope**: `agents, skills`
+    - **notes**: Currently agents hardcode `model: "opus"` or `model: "sonnet"`. Some tasks (simple evaluations, pattern searches, file lookups) could route to Haiku for cost/speed without quality loss. Explore: (1) which agents/tasks are candidates for cheaper models, (2) whether this should be a convention in create-agent or a runtime decision by the spawning skill, (3) what the actual cost/quality tradeoff looks like in practice. Start with a discussion pass, not implementation.
+
+- **[AGENTS]** Add structured reasoning activation to select agents (`agent-reasoning-activation`)
+    - **scope**: `agents`
+    - **notes**: Some agents would benefit from explicit reasoning technique activation (CoT, hypothesis-evidence patterns, structured decomposition). `code-debugger` already does this organically with its hypothesis-elimination approach. Audit other agents — candidates: `code-reviewer` (risk assessment reasoning), `goal-verifier` (backward verification logic), `proposal-reviewer` (audience perspective reasoning). Light touch — add reasoning prompts where they'd improve output, not a framework overhaul.
 
 ## P99 - Nice to Have
 
