@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.49.0] - 2026-04-10 - Skill compatibility field
+
+### Added
+- **scripts**: `verify-external-deps.sh` — scans skill frontmatter for `compatibility:` field and checks external tools are installed (warnings only, never fails build)
+- **skills**: `compatibility` frontmatter on 9 skills — `jq` (evaluate-agent/batch/docs/hook/skill, read-json, setup-toolkit) and `sqlite3` (learn, manage-lessons)
+- **skills**: `/create-skill` template includes commented `compatibility` field
+- **skills**: `/evaluate-skill` D4 now checks for missing `compatibility` when `allowed-tools` uses external tools
+
+### Changed
+- **validation**: `validate-all.sh` runs `verify-external-deps.sh` as advisory check (between hook-utils and settings-template)
+
 ## [2.48.1] - 2026-04-10 - Setup-toolkit statusline step
 
 ### Added

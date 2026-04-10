@@ -40,10 +40,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SKILLS]** Add `compatibility` frontmatter to skills that require external tools (`skill-compatibility-field`)
-    - **scope**: `skills`
-    - **notes**: Some skills depend on tools not available in all environments — jq, Python, sqlite3, etc. The `compatibility` field (from Agent Skills spec) signals environment requirements so skills degrade gracefully or warn when dependencies are missing. Audit skills for external tool usage and add `compatibility` to their frontmatter. Update create-skill template and evaluate-skill D4 to account for this field.
-
 - **[SKILLS]** Improve skill descriptions — negative triggers and 1024-char limit (`skill-description-improvements`)
     - **scope**: `skills`
     - **notes**: Two improvements from the Anthropic skills guide: (1) Add negative triggers ("Do NOT use for X") to descriptions that over-trigger or share ambiguous keyword space with other skills. (2) Enforce 1024-char limit on description fields — audit current skills for violations. Update create-skill guidance and evaluate-skill D4 scoring to check both.
