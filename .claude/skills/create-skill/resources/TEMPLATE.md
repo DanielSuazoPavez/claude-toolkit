@@ -2,6 +2,7 @@
 name: check-dependencies
 description: Use when checking project dependencies for outdated versions, security advisories, or unused packages. Keywords: dependencies, outdated, vulnerabilities, audit, packages.
 # argument-hint: "[lockfile-path]"  ← uncomment if skill accepts arguments
+# compatibility: "tool1, tool2"  ← uncomment if skill requires external tools
 # user-invocable: false  ← uncomment for knowledge skills (not user-invoked, Claude auto-loads)
 ---
 
