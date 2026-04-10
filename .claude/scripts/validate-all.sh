@@ -44,6 +44,13 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- External tool dependencies ---
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Running: verify-external-deps.sh"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+bash "$SCRIPTS_DIR/verify-external-deps.sh"
+echo ""
+
 # --- Settings template ---
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Running: validate-settings-template.sh"
