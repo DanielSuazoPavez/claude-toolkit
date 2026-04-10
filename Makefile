@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils validate check backlog tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps validate check backlog tag help
 
 install:
 	@uv sync --dev
@@ -14,12 +14,13 @@ help:
 	@echo "  make test-eval         - Run evaluation-query tests only"
 	@echo "  make test-validate-indexed - Run validate-resources-indexed tests only"
 	@echo "  make test-validate-hook-utils - Run validate-hook-utils tests only"
+	@echo "  make test-verify-ext-deps - Run verify-external-deps tests only"
 	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make tag               - Create git tag from VERSION file"
 	@echo "  make backlog           - Show project backlog"
 	@echo "  make check             - Run everything (tests + validate)"
 
-test: test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-setup-diag
+test: test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-setup-diag
 
 test-hooks:
 	@bash tests/test-hooks.sh -q
@@ -44,6 +45,9 @@ test-validate-indexed:
 
 test-validate-hook-utils:
 	@bash tests/test-validate-hook-utils.sh -q
+
+test-verify-ext-deps:
+	@bash tests/test-verify-external-deps.sh -q
 
 test-setup-diag:
 	@bash tests/test-setup-toolkit-diagnose.sh -q
