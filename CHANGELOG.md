@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.48.0] - 2026-04-10 - Lessons get-by-ID
+
+### Added
+- **lessons**: `lessons get <id>` subcommand — shows full detail for a single lesson (all fields including scope, branch, crystallized_from, absorbed_into, promoted, archived)
+- **skills**: CLI quick reference section in `/manage-lessons` skill doc — prevents guessing flags that don't exist
+
 ## [2.47.0] - 2026-04-10 - Review-plan subagent delegation
 
 ### Changed
