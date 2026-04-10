@@ -32,10 +32,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SKILLS]** Improve skill descriptions — negative triggers and 1024-char limit (`skill-description-improvements`)
-    - **scope**: `skills`
-    - **notes**: Two improvements from the Anthropic skills guide: (1) Add negative triggers ("Do NOT use for X") to descriptions that over-trigger or share ambiguous keyword space with other skills. (2) Enforce 1024-char limit on description fields — audit current skills for violations. Update create-skill guidance and evaluate-skill D4 scoring to check both.
-
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability.
