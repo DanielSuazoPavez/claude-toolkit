@@ -55,6 +55,12 @@ For each medium-risk file:
 - Review stat output only — read the diff only if something looks suspicious (unexpected file size change, renamed security-related file, etc.)
 - **Update the report** if anything flagged
 
+### Phase 4: Test Coverage Check
+
+- Review the diff stat from Phase 0: do high/medium-risk files have corresponding test changes?
+- If new or modified business logic has zero test changes → flag as a Risk
+- Don't assess test quality — that's `/design-tests`. Just flag the absence.
+
 ### Final: Set Status
 
 1. Review the filled report
