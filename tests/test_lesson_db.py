@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import argparse
 import sqlite3
 from pathlib import Path
 
 import pytest
 
 from cli.lessons.db import (
+    cmd_get,
     get_metadata,
     get_or_create_project,
     get_or_create_tag,
@@ -492,3 +494,35 @@ class TestConstraints:
             ("proj_20260324T1200_001",),
         ).fetchone()[0]
         assert count == 0
+
+
+# ---------------------------------------------------------------------------
+# cmd_get
+# ---------------------------------------------------------------------------
+
+
+class TestCmdGet:
+    def test_get_existing_lesson(self, db: sqlite3.Connection, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_001",
+            project_name="my-project",
+            date="2026-03-24",
+            text="Always use absolute paths",
+            tag_names=["pattern", "git"],
+            branch="feat/paths",
+        )
+        db.close()
+        args = argparse.Namespace(db_path=tmp_path / "test-lessons.db", id="proj_20260324T1200_001")
+        cmd_get(args)
+        out = capsys.readouterr().out
+        assert "proj_20260324T1200_001" in out
+        assert "Always use absolute paths" in out
+        assert "my-project" in out
+        assert "feat/paths" in out
+
+    def test_get_nonexistent_exits_1(self, tmp_path: Path) -> None:
+        init_lessons_db(tmp_path / "test-lessons.db").close()
+        args = argparse.Namespace(db_path=tmp_path / "test-lessons.db", id="nonexistent_123")
+        with pytest.raises(SystemExit, match="1"):
+            cmd_get(args)
