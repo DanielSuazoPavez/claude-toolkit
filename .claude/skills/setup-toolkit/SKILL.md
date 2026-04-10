@@ -248,6 +248,79 @@ Report the result:
 - **All passed:** "Setup complete. All validations passed."
 - **Failures:** List what failed and suggest manual resolution.
 
+### Statusline (powerline)
+
+After validation, check if `statusLine` is configured in `.claude/settings.json`. If not, offer to set it up:
+
+```
+"Would you like to configure the Claude Code statusline (powerline)?
+This adds a two-line status bar showing directory, git state, model, context usage, and more. [y/skip]"
+```
+
+If yes:
+
+1. Add the `statusLine` entry to `.claude/settings.json`:
+   ```json
+   "statusLine": {
+     "type": "command",
+     "command": "npx -y @owloops/claude-powerline@latest --config=.claude/claude-powerline.json"
+   }
+   ```
+
+2. Copy the powerline config from the toolkit repo template. If no template exists, use this default `.claude/claude-powerline.json`:
+   ```json
+   {
+     "theme": "custom",
+     "display": {
+       "style": "minimal",
+       "colorCompatibility": "auto",
+       "lines": [
+         {
+           "segments": {
+             "directory": { "enabled": true, "showBasename": true },
+             "git": {
+               "enabled": true,
+               "showSha": false,
+               "showWorkingTree": true,
+               "showOperation": true,
+               "showTag": true,
+               "showTimeSinceCommit": false,
+               "showUpstream": false,
+               "showRepoName": false
+             }
+           }
+         },
+         {
+           "segments": {
+             "model": { "enabled": true },
+             "version": { "enabled": true },
+             "block": {
+               "enabled": true,
+               "type": "weighted",
+               "burnType": "none"
+             },
+             "context": { "enabled": true, "showPercentageOnly": true }
+           }
+         }
+       ]
+     },
+     "colors": {
+       "custom": {
+         "directory": { "bg": "#5E81AC", "fg": "#ECEFF4" },
+         "model": { "bg": "#D08770", "fg": "#2E3440" },
+         "version": { "bg": "#88C0D0", "fg": "#2E3440" },
+         "block": { "bg": "#BF616A", "fg": "#ECEFF4" },
+         "context": { "bg": "#6B8E5F", "fg": "#ECEFF4" },
+         "git": { "bg": "#A3BE8C", "fg": "#2E3440" }
+       }
+     },
+     "modelContextLimits": {
+       "sonnet": 200000,
+       "haiku": 200000
+     }
+   }
+   ```
+
 ### Communication style doc
 
 After validation, check if `.claude/docs/essential-preferences-communication_style.md` exists. If not, ask:
