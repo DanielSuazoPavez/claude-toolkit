@@ -99,6 +99,8 @@ Is the description clear about WHAT and WHEN? Keywords should be precise — pen
 
 **Tool scoping (command skills only):** Does the skill declare `allowed-tools` in frontmatter? Are the tools appropriately scoped — not too broad (e.g. `Bash` without pattern) and not missing tools it actually uses? Knowledge skills are exempt. Deduct 2-3 pts if missing or misconfigured.
 
+**External dependencies:** If the skill uses external tools via `allowed-tools` (e.g., `Bash(jq:*)`, `Bash(sqlite3:*)`), does it declare `compatibility` listing those tools? Deduct 1-2 pts if missing.
+
 **`user-invocable: false` skills:** Description is the sole routing mechanism — Claude uses it to decide when to load the full body. Keywords must be highly specific to the domain. Penalize generic keywords that would cause false-positive loading. The skill should NOT have `allowed-tools` unless it actually uses tools (most don't). Deduct 2-3 pts if description is vague or keywords overlap with user-invocable skills.
 
 ### D5: Progressive Disclosure (15 pts)
