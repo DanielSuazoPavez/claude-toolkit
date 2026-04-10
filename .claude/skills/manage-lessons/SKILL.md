@@ -16,6 +16,19 @@ Review lessons and work toward crystallization, absorption, and pruning.
 - User wants to review accumulated lessons
 - Before a project milestone (clean signal for next phase)
 
+## CLI Quick Reference
+
+```bash
+lessons get <id>                          # Full detail by ID
+lessons list --tier recent --active       # Filter: --tier, --active, --tags, --project, --scope, --limit
+lessons search <query>                    # Full-text search (text only, not ID lookup)
+lessons clusters                          # Find crystallization candidates
+lessons crystallize --ids "A,B" --text …  # Merge lessons
+lessons absorb --id "X" --into "hook:…"   # Mark as absorbed
+lessons health                            # Health report
+lessons tag-hygiene                       # Tag quality issues
+```
+
 ## Process
 
 ### 1. Health Check
