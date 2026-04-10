@@ -509,7 +509,8 @@ def cmd_search(args: argparse.Namespace) -> None:
     print(f"\n{c['bold']}{c['cyan']}Search: '{args.query}' ({len(rows)} results){c['reset']}\n")
     for lid, date, tier, active, project, snippet in rows:
         status = f"{c['green']}active{c['reset']}" if active else f"{c['dim']}inactive{c['reset']}"
-        print(f"  {c['dim']}{date}{c['reset']} [{tier}] {status} {c['yellow']}{project}{c['reset']}")
+        print(f"  {c['dim']}{lid}{c['reset']}")
+        print(f"    {c['dim']}{date}{c['reset']} [{tier}] {status} {c['yellow']}{project}{c['reset']}")
         print(f"    {snippet[:100]}")
         print()
 
@@ -613,7 +614,8 @@ def cmd_list(args: argparse.Namespace) -> None:
         active_mark = "" if active else f" {c['dim']}(inactive){c['reset']}"
         scope_mark = "[P]" if scope == "project" else ""
         tag_str = f" {c['dim']}[{tags}]{c['reset']}" if tags else ""
-        print(f"  {c['dim']}{date}{c['reset']} [{tier}]{scope_mark}{active_mark}{tag_str}")
+        print(f"  {c['dim']}{lid}{c['reset']}")
+        print(f"    {c['dim']}{date}{c['reset']} [{tier}]{scope_mark}{active_mark}{tag_str}")
         print(f"    {text[:120]}")
         print()
 

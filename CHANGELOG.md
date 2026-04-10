@@ -4,6 +4,7 @@
 
 ### Added
 - **lessons**: `lessons get <id>` subcommand — shows full detail for a single lesson (all fields including scope, branch, crystallized_from, absorbed_into, promoted, archived)
+- **lessons**: `lessons search` and `lessons list` now show lesson IDs in output
 - **skills**: CLI quick reference section in `/manage-lessons` skill doc — prevents guessing flags that don't exist
 - **tests**: 2 tests for `cmd_get` (existing lesson output, nonexistent ID exit code)
 
