@@ -11,6 +11,9 @@
 ### Changed
 - **validation**: `validate-all.sh` runs `verify-external-deps.sh` as advisory check (between hook-utils and settings-template)
 
+### Tests
+- **tests**: 19 tests for `verify-external-deps.sh` — no skills dir, no fields, available/missing/mixed tools, comma parsing, dedup, frontmatter-only parsing
+
 ## [2.48.1] - 2026-04-10 - Setup-toolkit statusline step
 
 ### Added
