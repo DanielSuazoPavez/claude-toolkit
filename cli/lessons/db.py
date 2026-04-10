@@ -514,6 +514,55 @@ def cmd_search(args: argparse.Namespace) -> None:
         print()
 
 
+def cmd_get(args: argparse.Namespace) -> None:
+    """Get a single lesson by ID with full detail."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    sql = """
+        SELECT l.id, l.date, l.tier, l.active, l.scope, l.text, l.branch,
+               l.crystallized_from, l.absorbed_into, l.promoted, l.archived,
+               l.created_at, p.name AS project,
+               GROUP_CONCAT(t.name, ', ') AS tags
+        FROM lessons l
+        JOIN projects p ON p.id = l.project_id
+        LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
+        LEFT JOIN tags t ON t.id = lt.tag_id
+        WHERE l.id = ?
+        GROUP BY l.id
+    """
+    row = conn.execute(sql, (args.id,)).fetchone()
+    conn.close()
+
+    if not row:
+        print(f"Lesson not found: {args.id}", file=sys.stderr)
+        sys.exit(1)
+
+    lid, date, tier, active, scope, text, branch, crystal_from, absorbed, promoted, archived, created, project, tags = row
+    status = f"{c['green']}active{c['reset']}" if active else f"{c['dim']}inactive{c['reset']}"
+
+    print(f"\n{c['bold']}{c['cyan']}Lesson: {lid}{c['reset']}\n")
+    print(f"  Date:      {date}")
+    print(f"  Tier:      {tier}")
+    print(f"  Status:    {status}")
+    print(f"  Scope:     {scope}")
+    print(f"  Project:   {c['yellow']}{project}{c['reset']}")
+    if branch:
+        print(f"  Branch:    {branch}")
+    if tags:
+        print(f"  Tags:      {tags}")
+    if promoted:
+        print(f"  Promoted:  {promoted}")
+    if archived:
+        print(f"  Archived:  {archived}")
+    if crystal_from:
+        print(f"  Crystallized from: {crystal_from}")
+    if absorbed:
+        print(f"  Absorbed into:     {absorbed}")
+    print(f"  Created:   {c['dim']}{created}{c['reset']}")
+    print(f"\n  {text}\n")
+
+
 def cmd_list(args: argparse.Namespace) -> None:
     """List lessons with filters."""
     conn = init_lessons_db(args.db_path)
@@ -980,6 +1029,10 @@ def build_parser() -> argparse.ArgumentParser:
     srch.add_argument("query", help="Search query")
     srch.add_argument("--limit", type=int, default=20, help="Max results")
 
+    # get
+    gt = sub.add_parser("get", help="Get a lesson by ID (full detail)")
+    gt.add_argument("id", help="Lesson ID")
+
     # list
     lst = sub.add_parser("list", help="List lessons with filters")
     lst.add_argument("--tier", help="Filter by tier (recent/key/historical)")
@@ -1036,6 +1089,7 @@ def main() -> None:
         "migrate": cmd_migrate,
         "add": cmd_add,
         "search": cmd_search,
+        "get": cmd_get,
         "list": cmd_list,
         "summary": cmd_summary,
         "set-meta": cmd_set_meta,
