@@ -27,7 +27,7 @@ The toolkit publishes two distribution profiles, each with its own templates (pr
 **Base** uses `dist/base/EXCLUDE` — syncs everything in `.claude/` except toolkit-meta resources (create-*, evaluate-*, etc.). New resources sync by default. A MANIFEST is generated at sync time for target project validation.
 
 **Raiz** uses `dist/raiz/MANIFEST` — cherry-picks a specific subset:
-- 10 skills (brainstorm, brainstorm-idea, build-communication-style, create-docs, draft-pr, read-json, review-plan, setup-toolkit, wrap-up, write-handoff)
+- 11 skills (analyze-idea, brainstorm, brainstorm-idea, build-communication-style, create-docs, draft-pr, read-json, review-plan, setup-toolkit, wrap-up, write-handoff)
 - 5 agents (codebase-explorer, code-debugger, code-reviewer, goal-verifier, implementation-checker)
 - 8 hooks (guardrails + session-start — no enforce-make, no surface-lessons, no enforce-uv-run)
 - 3 docs (code style, context conventions, permissions config)

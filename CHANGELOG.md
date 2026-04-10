@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.50.0] - 2026-04-10 - Skill description negative triggers
+
+### Added
+- **skills**: Negative trigger disambiguation on 5 skills — `brainstorm`, `brainstorm-idea`, `analyze-idea`, `write-documentation`, `create-docs` now include "Do NOT use for X" exclusion language
+- **skills**: `/create-skill` — "Disambiguation" subsection with guidance on negative triggers and 1024-char limit
+- **skills**: `/evaluate-skill` D4 — sub-criterion deducting 1-2 pts for missing disambiguation when overlap exists
+- **dist**: `analyze-idea` added to raiz MANIFEST (referenced by included brainstorm skills)
+
 ## [2.49.1] - 2026-04-10 - Code reviewer test coverage check
 
 ### Changed
