@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.53.0] - 2026-04-16 - Match/check hook architecture (phase 2)
+
 ### Changed
 - **hooks**: match/check architecture for every Bash-touching hook — each now exposes a cheap `match_<name>` predicate (pure bash, no forks/jq/git) and a `check_<name>` guard body, with a thin `main()` for standalone mode and a dual-mode trigger (`[[ "${BASH_SOURCE[0]}" == "${0}" ]]`) so the same file works sourced or invoked directly. Converted: `git-safety`, `secrets-guard` (Bash branch), `block-config-edits` (Bash branch), `block-dangerous-commands`, `enforce-make-commands`, `enforce-uv-run`. Read/Grep/Write/Edit/EnterPlanMode branches stay in `main` since they don't flow through the Bash dispatcher.
 - **hooks**: `grouped-bash-guard.sh` now sources the six hook files as libraries and iterates a `CHECKS` array (`dangerous git_safety secrets_guard config_edits make uv`), calling `match_` first and the `check_` body only when match is true. Inlined placeholder definitions removed — single source of truth per hook, no drift between standalone and grouped mode.
