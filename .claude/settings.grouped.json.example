@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_note": "A/B variant: grouped-bash-guard.sh replaces the Bash-branch hooks (block-dangerous-commands, enforce-uv-run, enforce-make-commands) and also handles the Bash branch of git-safety and secrets-guard via match/check sourcing. git-safety.sh still registers standalone for EnterPlanMode; secrets-guard.sh still registers standalone for Read|Grep. See settings.grouped.README.md for swap instructions.",
+  "_note": "A/B variant: grouped-bash-guard.sh replaces the Bash-branch hooks (block-dangerous-commands, enforce-uv-run, enforce-make-commands) and also handles the Bash branch of git-safety, secrets-guard, and block-config-edits via match/check sourcing. git-safety.sh still registers standalone for EnterPlanMode; secrets-guard.sh still registers standalone for Read|Grep; block-config-edits.sh still registers standalone for Write|Edit. See settings.grouped.README.md for swap instructions.",
   "enableAllProjectMcpServers": false,
   "showClearContextOnPlanAccept": true,
   "plansDirectory": "output/claude-toolkit/plans",
@@ -74,7 +74,7 @@
         ]
       },
       {
-        "matcher": "Write|Edit|Bash",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",

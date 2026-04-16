@@ -35,7 +35,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - [x] **B.** Prototype `git-safety` (Bash branch) — convert to `match_git_safety` / `check_git_safety` / `main` with dual-mode trigger. EnterPlanMode stays in `main`. Keep standalone registration. Decision gate on shape before continuing.
         - [x] **C.** Bash dispatcher — teach `grouped-bash-guard.sh` to source hook files and iterate `CHECKS` via match→check. Wire in `git-safety`. Add `not_applicable` logging path. Update `settings.grouped.json.example`.
         - [x] **D1.** Convert `secrets-guard` (Bash branch) to match/check. Read/Grep branches stay standalone.
-        - [ ] **D2.** Convert `block-config-edits` (Bash branch) to match/check. Write/Edit branches stay standalone.
+        - [x] **D2.** Convert `block-config-edits` (Bash branch) to match/check. Write/Edit branches stay standalone.
         - [ ] **D3.** Extract inlined `check_dangerous` / `check_make` / `check_uv` from dispatcher into their own standalone-capable hook files, sourced back in.
         - [ ] **E.** Docs + changelog — finalize `relevant-toolkit-hooks.md` with final hook set, add changelog entry for the architectural shift. Also document the `hook-utils.sh` idempotency guard (added in C) and why it matters — dispatchers source hook-utils then source hooks that also source hook-utils, so the lib must not reset globals on re-source.
 
