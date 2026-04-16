@@ -7,16 +7,16 @@ Automation hooks configured in `settings.json`.
 | Hook | Status | Trigger | Description |
 |------|--------|---------|-------------|
 | `session-start.sh` | stable | SessionStart | Loads essential docs, git context, lessons, and toolkit version drift check |
-| `git-safety.sh` | stable | PreToolUse (EnterPlanMode\|Bash) | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
-| `block-dangerous-commands.sh` | stable | PreToolUse (Bash) | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `secrets-guard.sh` | stable | PreToolUse (Read\|Bash\|Grep) | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
-| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit\|Bash) | Blocks writes to shell config, SSH, and git config files |
+| `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
+| `block-dangerous-commands.sh` | stable | Bash via dispatcher | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `secrets-guard.sh` | stable | PreToolUse (Read\|Grep) + Bash via dispatcher | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
+| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | Blocks writes to shell config, SSH, and git config files |
 | `suggest-read-json.sh` | stable | PreToolUse (Read) | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
-| `enforce-uv-run.sh` | stable | PreToolUse (Bash) | Blocks direct `python`/`python3` calls, suggests `uv run python` |
-| `enforce-make-commands.sh` | stable | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
+| `enforce-uv-run.sh` | stable | Bash via dispatcher | Blocks direct `python`/`python3` calls, suggests `uv run python` |
+| `enforce-make-commands.sh` | stable | Bash via dispatcher | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | Surfaces relevant active lessons as additionalContext based on tool context keywords |
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
-| `grouped-bash-guard.sh` | experimental | PreToolUse (Bash) | Opt-in consolidated variant of `block-dangerous-commands` + `enforce-make-commands` + `enforce-uv-run`. Not registered in default `settings.json` — swap via `settings.grouped.json.example` |
+| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 6 guards |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
 ---

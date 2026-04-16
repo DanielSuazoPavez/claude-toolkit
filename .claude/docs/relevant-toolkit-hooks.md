@@ -239,20 +239,18 @@ Don't remove or rearrange the guard — it's load-bearing for the dispatcher con
 
 ## 9. Current Hook Set
 
-As of the post-D3 state, every Bash-touching hook is match/check + dual-mode. Registration depends on whether you use the default or grouped `settings.json` variant.
+Every Bash-touching hook is match/check + dual-mode. The base distribution's `settings.json` registers `grouped-bash-guard.sh` as the sole Bash PreToolUse hook — it sources the six guards below and dispatches them via `match_`/`check_`. Hooks with non-Bash branches keep their standalone registration for those branches.
 
-| Hook | Matchers (default) | Matchers (grouped) | In dispatcher? |
-|---|---|---|---|
-| `block-dangerous-commands` | Bash | — (dispatcher only) | `dangerous` |
-| `git-safety` | EnterPlanMode, Bash | EnterPlanMode | `git_safety` |
-| `secrets-guard` | Read, Grep, Bash | Read, Grep | `secrets_guard` |
-| `block-config-edits` | Write, Edit, Bash | Write, Edit | `config_edits` |
-| `enforce-make-commands` | Bash | — (dispatcher only) | `make` |
-| `enforce-uv-run` | Bash | — (dispatcher only) | `uv` |
+| Hook | Standalone matchers | In dispatcher? |
+|---|---|---|
+| `block-dangerous-commands` | — (dispatcher only) | `dangerous` |
+| `git-safety` | EnterPlanMode | `git_safety` |
+| `secrets-guard` | Read, Grep | `secrets_guard` |
+| `block-config-edits` | Write, Edit | `config_edits` |
+| `enforce-make-commands` | — (dispatcher only) | `make` |
+| `enforce-uv-run` | — (dispatcher only) | `uv` |
 
-In the grouped variant, `grouped-bash-guard.sh` owns the `Bash` matcher and dispatches all six checks via `source`. Bash-only hooks drop their standalone registration; Bash+other-matcher hooks keep the other matchers standalone (Read/Grep/Write/Edit/EnterPlanMode branches still live in `main`).
-
-See `.claude/settings.grouped.json.example` and `.claude/settings.grouped.README.md` for swap instructions.
+Raiz distribution still uses the split config (each guard standalone on Bash) because `grouped-bash-guard.sh` requires all six sourced files to be present, and raiz only ships four of them. See backlog task `raiz-grouped-bash-guard`.
 
 ---
 

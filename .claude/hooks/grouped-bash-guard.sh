@@ -29,9 +29,10 @@
 #   not_applicable — match returned false, check body skipped
 #   skipped        — a predecessor blocked, this check didn't run
 #
-# Settings.json (grouped variant): see settings.grouped.json.example.
-# git-safety.sh still registers as a standalone EnterPlanMode hook — only
-# its Bash branch is folded in here (via source).
+# This is the default Bash PreToolUse hook in settings.json. The sourced
+# hooks (git-safety, secrets-guard, block-config-edits) still register
+# standalone for their non-Bash branches (EnterPlanMode / Read|Grep /
+# Write|Edit) — only their Bash branch is folded in here.
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "grouped-bash-guard" "PreToolUse"
