@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- **hooks**: `session-start.sh` and `surface-lessons.sh` — added rationale comments explaining why single-quote doubling is sufficient for SQL escaping (sqlite3 CLI has no bind-parameter flag; inputs are local `$PWD` and git refs, not external).
+
 ## [2.51.1] - 2026-04-16 - Narrow git rm auto-approval
 
 ### Changed
