@@ -25,11 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[HOOKS]** Fix `EPOCHREALTIME` ms parsing in `hook-utils.sh` — latent bug causes negative durations (`epochrealtime-ms-parsing`)
-    - **scope**: `hooks`
-    - **notes**: `hook_init`, `_hook_log_timing`, and `_hook_perf_probe` compute ms via `${EPOCHREALTIME/./}` then `:0:13`. This assumes `EPOCHREALTIME` always has 6 microsecond digits (len 16 after strip). When it has fewer digits (platform/load edge cases), the truncation returns a value ~10× too small, producing negative `end_ms - start_ms`. Observed in `hooks.db`: rows as low as -1237ms for `surface-lessons`, -611ms for `block-config-edits`. Fix: parse `sec.frac` split, zero-pad `frac` to 6, compute `sec*1000 + 10#$frac/1000`. Same buggy pattern duplicated in `grouped-bash-guard.sh` `_now_ms`. Fix all 4 callsites together.
-    - **discovered**: during grouped-bash-guard A/B measurement (branch `feat/grouped-bash-guard-hook`)
-
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
