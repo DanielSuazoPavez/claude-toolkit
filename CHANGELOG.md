@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.51.1] - 2026-04-16 - Narrow git rm auto-approval
+
+### Changed
+- **settings**: `.claude/settings.json`, `dist/base/templates/settings.template.json`, and `.claude/hooks/approve-safe-commands.sh` — `git rm` auto-approval narrowed to `git rm --cached` only. Plain `git rm <file>` deletes from working tree and no longer qualifies as a safe operation.
+
 ## [2.51.0] - 2026-04-16 - Statusline capture wrapper
 
 ### Added

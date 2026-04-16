@@ -77,7 +77,7 @@ SAFE_PREFIXES=(
     # Git write
     "git stash"
     "git add"
-    "git rm"
+    "git rm --cached"
     "git checkout"
     "git switch"
     "git commit"
