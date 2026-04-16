@@ -8,13 +8,15 @@
 # for the full match/check contract.
 #
 # Current checks (in CHECKS order):
-#   1. dangerous   — block rm -rf /, fork bombs, mkfs, dd to disk, sudo, etc.
-#                    (match currently always-true; D3 will narrow it)
-#   2. git_safety  — sourced from git-safety.sh; gates git push/commit
-#   3. make        — enforce make targets over direct pytest/ruff/uv sync/docker
-#                    (match currently always-true; D3 will narrow it)
-#   4. uv          — enforce `uv run python` (venv not activated)
-#                    (match currently always-true; D3 will narrow it)
+#   1. dangerous     — block rm -rf /, fork bombs, mkfs, dd to disk, sudo, etc.
+#                      (match currently always-true; D3 will narrow it)
+#   2. git_safety    — sourced from git-safety.sh; gates git push/commit
+#   3. secrets_guard — sourced from secrets-guard.sh; gates reads of .env,
+#                      credential files, env/printenv, gpg --export-secret-keys
+#   4. make          — enforce make targets over direct pytest/ruff/uv sync/docker
+#                      (match currently always-true; D3 will narrow it)
+#   5. uv            — enforce `uv run python` (venv not activated)
+#                      (match currently always-true; D3 will narrow it)
 #
 # Dispatcher contract — each check_* function returns:
 #   0 = pass
@@ -37,6 +39,7 @@ hook_require_tool "Bash"
 # Source hooks that expose match_/check_ functions. The dual-mode trigger
 # in each file prevents `main` from running under source.
 source "$(dirname "$0")/git-safety.sh"
+source "$(dirname "$0")/secrets-guard.sh"
 
 COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
@@ -149,7 +152,7 @@ check_uv() {
 # ---- dispatcher ----
 # CHECKS order: dangerous first (catastrophic gate); git_safety next (cheap
 # real match — skips on non-git Bash calls, the common case); make/uv last.
-CHECKS=(dangerous git_safety make uv)
+CHECKS=(dangerous git_safety secrets_guard make uv)
 BLOCK_IDX=-1
 
 for i in "${!CHECKS[@]}"; do

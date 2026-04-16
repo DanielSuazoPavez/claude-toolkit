@@ -1,6 +1,11 @@
 #!/bin/bash
 # PreToolUse hook: block reading secrets and credential files
 #
+# Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).
+# Only the Bash branch participates in the dispatcher — Read/Grep branches
+# stay in main (they'd need their own dispatcher — see grouped-read-guard).
+# See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern.
+#
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Read|Bash|Grep", "hooks": [{"type": "command", "command": "bash .claude/hooks/secrets-guard.sh"}]}]
 #
@@ -31,39 +36,11 @@
 #   - SSH public keys (*.pub), known_hosts, authorized_keys
 #   - Grep with .example/.template globs or paths
 #
-# Test cases:
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/app/.env"}}' | bash secrets-guard.sh
-#   # Expected: {"decision":"block","reason":"BLOCKED: Reading .env file..."}
-#
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/app/.env.local"}}' | bash secrets-guard.sh
-#   # Expected: {"decision":"block","reason":"BLOCKED: Reading .env file..."}
-#
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"/app/.env.example"}}' | bash secrets-guard.sh
-#   # Expected: (empty - allowed)
-#
-#   echo '{"tool_name":"Read","tool_input":{"file_path":"~/.aws/credentials"}}' | bash secrets-guard.sh
-#   # Expected: {"decision":"block","reason":"BLOCKED: Reading AWS credentials..."}
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"cat .env.local"}}' | bash secrets-guard.sh
-#   # Expected: {"decision":"block","reason":"BLOCKED: Reading .env file..."}
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"cat .env.example"}}' | bash secrets-guard.sh
-#   # Expected: (empty - allowed)
-#
-#   echo '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","path":"/app/.env"}}' | bash secrets-guard.sh
-#   # Expected: {"decision":"block","reason":"BLOCKED: Searching .env file..."}
-#
-#   echo '{"tool_name":"Grep","tool_input":{"pattern":"KEY","path":"/app/.env.example"}}' | bash secrets-guard.sh
-#   # Expected: (empty - allowed)
-#
-#   echo '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","glob":".env*"}}' | bash secrets-guard.sh
-#   # Expected: {"decision":"block","reason":"BLOCKED: Grep glob pattern targets .env files..."}
+# Test cases: see tests/test-hooks.sh test_secrets_guard
 
-source "$(dirname "$0")/lib/hook-utils.sh"
-hook_init "secrets-guard" "PreToolUse"
-hook_require_tool "Read" "Grep" "Bash"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 
-# --- Shared data and helpers (used by Read and Grep handlers) ---
+# --- Shared data and helpers (used by Read and Grep handlers in main) ---
 
 # Blocked credential paths: "pattern:::description"
 # Description is verb-neutral; callers prefix with "Reading"/"Searching"
@@ -126,63 +103,37 @@ check_credential_path() {
     fi
 }
 
-# --- Handler: Read tool ---
+# ============================================================
+# match_secrets_guard — cheap predicate for the Bash branch
+# ============================================================
+# Returns 0 when $COMMAND contains any token that could trigger a check:
+# a read-like verb, env/printenv, source/., gpg, or a credential-path hint.
+# Pure bash pattern matching — no forks, no jq, no git.
+# Deliberately broad to preserve false-positive semantics.
+match_secrets_guard() {
+    local re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg)([[:space:]]|$)|\.env|\.ssh/id_|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/'
+    [[ "$COMMAND" =~ $re ]]
+}
 
-if [ "$TOOL_NAME" = "Read" ]; then
-    FILE_PATH=$(hook_get_input '.tool_input.file_path')
-    [ -z "$FILE_PATH" ] && exit 0
-
-    check_env_file "$(basename "$FILE_PATH")" "Reading"
-    check_credential_path "$(normalize_path "$FILE_PATH")" "Reading"
-
-    exit 0
-fi
-
-# --- Handler: Grep tool ---
-
-if [ "$TOOL_NAME" = "Grep" ]; then
-    GREP_PATH=$(hook_get_input '.tool_input.path')
-    GREP_GLOB=$(hook_get_input '.tool_input.glob')
-
-    if [ -n "$GREP_PATH" ]; then
-        check_env_file "$(basename "$GREP_PATH")" "Searching"
-        check_credential_path "$(normalize_path "$GREP_PATH")" "Searching"
-    fi
-
-    # Check if glob pattern targets .env files
-    if [ -n "$GREP_GLOB" ]; then
-        # Allow .example/.template globs first
-        if [[ "$GREP_GLOB" =~ \.(example|template)$ ]]; then
-            exit 0
-        fi
-        # Block globs that target .env files
-        if [[ "$GREP_GLOB" == ".env" ]] || \
-           [[ "$GREP_GLOB" == ".env*" ]] || \
-           [[ "$GREP_GLOB" == ".env.*" ]] || \
-           [[ "$GREP_GLOB" == "*.env" ]]; then
-            hook_block "BLOCKED: Grep glob pattern targets .env files which may expose secrets."
-        fi
-    fi
-
-    exit 0
-fi
-
-# Handle Bash tool
-if [ "$TOOL_NAME" = "Bash" ]; then
-    COMMAND=$(hook_get_input '.tool_input.command')
-    [ -z "$COMMAND" ] && exit 0
-
+# ============================================================
+# check_secrets_guard — guard body for the Bash branch
+# ============================================================
+# Assumes match_secrets_guard returned true. Sets _BLOCK_REASON on block.
+# Returns 0 = pass, 1 = block.
+check_secrets_guard() {
     # Block commands that read .env files (.env, .env.local, .env.production, prod.env, etc.)
     # Allow: .env.example, .env.template
-    ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'
-    ENV_SUFFIX_RE='[a-zA-Z0-9_]+\.env'
-    ENV_ALLOW_RE='\.(example|template)$'
+    local ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'
+    local ENV_SUFFIX_RE='[a-zA-Z0-9_]+\.env'
+    local ENV_ALLOW_RE='\.(example|template)$'
+    local MATCHED
 
     # cat/less/head/tail/more .env* or *.env
     if [[ "$COMMAND" =~ (cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?(${ENV_FILE_RE}|${ENV_SUFFIX_RE})([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
-            hook_block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+            _BLOCK_REASON="BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+            return 1
         fi
     fi
 
@@ -190,7 +141,8 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     if [[ "$COMMAND" =~ (grep|rg|awk|sed)[[:space:]]+(.*[[:space:]])?(${ENV_FILE_RE}|${ENV_SUFFIX_RE})([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
-            hook_block "BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+            _BLOCK_REASON="BLOCKED: Reading .env file may expose secrets. Use the .example version as a reference instead."
+            return 1
         fi
     fi
 
@@ -198,7 +150,8 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     if [[ "$COMMAND" =~ (source|\.[[:space:]])[[:space:]]+.*(${ENV_FILE_RE}|${ENV_SUFFIX_RE})([[:space:]]|$) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
-            hook_block "BLOCKED: Sourcing .env file may expose secrets. Use the .example version as a reference instead."
+            _BLOCK_REASON="BLOCKED: Sourcing .env file may expose secrets. Use the .example version as a reference instead."
+            return 1
         fi
     fi
 
@@ -206,7 +159,8 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     if [[ "$COMMAND" =~ export[[:space:]]+.*\$\(.*(${ENV_FILE_RE}|${ENV_SUFFIX_RE}) ]]; then
         MATCHED="${BASH_REMATCH[0]}"
         if [[ ! "$MATCHED" =~ $ENV_ALLOW_RE ]]; then
-            hook_block "BLOCKED: Exporting from .env file may expose secrets. Use the .example version as a reference instead."
+            _BLOCK_REASON="BLOCKED: Exporting from .env file may expose secrets. Use the .example version as a reference instead."
+            return 1
         fi
     fi
 
@@ -214,59 +168,135 @@ if [ "$TOOL_NAME" = "Bash" ]; then
     # Block: env, env | grep, env > file
     # Allow: env VAR=val command (sets env for a command, doesn't list vars)
     if [[ "$COMMAND" =~ ^env([[:space:]]*$|[[:space:]]*[\|>]) ]]; then
-        hook_block "BLOCKED: 'env' command exposes all environment variables including secrets."
+        _BLOCK_REASON="BLOCKED: 'env' command exposes all environment variables including secrets."
+        return 1
     fi
 
     # Block printenv (lists environment variables)
     if [[ "$COMMAND" =~ ^printenv([[:space:]]|$) ]]; then
-        hook_block "BLOCKED: 'printenv' command exposes environment variables including secrets."
+        _BLOCK_REASON="BLOCKED: 'printenv' command exposes environment variables including secrets."
+        return 1
     fi
 
     # Block commands reading credential files
     # (.*[[:space:]])? allows intermediate args (e.g., grep -r KEY ~/.aws/credentials)
     # [^[:space:]]* matches within a single path argument (prevents matching across heredocs)
-    READ_CMDS='(cat|less|head|tail|more|grep|rg|awk|sed)'
-    SSH_KEY_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.ssh/id_([^[:space:]]*)"
+    local READ_CMDS='(cat|less|head|tail|more|grep|rg|awk|sed)'
+    local SSH_KEY_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.ssh/id_([^[:space:]]*)"
     if [[ "$COMMAND" =~ $SSH_KEY_RE ]]; then
         MATCHED="${BASH_REMATCH[3]}"
         if [[ "$MATCHED" != *".pub" ]]; then
-            hook_block "BLOCKED: Reading SSH private key via shell. Private keys should never be exposed."
+            _BLOCK_REASON="BLOCKED: Reading SSH private key via shell. Private keys should never be exposed."
+            return 1
         fi
     fi
 
-    AWS_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.aws/(credentials|config)"
+    local AWS_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.aws/(credentials|config)"
     if [[ "$COMMAND" =~ $AWS_RE ]]; then
-        hook_block "BLOCKED: Reading AWS credentials via shell may expose access keys."
+        _BLOCK_REASON="BLOCKED: Reading AWS credentials via shell may expose access keys."
+        return 1
     fi
 
-    KUBE_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.kube/config"
+    local KUBE_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.kube/config"
     if [[ "$COMMAND" =~ $KUBE_RE ]]; then
-        hook_block "BLOCKED: Reading kubeconfig via shell may expose cluster credentials."
+        _BLOCK_REASON="BLOCKED: Reading kubeconfig via shell may expose cluster credentials."
+        return 1
     fi
 
-    GH_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.config/gh/hosts\.yml"
+    local GH_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.config/gh/hosts\.yml"
     if [[ "$COMMAND" =~ $GH_RE ]]; then
-        hook_block "BLOCKED: Reading GitHub CLI tokens via shell."
+        _BLOCK_REASON="BLOCKED: Reading GitHub CLI tokens via shell."
+        return 1
     fi
 
-    DOCKER_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.docker/config\.json"
+    local DOCKER_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.docker/config\.json"
     if [[ "$COMMAND" =~ $DOCKER_RE ]]; then
-        hook_block "BLOCKED: Reading Docker registry auth via shell."
+        _BLOCK_REASON="BLOCKED: Reading Docker registry auth via shell."
+        return 1
     fi
 
-    PKG_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.(npmrc|pypirc)"
-    GEM_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.gem/credentials"
+    local PKG_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.(npmrc|pypirc)"
+    local GEM_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.gem/credentials"
     if [[ "$COMMAND" =~ $PKG_RE ]] || [[ "$COMMAND" =~ $GEM_RE ]]; then
-        hook_block "BLOCKED: Reading package manager tokens via shell."
+        _BLOCK_REASON="BLOCKED: Reading package manager tokens via shell."
+        return 1
     fi
 
     # Block GPG secret key export
-    GPG_RE='gpg[[:space:]].*--export-secret-keys'
+    local GPG_RE='gpg[[:space:]].*--export-secret-keys'
     if [[ "$COMMAND" =~ $GPG_RE ]]; then
-        hook_block "BLOCKED: Exporting GPG secret keys is not allowed."
+        _BLOCK_REASON="BLOCKED: Exporting GPG secret keys is not allowed."
+        return 1
+    fi
+
+    return 0
+}
+
+# ============================================================
+# main — standalone entry point
+# ============================================================
+main() {
+    hook_init "secrets-guard" "PreToolUse"
+    hook_require_tool "Read" "Grep" "Bash"
+
+    # --- Handler: Read tool ---
+    if [ "$TOOL_NAME" = "Read" ]; then
+        local FILE_PATH
+        FILE_PATH=$(hook_get_input '.tool_input.file_path')
+        [ -z "$FILE_PATH" ] && exit 0
+
+        check_env_file "$(basename "$FILE_PATH")" "Reading"
+        check_credential_path "$(normalize_path "$FILE_PATH")" "Reading"
+
+        exit 0
+    fi
+
+    # --- Handler: Grep tool ---
+    if [ "$TOOL_NAME" = "Grep" ]; then
+        local GREP_PATH GREP_GLOB
+        GREP_PATH=$(hook_get_input '.tool_input.path')
+        GREP_GLOB=$(hook_get_input '.tool_input.glob')
+
+        if [ -n "$GREP_PATH" ]; then
+            check_env_file "$(basename "$GREP_PATH")" "Searching"
+            check_credential_path "$(normalize_path "$GREP_PATH")" "Searching"
+        fi
+
+        # Check if glob pattern targets .env files
+        if [ -n "$GREP_GLOB" ]; then
+            # Allow .example/.template globs first
+            if [[ "$GREP_GLOB" =~ \.(example|template)$ ]]; then
+                exit 0
+            fi
+            # Block globs that target .env files
+            if [[ "$GREP_GLOB" == ".env" ]] || \
+               [[ "$GREP_GLOB" == ".env*" ]] || \
+               [[ "$GREP_GLOB" == ".env.*" ]] || \
+               [[ "$GREP_GLOB" == "*.env" ]]; then
+                hook_block "BLOCKED: Grep glob pattern targets .env files which may expose secrets."
+            fi
+        fi
+
+        exit 0
+    fi
+
+    # --- Bash branch — delegate to match_/check_ ---
+    if [ "$TOOL_NAME" = "Bash" ]; then
+        COMMAND=$(hook_get_input '.tool_input.command')
+        [ -z "$COMMAND" ] && exit 0
+
+        _BLOCK_REASON=""
+        if match_secrets_guard; then
+            if ! check_secrets_guard; then
+                hook_block "$_BLOCK_REASON"
+            fi
+        fi
+        exit 0
     fi
 
     exit 0
-fi
+}
 
-exit 0
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
