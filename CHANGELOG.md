@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Docs
+- **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md` — proposed match/check hook architecture. Split every Bash-touching hook into `match_<name>` (cheap pure predicate) and `check_<name>` (guard logic). Dispatcher sources hooks as libraries, runs matches, skips check bodies when match is false. Hooks stay standalone-capable via thin `main()` wrapper — single source of truth, no dual registration. Folds `git-safety`, `secrets-guard`, `block-config-edits` (Bash branches) into the dispatcher. Backlog: `match-check-hook-architecture`.
+- **design**: `output/claude-toolkit/design/20260416_1730__design__sub-session-boundaries.md` — copied from claude-sessions. Proposes capturing `SessionStart` `source` (`startup | resume | clear | compact`) in `hook_logs` to enable sub-session boundary detection. Single-file change in `lib/hook-utils.sh` + nullable `source TEXT` column. Unblocks claude-sessions work-unit analytics. Backlog: `sessionstart-source-capture`.
+
 ## [2.52.2] - 2026-04-16 - Fix EPOCHREALTIME ms parsing
 
 ### Fixed
