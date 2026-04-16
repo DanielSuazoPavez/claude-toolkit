@@ -16,6 +16,7 @@ Automation hooks configured in `settings.json`.
 | `enforce-make-commands.sh` | stable | PreToolUse (Bash) | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | Surfaces relevant active lessons as additionalContext based on tool context keywords |
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
+| `grouped-bash-guard.sh` | experimental | PreToolUse (Bash) | Opt-in consolidated variant of `block-dangerous-commands` + `enforce-make-commands` + `enforce-uv-run`. Not registered in default `settings.json` — swap via `settings.grouped.json.example` |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
 ---
