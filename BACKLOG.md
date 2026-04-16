@@ -23,7 +23,19 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
+- **[HOOKS]** Capture `SessionStart` `source` in `hook_logs` for sub-session boundary detection (`sessionstart-source-capture`)
+    - **scope**: `hooks`
+    - **notes**: Claude Code fires `SessionStart` with stdin `source` field = `startup | resume | clear | compact`. `hook-utils.sh` currently extracts `session_id` but ignores `source`. Single-file change in `lib/hook-utils.sh` to capture it, plus a nullable `source TEXT` migration on `hook_logs`. Unblocks claude-sessions' P1 `session-analytics-work-units` — without `source`, there's no authoritative marker for `/clear`, auto-compact, or plan-handoff boundaries within a single `session_id`. `usage_snapshots` confirmed not useful for boundary detection (no token-drop signature observed across 172 snapshots / 5 sessions).
+    - **design**: `output/claude-toolkit/design/20260416_1730__design__sub-session-boundaries.md` (originated in claude-sessions)
+    - **validation needed**: confirm `SessionStart` re-fires for `ExitPlanMode` clear-and-handoff path
+
 ## P2 - Medium
+
+- **[HOOKS]** Refactor hooks to match/check architecture + grouped dispatcher Phase 2 (`match-check-hook-architecture`)
+    - **scope**: `hooks`
+    - **notes**: Split every Bash-touching hook into `match_<name>` (cheap pure predicate) and `check_<name>` (guard logic). Dispatcher (`grouped-bash-guard.sh`) sources hooks as libraries, parses stdin once, runs matches, skips check bodies when match is false. Hooks stay standalone-capable via a thin `main()` wrapper — single source of truth, no dual registration. Folds `git-safety` (Bash branch), `secrets-guard` (Bash branch), `block-config-edits` (Bash branch) into the dispatcher. Adds `not_applicable` outcome to `hooks.db` to distinguish "didn't apply" from "skipped after predecessor blocked". Gains work-avoidance for common no-match Bash calls on top of the amortization already won in v2.52.0.
+    - **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md`
+    - **migration**: prototype with `git-safety` first (decision gate on shape), then fold into dispatcher, then convert remaining hooks. Each step independently testable and reversible.
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
