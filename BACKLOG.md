@@ -31,6 +31,16 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md`
     - **migration**: prototype with `git-safety` first (decision gate on shape), then fold into dispatcher, then convert remaining hooks. Each step independently testable and reversible.
 
+- **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
+    - **scope**: `skills`
+    - **notes**: After `match-check-hook-architecture` lands, `create-hook` should scaffold the `match_<name>` / `check_<name>` / `main` shape with the dual-mode trigger by default, and `evaluate-hook` should score against the match cheapness contract, dual-mode capability, and `_BLOCK_REASON` convention. Depends on `.claude/docs/relevant-toolkit-hooks.md` being authored as part of the parent task.
+    - **depends on**: `match-check-hook-architecture`
+
+- **[HOOKS]** Grouped Read dispatcher — extend match/check architecture to Read-tool hooks (`grouped-read-guard`)
+    - **scope**: `hooks`
+    - **notes**: Follow-on to `match-check-hook-architecture`. Build a `grouped-read-guard.sh` dispatcher following the same source-and-iterate pattern. Folds `secrets-guard` (Read/Grep branches) and `suggest-read-json` into one process. `surface-lessons` stays standalone (async-injection, different contract). Lower traffic than Bash so payoff is smaller — defer until match/check pattern is validated in real usage on the Bash side.
+    - **depends on**: `match-check-hook-architecture`
+
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
