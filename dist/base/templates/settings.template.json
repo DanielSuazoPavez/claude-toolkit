@@ -134,7 +134,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "npx -y @owloops/claude-powerline@latest --config=.claude/claude-powerline.json"
+    "command": ".claude/scripts/statusline-capture.sh"
   },
   "_env_config": {
     "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",

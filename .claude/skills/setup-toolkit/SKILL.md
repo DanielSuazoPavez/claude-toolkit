@@ -260,15 +260,44 @@ This adds a two-line status bar showing directory, git state, model, context usa
 
 If yes:
 
-1. Add the `statusLine` entry to `.claude/settings.json`:
+1. Add the `statusLine` entry to `.claude/settings.json`, pointing to the capture wrapper (not powerline directly):
    ```json
    "statusLine": {
      "type": "command",
-     "command": "npx -y @owloops/claude-powerline@latest --config=.claude/claude-powerline.json"
+     "command": ".claude/scripts/statusline-capture.sh"
    }
    ```
 
-2. Copy the powerline config from the toolkit repo template. If no template exists, use this default `.claude/claude-powerline.json`:
+2. Create `.claude/scripts/statusline-capture.sh` (chmod +x) — this appends each statusline JSON payload to `~/.claude/usage-snapshots/snapshots.jsonl` before forwarding to powerline. It fails safe: any capture error still forwards stdin so the statusline never breaks.
+
+   ```bash
+   #!/usr/bin/env bash
+   # Statusline capture wrapper — intercepts Claude Code statusline JSON payload,
+   # appends the raw JSON to a single JSONL file, and forwards the original
+   # payload to the downstream powerline command unchanged.
+
+   set -euo pipefail
+
+   SNAPSHOTS_DIR="${HOME}/.claude/usage-snapshots"
+   SNAPSHOTS_FILE="${SNAPSHOTS_DIR}/snapshots.jsonl"
+   POWERLINE_CMD="npx -y @owloops/claude-powerline@1.25.1 --config=.claude/claude-powerline.json"
+
+   INPUT="$(cat)"
+
+   {
+       mkdir -p "${SNAPSHOTS_DIR}" 2>/dev/null || true
+       STAMPED="$(printf '%s' "${INPUT}" | jq -c '. + {captured_at: (now | todate)}' 2>/dev/null)" || true
+       if [[ -n "${STAMPED}" ]]; then
+           printf '%s\n' "${STAMPED}" >> "${SNAPSHOTS_FILE}" 2>/dev/null || true
+       fi
+   } &
+
+   printf '%s' "${INPUT}" | ${POWERLINE_CMD}
+   ```
+
+   Version is pinned to `@1.25.1` — bump deliberately after checking `npm view @owloops/claude-powerline version`.
+
+3. Copy the powerline config from the toolkit repo template. If no template exists, use this default `.claude/claude-powerline.json`:
    ```json
    {
      "theme": "custom",
