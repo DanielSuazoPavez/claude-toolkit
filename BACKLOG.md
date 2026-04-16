@@ -25,29 +25,26 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[HOOKS]** Refactor hooks to match/check architecture + grouped dispatcher Phase 2 (`match-check-hook-architecture`)
+- **[HOOKS]** Re-measure grouped Bash guard A/B after match/check conversion (`grouped-bash-guard-remeasure`)
     - **scope**: `hooks`
-    - **notes**: Split every Bash-touching hook into `match_<name>` (cheap pure predicate) and `check_<name>` (guard logic). Dispatcher (`grouped-bash-guard.sh`) sources hooks as libraries, parses stdin once, runs matches, skips check bodies when match is false. Hooks stay standalone-capable via a thin `main()` wrapper — single source of truth, no dual registration. Folds `git-safety` (Bash branch), `secrets-guard` (Bash branch), `block-config-edits` (Bash branch) into the dispatcher. Adds `not_applicable` outcome to `hooks.db` to distinguish "didn't apply" from "skipped after predecessor blocked". Gains work-avoidance for common no-match Bash calls on top of the amortization already won in v2.52.0.
-    - **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md`
-    - **migration**: prototype with `git-safety` first (decision gate on shape), then fold into dispatcher, then convert remaining hooks. Each step independently testable and reversible.
-    - **subtasks**:
-        - [x] **A.** Formalize match/check pattern — write `.claude/docs/relevant-toolkit-hooks.md` (Quick Reference, events recap, standalone vs grouped, match/check contract + dual-mode trigger, outcomes incl. `not_applicable`, authoring steps, testing, anti-patterns). Update `hook-utils.sh` header to document `not_applicable` outcome.
-        - [x] **B.** Prototype `git-safety` (Bash branch) — convert to `match_git_safety` / `check_git_safety` / `main` with dual-mode trigger. EnterPlanMode stays in `main`. Keep standalone registration. Decision gate on shape before continuing.
-        - [x] **C.** Bash dispatcher — teach `grouped-bash-guard.sh` to source hook files and iterate `CHECKS` via match→check. Wire in `git-safety`. Add `not_applicable` logging path. Update `settings.grouped.json.example`.
-        - [x] **D1.** Convert `secrets-guard` (Bash branch) to match/check. Read/Grep branches stay standalone.
-        - [x] **D2.** Convert `block-config-edits` (Bash branch) to match/check. Write/Edit branches stay standalone.
-        - [x] **D3.** Convert existing `block-dangerous-commands` / `enforce-make-commands` / `enforce-uv-run` hooks to match/check and source back into the dispatcher, replacing the inlined placeholders.
-        - [ ] **E.** Docs + changelog — finalize `relevant-toolkit-hooks.md` with final hook set, add changelog entry for the architectural shift. Also document the `hook-utils.sh` idempotency guard (added in C) and why it matters — dispatchers source hook-utils then source hooks that also source hook-utils, so the lib must not reset globals on re-source.
+    - **notes**: Original A/B (v2.52.0) compared split vs grouped with all inline checks always-running. Phase 2 added real `match_` predicates so benign Bash calls log six `not_applicable` substeps with no body execution — the work-avoidance win the architecture was designed for. Re-run the measurement against `output/claude-toolkit/exploration/grouped-hook-ab.md` with the phase-2 dispatcher to confirm the delta and update the doc. Also useful to validate `match_` cheapness claims in practice (per-predicate median duration from `hook_logs` rows tagged `not_applicable`).
+    - **reference**: `output/claude-toolkit/exploration/grouped-hook-ab.md`
+
+- **[HOOKS]** Fix `enforce-uv-run` false positive on `python` token anywhere in command (`enforce-uv-run-false-positive`)
+    - **scope**: `hooks`
+    - **notes**: `match_uv` / the original `PYTHON_RE` both match `python[[:space:]]` anywhere in `$COMMAND`. This means commit messages mentioning python (e.g., `git commit -m "refactor python hook"`) get blocked by the standalone hook. Pre-existing regression, not introduced by match/check — confirmed against HEAD prior to D3. Fix: anchor the regex to the actual command verb, not anywhere in the string. Consider: strip quoted argument content before matching (but handle `python script.py` vs `-m "use python"` distinction), or require that `python` appears as the first non-env-var token of a subcommand.
+
+- **[HOOKS]** Fix `secrets-guard` false positive on `cat...env` across heredoc/message boundaries (`secrets-guard-false-positive`)
+    - **scope**: `hooks`
+    - **notes**: Regex `(cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?.env...` is greedy across the whole command string. Commit messages built with `git commit -m "$(cat <<EOF ... .env.local ... EOF)"` get blocked because `cat` (from heredoc) and `.env.local` (from message body) both appear. Pre-existing; same behavior before phase-2 refactor. Fix: anchor regex to a single shell word/argument, or strip heredoc content before matching. Same class of bug as `enforce-uv-run-false-positive` — both stem from matching against raw `$COMMAND` without tokenization.
 
 - **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
     - **scope**: `skills`
-    - **notes**: After `match-check-hook-architecture` lands, `create-hook` should scaffold the `match_<name>` / `check_<name>` / `main` shape with the dual-mode trigger by default, and `evaluate-hook` should score against the match cheapness contract, dual-mode capability, and `_BLOCK_REASON` convention. Depends on `.claude/docs/relevant-toolkit-hooks.md` being authored as part of the parent task.
-    - **depends on**: `match-check-hook-architecture`
+    - **notes**: `create-hook` should scaffold the `match_<name>` / `check_<name>` / `main` shape with the dual-mode trigger by default, and `evaluate-hook` should score against the match cheapness contract, dual-mode capability, and `_BLOCK_REASON` convention. Reference: `.claude/docs/relevant-toolkit-hooks.md`.
 
 - **[HOOKS]** Grouped Read dispatcher — extend match/check architecture to Read-tool hooks (`grouped-read-guard`)
     - **scope**: `hooks`
-    - **notes**: Follow-on to `match-check-hook-architecture`. Build a `grouped-read-guard.sh` dispatcher following the same source-and-iterate pattern. Folds `secrets-guard` (Read/Grep branches) and `suggest-read-json` into one process. `surface-lessons` stays standalone (async-injection, different contract). Lower traffic than Bash so payoff is smaller — defer until match/check pattern is validated in real usage on the Bash side.
-    - **depends on**: `match-check-hook-architecture`
+    - **notes**: Build a `grouped-read-guard.sh` dispatcher following the same source-and-iterate pattern used by `grouped-bash-guard.sh`. Folds `secrets-guard` (Read/Grep branches) and `suggest-read-json` into one process. `surface-lessons` stays standalone (async-injection, different contract). Lower traffic than Bash so payoff is smaller — defer until match/check pattern is validated in real usage on the Bash side (see `grouped-bash-guard-remeasure`).
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`

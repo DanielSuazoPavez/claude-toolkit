@@ -220,9 +220,43 @@ Hook authors don't need to read the dispatcher to write a hook, but a one-paragr
 
 `CHECKS` array order matters — earlier checks run first, so put cheap-to-gate hooks before expensive ones. On a block, expensive predecessors that already ran can't be undone, but expensive successors are spared.
 
+### Idempotency guard in hook-utils.sh
+
+The dispatcher sources `hook-utils.sh` once, then sources hook files that each also source `hook-utils.sh` (standalone mode needs it). Without a guard, the second source would reset `HOOK_INPUT=""`, `TOOL_NAME=""`, etc. — every check would see empty globals and bail.
+
+`hook-utils.sh` short-circuits on re-source via `_HOOK_UTILS_SOURCED`:
+
+```bash
+if [ -n "${_HOOK_UTILS_SOURCED:-}" ]; then
+    return 0
+fi
+_HOOK_UTILS_SOURCED=1
+```
+
+Don't remove or rearrange the guard — it's load-bearing for the dispatcher contract. If you add new globals to `hook-utils.sh`, put them *below* the guard so they don't get reset on re-source.
+
 ---
 
-## 9. Anti-Patterns
+## 9. Current Hook Set
+
+As of the post-D3 state, every Bash-touching hook is match/check + dual-mode. Registration depends on whether you use the default or grouped `settings.json` variant.
+
+| Hook | Matchers (default) | Matchers (grouped) | In dispatcher? |
+|---|---|---|---|
+| `block-dangerous-commands` | Bash | — (dispatcher only) | `dangerous` |
+| `git-safety` | EnterPlanMode, Bash | EnterPlanMode | `git_safety` |
+| `secrets-guard` | Read, Grep, Bash | Read, Grep | `secrets_guard` |
+| `block-config-edits` | Write, Edit, Bash | Write, Edit | `config_edits` |
+| `enforce-make-commands` | Bash | — (dispatcher only) | `make` |
+| `enforce-uv-run` | Bash | — (dispatcher only) | `uv` |
+
+In the grouped variant, `grouped-bash-guard.sh` owns the `Bash` matcher and dispatches all six checks via `source`. Bash-only hooks drop their standalone registration; Bash+other-matcher hooks keep the other matchers standalone (Read/Grep/Write/Edit/EnterPlanMode branches still live in `main`).
+
+See `.claude/settings.grouped.json.example` and `.claude/settings.grouped.README.md` for swap instructions.
+
+---
+
+## 10. Anti-Patterns
 
 | Pattern | Why it's wrong |
 |---|---|
