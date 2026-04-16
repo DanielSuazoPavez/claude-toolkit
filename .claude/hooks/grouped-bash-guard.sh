@@ -6,19 +6,12 @@
 #   1. check_dangerous  — block rm -rf /, fork bombs, mkfs, dd to disk, sudo, etc.
 #   2. check_make       — enforce make targets over direct pytest/ruff/uv sync/docker
 #   3. check_uv         — enforce `uv run python` (venv not activated)
-#   4. check_read_json  — inject-only (no-op for Bash; included for symmetry if
-#                         later extended — left out for now since matcher is Bash)
-#
-# NOTE: suggest-read-json is Read-only, NOT Bash. It cannot be grouped under a
-# "Bash" matcher. This dispatcher covers only the 3 Bash-targeted checks.
-# check_read_json is left standalone under the Read matcher in settings.
 #
 # Dispatcher contract — each check_* function returns:
 #   0 = pass
 #   1 = block (sets _BLOCK_REASON)
-#   2 = inject (sets _INJECT_CONTEXT + _INJECT_BYTES)
 #
-# On a terminal outcome, remaining checks are logged as outcome=skipped (0ms).
+# On a block, remaining checks are logged as outcome=skipped (0ms).
 #
 # Settings.json (grouped variant):
 #   {"matcher": "Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/grouped-bash-guard.sh"}]}
@@ -31,8 +24,6 @@ COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
 
 _BLOCK_REASON=""
-_INJECT_CONTEXT=""
-_INJECT_BYTES=0
 
 # ---- check 1: dangerous commands ----
 check_dangerous() {
@@ -142,8 +133,7 @@ _now_ms() {
 }
 
 CHECKS=(check_dangerous check_make check_uv)
-TERMINAL_IDX=-1
-TERMINAL_OUTCOME=""
+BLOCK_IDX=-1
 
 for i in "${!CHECKS[@]}"; do
     fn="${CHECKS[$i]}"
@@ -152,25 +142,21 @@ for i in "${!CHECKS[@]}"; do
     rc=$?
     end_ms=$(_now_ms)
     dur=$(( end_ms - start_ms ))
-    case $rc in
-        0) hook_log_substep "$fn" "$dur" "pass" 0 ;;
-        1) hook_log_substep "$fn" "$dur" "block" 0
-           TERMINAL_IDX=$i; TERMINAL_OUTCOME="block"; break ;;
-        2) hook_log_substep "$fn" "$dur" "inject" "$_INJECT_BYTES"
-           TERMINAL_IDX=$i; TERMINAL_OUTCOME="inject"; break ;;
-    esac
+    if [ "$rc" -eq 1 ]; then
+        hook_log_substep "$fn" "$dur" "block" 0
+        BLOCK_IDX=$i
+        break
+    fi
+    hook_log_substep "$fn" "$dur" "pass" 0
 done
 
-if [ "$TERMINAL_IDX" -ge 0 ]; then
+if [ "$BLOCK_IDX" -ge 0 ]; then
     for j in "${!CHECKS[@]}"; do
-        if [ "$j" -gt "$TERMINAL_IDX" ]; then
+        if [ "$j" -gt "$BLOCK_IDX" ]; then
             hook_log_substep "${CHECKS[$j]}" 0 "skipped" 0
         fi
     done
-    case "$TERMINAL_OUTCOME" in
-        block) hook_block "$_BLOCK_REASON" ;;
-        inject) hook_inject "$_INJECT_CONTEXT" ;;
-    esac
+    hook_block "$_BLOCK_REASON"
 fi
 
 exit 0
