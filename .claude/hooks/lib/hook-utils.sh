@@ -44,8 +44,10 @@ hook_init() {
     INPUT="$HOOK_INPUT"  # backward compat
     INVOCATION_ID="$$-${EPOCHSECONDS:-$(date +%s)}"
     PROJECT="$(basename "$PWD")"
-    # Capture timestamp once, reuse in all logging
-    _HOOK_TIMESTAMP=$(date -Iseconds)
+    # Capture timestamp once, reuse in all logging.
+    # Millisecond precision — multiple hook rows within a single turn land in
+    # the same second, and ms lets us order them chronologically.
+    _HOOK_TIMESTAMP=$(date +%Y-%m-%dT%H:%M:%S.%3N%:z)
     # Use EPOCHREALTIME for ms timing (bash 5.0+), fallback to date
     if [ -n "${EPOCHREALTIME:-}" ]; then
         local _epoch_no_dot="${EPOCHREALTIME/./}"
@@ -278,7 +280,7 @@ _hook_log_timing() {
     else
         end_ms=$(date +%s%3N)
     fi
-    ts=$(date -Iseconds)
+    ts=$(date +%Y-%m-%dT%H:%M:%S.%3N%:z)
     local duration_ms=$(( end_ms - HOOK_START_MS ))
     local bytes=$BYTES_INJECTED
     if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then
