@@ -213,7 +213,11 @@ hook_log_section() {
 # hook_log_substep NAME DURATION_MS OUTCOME [BYTES_INJECTED]
 # ============================================================
 # Records one sub-step row for grouped hooks (e.g. grouped-bash-guard).
-# OUTCOME: pass | block | approve | inject | skipped
+# OUTCOME: pass | block | approve | inject | skipped | not_applicable
+#   - skipped: predecessor blocked, this check didn't run (duration 0)
+#   - not_applicable: match_ predicate returned false, check body skipped
+#     by design (duration = predicate cost)
+# See .claude/docs/relevant-toolkit-hooks.md §5 for full outcome semantics.
 # Writes to both TSV (hook-timing.log) and SQLite (hooks.db).
 hook_log_substep() {
     local name="$1"
