@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.52.1] - 2026-04-16 - Millisecond precision in hook timestamps
+
+### Fixed
+- **hooks**: `.claude/hooks/lib/hook-utils.sh` — `_HOOK_TIMESTAMP` and the EXIT-trap `ts` now use `date +%Y-%m-%dT%H:%M:%S.%3N%:z` instead of `date -Iseconds`. Multiple hook rows from the same turn used to share an identical second-precision timestamp, making them unorderable in `hooks.db`. Adds millisecond precision.
+
 ## [2.52.0] - 2026-04-16 - Grouped Bash guard hook (A/B)
 
 ### Added
