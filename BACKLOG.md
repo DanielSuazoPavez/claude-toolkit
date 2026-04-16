@@ -23,12 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[HOOKS]** Capture `SessionStart` `source` in `hook_logs` for sub-session boundary detection (`sessionstart-source-capture`)
-    - **scope**: `hooks`
-    - **notes**: Claude Code fires `SessionStart` with stdin `source` field = `startup | resume | clear | compact`. `hook-utils.sh` currently extracts `session_id` but ignores `source`. Single-file change in `lib/hook-utils.sh` to capture it, plus a nullable `source TEXT` migration on `hook_logs`. Unblocks claude-sessions' P1 `session-analytics-work-units` — without `source`, there's no authoritative marker for `/clear`, auto-compact, or plan-handoff boundaries within a single `session_id`. `usage_snapshots` confirmed not useful for boundary detection (no token-drop signature observed across 172 snapshots / 5 sessions).
-    - **design**: `output/claude-toolkit/design/20260416_1730__design__sub-session-boundaries.md` (originated in claude-sessions)
-    - **validation needed**: confirm `SessionStart` re-fires for `ExitPlanMode` clear-and-handoff path
-
 ## P2 - Medium
 
 - **[HOOKS]** Refactor hooks to match/check architecture + grouped dispatcher Phase 2 (`match-check-hook-architecture`)
@@ -43,6 +37,11 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
 
 ## P3 - Low
+
+- **[TESTS]** DB-related tests should point to a test DB, not `~/.claude/hooks.db` (`tests-isolate-db`)
+    - **scope**: `tests`
+    - **notes**: `test_session_id_from_stdin` and `test_session_start_source_capture` in `tests/test-hooks.sh` write rows into the user's real `~/.claude/hooks.db`. Rows are marked `is_test=1` but never cleaned up, polluting analytics. Proper fix: make `HOOK_LOG_DB` overridable via env var so tests can point at a temp DB (schema materialization decision pending — copy from real DB, replay migration, or maintain a test fixture).
+    - **decision pending**: how to materialize the test DB schema
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`

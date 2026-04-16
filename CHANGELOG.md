@@ -4,7 +4,14 @@
 
 ### Docs
 - **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md` — proposed match/check hook architecture. Split every Bash-touching hook into `match_<name>` (cheap pure predicate) and `check_<name>` (guard logic). Dispatcher sources hooks as libraries, runs matches, skips check bodies when match is false. Hooks stay standalone-capable via thin `main()` wrapper — single source of truth, no dual registration. Folds `git-safety`, `secrets-guard`, `block-config-edits` (Bash branches) into the dispatcher. Backlog: `match-check-hook-architecture`.
-- **design**: `output/claude-toolkit/design/20260416_1730__design__sub-session-boundaries.md` — copied from claude-sessions. Proposes capturing `SessionStart` `source` (`startup | resume | clear | compact`) in `hook_logs` to enable sub-session boundary detection. Single-file change in `lib/hook-utils.sh` + nullable `source TEXT` column. Unblocks claude-sessions work-unit analytics. Backlog: `sessionstart-source-capture`.
+
+## [2.52.3] - 2026-04-16 - SessionStart source capture
+
+### Changed
+- **hooks**: `.claude/hooks/lib/hook-utils.sh` — now extracts the `source` field from `SessionStart` stdin (`startup | resume | clear | compact`) and includes it in `hook_logs` INSERTs. Unblocks claude-sessions sub-session boundary analytics — the column lets downstream queries distinguish mid-session `/clear` and auto-compact events within a single `session_id`. Non-`SessionStart` events leave the value empty; jq extraction is guarded by event type to avoid hot-path cost on `PreToolUse`. The `source` column itself is managed by the claude-sessions schema.
+
+### Docs
+- **design**: `output/claude-toolkit/design/20260416_1730__design__sub-session-boundaries.md` — captures the full sub-session detection design this change enables (copied from claude-sessions).
 
 ## [2.52.2] - 2026-04-16 - Fix EPOCHREALTIME ms parsing
 
