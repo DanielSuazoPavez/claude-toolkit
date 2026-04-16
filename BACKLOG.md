@@ -37,7 +37,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
         - [ ] **D1.** Convert `secrets-guard` (Bash branch) to match/check. Read/Grep branches stay standalone.
         - [ ] **D2.** Convert `block-config-edits` (Bash branch) to match/check. Write/Edit branches stay standalone.
         - [ ] **D3.** Extract inlined `check_dangerous` / `check_make` / `check_uv` from dispatcher into their own standalone-capable hook files, sourced back in.
-        - [ ] **E.** Docs + changelog — finalize `relevant-toolkit-hooks.md` with final hook set, add changelog entry for the architectural shift.
+        - [ ] **E.** Docs + changelog — finalize `relevant-toolkit-hooks.md` with final hook set, add changelog entry for the architectural shift. Also document the `hook-utils.sh` idempotency guard (added in C) and why it matters — dispatchers source hook-utils then source hooks that also source hook-utils, so the lib must not reset globals on re-source.
 
 - **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
     - **scope**: `skills`
