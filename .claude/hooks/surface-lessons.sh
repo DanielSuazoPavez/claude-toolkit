@@ -71,6 +71,8 @@ _hook_perf_probe "build_sql"
 [ -z "$CONDITIONS" ] && exit 0
 
 # Query matching active lessons (id + text in one query), scope-filtered
+# SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter flag,
+# and $PROJECT comes from $PWD (local, user-owned) — not external input.
 SAFE_PROJECT="${PROJECT//\'/\'\'}"
 RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
     SELECT DISTINCT l.id, l.text

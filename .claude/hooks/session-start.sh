@@ -104,6 +104,8 @@ LEARNED_FILE=".claude/learned.json"
 
 if [ -f "$LESSONS_DB" ]; then
     # SQLite path — CURRENT_BRANCH already set in git context section
+    # SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter flag,
+    # and inputs come from $PWD / git refs (local, user-owned) — not external input.
     SAFE_BRANCH="${CURRENT_BRANCH//\'/\'\'}"
     SAFE_PROJECT="${PROJECT//\'/\'\'}"
 
