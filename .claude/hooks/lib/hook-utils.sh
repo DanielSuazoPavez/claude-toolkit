@@ -195,6 +195,29 @@ hook_log_section() {
 }
 
 # ============================================================
+# hook_log_substep NAME DURATION_MS OUTCOME [BYTES_INJECTED]
+# ============================================================
+# Records one sub-step row for grouped hooks (e.g. grouped-bash-guard).
+# OUTCOME: pass | block | approve | inject | skipped
+# Writes to both TSV (hook-timing.log) and SQLite (hooks.db).
+hook_log_substep() {
+    local name="$1"
+    local duration_ms="$2"
+    local outcome="$3"
+    local bytes="${4:-0}"
+    if [ "$outcome" = "inject" ] 2>/dev/null; then
+        TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
+    fi
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$SESSION_ID" "$INVOCATION_ID" "$_HOOK_TIMESTAMP" "$PROJECT" \
+        "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$name" \
+        "$duration_ms" "$outcome" "$bytes" "$IS_TEST" \
+        >> "$HOOK_LOG_FILE" 2>/dev/null || true
+    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$name")', $duration_ms, '$(_sql_escape "$outcome")', $bytes, $IS_TEST);"
+}
+
+# ============================================================
 # _sql_escape VALUE  (internal — escape single quotes for SQL)
 # ============================================================
 _sql_escape() {

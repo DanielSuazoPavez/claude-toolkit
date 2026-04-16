@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_note": "A/B variant: the 3 Bash PreToolUse hooks (block-dangerous-commands, enforce-uv-run, enforce-make-commands) are replaced by grouped-bash-guard.sh. See settings.grouped.README.md for swap instructions.",
+  "enableAllProjectMcpServers": false,
+  "showClearContextOnPlanAccept": true,
+  "plansDirectory": "output/claude-toolkit/plans",
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(trash-put:*)",
+      "Bash(jq:*)",
+      "Bash(make:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)",
+      "Bash(git rm --cached:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git commit:*)",
+      "Bash(./.claude/hooks/*)",
+      "Bash(.claude/scripts/*)",
+      "Bash(claude-toolkit:*)",
+      "Glob(**)",
+      "Grep(**)",
+      "Read(/**)",
+      "Write(/output/claude-toolkit/**)",
+      "Edit(/output/claude-toolkit/**)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "EnterPlanMode|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/git-safety.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/grouped-bash-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-config-edits.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/secrets-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/suggest-read-json.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Read|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/surface-lessons.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/approve-safe-commands.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": ".claude/scripts/statusline-capture.sh"
+  },
+  "_env_config": {
+    "_note": "Environment variables used by hooks. Set in shell or .envrc to customize behavior.",
+    "CLAUDE_DOCS_DIR": "Directory for docs (default: .claude/docs)",
+    "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
+    "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
+    "PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"
+  }
+}

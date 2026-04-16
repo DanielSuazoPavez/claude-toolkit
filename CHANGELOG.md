@@ -2,8 +2,19 @@
 
 ## [Unreleased]
 
+## [2.52.0] - 2026-04-16 - Grouped Bash guard hook (A/B)
+
+### Added
+- **hooks**: `.claude/hooks/grouped-bash-guard.sh` — consolidates `block-dangerous-commands`, `enforce-make-commands`, and `enforce-uv-run` into a single dispatcher. Amortizes bash startup + `hook-utils.sh` sourcing + `jq` `tool_input` parsing across the 3 checks. Short-circuits on block and logs remaining checks as `outcome=skipped`.
+- **hooks**: `hook_log_substep` helper in `.claude/hooks/lib/hook-utils.sh` — records per-sub-step duration and outcome rows (TSV + SQLite) for grouped hooks, keeping per-check cost visible for analytics.
+- **settings**: `.claude/settings.grouped.json.example` + `.claude/settings.grouped.README.md` — sibling A/B variant registering the grouped dispatcher in place of the 3 split Bash hooks, plus `cp`-based swap/restore instructions. Default `settings.json` unchanged; grouped config is opt-in.
+
 ### Changed
 - **hooks**: `session-start.sh` and `surface-lessons.sh` — added rationale comments explaining why single-quote doubling is sufficient for SQL escaping (sqlite3 CLI has no bind-parameter flag; inputs are local `$PWD` and git refs, not external).
+
+### Notes
+- Initial A/B measurement (split n=1147/580/767 historical vs grouped n=2 this session) shows ~229ms → ~202ms per Bash turn (~12%, small grouped-n so direction-only confidence). Details in `output/claude-toolkit/exploration/grouped-hook-ab.md`. Phase 2 (folding `secrets-guard` and `git-safety` into the dispatcher) deferred.
+- Discovered a latent `EPOCHREALTIME` ms-parsing bug causing rare negative durations in `hooks.db` — filed as P2 backlog task, not fixed in this branch.
 
 ## [2.51.1] - 2026-04-16 - Narrow git rm auto-approval
 
