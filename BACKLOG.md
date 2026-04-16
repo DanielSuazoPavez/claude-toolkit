@@ -30,6 +30,14 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **notes**: Split every Bash-touching hook into `match_<name>` (cheap pure predicate) and `check_<name>` (guard logic). Dispatcher (`grouped-bash-guard.sh`) sources hooks as libraries, parses stdin once, runs matches, skips check bodies when match is false. Hooks stay standalone-capable via a thin `main()` wrapper — single source of truth, no dual registration. Folds `git-safety` (Bash branch), `secrets-guard` (Bash branch), `block-config-edits` (Bash branch) into the dispatcher. Adds `not_applicable` outcome to `hooks.db` to distinguish "didn't apply" from "skipped after predecessor blocked". Gains work-avoidance for common no-match Bash calls on top of the amortization already won in v2.52.0.
     - **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md`
     - **migration**: prototype with `git-safety` first (decision gate on shape), then fold into dispatcher, then convert remaining hooks. Each step independently testable and reversible.
+    - **subtasks**:
+        - [ ] **A.** Formalize match/check pattern — write `.claude/docs/relevant-toolkit-hooks.md` (Quick Reference, events recap, standalone vs grouped, match/check contract + dual-mode trigger, outcomes incl. `not_applicable`, authoring steps, testing, anti-patterns). Update `hook-utils.sh` header to document `not_applicable` outcome.
+        - [ ] **B.** Prototype `git-safety` (Bash branch) — convert to `match_git_safety` / `check_git_safety` / `main` with dual-mode trigger. EnterPlanMode stays in `main`. Keep standalone registration. Decision gate on shape before continuing.
+        - [ ] **C.** Bash dispatcher — teach `grouped-bash-guard.sh` to source hook files and iterate `CHECKS` via match→check. Wire in `git-safety`. Add `not_applicable` logging path. Update `settings.grouped.json.example`.
+        - [ ] **D1.** Convert `secrets-guard` (Bash branch) to match/check. Read/Grep branches stay standalone.
+        - [ ] **D2.** Convert `block-config-edits` (Bash branch) to match/check. Write/Edit branches stay standalone.
+        - [ ] **D3.** Extract inlined `check_dangerous` / `check_make` / `check_uv` from dispatcher into their own standalone-capable hook files, sourced back in.
+        - [ ] **E.** Docs + changelog — finalize `relevant-toolkit-hooks.md` with final hook set, add changelog entry for the architectural shift.
 
 - **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
     - **scope**: `skills`
