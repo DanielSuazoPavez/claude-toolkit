@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.51.0] - 2026-04-16 - Statusline capture wrapper
+
+### Added
+- **scripts**: `.claude/scripts/statusline-capture.sh` — intercepts Claude Code statusline JSON, appends to `~/.claude/usage-snapshots/snapshots.jsonl`, forwards stdin to powerline. Fail-safe: capture errors never break the statusline.
+- **skills**: `/setup-toolkit` statusline step now installs the capture wrapper and pins `@owloops/claude-powerline@1.25.1` (was `@latest`).
+
+### Changed
+- **settings**: `.claude/settings.json` and `dist/base/templates/settings.template.json` `statusLine.command` → `.claude/scripts/statusline-capture.sh` (replaces direct `npx` call).
+
 ## [2.50.0] - 2026-04-10 - Skill description negative triggers
 
 ### Added

@@ -21,6 +21,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
+- "replace settings.json "git rm" for "git rm --cached"
 ## P1 - High
 
 ## P2 - Medium
