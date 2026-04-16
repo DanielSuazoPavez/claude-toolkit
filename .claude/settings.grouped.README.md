@@ -1,12 +1,16 @@
 # A/B Test: Grouped Bash Guard
 
-`settings.grouped.json.example` is a drop-in `settings.json` that replaces the 3
-split Bash PreToolUse hooks (`block-dangerous-commands`, `enforce-uv-run`,
-`enforce-make-commands`) with a single `grouped-bash-guard.sh` dispatcher.
+`settings.grouped.json.example` is a drop-in `settings.json` that folds
+Bash-branch hooks into a single `grouped-bash-guard.sh` dispatcher. Currently
+grouped: `block-dangerous-commands`, `enforce-make-commands`, `enforce-uv-run`,
+and the Bash branch of `git-safety` (via the match/check pattern — see
+`.claude/docs/relevant-toolkit-hooks.md`). `git-safety.sh` still registers
+standalone for its `EnterPlanMode` branch.
 
 The goal is to measure whether consolidating hooks meaningfully reduces
 per-turn hook cost (bash startup + `hook-utils.sh` sourcing + `jq` reparse
-of `tool_input`).
+of `tool_input`), plus the work-avoidance gained when `match_` predicates
+short-circuit on non-matching Bash calls.
 
 ## Swap in the grouped config
 
@@ -33,8 +37,10 @@ claude-sessions analytics toolkit hook-cost
 
 Compare totals and per-section breakdowns. In the grouped config, the
 dispatcher emits one sub-step row per check (`section=check_dangerous`,
-`check_make`, `check_uv`) plus one totals row — so per-check cost is still
-visible for apples-to-apples comparison against the split baseline.
+`check_git_safety`, `check_make`, `check_uv`) plus one totals row — so
+per-check cost is still visible for apples-to-apples comparison against
+the split baseline. Rows with `outcome=not_applicable` indicate the check's
+`match_` predicate returned false and the check body was skipped.
 
 ## Rollback
 
