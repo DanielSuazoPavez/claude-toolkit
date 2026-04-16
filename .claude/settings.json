@@ -28,7 +28,7 @@
       "Bash(git fetch:*)",
       "Bash(git stash:*)",
       "Bash(git add:*)",
-      "Bash(git rm:*)",
+      "Bash(git rm --cached:*)",
       "Bash(git checkout:*)",
       "Bash(git switch:*)",
       "Bash(git commit:*)",
