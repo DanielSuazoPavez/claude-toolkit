@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [2.54.0] - 2026-04-16 - Grouped bash guard as default
+
+### Changed
+- **settings**: `.claude/settings.json` and `dist/base/templates/settings.template.json` — `grouped-bash-guard.sh` is now the sole Bash `PreToolUse` hook. `block-dangerous-commands`, `enforce-uv-run`, `enforce-make-commands` no longer register standalone on Bash (dispatcher-only); `git-safety`, `secrets-guard`, `block-config-edits` keep their non-Bash matchers (`EnterPlanMode`, `Read|Grep`, `Write|Edit`) and their Bash branch runs via the dispatcher. Base-profile projects picking up the template via `claude-toolkit sync` inherit the grouped config automatically.
+- **dist/raiz**: New `dist/raiz/templates/settings.template.json` override — raiz keeps the split config because `grouped-bash-guard.sh` sources six guards but raiz only ships four of them (no `enforce-make-commands`, no `enforce-uv-run`). Migration tracked by backlog task `raiz-grouped-bash-guard`. `publish.py`'s `resolve_source_file` already honored dist-specific template overrides — no publish changes needed.
+
+### Removed
+- **settings**: `.claude/settings.grouped.json.example` and `.claude/settings.grouped.README.md` — grouped is the default now, A/B swap artifacts no longer needed. Historical context preserved in CHANGELOG 2.52.0 and 2.53.0 entries.
+
+### Docs
+- **exploration**: `output/claude-toolkit/exploration/grouped-hook-ab.md` — phase-2 re-measurement section added. Grouped dispatcher now runs 6 guards (`dangerous, git_safety, secrets_guard, config_edits, make, uv`) at the same ~202ms envelope as the phase-1 3-guard variant, because 5 of 6 substeps skip to `not_applicable` via cheap `match_` predicates (1.6–2.5ms median). `check_dangerous` dropped 61.5ms → 21.5ms as the only full-body substep. Validates the match-cheapness contract against real `hook_logs` data.
+- **docs**: `docs/indexes/HOOKS.md` — entry for `grouped-bash-guard` changed from `experimental` / `opt-in` to `stable` / default. Sourced guards relabeled from standalone Bash triggers to "Bash via dispatcher".
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §9 simplified — single current-hook table (no more default vs grouped split), with a note pointing at the raiz backlog task.
+
 ## [2.53.0] - 2026-04-16 - Match/check hook architecture (phase 2)
 
 ### Changed

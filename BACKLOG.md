@@ -25,10 +25,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[HOOKS]** Re-measure grouped Bash guard A/B after match/check conversion (`grouped-bash-guard-remeasure`)
+- **[HOOKS]** Promote grouped-bash-guard to raiz distribution (`raiz-grouped-bash-guard`)
     - **scope**: `hooks`
-    - **notes**: Original A/B (v2.52.0) compared split vs grouped with all inline checks always-running. Phase 2 added real `match_` predicates so benign Bash calls log six `not_applicable` substeps with no body execution — the work-avoidance win the architecture was designed for. Re-run the measurement against `output/claude-toolkit/exploration/grouped-hook-ab.md` with the phase-2 dispatcher to confirm the delta and update the doc. Also useful to validate `match_` cheapness claims in practice (per-predicate median duration from `hook_logs` rows tagged `not_applicable`).
-    - **reference**: `output/claude-toolkit/exploration/grouped-hook-ab.md`
+    - **notes**: Base distribution now ships `settings.template.json` with `grouped-bash-guard.sh` as the single Bash hook (see v2.54.0). Raiz still ships the split config because `grouped-bash-guard.sh` sources all 6 guards (including `enforce-make-commands.sh` and `enforce-uv-run.sh`) which aren't in the raiz MANIFEST. Options: (a) make `grouped-bash-guard.sh` tolerant of missing sourced files (skip `match_*` functions that aren't defined) and ship it to raiz, shrinking CHECKS to the 4 raiz guards; (b) keep raiz split with its own `dist/raiz/templates/settings.template.json` override. Prerequisite: accumulate more real-usage data under base to validate the dispatcher before extending to raiz. Reference: `output/claude-toolkit/exploration/grouped-hook-ab.md`.
 
 - **[HOOKS]** Fix `enforce-uv-run` false positive on `python` token anywhere in command (`enforce-uv-run-false-positive`)
     - **scope**: `hooks`
