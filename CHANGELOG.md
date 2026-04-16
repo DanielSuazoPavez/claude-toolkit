@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.52.2] - 2026-04-16 - Fix EPOCHREALTIME ms parsing
+
+### Fixed
+- **hooks**: `.claude/hooks/lib/hook-utils.sh` and `.claude/hooks/grouped-bash-guard.sh` — the `${EPOCHREALTIME/./}:0:13` pattern assumed 6 microsecond digits and silently returned a ~10× too small value when the fractional part was shorter, producing negative `end_ms - start_ms` durations in `hooks.db` (observed: -1237ms for `surface-lessons`, -611ms for `block-config-edits`). Extracted a shared `_now_ms` helper that splits on `.`, zero-pads frac to 6, and computes `sec*1000 + frac/1000`. Replaced 3 inline callsites in `hook-utils.sh` and removed the duplicated buggy helper from `grouped-bash-guard.sh` (which already sources `hook-utils.sh`).
+
 ## [2.52.1] - 2026-04-16 - Millisecond precision in hook timestamps
 
 ### Fixed
