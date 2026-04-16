@@ -42,10 +42,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
 
-- **[HOOKS]** Address SQL injection in lesson hooks (`lessons-sql-injection`)
-    - **scope**: `hooks`
-    - **notes**: `session-start.sh` and `surface-lessons.sh` interpolate `PROJECT` and `BRANCH` into SQL via single-quote doubling (`SAFE_PROJECT="${PROJECT//\'/\'\'}"`) — standard SQLite escaping but still string interpolation, not parameterized queries. `PROJECT` comes from `basename "$PWD"` (filesystem), so practical risk is low, but a directory name with crafted quotes could theoretically inject SQL. Options: (1) use sqlite3 parameterized queries from bash (tricky), (2) move lesson queries to a Python helper invoked by hooks, (3) accept current risk with documented rationale.
-
 - **[AGENTS]** Explore resource-aware model routing for agent spawning (`agent-model-routing`)
     - **scope**: `agents, skills`
     - **notes**: Currently agents hardcode `model: "opus"` or `model: "sonnet"`. Some tasks (simple evaluations, pattern searches, file lookups) could route to Haiku for cost/speed without quality loss. Explore: (1) which agents/tasks are candidates for cheaper models, (2) whether this should be a convention in create-agent or a runtime decision by the spawning skill, (3) what the actual cost/quality tradeoff looks like in practice. Start with a discussion pass, not implementation.
