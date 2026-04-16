@@ -3,6 +3,10 @@
 # Event: PreToolUse (EnterPlanMode, Bash)
 # Purpose: Block unsafe git operations — protected branch enforcement + remote-destructive commands
 #
+# Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).
+# Only the Bash branch participates in the dispatcher — EnterPlanMode stays in main.
+# See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern.
+#
 # Settings.json:
 #   "PreToolUse": [{"matcher": "EnterPlanMode|Bash", "hooks": [{"type": "command", "command": ".claude/hooks/git-safety.sh"}]}]
 #
@@ -21,104 +25,48 @@
 #     - Delete any remote branch
 #     - Cross-branch push (HEAD:other-branch)
 #
-# Test cases:
-#   # On main branch:
-#   echo '{"tool_name":"EnterPlanMode"}' | bash git-safety.sh
-#   # Expected: {"decision":"block","reason":"..."} (plan mode on protected branch)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' | bash git-safety.sh
-#   # Expected: {"decision":"block","reason":"..."} (commit on protected branch)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' | bash git-safety.sh
-#   # Expected: block (force push to protected - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push -f origin main"}}' | bash git-safety.sh
-#   # Expected: block (force push to protected, short flag - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push origin main --force"}}' | bash git-safety.sh
-#   # Expected: block (force push to protected, trailing flag - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push --force-with-lease origin main"}}' | bash git-safety.sh
-#   # Expected: block (force-with-lease to protected - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push --mirror"}}' | bash git-safety.sh
-#   # Expected: block (mirror push - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin main"}}' | bash git-safety.sh
-#   # Expected: block (delete protected remote branch - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push origin :main"}}' | bash git-safety.sh
-#   # Expected: block (delete protected remote branch, colon syntax - severe)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push -f origin feature"}}' | bash git-safety.sh
-#   # Expected: block (force push to non-protected - soft)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin feature"}}' | bash git-safety.sh
-#   # Expected: block (delete non-protected remote branch - soft)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push origin HEAD:other-branch"}}' | bash git-safety.sh
-#   # Expected: block (cross-branch push - soft, if not on other-branch)
-#
-#   # On feature branch:
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push origin feature"}}' | bash git-safety.sh
-#   # Expected: (empty - allowed, normal push)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push"}}' | bash git-safety.sh
-#   # Expected: (empty - allowed, simple push)
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"git push -u origin feature"}}' | bash git-safety.sh
-#   # Expected: (empty - allowed, -u is not -f)
+# Test cases: see tests/test-hooks.sh test_git_safety
 
-source "$(dirname "$0")/lib/hook-utils.sh"
-hook_init "git-safety" "PreToolUse"
-hook_require_tool "EnterPlanMode" "Bash"
-
-set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 
 # Configurable protected branches (regex pattern)
 PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-^(main|master)$}"
 
-# --- Handle EnterPlanMode ---
-if [[ "$TOOL_NAME" == "EnterPlanMode" ]]; then
-    if ! git rev-parse --git-dir >/dev/null 2>&1; then
-        exit 0
-    fi
+# ============================================================
+# match_git_safety — cheap predicate for the Bash branch
+# ============================================================
+# Returns 0 when $COMMAND looks like a git push or git commit.
+# Pure bash pattern matching; no forks, no jq, no git calls.
+# False positives are fine (check_ will no-op); false negatives are bugs.
+match_git_safety() {
+    [[ "$COMMAND" =~ (^|[[:space:];&|])git[[:space:]]+(push|commit)([[:space:]]|$) ]]
+}
 
-    BRANCH=$(git branch --show-current 2>/dev/null) || exit 0
-
-    if [[ -z "$BRANCH" ]]; then
-        hook_block "You're in detached HEAD state. Create a feature branch first:\n\n  git checkout -b feat/<short-description>"
-    fi
-
-    if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
-        hook_block "Create a feature branch first.\n\nYou're on '$BRANCH' (protected). Before entering plan mode:\n\n  git checkout -b feat/<short-description>\n\nBranch prefixes: feat/, fix/, refactor/, docs/, chore/"
-    fi
-
-    exit 0
-fi
-
-# --- Handle Bash ---
-if [[ "$TOOL_NAME" == "Bash" ]]; then
-    COMMAND=$(hook_get_input '.tool_input.command')
-
+# ============================================================
+# check_git_safety — guard body for the Bash branch
+# ============================================================
+# Assumes match_git_safety returned true. Sets _BLOCK_REASON on block.
+# Returns 0 = pass, 1 = block.
+check_git_safety() {
     # === git push checks ===
     if echo "$COMMAND" | grep -qE '(^|[;&|]\s*)git\s+push'; then
 
         # Detect force flags anywhere in the push command
-        IS_FORCE=false
+        local IS_FORCE=false
         if echo "$COMMAND" | grep -qE 'git\s+push\b.*(\s--force\b|\s--force-with-lease\b|\s-f\b)'; then
             IS_FORCE=true
         fi
 
         # --- Severe: git push --mirror ---
         if echo "$COMMAND" | grep -qE 'git\s+push\s+.*--mirror'; then
-            hook_block "git push --mirror overwrites the entire remote repository, deleting all branches and tags not in your local copy. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+            _BLOCK_REASON="git push --mirror overwrites the entire remote repository, deleting all branches and tags not in your local copy. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+            return 1
         fi
 
         # Extract push target ref from command
         # Strip flags to get positional args: <remote> <refspec>
+        local PUSH_ARGS PUSH_REF=""
         PUSH_ARGS=$(echo "$COMMAND" | sed -nE 's/.*(^|[;&|]\s*)git\s+push\s+(.*)/\2/p' | sed -E 's/\s*--?[a-zA-Z][-a-zA-Z]*//g; s/^\s+//; s/\s+/ /g')
-        PUSH_REF=""
         if [[ "$PUSH_ARGS" =~ [^[:space:]]+[[:space:]]+([^[:space:]]+) ]]; then
             PUSH_REF="${BASH_REMATCH[1]}"
         fi
@@ -129,68 +77,127 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
 
         # --- Severe: force push to protected branch ---
         if [[ "$IS_FORCE" == true && -n "$PUSH_REF" && "$PUSH_REF" =~ $PROTECTED_BRANCHES ]]; then
-            hook_block "Force push to '$PUSH_REF' would rewrite shared history and can cause permanent data loss for collaborators. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+            _BLOCK_REASON="Force push to '$PUSH_REF' would rewrite shared history and can cause permanent data loss for collaborators. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+            return 1
         fi
 
         # --- Severe: delete protected branch on remote ---
         # Pattern 1: git push --delete <remote> <branch>
         if echo "$COMMAND" | grep -qE 'git\s+push\s+.*--delete'; then
+            local DELETE_BRANCH
             DELETE_BRANCH=$(echo "$COMMAND" | sed -nE 's/.*git\s+push\s+.*--delete\s+\S+\s+(\S+).*/\1/p')
             if [[ -n "$DELETE_BRANCH" && "$DELETE_BRANCH" =~ $PROTECTED_BRANCHES ]]; then
-                hook_block "Deleting '$DELETE_BRANCH' from remote would destroy the primary branch for all collaborators. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+                _BLOCK_REASON="Deleting '$DELETE_BRANCH' from remote would destroy the primary branch for all collaborators. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+                return 1
             fi
         fi
         # Pattern 2: git push <remote> :<branch>
         if echo "$COMMAND" | grep -qE 'git\s+push\s+\S+\s+:[a-zA-Z]'; then
+            local COLON_BRANCH
             COLON_BRANCH=$(echo "$COMMAND" | sed -nE 's/.*git\s+push\s+\S+\s+:(\S+).*/\1/p')
             if [[ -n "$COLON_BRANCH" && "$COLON_BRANCH" =~ $PROTECTED_BRANCHES ]]; then
-                hook_block "Deleting '$COLON_BRANCH' from remote would destroy the primary branch for all collaborators. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+                _BLOCK_REASON="Deleting '$COLON_BRANCH' from remote would destroy the primary branch for all collaborators. This is not reversible.\n\nRun the command manually outside Claude if you really need this."
+                return 1
             fi
         fi
 
         # --- Soft: force push to non-protected branch ---
         if [[ "$IS_FORCE" == true ]]; then
-            hook_block "Force pushing rewrites remote history. Collaborators pulling this branch will get conflicts.\n\nRun the command manually outside Claude if you really need this."
+            _BLOCK_REASON="Force pushing rewrites remote history. Collaborators pulling this branch will get conflicts.\n\nRun the command manually outside Claude if you really need this."
+            return 1
         fi
 
         # --- Soft: delete any remote branch ---
         if echo "$COMMAND" | grep -qE 'git\s+push\s+.*--delete'; then
-            hook_block "Deleting a remote branch removes it for all collaborators.\n\nRun the command manually outside Claude if you really need this."
+            _BLOCK_REASON="Deleting a remote branch removes it for all collaborators.\n\nRun the command manually outside Claude if you really need this."
+            return 1
         fi
         if echo "$COMMAND" | grep -qE 'git\s+push\s+\S+\s+:[a-zA-Z]'; then
-            hook_block "Deleting a remote branch removes it for all collaborators.\n\nRun the command manually outside Claude if you really need this."
+            _BLOCK_REASON="Deleting a remote branch removes it for all collaborators.\n\nRun the command manually outside Claude if you really need this."
+            return 1
         fi
 
         # --- Soft: cross-branch push ---
         if echo "$COMMAND" | grep -qE 'git\s+push\s+.*\S+:\S+'; then
+            local REFSPEC TARGET_BRANCH CURRENT_BRANCH
             REFSPEC=$(echo "$COMMAND" | sed -nE 's/.*git\s+push\s+[^;|&]*\s+(\S+:\S+).*/\1/p')
             TARGET_BRANCH="${REFSPEC##*:}"
             CURRENT_BRANCH=$(git branch --show-current 2>/dev/null) || true
             if [[ -n "$TARGET_BRANCH" && -n "$CURRENT_BRANCH" && "$TARGET_BRANCH" != "$CURRENT_BRANCH" ]]; then
-                hook_block "Pushing to '$TARGET_BRANCH' while on '$CURRENT_BRANCH'. This can accidentally overwrite another branch.\n\nRun the command manually outside Claude if you really need this."
+                _BLOCK_REASON="Pushing to '$TARGET_BRANCH' while on '$CURRENT_BRANCH'. This can accidentally overwrite another branch.\n\nRun the command manually outside Claude if you really need this."
+                return 1
             fi
         fi
     fi
 
-    # === git commit check (existing) ===
+    # === git commit check ===
     if echo "$COMMAND" | grep -qE '(^|[;&|]\s*)git\s+commit'; then
+        if ! git rev-parse --git-dir >/dev/null 2>&1; then
+            return 0
+        fi
+
+        local BRANCH
+        BRANCH=$(git branch --show-current 2>/dev/null) || return 0
+
+        if [[ -z "$BRANCH" ]]; then
+            _BLOCK_REASON="You're in detached HEAD state. Create a feature branch before committing:\n\n  git checkout -b feat/<short-description>"
+            return 1
+        fi
+
+        if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
+            _BLOCK_REASON="Cannot commit directly to '$BRANCH'.\n\nCreate a feature branch first:\n\n  git checkout -b feat/<short-description>\n\nThen commit your changes there.\n\nNote: Do not chain git checkout and git commit in a single command — the hook checks the branch at execution time."
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+# ============================================================
+# main — standalone entry point
+# ============================================================
+main() {
+    hook_init "git-safety" "PreToolUse"
+    hook_require_tool "EnterPlanMode" "Bash"
+
+    # --- EnterPlanMode branch (not grouped-eligible; no match/check split) ---
+    if [[ "$TOOL_NAME" == "EnterPlanMode" ]]; then
         if ! git rev-parse --git-dir >/dev/null 2>&1; then
             exit 0
         fi
 
+        local BRANCH
         BRANCH=$(git branch --show-current 2>/dev/null) || exit 0
 
         if [[ -z "$BRANCH" ]]; then
-            hook_block "You're in detached HEAD state. Create a feature branch before committing:\n\n  git checkout -b feat/<short-description>"
+            hook_block "You're in detached HEAD state. Create a feature branch first:\n\n  git checkout -b feat/<short-description>"
         fi
 
         if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
-            hook_block "Cannot commit directly to '$BRANCH'.\n\nCreate a feature branch first:\n\n  git checkout -b feat/<short-description>\n\nThen commit your changes there.\n\nNote: Do not chain git checkout and git commit in a single command — the hook checks the branch at execution time."
+            hook_block "Create a feature branch first.\n\nYou're on '$BRANCH' (protected). Before entering plan mode:\n\n  git checkout -b feat/<short-description>\n\nBranch prefixes: feat/, fix/, refactor/, docs/, chore/"
         fi
+
+        exit 0
     fi
 
-    exit 0
-fi
+    # --- Bash branch — delegate to match_/check_ ---
+    if [[ "$TOOL_NAME" == "Bash" ]]; then
+        COMMAND=$(hook_get_input '.tool_input.command')
+        [ -z "$COMMAND" ] && exit 0
 
-# Other tools - allow
-exit 0
+        _BLOCK_REASON=""
+        if match_git_safety; then
+            if ! check_git_safety; then
+                hook_block "$_BLOCK_REASON"
+            fi
+        fi
+        exit 0
+    fi
+
+    # Other tools — allow
+    exit 0
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

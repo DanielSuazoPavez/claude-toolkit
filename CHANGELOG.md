@@ -2,8 +2,18 @@
 
 ## [Unreleased]
 
+## [2.53.0] - 2026-04-16 - Match/check hook architecture (phase 2)
+
+### Changed
+- **hooks**: match/check architecture for every Bash-touching hook — each now exposes a cheap `match_<name>` predicate (pure bash, no forks/jq/git) and a `check_<name>` guard body, with a thin `main()` for standalone mode and a dual-mode trigger (`[[ "${BASH_SOURCE[0]}" == "${0}" ]]`) so the same file works sourced or invoked directly. Converted: `git-safety`, `secrets-guard` (Bash branch), `block-config-edits` (Bash branch), `block-dangerous-commands`, `enforce-make-commands`, `enforce-uv-run`. Read/Grep/Write/Edit/EnterPlanMode branches stay in `main` since they don't flow through the Bash dispatcher.
+- **hooks**: `grouped-bash-guard.sh` now sources the six hook files as libraries and iterates a `CHECKS` array (`dangerous git_safety secrets_guard config_edits make uv`), calling `match_` first and the `check_` body only when match is true. Inlined placeholder definitions removed — single source of truth per hook, no drift between standalone and grouped mode.
+- **hooks**: `hook-utils.sh` added `_HOOK_UTILS_SOURCED` idempotency guard — dispatchers source hook-utils once, then source hook files that also source hook-utils; without the guard, the second source would reset `HOOK_INPUT` / `TOOL_NAME` globals and every check would bail.
+- **hooks**: `hook_log_substep` gained a new `not_applicable` outcome — recorded when `match_` returns false (check body skipped by design). Distinct from `skipped` (predecessor blocked, short-circuited). Analytics queries measuring match accuracy filter for `not_applicable`; queries measuring "ran to completion" filter out both.
+- **settings**: `.claude/settings.grouped.json.example` narrowed the standalone matchers for the three dual-matcher hooks — `block-config-edits` to `Write|Edit`, `secrets-guard` to `Read|Grep`, `git-safety` to `EnterPlanMode`. Their Bash branches run exclusively via the dispatcher. Bash-only hooks (`block-dangerous-commands`, `enforce-make-commands`, `enforce-uv-run`) have no standalone registration in the grouped variant.
+
 ### Docs
-- **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md` — proposed match/check hook architecture. Split every Bash-touching hook into `match_<name>` (cheap pure predicate) and `check_<name>` (guard logic). Dispatcher sources hooks as libraries, runs matches, skips check bodies when match is false. Hooks stay standalone-capable via thin `main()` wrapper — single source of truth, no dual registration. Folds `git-safety`, `secrets-guard`, `block-config-edits` (Bash branches) into the dispatcher. Backlog: `match-check-hook-architecture`.
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` — authoring pattern reference for match/check hooks. Covers hook events recap, standalone vs grouped registration, the match cheapness contract, dual-mode trigger, outcomes (including `not_applicable`), dispatcher internals, the `hook-utils.sh` idempotency guard, current hook set, and anti-patterns.
+- **design**: `output/claude-toolkit/design/20260416_1830__design-doc__match-check-hook-architecture.md` — original architecture proposal. Backlog: `match-check-hook-architecture` (complete).
 
 ## [2.52.3] - 2026-04-16 - SessionStart source capture
 

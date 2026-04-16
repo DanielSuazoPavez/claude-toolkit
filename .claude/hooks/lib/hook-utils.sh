@@ -2,6 +2,19 @@
 # Shared hook utilities — sourced by all hooks for standardized
 # initialization, outcome handling, and execution logging.
 #
+# Idempotent: safe to source multiple times. Dispatcher flows source
+# hook-utils once, then source hook files that also source hook-utils —
+# the second source must not reset globals (hook_init has already run
+# and populated HOOK_INPUT, SESSION_ID, etc.).
+
+# Idempotency guard: if already sourced, skip re-initialization of globals
+# and function definitions. Function re-definitions would be harmless, but
+# the global resets below would clobber hook_init state.
+if [ -n "${_HOOK_UTILS_SOURCED:-}" ]; then
+    return 0
+fi
+_HOOK_UTILS_SOURCED=1
+#
 # Dual-write: TSV file (hook-timing.log) + SQLite (claude-hook-logs.db).
 # DB write is optional — silently skipped if db doesn't exist.
 #
@@ -213,7 +226,11 @@ hook_log_section() {
 # hook_log_substep NAME DURATION_MS OUTCOME [BYTES_INJECTED]
 # ============================================================
 # Records one sub-step row for grouped hooks (e.g. grouped-bash-guard).
-# OUTCOME: pass | block | approve | inject | skipped
+# OUTCOME: pass | block | approve | inject | skipped | not_applicable
+#   - skipped: predecessor blocked, this check didn't run (duration 0)
+#   - not_applicable: match_ predicate returned false, check body skipped
+#     by design (duration = predicate cost)
+# See .claude/docs/relevant-toolkit-hooks.md §5 for full outcome semantics.
 # Writes to both TSV (hook-timing.log) and SQLite (hooks.db).
 hook_log_substep() {
     local name="$1"

@@ -16,6 +16,7 @@ Always loaded at session start:
 | Doc | Status | Purpose |
 |-----|--------|---------|
 | `relevant-toolkit-context` | stable | Docs/memories boundary, naming conventions, categories |
+| `relevant-toolkit-hooks` | stable | Hook authoring: match/check pattern, dual-mode trigger, outcomes |
 | `relevant-toolkit-hooks_config` | stable | Hooks configuration and environment variables |
 | `relevant-toolkit-permissions_config` | stable | Two-tier permissions convention: toolkit settings.json vs project settings.local.json |
 | `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
