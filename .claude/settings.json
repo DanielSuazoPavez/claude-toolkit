@@ -55,7 +55,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "EnterPlanMode|Bash",
+        "matcher": "EnterPlanMode",
         "hooks": [
           {
             "type": "command",
@@ -68,20 +68,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/block-dangerous-commands.sh"
-          },
-          {
-            "type": "command",
-            "command": ".claude/hooks/enforce-uv-run.sh"
-          },
-          {
-            "type": "command",
-            "command": ".claude/hooks/enforce-make-commands.sh"
+            "command": "bash .claude/hooks/grouped-bash-guard.sh"
           }
         ]
       },
       {
-        "matcher": "Write|Edit|Bash",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
@@ -90,7 +82,7 @@
         ]
       },
       {
-        "matcher": "Read|Bash|Grep",
+        "matcher": "Read|Grep",
         "hooks": [
           {
             "type": "command",

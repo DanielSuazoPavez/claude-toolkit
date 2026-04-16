@@ -1,6 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_note": "A/B variant: grouped-bash-guard.sh replaces the Bash-branch hooks (block-dangerous-commands, enforce-uv-run, enforce-make-commands) and also handles the Bash branch of git-safety, secrets-guard, and block-config-edits via match/check sourcing. git-safety.sh still registers standalone for EnterPlanMode; secrets-guard.sh still registers standalone for Read|Grep; block-config-edits.sh still registers standalone for Write|Edit. See settings.grouped.README.md for swap instructions.",
+  "_comment": "Claude Toolkit (raiz) - Reference settings.json template. Raiz uses the split Bash-hook config because grouped-bash-guard.sh requires hooks not shipped in this distribution (enforce-make-commands, enforce-uv-run). See backlog task raiz-grouped-bash-guard.",
+  "_instructions": "Copy this to .claude/settings.json and customize for your project. Shared permissions are included below \u2014 for project-specific trust (skills, MCP tools, etc.), create .claude/settings.local.json (not committed to git).",
   "enableAllProjectMcpServers": false,
   "showClearContextOnPlanAccept": true,
   "plansDirectory": "output/claude-toolkit/plans",
@@ -56,7 +57,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "EnterPlanMode",
+        "matcher": "EnterPlanMode|Bash",
         "hooks": [
           {
             "type": "command",
@@ -69,12 +70,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/grouped-bash-guard.sh"
+            "command": "bash .claude/hooks/block-dangerous-commands.sh"
           }
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|Bash",
         "hooks": [
           {
             "type": "command",
@@ -83,7 +84,7 @@
         ]
       },
       {
-        "matcher": "Read|Grep",
+        "matcher": "Read|Bash",
         "hooks": [
           {
             "type": "command",
@@ -97,16 +98,6 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/suggest-read-json.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|Read|Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/surface-lessons.sh",
-            "timeout": 5000
           }
         ]
       }
