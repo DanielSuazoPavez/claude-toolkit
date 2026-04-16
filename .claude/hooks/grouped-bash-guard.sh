@@ -123,14 +123,7 @@ check_uv() {
 }
 
 # ---- dispatcher ----
-_now_ms() {
-    if [ -n "${EPOCHREALTIME:-}" ]; then
-        local _no_dot="${EPOCHREALTIME/./}"
-        echo "${_no_dot:0:13}"
-    else
-        date +%s%3N
-    fi
-}
+# _now_ms is provided by hook-utils.sh (sourced above)
 
 CHECKS=(check_dangerous check_make check_uv)
 BLOCK_IDX=-1

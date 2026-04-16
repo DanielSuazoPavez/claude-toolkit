@@ -35,6 +35,28 @@ _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 _HOOK_SQL_BATCH=""  # accumulated SQL statements, flushed once in EXIT trap
 
 # ============================================================
+# _now_ms
+# ============================================================
+# Current time in milliseconds. Uses EPOCHREALTIME (bash 5.0+, no fork)
+# with fallback to `date +%s%3N`.
+#
+# EPOCHREALTIME format is "sec.frac" — frac has variable digit count
+# depending on platform/load. Naive `${EPOCHREALTIME/./}:0:13` assumes
+# 6 microsecond digits and silently returns a ~10× small value when
+# frac is shorter, producing negative durations downstream.
+_now_ms() {
+    if [ -n "${EPOCHREALTIME:-}" ]; then
+        local _sec="${EPOCHREALTIME%.*}"
+        local _frac="${EPOCHREALTIME#*.}"
+        printf -v _frac '%-6s' "$_frac"
+        _frac="${_frac// /0}"
+        echo $(( _sec * 1000 + 10#${_frac:0:3} ))
+    else
+        date +%s%3N
+    fi
+}
+
+# ============================================================
 # hook_init HOOK_NAME HOOK_EVENT
 # ============================================================
 hook_init() {
@@ -48,13 +70,7 @@ hook_init() {
     # Millisecond precision — multiple hook rows within a single turn land in
     # the same second, and ms lets us order them chronologically.
     _HOOK_TIMESTAMP=$(date +%Y-%m-%dT%H:%M:%S.%3N%:z)
-    # Use EPOCHREALTIME for ms timing (bash 5.0+), fallback to date
-    if [ -n "${EPOCHREALTIME:-}" ]; then
-        local _epoch_no_dot="${EPOCHREALTIME/./}"
-        HOOK_START_MS="${_epoch_no_dot:0:13}"
-    else
-        HOOK_START_MS=$(date +%s%3N)
-    fi
+    HOOK_START_MS=$(_now_ms)
     OUTCOME="pass"
     BYTES_INJECTED=0
     TOTAL_BYTES_INJECTED=0
@@ -100,12 +116,7 @@ _HOOK_PERF_LAST_MS=0
 _hook_perf_probe() {
     [ "${HOOK_PERF:-}" = "1" ] || return 0
     local now_ms
-    if [ -n "${EPOCHREALTIME:-}" ]; then
-        local _no_dot="${EPOCHREALTIME/./}"
-        now_ms="${_no_dot:0:13}"
-    else
-        now_ms=$(date +%s%3N)
-    fi
+    now_ms=$(_now_ms)
     local prev="${_HOOK_PERF_LAST_MS:-$HOOK_START_MS}"
     [ "$prev" -eq 0 ] && prev="$HOOK_START_MS"
     local delta=$(( now_ms - prev ))
@@ -263,23 +274,13 @@ _hook_log_timing() {
     # is orthogonal to hook logging and should cover early exits too.
     if [ "${HOOK_PERF:-}" = "1" ]; then
         local _perf_end_ms
-        if [ -n "${EPOCHREALTIME:-}" ]; then
-            local _perf_no_dot="${EPOCHREALTIME/./}"
-            _perf_end_ms="${_perf_no_dot:0:13}"
-        else
-            _perf_end_ms=$(date +%s%3N)
-        fi
+        _perf_end_ms=$(_now_ms)
         printf 'HOOK_PERF\tTOTAL\t%d\n' "$(( _perf_end_ms - HOOK_START_MS ))" >&2
     fi
     # Skip logging if hook never matched a tool (early exit from hook_require_tool)
     [ "$_HOOK_ACTIVE" = true ] || return 0
     local end_ms ts
-    if [ -n "${EPOCHREALTIME:-}" ]; then
-        local _epoch_no_dot="${EPOCHREALTIME/./}"
-        end_ms="${_epoch_no_dot:0:13}"
-    else
-        end_ms=$(date +%s%3N)
-    fi
+    end_ms=$(_now_ms)
     ts=$(date +%Y-%m-%dT%H:%M:%S.%3N%:z)
     local duration_ms=$(( end_ms - HOOK_START_MS ))
     local bytes=$BYTES_INJECTED
