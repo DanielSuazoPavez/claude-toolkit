@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.54.1] - 2026-04-16 - Hook false-positive fix for quoted/heredoc content
+
+### Fixed
+- **hooks**: `enforce-uv-run`, `secrets-guard`, and `git-safety` no longer false-positive on tokens (`python`, `.env.local`, `git commit`) that appear inside quoted strings or heredoc bodies of an outer command — e.g. `git commit -m "refactor python hook"`, or `git commit -m "$(cat <<EOF ... Removed .env.local references. ... EOF)"`. All three hooks now strip heredoc bodies and quoted string content from `$COMMAND` before running their Bash-branch regexes.
+
+### Added
+- **hooks**: `lib/hook-utils.sh` gained `_strip_inert_content` — shared helper that returns a "command skeleton" with heredoc bodies and quoted strings blanked, so downstream regexes match only content bash would execute. Heuristic (doesn't perfectly handle nested/escaped edge cases); sufficient for guards meant to catch obvious mistakes, not adversaries.
+
 ## [2.54.0] - 2026-04-16 - Grouped bash guard as default
 
 ### Changed

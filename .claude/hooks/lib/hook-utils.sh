@@ -71,6 +71,94 @@ _now_ms() {
 }
 
 # ============================================================
+# _strip_inert_content COMMAND
+# ============================================================
+# Returns the "command skeleton" of COMMAND — content that bash would treat as
+# data rather than executable tokens is blanked to a single space so downstream
+# regexes can still match whitespace boundaries without matching inert text.
+#
+# Strips (in order):
+#   1. Heredoc bodies: <<[-]?['\"]?TAG...TAG (tag may be quoted, e.g. <<'EOF')
+#      The entire body between the opening line and the closing tag becomes
+#      one space. Closing tag matches bash rules: at start of a line, alone.
+#   2. Single-quoted strings: '...'  (no escapes inside single quotes in bash)
+#   3. Double-quoted strings: "..."  (handles escaped \" inside)
+#
+# Why: both secrets-guard and enforce-uv-run match regexes against the raw
+# $COMMAND string. Commit messages and heredoc bodies routinely contain
+# tokens like `python` or `.env.local` that trip the guards even though no
+# command is actually being run on them. Stripping inert content fixes the
+# false positives without rewriting every regex.
+#
+# Heuristic limits: doesn't handle nested/escaped edge cases perfectly. Good
+# enough for a guard meant to catch obvious mistakes, not adversaries.
+#
+# Usage:
+#   stripped=$(_strip_inert_content "$COMMAND")
+#   [[ "$stripped" =~ $SOME_RE ]]
+_strip_inert_content() {
+    local cmd="$1"
+    local out=""
+    local line rest tag body
+    # --- Pass 1: strip heredocs line-by-line ---
+    # A heredoc starts with <<[-]?TAG on some line; body runs until a line
+    # that is exactly TAG (with optional leading tabs if <<- was used).
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Detect heredoc opener: <<[-]?['"]?TAG['"]?
+        if [[ "$line" =~ \<\<(-?)([\'\"]?)([A-Za-z_][A-Za-z0-9_]*)([\'\"]?) ]]; then
+            local dash="${BASH_REMATCH[1]}"
+            tag="${BASH_REMATCH[3]}"
+            # Emit the opener line with the heredoc marker replaced by a space
+            # so regex anchors (\s, ^, etc.) still work at the boundary.
+            local prefix="${line%%<<*}"
+            out+="${prefix} "$'\n'
+            # Consume body until closing tag
+            while IFS= read -r body || [ -n "$body" ]; do
+                local check="$body"
+                # With <<- bash strips leading tabs from the closing tag
+                [ -n "$dash" ] && check="${check#"${check%%[! 	]*}"}"
+                if [ "$check" = "$tag" ]; then
+                    break
+                fi
+            done
+            continue
+        fi
+        out+="${line}"$'\n'
+    done <<< "$cmd"
+    # --- Pass 2: strip quoted strings ---
+    # Walk char-by-char tracking quote state. Blank out content inside
+    # '...' and "..." (preserving the quote chars so boundaries remain).
+    local i ch state=""
+    local result=""
+    local len=${#out}
+    for (( i=0; i<len; i++ )); do
+        ch="${out:i:1}"
+        if [ -z "$state" ]; then
+            if [ "$ch" = "'" ] || [ "$ch" = '"' ]; then
+                state="$ch"
+                result+=" "
+                continue
+            fi
+            result+="$ch"
+        else
+            # In a quoted string: blank content, watch for closer.
+            # Double-quote honors backslash escape; single-quote does not.
+            if [ "$state" = '"' ] && [ "$ch" = '\' ] && [ $((i+1)) -lt $len ]; then
+                i=$((i+1))
+                continue
+            fi
+            if [ "$ch" = "$state" ]; then
+                state=""
+                result+=" "
+                continue
+            fi
+            # Content inside quotes — drop
+        fi
+    done
+    echo "$result"
+}
+
+# ============================================================
 # hook_init HOOK_NAME HOOK_EVENT
 # ============================================================
 hook_init() {

@@ -29,14 +29,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
     - **scope**: `hooks`
     - **notes**: Base distribution now ships `settings.template.json` with `grouped-bash-guard.sh` as the single Bash hook (see v2.54.0). Raiz still ships the split config because `grouped-bash-guard.sh` sources all 6 guards (including `enforce-make-commands.sh` and `enforce-uv-run.sh`) which aren't in the raiz MANIFEST. Options: (a) make `grouped-bash-guard.sh` tolerant of missing sourced files (skip `match_*` functions that aren't defined) and ship it to raiz, shrinking CHECKS to the 4 raiz guards; (b) keep raiz split with its own `dist/raiz/templates/settings.template.json` override. Prerequisite: accumulate more real-usage data under base to validate the dispatcher before extending to raiz. Reference: `output/claude-toolkit/exploration/grouped-hook-ab.md`.
 
-- **[HOOKS]** Fix `enforce-uv-run` false positive on `python` token anywhere in command (`enforce-uv-run-false-positive`)
-    - **scope**: `hooks`
-    - **notes**: `match_uv` / the original `PYTHON_RE` both match `python[[:space:]]` anywhere in `$COMMAND`. This means commit messages mentioning python (e.g., `git commit -m "refactor python hook"`) get blocked by the standalone hook. Pre-existing regression, not introduced by match/check — confirmed against HEAD prior to D3. Fix: anchor the regex to the actual command verb, not anywhere in the string. Consider: strip quoted argument content before matching (but handle `python script.py` vs `-m "use python"` distinction), or require that `python` appears as the first non-env-var token of a subcommand.
-
-- **[HOOKS]** Fix `secrets-guard` false positive on `cat...env` across heredoc/message boundaries (`secrets-guard-false-positive`)
-    - **scope**: `hooks`
-    - **notes**: Regex `(cat|less|head|tail|more)[[:space:]]+(.*[[:space:]])?.env...` is greedy across the whole command string. Commit messages built with `git commit -m "$(cat <<EOF ... .env.local ... EOF)"` get blocked because `cat` (from heredoc) and `.env.local` (from message body) both appear. Pre-existing; same behavior before phase-2 refactor. Fix: anchor regex to a single shell word/argument, or strip heredoc content before matching. Same class of bug as `enforce-uv-run-false-positive` — both stem from matching against raw `$COMMAND` without tokenization.
-
 - **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
     - **scope**: `skills`
     - **notes**: `create-hook` should scaffold the `match_<name>` / `check_<name>` / `main` shape with the dual-mode trigger by default, and `evaluate-hook` should score against the match cheapness contract, dual-mode capability, and `_BLOCK_REASON` convention. Reference: `.claude/docs/relevant-toolkit-hooks.md`.
