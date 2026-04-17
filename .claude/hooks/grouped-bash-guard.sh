@@ -66,6 +66,11 @@ for spec in "${CHECK_SPECS[@]}"; do
     source "$src"
     if declare -F "match_$name" >/dev/null && declare -F "check_$name" >/dev/null; then
         CHECKS+=("$name")
+    else
+        # File shipped but functions missing — rename/drift signal.
+        # Distribution-absence (file not shipped) short-circuited above
+        # and does NOT emit this event.
+        hook_log_substep "check_${name}_missing_match_check" 0 "skipped" 0
     fi
 done
 

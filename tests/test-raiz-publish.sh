@@ -206,7 +206,9 @@ setup
 local_settings="$OUTPUT_DIR/.claude/templates/settings.template.json"
 
 # Should have raiz hooks
-assert_file_contains "has block-dangerous-commands" "$local_settings" "block-dangerous-commands.sh"
+# Bash branch runs through the grouped dispatcher (v2.55.0); individual
+# Bash-only guards no longer appear as standalone entries in the template.
+assert_file_contains "has grouped-bash-guard" "$local_settings" "grouped-bash-guard.sh"
 assert_file_contains "has block-config-edits" "$local_settings" "block-config-edits.sh"
 assert_file_contains "has git-safety" "$local_settings" "git-safety.sh"
 assert_file_contains "has secrets-guard" "$local_settings" "secrets-guard.sh"
@@ -216,6 +218,8 @@ assert_file_contains "has suggest-read-json" "$local_settings" "suggest-read-jso
 assert_file_contains "has session-start" "$local_settings" "session-start.sh"
 assert_file_not_contains "no enforce-uv-run" "$local_settings" "enforce-uv-run.sh"
 assert_file_not_contains "no enforce-make-commands" "$local_settings" "enforce-make-commands.sh"
+# Standalone Bash-only guards were folded into grouped-bash-guard.sh.
+assert_file_not_contains "no standalone block-dangerous-commands" "$local_settings" "block-dangerous-commands.sh"
 # Should NOT have statusLine
 assert_file_not_contains "no statusLine" "$local_settings" "statusLine"
 

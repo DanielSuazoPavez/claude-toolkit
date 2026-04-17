@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- **tests**: `tests/test-hooks.sh` — direct smoke tests for `grouped-bash-guard.sh` dispatcher. Covers base (all 6 guards present) and a raiz simulation (copies hooks to a `mktemp -d`, deletes `enforce-make-commands.sh` + `enforce-uv-run.sh`). Four cases: benign `ls` passes, `pytest` blocks via make guard, raiz-sim `pytest` passes, raiz-sim force-push still blocks via `git_safety`.
+- **hooks**: `grouped-bash-guard.sh` — emits `hook_log_substep` with section `check_<name>_missing_match_check` and outcome `skipped` when a guard's source file is present but its `match_/check_` pair is missing. Rename/drift signal; distribution-absent files short-circuit before the event so raiz's normal missing guards stay silent.
+
+### Fixed
+- **tests**: `tests/test-raiz-publish.sh` — stale v2.55.0 assertion still expected standalone `block-dangerous-commands.sh` in the raiz template. Replaced with positive assertion for `grouped-bash-guard.sh` and negative assertion that the standalone entry is gone.
+
 ## [2.55.0] - 2026-04-16 - Grouped bash guard in raiz
 
 ### Changed
