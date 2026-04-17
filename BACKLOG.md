@@ -25,10 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[HOOKS]** Promote grouped-bash-guard to raiz distribution (`raiz-grouped-bash-guard`)
-    - **scope**: `hooks`
-    - **notes**: Base distribution now ships `settings.template.json` with `grouped-bash-guard.sh` as the single Bash hook (see v2.54.0). Raiz still ships the split config because `grouped-bash-guard.sh` sources all 6 guards (including `enforce-make-commands.sh` and `enforce-uv-run.sh`) which aren't in the raiz MANIFEST. Options: (a) make `grouped-bash-guard.sh` tolerant of missing sourced files (skip `match_*` functions that aren't defined) and ship it to raiz, shrinking CHECKS to the 4 raiz guards; (b) keep raiz split with its own `dist/raiz/templates/settings.template.json` override. Prerequisite: accumulate more real-usage data under base to validate the dispatcher before extending to raiz. Reference: `output/claude-toolkit/exploration/grouped-hook-ab.md`.
-
 - **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
     - **scope**: `skills`
     - **notes**: `create-hook` should scaffold the `match_<name>` / `check_<name>` / `main` shape with the dual-mode trigger by default, and `evaluate-hook` should score against the match cheapness contract, dual-mode capability, and `_BLOCK_REASON` convention. Reference: `.claude/docs/relevant-toolkit-hooks.md`.
