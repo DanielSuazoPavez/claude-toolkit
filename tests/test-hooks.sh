@@ -1046,6 +1046,54 @@ test_session_start_source_capture() {
     done
 }
 
+# === GROUPED-BASH-GUARD DISPATCHER ===
+# Smoke-tests for grouped-bash-guard.sh in two distribution shapes:
+#   - base: all 6 guards present (uses live HOOKS_DIR).
+#   - raiz sim: enforce-make / enforce-uv absent (copy HOOKS_DIR to a
+#     tempdir and delete those two files).
+# Every Bash turn pipes through this dispatcher in production, so a
+# dedicated smoke pass catches CHECK_SPECS/declare-F regressions that
+# the individual guard tests would miss.
+test_grouped_bash_guard() {
+    report_section "=== grouped-bash-guard.sh (dispatcher) ==="
+    local hook="grouped-bash-guard.sh"
+
+    # Base: benign command passes (all 6 guards present, none match).
+    expect_allow "$hook" \
+        '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
+        "[base] ls passes silently"
+
+    # Base: make guard blocks pytest.
+    expect_contains "$hook" \
+        '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
+        "make test" \
+        "[base] pytest blocks via make guard"
+
+    # Raiz sim: copy hooks to a tempdir and remove make+uv guards.
+    local sim_dir
+    sim_dir=$(mktemp -d)
+    # Preserve the real hooks dir; tests past this point run against sim_dir.
+    cp -r "$HOOKS_DIR"/. "$sim_dir/"
+    rm -f "$sim_dir/enforce-make-commands.sh" "$sim_dir/enforce-uv-run.sh"
+
+    local prev_hooks_dir="$HOOKS_DIR"
+    HOOKS_DIR="$sim_dir"
+
+    # Raiz sim: pytest no longer blocks (make guard absent from CHECKS).
+    expect_allow "$hook" \
+        '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
+        "[raiz sim] pytest passes (no make guard)"
+
+    # Raiz sim: git_safety still blocks force-push.
+    expect_contains "$hook" \
+        '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' \
+        "Force push" \
+        "[raiz sim] git_safety still blocks force-push"
+
+    HOOKS_DIR="$prev_hooks_dir"
+    rm -rf "$sim_dir"
+}
+
 # === RUN TESTS ===
 echo "Running hook tests..."
 echo "Hooks directory: $HOOKS_DIR"
@@ -1062,6 +1110,7 @@ if [ -z "$FILTER" ]; then
     test_approve_safe_commands
     test_session_id_from_stdin
     test_session_start_source_capture
+    test_grouped_bash_guard
 else
     # Run specific test
     case "$FILTER" in
@@ -1075,6 +1124,7 @@ else
         approve*|safe*|permission*) test_approve_safe_commands ;;
         session*|session-id*|stdin*) test_session_id_from_stdin ;;
         source*|session-start-source*) test_session_start_source_capture ;;
+        grouped*|dispatcher*) test_grouped_bash_guard ;;
         capture*|lesson*) echo "capture-lesson hook removed (failed experiment)" ;;
         *) echo "Unknown hook: $FILTER"; exit 1 ;;
     esac

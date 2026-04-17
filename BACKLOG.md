@@ -40,10 +40,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[TESTS]** Dispatcher smoke test for `grouped-bash-guard.sh` (`grouped-bash-guard-smoke-test`)
-    - **scope**: `tests, hooks`
-    - **notes**: After v2.55.0 the dispatcher runs in two distributions (base ships 6 guards, raiz ships 4). `tests/test-hooks.sh` has no direct coverage — breakage would only surface via the sourced guards' own tests or in-session usage. Add a minimal fixture: one case exercising the full-base source list, one simulating raiz (copy hooks dir to a temp location, delete `enforce-make-commands.sh` + `enforce-uv-run.sh`, assert `pytest` does NOT block and `git push --force origin main` still blocks via `git_safety`). Also consider logging a `hook_log_substep` event when `declare -F match_/check_` gating drops a guard, so accidental rename drift becomes observable (second reviewer nice-to-have).
-
 - **[TESTS]** DB-related tests should point to a test DB, not `~/.claude/hooks.db` (`tests-isolate-db`)
     - **scope**: `tests`
     - **notes**: `test_session_id_from_stdin` and `test_session_start_source_capture` in `tests/test-hooks.sh` write rows into the user's real `~/.claude/hooks.db`. Rows are marked `is_test=1` but never cleaned up, polluting analytics. Proper fix: make `HOOK_LOG_DB` overridable via env var so tests can point at a temp DB (schema materialization decision pending — copy from real DB, replay migration, or maintain a test fixture).
