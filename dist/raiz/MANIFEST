@@ -27,6 +27,7 @@ agents/implementation-checker.md
 hooks/block-config-edits.sh
 hooks/block-dangerous-commands.sh
 hooks/git-safety.sh
+hooks/grouped-bash-guard.sh
 hooks/secrets-guard.sh
 hooks/suggest-read-json.sh
 hooks/approve-safe-commands.sh

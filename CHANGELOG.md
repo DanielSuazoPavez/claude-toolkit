@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.55.0] - 2026-04-16 - Grouped bash guard in raiz
+
+### Changed
+- **hooks / raiz**: `grouped-bash-guard.sh` dispatcher now builds `CHECKS` dynamically from `CHECK_SPECS` — guards whose source files aren't present in the current distribution (e.g. `enforce-make-commands`, `enforce-uv-run` in raiz) are silently skipped. Raiz now ships `grouped-bash-guard.sh` as its sole Bash `PreToolUse` hook instead of the four-hook split config, expected to cut per-Bash-turn hook cost roughly 3× (from ~440ms to ~200ms envelope per A/B data in `output/claude-toolkit/exploration/grouped-hook-ab.md`). Non-Bash branches keep standalone entries.
+
 ## [2.54.1] - 2026-04-16 - Hook false-positive fix for quoted/heredoc content
 
 ### Fixed

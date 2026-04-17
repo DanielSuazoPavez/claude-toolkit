@@ -33,19 +33,41 @@
 # hooks (git-safety, secrets-guard, block-config-edits) still register
 # standalone for their non-Bash branches (EnterPlanMode / Read|Grep /
 # Write|Edit) — only their Bash branch is folded in here.
+#
+# Distribution tolerance: CHECK_SPECS below lists every guard this dispatcher
+# knows about, but each source file is probed before sourcing. Files missing
+# from the current distribution (e.g. raiz ships without enforce-make /
+# enforce-uv) are silently skipped and their check is just omitted from the
+# CHECKS order.
 
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "grouped-bash-guard" "PreToolUse"
 hook_require_tool "Bash"
 
-# Source hooks that expose match_/check_ functions. The dual-mode trigger
-# in each file prevents `main` from running under source.
-source "$(dirname "$0")/block-dangerous-commands.sh"
-source "$(dirname "$0")/git-safety.sh"
-source "$(dirname "$0")/secrets-guard.sh"
-source "$(dirname "$0")/block-config-edits.sh"
-source "$(dirname "$0")/enforce-make-commands.sh"
-source "$(dirname "$0")/enforce-uv-run.sh"
+# CHECK_SPECS: ordered (name, source-file) pairs. Files missing from the
+# current distribution (e.g. raiz doesn't ship enforce-make/enforce-uv)
+# are silently skipped — the corresponding check just isn't in CHECKS.
+CHECK_SPECS=(
+    "dangerous:block-dangerous-commands.sh"
+    "git_safety:git-safety.sh"
+    "secrets_guard:secrets-guard.sh"
+    "config_edits:block-config-edits.sh"
+    "make:enforce-make-commands.sh"
+    "uv:enforce-uv-run.sh"
+)
+CHECKS=()
+hook_dir="$(dirname "$0")"
+for spec in "${CHECK_SPECS[@]}"; do
+    name="${spec%%:*}"
+    file="${spec#*:}"
+    src="$hook_dir/$file"
+    [ -f "$src" ] || continue
+    # shellcheck source=/dev/null
+    source "$src"
+    if declare -F "match_$name" >/dev/null && declare -F "check_$name" >/dev/null; then
+        CHECKS+=("$name")
+    fi
+done
 
 COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
@@ -53,10 +75,9 @@ COMMAND=$(hook_get_input '.tool_input.command')
 _BLOCK_REASON=""
 
 # ---- dispatcher ----
-# CHECKS order: dangerous first (catastrophic gate — cheap token match skips
-# most benign Bash calls); git_safety next (cheap real match); then
-# secrets_guard, config_edits, make, uv.
-CHECKS=(dangerous git_safety secrets_guard config_edits make uv)
+# CHECKS order follows CHECK_SPECS: dangerous first (catastrophic gate — cheap
+# token match skips most benign Bash calls); git_safety next (cheap real match);
+# then secrets_guard, config_edits, make, uv.
 BLOCK_IDX=-1
 
 for i in "${!CHECKS[@]}"; do
