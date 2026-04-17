@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "Claude Toolkit (raiz) - Reference settings.json template. Raiz uses the split Bash-hook config because grouped-bash-guard.sh requires hooks not shipped in this distribution (enforce-make-commands, enforce-uv-run). See backlog task raiz-grouped-bash-guard.",
   "_instructions": "Copy this to .claude/settings.json and customize for your project. Shared permissions are included below \u2014 for project-specific trust (skills, MCP tools, etc.), create .claude/settings.local.json (not committed to git).",
   "enableAllProjectMcpServers": false,
   "showClearContextOnPlanAccept": true,
@@ -57,7 +56,16 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "EnterPlanMode|Bash",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/grouped-bash-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "EnterPlanMode",
         "hooks": [
           {
             "type": "command",
@@ -66,16 +74,7 @@
         ]
       },
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/block-dangerous-commands.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|Bash",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
@@ -84,7 +83,7 @@
         ]
       },
       {
-        "matcher": "Read|Bash",
+        "matcher": "Read",
         "hooks": [
           {
             "type": "command",
