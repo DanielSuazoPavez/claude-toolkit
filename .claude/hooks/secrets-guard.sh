@@ -111,8 +111,10 @@ check_credential_path() {
 # Pure bash pattern matching — no forks, no jq, no git.
 # Deliberately broad to preserve false-positive semantics.
 match_secrets_guard() {
-    local re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg)([[:space:]]|$)|\.env|\.ssh/id_|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/'
-    [[ "$COMMAND" =~ $re ]]
+    local stripped re
+    stripped=$(_strip_inert_content "$COMMAND")
+    re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg)([[:space:]]|$)|\.env|\.ssh/id_|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/'
+    [[ "$stripped" =~ $re ]]
 }
 
 # ============================================================
@@ -121,6 +123,11 @@ match_secrets_guard() {
 # Assumes match_secrets_guard returned true. Sets _BLOCK_REASON on block.
 # Returns 0 = pass, 1 = block.
 check_secrets_guard() {
+    # Strip heredoc/quoted content once — all regexes below match the skeleton.
+    # Capture the outer $COMMAND first, then shadow with the stripped version.
+    local _raw="$COMMAND"
+    local COMMAND
+    COMMAND=$(_strip_inert_content "$_raw")
     # Block commands that read .env files (.env, .env.local, .env.production, prod.env, etc.)
     # Allow: .env.example, .env.template
     local ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'

@@ -39,7 +39,9 @@ PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-^(main|master)$}"
 # Pure bash pattern matching; no forks, no jq, no git calls.
 # False positives are fine (check_ will no-op); false negatives are bugs.
 match_git_safety() {
-    [[ "$COMMAND" =~ (^|[[:space:];&|])git[[:space:]]+(push|commit)([[:space:]]|$) ]]
+    local stripped
+    stripped=$(_strip_inert_content "$COMMAND")
+    [[ "$stripped" =~ (^|[[:space:];&|])git[[:space:]]+(push|commit)([[:space:]]|$) ]]
 }
 
 # ============================================================
@@ -48,6 +50,10 @@ match_git_safety() {
 # Assumes match_git_safety returned true. Sets _BLOCK_REASON on block.
 # Returns 0 = pass, 1 = block.
 check_git_safety() {
+    # Strip heredoc/quoted content once — all regexes below match the skeleton.
+    local _raw="$COMMAND"
+    local COMMAND
+    COMMAND=$(_strip_inert_content "$_raw")
     # === git push checks ===
     if echo "$COMMAND" | grep -qE '(^|[;&|]\s*)git\s+push'; then
 

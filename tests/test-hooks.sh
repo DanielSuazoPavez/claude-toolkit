@@ -253,6 +253,14 @@ test_secrets_guard() {
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"source .env.template"}}' \
         "allows source .env.template"
 
+    # Regression: .env tokens inside quoted/heredoc content must not trigger
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"remove .env.local references\""}}' \
+        "allows .env.local inside commit message (double quotes)"
+    expect_allow "$hook" "$(jq -n --arg cmd $'git commit -m "$(cat <<EOF\nfix: update hook\n\nRemoved .env.local references.\nEOF\n)"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+        "allows cat+.env.local inside heredoc commit message"
+    expect_allow "$hook" "$(jq -n --arg cmd "echo 'the .env file is ignored'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+        "allows .env word inside single-quoted string"
+
     # Should block Read - credential files
     expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_rsa\"}}" \
         "blocks reading SSH private key (id_rsa)"
@@ -432,6 +440,14 @@ test_enforce_uv_run() {
         "allows uv run pytest"
     expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
         "allows non-python commands"
+
+    # Regression: python token inside quoted/heredoc content must not trigger
+    expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"refactor python hook\""}}' \
+        "allows python word inside commit message (double quotes)"
+    expect_allow "$hook" "$(jq -n --arg cmd "echo 'use python here'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+        "allows python word inside single-quoted string"
+    expect_allow "$hook" "$(jq -n --arg cmd $'git commit -m "$(cat <<EOF\nfix python hook\nEOF\n)"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+        "allows python word inside heredoc commit message"
 }
 
 # === ENFORCE MAKE COMMANDS ===
@@ -515,6 +531,12 @@ test_git_safety() {
         # Should block git commit on main
         expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
             "blocks git commit on main"
+
+        # Regression: git commit token inside quoted/heredoc content must not trigger on main
+        expect_allow "$hook" "$(jq -n --arg cmd 'echo "run: git commit -m foo"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+            "allows git commit word inside double-quoted string on main"
+        expect_allow "$hook" "$(jq -n --arg cmd $'cat <<EOF\nremember: git commit works on feature branches\nEOF' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+            "allows git commit inside heredoc body on main"
 
         # Switch to feature branch
         git checkout -q -b feature/test

@@ -12,10 +12,12 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 # ============================================================
 # match_uv — cheap predicate
 # ============================================================
-# Returns 0 when $COMMAND contains a python token (the only thing this
-# hook gates). Pure bash — no forks, no jq, no git.
+# Returns 0 when the command skeleton (quoted/heredoc content stripped)
+# contains a python token in command-verb position. Pure bash — no forks.
 match_uv() {
-    [[ "$COMMAND" =~ (^|&&|;|\|\||[[:space:]])python(3(\.[0-9]+)?)?[[:space:]] ]]
+    local stripped
+    stripped=$(_strip_inert_content "$COMMAND")
+    [[ "$stripped" =~ (^|&&|;|\|\||\$\(|[[:space:]])python(3(\.[0-9]+)?)?[[:space:]] ]]
 }
 
 # ============================================================
@@ -24,13 +26,15 @@ match_uv() {
 # Assumes match_uv returned true. Sets _BLOCK_REASON on block.
 # Returns 0 = pass, 1 = block.
 check_uv() {
+    local stripped
+    stripped=$(_strip_inert_content "$COMMAND")
     # Already using `uv run` — allow
-    if [[ "$COMMAND" =~ "uv run" ]]; then
+    if [[ "$stripped" =~ "uv run" ]]; then
         return 0
     fi
-    # Direct python/python3/python3.X calls — block
-    local PYTHON_RE='(^|&&|;|\|\||[[:space:]])python(3(\.[0-9]+)?)?[[:space:]]'
-    if [[ "$COMMAND" =~ $PYTHON_RE ]]; then
+    # Direct python/python3/python3.X calls in command-verb position — block
+    local PYTHON_RE='(^|&&|;|\|\||\$\(|[[:space:]])python(3(\.[0-9]+)?)?[[:space:]]'
+    if [[ "$stripped" =~ $PYTHON_RE ]]; then
         _BLOCK_REASON="Use \`uv run python\` instead of direct python. The venv is not activated."
         return 1
     fi
