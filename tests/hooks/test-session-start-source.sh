@@ -25,7 +25,7 @@ hook="session-start.sh"
 for source_val in startup resume clear compact; do
     sid="test-src-${source_val}-$(date +%s%N)"
     echo "{\"session_id\":\"$sid\",\"source\":\"$source_val\"}" \
-        | CLAUDE_HOOK_TEST=1 "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+        | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
     TESTS_RUN=$((TESTS_RUN + 1))
     got=$(sqlite3 "$hooks_db" "SELECT source FROM hook_logs WHERE session_id = '$sid' LIMIT 1" 2>/dev/null)

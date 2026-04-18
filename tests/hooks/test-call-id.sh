@@ -23,7 +23,7 @@ fi
 sid="test-callid-bash-$(date +%s%N)"
 tid="toolu_01TESTBASHCALLID${RANDOM}"
 echo "{\"session_id\":\"$sid\",\"tool_use_id\":\"$tid\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
-    | CLAUDE_HOOK_TEST=1 "$HOOKS_DIR/grouped-bash-guard.sh" > /dev/null 2>&1 || true
+    | "$HOOKS_DIR/grouped-bash-guard.sh" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
 got=$(sqlite3 "$hooks_db" "SELECT call_id FROM hook_logs WHERE session_id = '$sid' LIMIT 1" 2>/dev/null)
@@ -40,7 +40,7 @@ fi
 # SessionStart (no tool_use_id / agent_id) → empty call_id
 sid2="test-callid-sessionstart-$(date +%s%N)"
 echo "{\"session_id\":\"$sid2\",\"source\":\"startup\"}" \
-    | CLAUDE_HOOK_TEST=1 "$HOOKS_DIR/session-start.sh" > /dev/null 2>&1 || true
+    | "$HOOKS_DIR/session-start.sh" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
 got=$(sqlite3 "$hooks_db" "SELECT call_id FROM hook_logs WHERE session_id = '$sid2' LIMIT 1" 2>/dev/null)
