@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.57.0] - 2026-04-18 - hook_logs.call_id
+
+### Added
+- Hook `hook_logs` rows now carry a `call_id` column — prefix-namespaced (`tool:<tool_use_id>` for Pre/PostToolUse, `agent:<agent_id>` for SubagentStop, empty for lifecycle events). Enables per-call grouping of hook perf data without relying on timestamp collation. Schema migration (adds `call_id` + `turn_id` columns and indexes) is owned by `claude-sessions`; this release plumbs `CALL_ID` through the three `hook_logs` INSERTs in `lib/hook-utils.sh`. `turn_id` stays empty — populated in Phase 2 (`hook-logs-turn-id`).
+
 ## [2.56.0] - 2026-04-18 - Grouped Read dispatcher
 
 ### Added
