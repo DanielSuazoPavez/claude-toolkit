@@ -23,10 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[HOOKS]** Add `turn_id` + universal log-event hook — Phase 2 (`hook-logs-turn-id`)
-    - **scope**: `hooks`
-    - **notes**: Depends on `hook-logs-call-id` landing the migration. `turn_id` groups every hook row in one user→stop cycle (UserPromptSubmit, all tool calls in between, Stop). Implementation: (1) new `log-event.sh` — pure-observer hook that tolerates malformed stdin (no fail-closed block), used as first entry in Pre/Post/UserPromptSubmit/Stop hook arrays; (2) turn-id state file at `~/.claude/state/turn-<session_id>` — UserPromptSubmit writes, subsequent hooks read, Stop reads-then-deletes; (3) populate `turn_id` in all hook inserts. Expected cost: ~5-10ms per tool call (Pre+Post) × ~500 calls/session = ~7s/session total, spread across session, imperceptible per-turn. Ties into claude-sessions work-unit boundaries and idle-gap detection — Stop→next-UserPromptSubmit gap = idle time; Stop−UserPromptSubmit = active time; sum of Post−Pre by call_id = tool time. Verify hook execution is sequential (not parallel) before relying on logger-first ordering; our current model assumes sequential with short-circuit on block decision.
-
 ## P2 - Medium
 
 - **[TESTS]** Rethink the testing suite — folder structure and output mode (`tests-rethink-suite`)
