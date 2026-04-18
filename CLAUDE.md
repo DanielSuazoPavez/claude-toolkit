@@ -21,6 +21,7 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 - **Capture lessons aggressively**: When you notice a correction, gotcha, pattern, or convention worth preserving, use `/learn` without hesitation. Bias toward capturing — pruning and crystallization happen later via `/manage-lessons`
 - **No sudo access**: Don't run sudo commands — provide shell commands for the user to run manually when elevated privileges are needed
 - **Verify before stating**: Don't state how a system works without checking the code first — read the actual implementation rather than assuming from names or conventions
+- **`make check` runs in full**: `make check` is SUPPOSED TO RUN without cutting output — never pipe it through `head`/`tail`/`grep` filters that hide test failures. Run it bare so the full pass/fail tally is visible
 
 ## Structure
 
