@@ -17,6 +17,24 @@ set -uo pipefail
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
 export CLAUDE_HOOK_TEST=1
 
+# Isolate hooks.db writes: redirect HOOK_LOG_DB to a per-run temp file so the
+# real ~/.claude/hooks.db (owned by claude-sessions) is never polluted by tests.
+# Clone the schema from the real DB if present so toolkit's write contract can
+# be verified; otherwise DB-dependent assertions skip gracefully (matching
+# fresh-machine behavior).
+TEST_HOOKS_DB="$(mktemp -t claude-toolkit-hooks-XXXXXX.db)"
+rm -f "$TEST_HOOKS_DB"
+if [ -f "$HOME/.claude/hooks.db" ]; then
+    sqlite3 "$HOME/.claude/hooks.db" .schema | sqlite3 "$TEST_HOOKS_DB" 2>/dev/null || true
+    # Tripwire: if the real DB exists but the clone produced no hook_logs table,
+    # DB-dependent assertions will silently skip and we lose write-contract coverage.
+    if ! sqlite3 "$TEST_HOOKS_DB" "SELECT 1 FROM hook_logs LIMIT 0" >/dev/null 2>&1; then
+        echo "warning: hooks.db schema clone failed — DB-dependent assertions will skip" >&2
+    fi
+fi
+export HOOK_LOG_DB="$TEST_HOOKS_DB"
+trap 'rm -f "$TEST_HOOKS_DB"' EXIT
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 parse_test_args "$@"
@@ -972,7 +990,7 @@ test_session_id_from_stdin() {
     fi
 
     # --- session_id propagates to hooks.db (SQLite) ---
-    local hooks_db="$HOME/.claude/hooks.db"
+    local hooks_db="$TEST_HOOKS_DB"
     if [ -f "$hooks_db" ]; then
         TESTS_RUN=$((TESTS_RUN + 1))
         local db_sid
@@ -1011,7 +1029,7 @@ test_session_id_from_stdin() {
 # writes it into hook_logs.source for downstream sub-session analytics.
 test_session_start_source_capture() {
     report_section "=== SessionStart source capture ==="
-    local hooks_db="$HOME/.claude/hooks.db"
+    local hooks_db="$TEST_HOOKS_DB"
     if [ ! -f "$hooks_db" ]; then
         log_verbose "hooks.db not found — skipping SessionStart source tests"
         return 0

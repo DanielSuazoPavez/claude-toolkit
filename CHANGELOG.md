@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.55.2] - 2026-04-18 - Isolate hooks.db writes in test harness
+
+### Changed
+- **hooks**: `lib/hook-utils.sh` — `HOOK_LOG_DB` now honors a pre-set value (`${HOOK_LOG_DB:-$HOME/.claude/hooks.db}`) so tests and other callers can redirect hook_logs writes to an isolated SQLite path. Production behavior unchanged when the env var is unset.
+- **tests**: `tests/test-hooks.sh` — sets up a per-run temp DB via `mktemp`, clones the schema from `~/.claude/hooks.db` if present (so toolkit's write contract is still verifiable), exports `HOOK_LOG_DB` to point at the temp path, and traps `rm -f` on EXIT. The three DB-assertion blocks (`session_id propagates`, `dynamic session_id also reaches`, `SessionStart source captured`) now read from the temp DB. Prevents tests from polluting the real hooks.db (owned by claude-sessions). Emits a stderr warning if the real DB exists but the schema clone produced no `hook_logs` table, so silent clone failures don't quietly skip write-contract coverage.
+
 ## [2.55.1] - 2026-04-17 - Hook authoring skills teach match/check
 
 ### Changed
