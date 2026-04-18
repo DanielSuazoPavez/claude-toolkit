@@ -23,13 +23,17 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
+- **[HOOKS]** Add shared tool-call id to `hook_logs` (`hook-logs-tool-call-id`)
+    - **scope**: `hooks`
+    - **notes**: Hook perf comparisons (e.g. grouped-bash-guard vs historical split hooks) can't be aggregated cleanly per Bash call — current grouping by `session_id + timestamp-to-second` is confounded by clock skew across parallel hook processes and silent early-exits that bypass the logging trap. If hook-utils captured Claude's `tool_use_id` (or equivalent from the hook payload) into a new column, `GROUP BY tool_use_id` gives true per-call totals. Check what the PreToolUse payload actually exposes before implementing.
+
 ## P2 - Medium
 
-## P3 - Low
+- **[TESTS]** Rethink the testing suite — folder structure and output mode (`tests-rethink-suite`)
+    - **scope**: `tests`
+    - **notes**: Current state: bash test runners (`test-*.sh`) and pytest files (`test_*.py`) live flat under `tests/`, each with its own ad-hoc helpers and section-header conventions; quiet/verbose modes vary per runner and `make check` output is noisy (many "=== Summary ===" blocks, hard to spot the one failing validation among passing ones). Explore: (1) **folder structure** — group by concern (hooks/, cli/, raiz/, lessons/) instead of flat; separate unit/smoke/integration; make `tests/lib/` conventions uniform across bash and pytest; (2) **output mode** — unified default output that hides passing suites and surfaces failing ones with context; an overall pass/fail summary at the end; consistent `-q`/`-v` semantics across runners; failing validations should print the diagnostic block inline instead of just a counter. Trigger: during the grouped-read-guard implementation, isolating the one failing validation inside `make check` required multiple re-runs because output was flat and section boundaries weren't preserved.
 
-- **[HOOKS]** Grouped Read dispatcher — extend match/check architecture to Read-tool hooks (`grouped-read-guard`)
-    - **scope**: `hooks`
-    - **notes**: Build a `grouped-read-guard.sh` dispatcher following the same source-and-iterate pattern used by `grouped-bash-guard.sh`. Folds `secrets-guard` (Read/Grep branches) and `suggest-read-json` into one process. `surface-lessons` stays standalone (async-injection, different contract). Lower traffic than Bash so payoff is smaller — defer until match/check pattern is validated in real usage on the Bash side (see `grouped-bash-guard-remeasure`).
+## P3 - Low
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
@@ -44,7 +48,7 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
-    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side.
+    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side. When reworking the surfacing hook, evaluate folding it into `grouped-read-guard` (and/or a future `grouped-bash-guard` merge) — it currently averages 106ms with ~30-40ms of that being bash+jq startup. Constraints: async-injection contract, 5s timeout, Bash|Read|Write|Edit matcher (wider than grouped-read).
 
 - **[AGENTS]** Explore resource-aware model routing for agent spawning (`agent-model-routing`)
     - **scope**: `agents, skills`

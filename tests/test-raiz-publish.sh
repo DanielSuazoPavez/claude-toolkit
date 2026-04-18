@@ -147,6 +147,7 @@ assert_file_exists "implementation-checker included" "$OUTPUT_DIR/.claude/agents
 # Hooks
 assert_file_exists "block-config-edits included" "$OUTPUT_DIR/.claude/hooks/block-config-edits.sh"
 assert_file_exists "secrets-guard included" "$OUTPUT_DIR/.claude/hooks/secrets-guard.sh"
+assert_file_exists "grouped-read-guard included" "$OUTPUT_DIR/.claude/hooks/grouped-read-guard.sh"
 assert_file_exists "session-start included" "$OUTPUT_DIR/.claude/hooks/session-start.sh"
 assert_file_not_exists "enforce-uv-run excluded" "$OUTPUT_DIR/.claude/hooks/enforce-uv-run.sh"
 assert_file_not_exists "enforce-make-commands excluded" "$OUTPUT_DIR/.claude/hooks/enforce-make-commands.sh"
@@ -209,10 +210,11 @@ local_settings="$OUTPUT_DIR/.claude/templates/settings.template.json"
 # Bash branch runs through the grouped dispatcher (v2.55.0); individual
 # Bash-only guards no longer appear as standalone entries in the template.
 assert_file_contains "has grouped-bash-guard" "$local_settings" "grouped-bash-guard.sh"
+assert_file_contains "has grouped-read-guard" "$local_settings" "grouped-read-guard.sh"
 assert_file_contains "has block-config-edits" "$local_settings" "block-config-edits.sh"
 assert_file_contains "has git-safety" "$local_settings" "git-safety.sh"
-assert_file_contains "has secrets-guard" "$local_settings" "secrets-guard.sh"
-assert_file_contains "has suggest-read-json" "$local_settings" "suggest-read-json.sh"
+assert_file_contains "has secrets-guard (Grep standalone)" "$local_settings" "secrets-guard.sh"
+assert_file_not_contains "no standalone suggest-read-json (folded into dispatcher)" "$local_settings" "suggest-read-json.sh"
 
 # Should NOT have excluded hooks
 assert_file_contains "has session-start" "$local_settings" "session-start.sh"
