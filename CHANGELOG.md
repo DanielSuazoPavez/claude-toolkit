@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.57.2] - 2026-04-18 - Drop is_test from hook log writers
+
+### Removed
+- **hooks**: `is_test` column dropped from all hook log writers (TSV + SQL INSERTs in `lib/hook-utils.sh`). Test isolation is now provided entirely by `HOOK_LOG_DB` redirection in `tests/lib/hook-test-setup.sh`, so the column is redundant. The `CLAUDE_HOOK_TEST` env var and `IS_TEST` bash variable that backed the column are also removed. Live DB schema drop (column removal on `~/.claude/hooks.db`) is owned by `claude-sessions`; until that migration lands, INSERTs that omit `is_test` rely on its `NOT NULL DEFAULT 0` — verified against a live-schema clone.
+
 ### Notes
 - Phase 2 `turn_id` population (referenced in v2.57.0) has been cancelled. Turn analytics (idle-vs-active detection, user→stop cycle grouping) will be derived from transcript data inside `claude-sessions` — which already indexes transcripts — rather than from hook-side state. The `turn_id` column in `hook_logs` stays empty by design.
 
