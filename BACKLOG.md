@@ -25,9 +25,9 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[TESTS]** Apply hook-test pattern to the remaining runners (`tests-rethink-suite`)
+- **[TESTS]** Group runners into subdirs once they warrant splitting (`tests-rethink-suite-phase3`)
     - **scope**: `tests`
-    - **notes**: v2.57.1 solved this for hooks: per-hook files under `tests/hooks/`, shared setup in `tests/lib/hook-test-setup.sh`, parallel runner `tests/run-hook-tests.sh` with per-file ✓/✗ summary and failing-file log dump. Remaining suites are still flat and each prints its own `=== Summary ===` block inside `make check`: `test-cli.sh`, `test-backlog-query.sh`, `test-evaluation-query.sh`, `test-raiz-changelog.sh`, `test-raiz-publish.sh`, `test-setup-toolkit-diagnose.sh`, `test-validate-hook-utils.sh`, `test-verify-external-deps.sh`, `test-validate-resources-indexed.sh`, plus pytest (`test_lesson_db.py`). Next: (1) group by concern (`tests/cli/`, `tests/raiz/`, `tests/validate/`, `tests/lessons/`) where a runner is large enough to split; (2) a top-level `tests/run-all.sh` that dispatches bash suites in parallel + invokes pytest, with a single unified summary and failing-file logs (same shape as `run-hook-tests.sh`); (3) align `-q`/`-v` semantics across bash and pytest. Original trigger (isolating one failing validation inside noisy `make check`) is resolved for hooks — keep the entry so the pattern propagates.
+    - **notes**: v2.57.1 gave hooks the per-file + parallel pattern; v2.58.0 added the unified top-level `tests/run-all.sh` (all bash suites + pytest, parallel, single summary). Remaining residual: if any top-level suite grows large enough to warrant subdir grouping (`tests/cli/`, `tests/raiz/`, `tests/validate/`, `tests/lessons/`), apply the hook pattern — shared setup in a `lib/*-test-setup.sh`, per-file test-*.sh, dispatched by the existing `run-all.sh` (which already discovers top-level `test-*.sh`; grouped subdirs would need a dedicated runner like `run-hook-tests.sh`). Not urgent — current single-file suites are fine. Separate residual: align `-q`/`-v` semantics inside `lib/test-helpers.sh` assertion helpers (runner already captures child stdout regardless, so low-value).
 
 ## P3 - Low
 
