@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.58.0] - 2026-04-18 - Unified test runner
+
+### Changed
+- **tests**: new `tests/run-all.sh` dispatches every top-level bash suite plus pytest in parallel via `xargs -P`, with a single unified `✓/✗` summary and failing-suite log dumps (same shape as `run-hook-tests.sh`). `make test` now goes through this runner — each top-level `test-*.sh`, `run-hook-tests.sh`, and `pytest` counts as one unit in the tally. Pytest is now wired into `make test` (previously it had to be run standalone). Filter (`bash tests/run-all.sh cli`), verbose (`-v`), and `TEST_JOBS=N` are forwarded to children. Granular `make test-*` targets kept for focused runs; new `make test-pytest` added for symmetry.
+
 ## [2.57.2] - 2026-04-18 - Drop is_test from hook log writers
 
 ### Removed

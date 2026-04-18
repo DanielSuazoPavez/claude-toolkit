@@ -8,6 +8,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 
 | File | What it tests | Runner |
 |------|--------------|--------|
+| `run-all.sh` | Unified top-level runner: dispatches all bash suites + pytest in parallel, single summary | bash |
 | `hooks/test-*.sh` | Per-hook tests (one file per hook/dispatcher); run via `run-hook-tests.sh` | bash |
 | `run-hook-tests.sh` | Parallel runner for `hooks/test-*.sh`, with per-file summary | bash |
 | `test-cli.sh` | `bin/claude-toolkit` sync/send commands | bash |
@@ -58,15 +59,20 @@ Each file is standalone: source helpers + setup, run assertions at top level, ca
 ## Running
 
 ```bash
-make test                              # all tests (bash + pytest)
+make test                              # all suites via run-all.sh (bash + pytest, parallel, unified summary)
 make test-hooks                        # parallel hook tests (via run-hook-tests.sh -q)
 make test-cli                          # CLI tests only
+make test-pytest                       # pytest only
 make check                             # tests + validations
-bash tests/run-hook-tests.sh secrets   # filter: only files whose basename contains "secrets"
-bash tests/run-hook-tests.sh -v        # verbose
-HOOK_TEST_JOBS=1 bash tests/run-hook-tests.sh   # sequential (debugging)
+bash tests/run-all.sh -v               # verbose pass-through to all suites
+bash tests/run-all.sh cli              # filter: only suites whose label contains "cli"
+TEST_JOBS=1 bash tests/run-all.sh      # sequential (debugging)
+bash tests/run-hook-tests.sh secrets   # filter hook tests: basename contains "secrets"
+HOOK_TEST_JOBS=1 bash tests/run-hook-tests.sh   # hook tests sequential
 bash tests/hooks/test-secrets-guard.sh # run one file directly
 ```
+
+`run-all.sh` treats `run-hook-tests.sh` and `pytest` as single aggregate units in its summary — if pytest fails, re-run `make test-pytest` (or `uv run pytest`) standalone to drill into the 36 Python tests.
 
 Runner aggregation relies on per-file exit codes only. Each failing file's full log is dumped under its own header after the summary. Per-file logs land in `tests/.logs/` (gitignored).
 
