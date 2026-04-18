@@ -165,7 +165,7 @@ Fires on `Bash|Read|Write|Edit` tool calls. Extracts keywords from command/file 
 - Pure bash + sqlite3, ~10ms
 - Basic plural handling (strips trailing 's')
 - Skips words shorter than 3 characters
-- Logs keyword matches to `hook-timing.log`
+- Logs keyword matches to `hooks.db` (`surface_lessons_context` table)
 
 ---
 

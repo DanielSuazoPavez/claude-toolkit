@@ -15,11 +15,7 @@ if [ -n "${_HOOK_UTILS_SOURCED:-}" ]; then
 fi
 _HOOK_UTILS_SOURCED=1
 #
-# Dual-write: TSV file (hook-timing.log) + SQLite (claude-hook-logs.db).
-# DB write is optional — silently skipped if db doesn't exist.
-#
-# TSV format (11 columns):
-#   session_id | invocation_id | timestamp | project | hook_event | hook_name | tool_name | section | duration_ms | outcome | bytes_injected
+# Logs execution data to SQLite (hooks.db). Silently skipped if db doesn't exist.
 #
 # Usage:
 #   source "$(dirname "$0")/lib/hook-utils.sh"
@@ -43,7 +39,6 @@ HOOK_START_MS=0
 OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
-HOOK_LOG_FILE=""
 HOOK_LOG_DB="${HOOK_LOG_DB:-$HOME/.claude/hooks.db}"
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 _HOOK_SQL_BATCH=""  # accumulated SQL statements, flushed once in EXIT trap
@@ -176,8 +171,6 @@ hook_init() {
     OUTCOME="pass"
     BYTES_INJECTED=0
     TOTAL_BYTES_INJECTED=0
-    HOOK_LOG_FILE=".claude/logs/hook-timing.log"
-    mkdir -p ".claude/logs" 2>/dev/null || true
 
     # Validate stdin is parseable JSON — malformed input means nothing
     # downstream is reliable (tool_name, session_id, tool_input).
@@ -312,11 +305,6 @@ hook_log_section() {
     local content="$2"
     local bytes=${#content}
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$SESSION_ID" "$INVOCATION_ID" "$_HOOK_TIMESTAMP" "$PROJECT" \
-        "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
-        "0" "pass" "$bytes" \
-        >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id)
     VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
 }
@@ -330,7 +318,6 @@ hook_log_section() {
 #   - not_applicable: match_ predicate returned false, check body skipped
 #     by design (duration = predicate cost)
 # See .claude/docs/relevant-toolkit-hooks.md §5 for full outcome semantics.
-# Writes to both TSV (hook-timing.log) and SQLite (hooks.db).
 hook_log_substep() {
     local name="$1"
     local duration_ms="$2"
@@ -339,11 +326,6 @@ hook_log_substep() {
     if [ "$outcome" = "inject" ] 2>/dev/null; then
         TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     fi
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$SESSION_ID" "$INVOCATION_ID" "$_HOOK_TIMESTAMP" "$PROJECT" \
-        "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$name" \
-        "$duration_ms" "$outcome" "$bytes" \
-        >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id)
     VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$name")', $duration_ms, '$(_sql_escape "$outcome")', $bytes, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
 }
@@ -405,11 +387,6 @@ _hook_log_timing() {
     if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then
         bytes=$TOTAL_BYTES_INJECTED
     fi
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$SESSION_ID" "$INVOCATION_ID" "$ts" "$PROJECT" \
-        "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "" \
-        "$duration_ms" "$OUTCOME" "$bytes" \
-        >> "$HOOK_LOG_FILE" 2>/dev/null || true
     _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id)
     VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
     _hook_flush_db

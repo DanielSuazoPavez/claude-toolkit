@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.59.2] - 2026-04-18 - Drop TSV hook-timing.log writes
+
+### Removed
+- **hooks**: TSV writes to `.claude/logs/hook-timing.log` dropped from `lib/hook-utils.sh` (`hook_log_section`, `hook_log_substep`, `_hook_log_timing`). `HOOK_LOG_FILE` global and `mkdir -p .claude/logs` removed from `hook_init`. No programmatic consumers remained — `hooks.db` is authoritative; tests no longer assert against the TSV. Human debugging: `sqlite3 ~/.claude/hooks.db`.
+
 ## [2.59.1] - 2026-04-18 - Fix backlog validate script path
 
 ### Fixed

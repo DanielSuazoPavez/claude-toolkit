@@ -23,10 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[TESTS]** Remove TSV `hook-timing.log` writes from `hook-utils.sh` (`drop-hook-timing-tsv`)
-    - **scope**: `tests, hooks`
-    - **notes**: Follow-up from the test-hooks split. The TSV log has zero programmatic consumers — `hooks.db` is the only consumer used by tooling, and the test suite no longer reads the TSV at all (assertions removed in the split). To close the loop: drop the append-only TSV writes from `.claude/hooks/lib/hook-utils.sh` (lines 18, 180, 335), remove the `HOOK_LOG_FILE` default, update `docs/indexes/HOOKS.md` line 30 and `.claude/docs/relevant-toolkit-lessons.md` line 168. Human-debugging fallback: tail `hooks.db` via `sqlite3`. Kept out of the restructure PR to limit scope.
-
 ## P2 - Medium
 
 ## P3 - Low
