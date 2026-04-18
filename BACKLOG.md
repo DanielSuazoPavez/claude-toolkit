@@ -25,11 +25,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[TESTS]** DB-related tests should point to a test DB, not `~/.claude/hooks.db` (`tests-isolate-db`)
-    - **scope**: `tests`
-    - **notes**: `test_session_id_from_stdin` and `test_session_start_source_capture` in `tests/test-hooks.sh` write rows into the user's real `~/.claude/hooks.db`. Rows are marked `is_test=1` but never cleaned up, polluting analytics and causing flakiness in DB-interacting tests. Proper fix: make `HOOK_LOG_DB` overridable via env var so tests can point at a temp DB (schema materialization decision pending — copy from real DB, replay migration, or maintain a test fixture).
-    - **decision pending**: how to materialize the test DB schema
-
 ## P3 - Low
 
 - **[HOOKS]** Grouped Read dispatcher — extend match/check architecture to Read-tool hooks (`grouped-read-guard`)
