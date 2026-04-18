@@ -27,10 +27,10 @@ for arg in "$@"; do
     esac
 done
 
-# Forward mode flag to children
-CHILD_FLAG=""
-[ "$QUIET" = "1" ] && CHILD_FLAG="-q"
-[ "$VERBOSE" = "1" ] && CHILD_FLAG="-v"
+# Forward mode flags to children
+CHILD_FLAGS=()
+[ "$QUIET" = "1" ] && CHILD_FLAGS+=(-q)
+[ "$VERBOSE" = "1" ] && CHILD_FLAGS+=(-v)
 
 JOBS="${HOOK_TEST_JOBS:-$(nproc 2>/dev/null || echo 4)}"
 
@@ -56,21 +56,24 @@ if [ "${#files[@]}" -eq 0 ]; then
 fi
 
 # Wrapper: runs one file, captures output + exit code.
+# CHILD_FLAGS is serialized via CHILD_FLAGS_STR (space-joined) because exported
+# bash arrays don't survive the xargs → subshell boundary.
 run_one() {
     local file="$1"
     local base
     base="$(basename "$file" .sh)"
     local start end
     start=$(date +%s.%N 2>/dev/null || date +%s)
-    bash "$file" $CHILD_FLAG > "$LOG_DIR/$base.log" 2>&1
+    # shellcheck disable=SC2086  # intentional word-split on flags
+    bash "$file" $CHILD_FLAGS_STR > "$LOG_DIR/$base.log" 2>&1
     local ec=$?
     end=$(date +%s.%N 2>/dev/null || date +%s)
     echo "$ec" > "$LOG_DIR/$base.exit"
-    # Duration (seconds, one decimal)
     awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f\n", e - s}' > "$LOG_DIR/$base.dur"
 }
 export -f run_one
-export LOG_DIR CHILD_FLAG
+CHILD_FLAGS_STR="${CHILD_FLAGS[*]}"
+export LOG_DIR CHILD_FLAGS_STR
 
 printf '%s\n' "${files[@]}" | xargs -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {}
 

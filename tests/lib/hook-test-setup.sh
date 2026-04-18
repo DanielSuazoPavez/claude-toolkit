@@ -21,4 +21,7 @@ if [ -f "$HOME/.claude/hooks.db" ]; then
     fi
 fi
 export HOOK_LOG_DB="$TEST_HOOKS_DB"
+# bash resets traps in subshells, so `( ... )` blocks (e.g. the cd-into-tempdir
+# pattern in test-git-safety.sh) don't fire this on subshell exit — the DB
+# survives until the parent process exits via print_summary.
 trap 'rm -f "$TEST_HOOKS_DB"' EXIT
