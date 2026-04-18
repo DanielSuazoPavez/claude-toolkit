@@ -171,7 +171,7 @@ hook_init() {
     # Capture timestamp once, reuse in all logging.
     # Millisecond precision — multiple hook rows within a single turn land in
     # the same second, and ms lets us order them chronologically.
-    _HOOK_TIMESTAMP=$(date +%Y-%m-%dT%H:%M:%S.%3N%:z)
+    _HOOK_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
     HOOK_START_MS=$(_now_ms)
     OUTCOME="pass"
     BYTES_INJECTED=0
@@ -399,7 +399,7 @@ _hook_log_timing() {
     [ "$_HOOK_ACTIVE" = true ] || return 0
     local end_ms ts
     end_ms=$(_now_ms)
-    ts=$(date +%Y-%m-%dT%H:%M:%S.%3N%:z)
+    ts=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
     local duration_ms=$(( end_ms - HOOK_START_MS ))
     local bytes=$BYTES_INJECTED
     if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then

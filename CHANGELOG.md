@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2.59.0] - 2026-04-18 - Normalize writer timestamps to UTC Z
+
+### Changed
+- **hooks**: `lib/hook-utils.sh` lines 174 and 402 now emit `date -u +%Y-%m-%dT%H:%M:%S.%3NZ` (UTC, literal `Z`, millisecond precision) instead of local time + numeric offset. Affects `hook_logs.timestamp` INSERTs and the hook-timing TSV row.
+- **scripts**: `statusline-capture.sh` `captured_at` switches from `jq (now | todate)` (second precision) to a shell `date -u` + `jq --arg`, preserving the canonical UTC-Z format and gaining millisecond precision for high-frequency statusline samples. Setup-toolkit skill snippet updated to match.
+
+### Notes
+- Aligns toolkit-owned writers with the canonical format claude-sessions uses for cross-source time-window joins via `ATTACH`. Live-DB backfill of pre-change offset-format rows and the `hook_logs.timestamp` schema retype are owned by claude-sessions; offset rows are unambiguously convertible, so no merge-ordering coordination is required.
+
 ## [2.58.0] - 2026-04-18 - Unified test runner
 
 ### Changed

@@ -542,7 +542,7 @@ All hooks receive these fields via stdin JSON:
 # Log all hook events
 INPUT=$(cat)
 mkdir -p ~/.claude/hooks-logs
-echo "$(date -Iseconds) $INPUT" >> ~/.claude/hooks-logs/$(date +%Y-%m-%d).jsonl
+echo "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ) $INPUT" >> ~/.claude/hooks-logs/$(date -u +%Y-%m-%d).jsonl
 ```
 
 Use `claude --debug` to see hook execution details.
