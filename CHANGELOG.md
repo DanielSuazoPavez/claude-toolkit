@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.56.0] - 2026-04-18 - Grouped Read dispatcher
+
+### Added
+- **hooks**: `grouped-read-guard.sh` PreToolUse dispatcher folds `secrets-guard` (Read branch) and `suggest-read-json` into one bash invocation for `Read` tool calls. Saves ~30ms per Read by amortizing bash startup, `hook-utils.sh` sourcing, and `jq` parsing across both checks. Grep stays on standalone `secrets-guard.sh` (single check — nothing to fold). Raiz picks up the dispatcher via `dist/raiz/MANIFEST` and settings template; raiz Grep coverage is new (base already ran `secrets-guard` on `Read|Grep`).
+
+### Changed
+- **hooks**: `secrets-guard.sh` — extracted `_env_file_block_reason` / `_credential_path_block_reason` helpers and added `match_secrets_guard_read|_grep` + `check_secrets_guard_read|_grep` functions. Existing `check_env_file` / `check_credential_path` become thin wrappers around the reason helpers; standalone `main()` behavior unchanged. Grep match/check pair is unused by the current dispatcher but kept for future folding if Grep gains more checks.
+- **hooks**: `suggest-read-json.sh` — dual-mode refactor (standalone `main()` guarded by `[[ "${BASH_SOURCE[0]}" == "${0}" ]]`, plus `match_suggest_read_json` / `check_suggest_read_json` for the dispatcher).
+- **settings**: `.claude/settings.json`, `dist/base/templates/settings.template.json`, and `dist/raiz/templates/settings.template.json` — `Read` matcher now points at `grouped-read-guard.sh`; `Grep` matcher runs `secrets-guard.sh` standalone.
+
 ## [2.55.2] - 2026-04-18 - Isolate hooks.db writes in test harness
 
 ### Changed
