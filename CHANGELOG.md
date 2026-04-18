@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Notes
+- Phase 2 `turn_id` population (referenced in v2.57.0) has been cancelled. Turn analytics (idle-vs-active detection, user→stop cycle grouping) will be derived from transcript data inside `claude-sessions` — which already indexes transcripts — rather than from hook-side state. The `turn_id` column in `hook_logs` stays empty by design.
+
 ## [2.57.0] - 2026-04-18 - hook_logs.call_id
 
 ### Added
