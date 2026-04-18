@@ -83,6 +83,121 @@ log_verbose() {
     [ "$VERBOSE" = "1" ] && echo "  $*"
 }
 
+# --- Hook expectation helpers ---
+# These drive a hook script by piping JSON to it and asserting on output.
+# They rely on $HOOKS_DIR (set by hook-test-setup.sh or by the caller).
+
+# Expects output to contain '"decision": "block"'
+expect_block() {
+    local hook="$1"
+    local input="$2"
+    local description="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output
+    output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+
+    if echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output: $output"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected: block decision"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
+# Expects empty output or an explicit allow decision
+expect_allow() {
+    local hook="$1"
+    local input="$2"
+    local description="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output
+    output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+
+    if [ -z "$output" ] || echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"allow"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output: ${output:-<empty>}"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected: empty or allow decision"
+        report_detail "Got: $output"
+    fi
+}
+
+# Expects PermissionRequest approval (decision.behavior: allow)
+expect_approve() {
+    local hook="$1"
+    local input="$2"
+    local description="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output
+    output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+
+    if echo "$output" | grep -q '"behavior"[[:space:]]*:[[:space:]]*"allow"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output: $output"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected: decision.behavior allow"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
+# Expects empty output (hook stayed silent — no approval)
+expect_silent() {
+    local hook="$1"
+    local input="$2"
+    local description="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output
+    output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+
+    if [ -z "$output" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output: <empty>"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected: <empty>"
+        report_detail "Got: $output"
+    fi
+}
+
+# Expects output to contain a string
+expect_contains() {
+    local hook="$1"
+    local input="$2"
+    local expected="$3"
+    local description="$4"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output
+    output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+
+    if echo "$output" | grep -q "$expected"; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output contains: $expected"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected to contain: $expected"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
 # Print summary and exit with appropriate code
 print_summary() {
     echo ""
