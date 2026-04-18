@@ -30,7 +30,7 @@ All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 - Execution timing and logging to `.claude/logs/hook-timing.log`
 - Section-level tracking for session-start
 
-Log format (TSV, 12 columns): session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test
+Log format (TSV, 11 columns): session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected
 
 ---
 
@@ -194,4 +194,3 @@ Hooks receive tool context as **JSON on stdin**, parsed by `hook_init()` in `lib
 Some hooks also read **environment variables** for configuration:
 - `PROTECTED_BRANCHES` — regex for protected branches (default: `^(main|master)$`)
 - `JSON_SIZE_THRESHOLD_KB` — size threshold for JSON blocking (default: 50)
-- `CLAUDE_HOOK_TEST` — set to `1` to signal test mode

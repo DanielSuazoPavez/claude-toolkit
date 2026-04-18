@@ -46,7 +46,7 @@ run_hook_with_perf() {
         wall_start=$(date +%s%3N)
     fi
     # Capture all output (stderr has perf lines), filter by HOOK_PERF prefix
-    perf_output=$(CLAUDE_HOOK_TEST=1 HOOK_PERF=1 bash "$HOOKS_DIR/session-start.sh" < /dev/null 2>&1 >/dev/null)
+    perf_output=$(HOOK_PERF=1 bash "$HOOKS_DIR/session-start.sh" < /dev/null 2>&1 >/dev/null)
     if [ -n "${EPOCHREALTIME:-}" ]; then
         local _no_dot="${EPOCHREALTIME/./}"
         wall_end="${_no_dot:0:13}"

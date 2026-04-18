@@ -2,13 +2,12 @@
 # Shared setup for hook tests.
 #
 # Sourced by tests/hooks/test-*.sh and the legacy tests/test-hooks.sh.
-# Sets HOOKS_DIR, enables CLAUDE_HOOK_TEST=1, and redirects HOOK_LOG_DB
+# Sets HOOKS_DIR and redirects HOOK_LOG_DB
 # to a per-process temp SQLite file so ~/.claude/hooks.db is never
 # touched by the suite. Each sourcing process gets its own DB, so
 # parallel runners don't contend.
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
-export CLAUDE_HOOK_TEST=1
 
 TEST_HOOKS_DB="$(mktemp -t claude-toolkit-hooks-XXXXXX.db)"
 rm -f "$TEST_HOOKS_DB"

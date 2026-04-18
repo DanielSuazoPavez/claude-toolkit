@@ -88,43 +88,10 @@ build_replay_cases() {
                length(keywords) - length(replace(keywords, ',', '')) + 1 AS keyword_count,
                match_count
         FROM surface_lessons_context
-        WHERE session_id NOT IN (
-            SELECT DISTINCT session_id FROM hook_logs WHERE is_test = 1
-        )
         GROUP BY tool_name, raw_context
         ORDER BY keyword_count DESC
         LIMIT 10;
     " 2>/dev/null)
-
-    # If no non-test data, fall back to all data
-    if [ ${#cases[@]} -eq 0 ]; then
-        while IFS=$'\t' read -r tool_name raw_context keyword_count match_count; do
-            local json_input desc escaped_context
-            desc="${raw_context:0:60}"
-            [ ${#raw_context} -gt 60 ] && desc="${desc}..."
-            desc="[replay] ${tool_name}: ${desc} (${keyword_count} kw, ${match_count} matches)"
-            escaped_context=$(printf '%s' "$raw_context" | jq -Rs '.')
-
-            case "$tool_name" in
-                Bash)
-                    json_input="{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":${escaped_context}}}"
-                    ;;
-                Read|Write|Edit)
-                    json_input="{\"tool_name\":\"${tool_name}\",\"tool_input\":{\"file_path\":${escaped_context}}}"
-                    ;;
-                *) continue ;;
-            esac
-            cases+=("${desc}|${json_input}")
-        done < <(sqlite3 -separator $'\t' "$HOOKS_DB" "
-            SELECT tool_name, raw_context,
-                   length(keywords) - length(replace(keywords, ',', '')) + 1 AS keyword_count,
-                   match_count
-            FROM surface_lessons_context
-            GROUP BY tool_name, raw_context
-            ORDER BY keyword_count DESC
-            LIMIT 10;
-        " 2>/dev/null)
-    fi
 
     printf '%s\n' "${cases[@]}"
 }
@@ -143,7 +110,7 @@ run_hook_with_perf() {
         wall_start=$(date +%s%3N)
     fi
     # Capture all output (stderr has perf lines), filter by HOOK_PERF prefix
-    perf_output=$(echo "$input" | CLAUDE_HOOK_TEST=1 HOOK_PERF=1 bash "$HOOKS_DIR/surface-lessons.sh" 2>&1 >/dev/null)
+    perf_output=$(echo "$input" | HOOK_PERF=1 bash "$HOOKS_DIR/surface-lessons.sh" 2>&1 >/dev/null)
     if [ -n "${EPOCHREALTIME:-}" ]; then
         local _no_dot="${EPOCHREALTIME/./}"
         wall_end="${_no_dot:0:13}"
