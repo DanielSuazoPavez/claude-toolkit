@@ -26,6 +26,11 @@ TEST_HOOKS_DB="$(mktemp -t claude-toolkit-hooks-XXXXXX.db)"
 rm -f "$TEST_HOOKS_DB"
 if [ -f "$HOME/.claude/hooks.db" ]; then
     sqlite3 "$HOME/.claude/hooks.db" .schema | sqlite3 "$TEST_HOOKS_DB" 2>/dev/null || true
+    # Tripwire: if the real DB exists but the clone produced no hook_logs table,
+    # DB-dependent assertions will silently skip and we lose write-contract coverage.
+    if ! sqlite3 "$TEST_HOOKS_DB" "SELECT 1 FROM hook_logs LIMIT 0" >/dev/null 2>&1; then
+        echo "warning: hooks.db schema clone failed — DB-dependent assertions will skip" >&2
+    fi
 fi
 export HOOK_LOG_DB="$TEST_HOOKS_DB"
 trap 'rm -f "$TEST_HOOKS_DB"' EXIT
