@@ -42,8 +42,8 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 
 | Score | Criteria |
 |-------|----------|
-| 22-25 | Correct event, matcher, output format; handles edge cases |
-| 17-21 | Mostly correct, minor edge case gaps |
+| 22-25 | Correct event, matcher, output format; handles edge cases; Bash PreToolUse hooks use match/check + dual-mode trigger |
+| 17-21 | Mostly correct, minor edge case gaps, or monolithic shape where match/check would apply |
 | 10-16 | Works for happy path, misses important cases |
 | 0-9 | Wrong event type, broken output format, or logic errors |
 
@@ -51,6 +51,9 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 - Right hook event? (PreToolUse for blocking, PostToolUse for reactions)
 - Output format correct? (`hook_block` for blocks, empty for allow)
 - Early exit for non-matching tools via `hook_require_tool`?
+- **Bash PreToolUse hooks**: split into `match_<name>` (cheap predicate) + `check_<name>` (guard body) + `main` (standalone entry)? Dual-mode trigger `[[ "${BASH_SOURCE[0]}" == "${0}" ]] && main "$@"` at the bottom?
+- **Match/check false-negative risk**: is `match_` broad enough that it won't skip a case `check_` should catch? False positives are fine; false negatives are safety regressions.
+- Source path uses `${BASH_SOURCE[0]}` (not `$0`), so the hook works both standalone and when sourced by the dispatcher?
 
 ### D2: Testability (20 pts)
 
@@ -95,8 +98,11 @@ Hooks must be reliable (they guard critical operations), testable (stdin/stdout)
 - Uses `$HOME` or env vars instead of hardcoded paths?
 - Logic easy to extend with new patterns?
 - Patterns in arrays/variables rather than scattered through logic?
+- **Match cheapness contract (Bash PreToolUse)**: `match_<name>` uses only bash pattern matching — no `$(...)` subshells, no `jq`, no `git`, no file I/O, no DB reads. Violating this defeats the dispatcher's work-avoidance.
+- **`_BLOCK_REASON` convention**: `check_<name>` sets `_BLOCK_REASON` before returning 1 (not a different variable name, not inline `hook_block` — the dispatcher reads `_BLOCK_REASON`).
+- **No duplicated logic**: if the hook is registered in the dispatcher, its `check_` body is the only copy of that guard — not also inlined into the dispatcher.
 
-**Performance note:** Hooks run synchronously on every matched tool call. A hook that spawns subprocesses, does network calls, or reads large files adds latency to every action. Penalize unnecessary complexity that slows the feedback loop.
+**Performance note:** Hooks run synchronously on every matched tool call. A hook that spawns subprocesses, does network calls, or reads large files adds latency to every action. Penalize unnecessary complexity that slows the feedback loop. The match/check split exists precisely so expensive work happens only when the cheap predicate says it's worth it.
 
 ### D5: Documentation (15 pts)
 
@@ -190,6 +196,13 @@ Using a separate agent ensures objective assessment without influence from prior
 | **Untestable** | Can't verify behavior | Design for stdin/stdout, document test cases | D2: -15 |
 | **Env var bypass** | Defeats the hook's purpose | Remove `ALLOW_*` overrides; user can run commands directly if needed | D3: -5 |
 | **Broad matcher** | Hooks fire on unrelated tools | Use specific matcher (`"Bash"`) not `"*"` | D1: -5, D4: -5 |
+| **Forks in `match_`** | Defeats dispatcher work-avoidance — the whole point of `match_` is to be free | Move `$(...)`/`jq`/`git` calls into `check_`; keep `match_` to bash pattern matching | D4: -8 |
+| **`match_` narrower than `check_` triggers** | False negatives — `match_` returns false, `check_` never runs, guard silently misses cases | Broaden `match_` until it's a strict superset of what `check_` catches. False positives are fine; false negatives are safety bugs | D1: -10, D3: -8 |
+| **Missing dual-mode trigger** | Sourced file runs its own `main` during dispatcher load, breaking everything | Add `if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then main "$@"; fi` at the bottom | D1: -10 |
+| **`$(dirname "$0")` for source path** | When sourced by the dispatcher, `$0` is the dispatcher — the hook sources the wrong file or fails | Use `$(dirname "${BASH_SOURCE[0]}")` instead | D1: -5 |
+| **Dual registration** | Hook in both standalone settings.json AND dispatcher's `CHECK_SPECS` — runs twice per call | Pick one: standalone or grouped. Never both | D1: -8 |
+| **Inline `hook_block` in `check_`** | `check_` exits before the dispatcher can record the substep outcome; breaks dispatcher contract | Set `_BLOCK_REASON` and `return 1`; let `main`/dispatcher call `hook_block` | D1: -8, D4: -5 |
+| **Monolithic Bash PreToolUse hook** | Works standalone but can't be folded into the dispatcher — misses amortization and drift-detection | Refactor into `match_<name>` + `check_<name>` + `main` + dual-mode trigger | D1: -5, D4: -5 |
 
 ## Edge Cases
 
@@ -199,6 +212,8 @@ Using a separate agent ensures objective assessment without influence from prior
 | **Simple passthrough** | Minimal is fine if purpose is clear |
 | **Multi-tool** | Higher D4 bar (must handle all matched tools) |
 | **Notification/SessionStart** | `hook_require_tool` not applicable — use `hook_init` only, tool matching done manually or not needed |
+| **Non-Bash PreToolUse** (Read, Grep, Write, Edit, EnterPlanMode) | Match/check + dispatcher not required — only Bash is grouped today. Don't penalize D1/D4 for a monolithic shape here. A hook with both Bash and non-Bash branches (e.g., `git-safety` on `EnterPlanMode|Bash`) should still use match/check for the Bash branch and keep the non-Bash branch in `main`. |
+| **Match/check hook** | Evaluate `match_` against the cheapness contract (bash patterns only, no forks/jq/git). Evaluate `check_` against the usual D3 guard criteria (allowlists, false-positive handling). Verify dual-mode trigger exists and source path uses `${BASH_SOURCE[0]}`. |
 
 ## See Also
 
@@ -207,6 +222,7 @@ Using a separate agent ensures objective assessment without influence from prior
 - `/evaluate-docs` — Sibling evaluator for doc files (convention compliance).
 - `/evaluate-batch` — Run evaluations across multiple resources of one type.
 - `/create-hook` — Hook creation workflow that feeds into this evaluator.
+- `.claude/docs/relevant-toolkit-hooks.md` — Match/check pattern + dispatcher contract. Read before scoring any Bash PreToolUse hook.
 
 ## Example Evaluations
 
