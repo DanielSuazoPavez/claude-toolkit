@@ -27,45 +27,69 @@
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' | bash suggest-read-json.sh
 #   # Expected: (empty - not json)
 
-source "$(dirname "$0")/lib/hook-utils.sh"
-hook_init "suggest-read-json" "PreToolUse"
-hook_require_tool "Read"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 
-FILE_PATH=$(hook_get_input '.tool_input.file_path')
-[ -z "$FILE_PATH" ] && exit 0
+# ============================================================
+# match_/check_ pair for the grouped-read-guard dispatcher
+# ============================================================
+# Contract: dispatcher sets FILE_PATH before calling match_.
+# check_ returns 0=pass, 1=block (sets _BLOCK_REASON).
 
-# Check if file ends with .json
-if [[ ! "$FILE_PATH" =~ \.json$ ]]; then
-    exit 0
-fi
+match_suggest_read_json() {
+    [ -n "$FILE_PATH" ] || return 1
+    [[ "$FILE_PATH" =~ \.json$ ]]
+}
 
-# Get filename for pattern matching
-FILENAME=$(basename "$FILE_PATH")
+check_suggest_read_json() {
+    local filename
+    filename=$(basename "$FILE_PATH")
 
-# Allowed config files (common small files that don't need jq)
-ALLOWED_FILES="package.json,package-lock.json,tsconfig.json,jsconfig.json,composer.json,manifest.json,.prettierrc.json,.eslintrc.json,turbo.json,vercel.json,nest-cli.json,angular.json,nx.json"
+    # Allowed config files (common small files that don't need jq)
+    local ALLOWED_FILES="package.json,package-lock.json,tsconfig.json,jsconfig.json,composer.json,manifest.json,.prettierrc.json,.eslintrc.json,turbo.json,vercel.json,nest-cli.json,angular.json,nx.json"
+    local IFS=','
+    local -a patterns
+    read -ra patterns <<< "$ALLOWED_FILES"
+    for pattern in "${patterns[@]}"; do
+        if [[ "$filename" == "$pattern" ]]; then
+            return 0
+        fi
+    done
 
-# Check if filename matches an allowed file
-IFS=',' read -ra PATTERNS <<< "$ALLOWED_FILES"
-for pattern in "${PATTERNS[@]}"; do
-    if [[ "$FILENAME" == "$pattern" ]]; then
-        exit 0
+    # Also allow *.config.json pattern
+    if [[ "$filename" =~ \.config\.json$ ]]; then
+        return 0
     fi
-done
 
-# Also allow *.config.json pattern
-if [[ "$FILENAME" =~ \.config\.json$ ]]; then
-    exit 0
-fi
-
-# Check file size if file exists
-SIZE_THRESHOLD_KB="${JSON_SIZE_THRESHOLD_KB:-50}"
-if [ -f "$FILE_PATH" ]; then
-    FILE_SIZE_KB=$(( $(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
-    if [ "$FILE_SIZE_KB" -lt "$SIZE_THRESHOLD_KB" ]; then
-        exit 0
+    # Check file size if file exists
+    local size_threshold_kb="${JSON_SIZE_THRESHOLD_KB:-50}"
+    if [ -f "$FILE_PATH" ]; then
+        local file_size_kb
+        file_size_kb=$(( $(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
+        if [ "$file_size_kb" -lt "$size_threshold_kb" ]; then
+            return 0
+        fi
     fi
-fi
 
-# Block — suggest /read-json
-hook_block "Use \`/read-json\` skill for JSON files — it uses jq for efficient querying instead of loading entire files."
+    _BLOCK_REASON="Use \`/read-json\` skill for JSON files — it uses jq for efficient querying instead of loading entire files."
+    return 1
+}
+
+main() {
+    hook_init "suggest-read-json" "PreToolUse"
+    hook_require_tool "Read"
+
+    FILE_PATH=$(hook_get_input '.tool_input.file_path')
+    [ -z "$FILE_PATH" ] && exit 0
+
+    _BLOCK_REASON=""
+    if match_suggest_read_json; then
+        if ! check_suggest_read_json; then
+            hook_block "$_BLOCK_REASON"
+        fi
+    fi
+    exit 0
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

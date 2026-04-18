@@ -66,41 +66,124 @@ normalize_path() {
     echo "$p"
 }
 
-# Check if filename is a sensitive .env file. Exits/blocks if so.
-# WARNING: May call exit 0 or hook_block() — must run in main shell, not a subshell.
-# Usage: check_env_file <filename> <verb>
+# Return block reason (stdout) for a sensitive .env filename, or empty to pass.
+# Usage: reason=$(_env_file_block_reason <filename> <verb>)
 #   verb: "Reading" or "Searching"
-check_env_file() {
+_env_file_block_reason() {
     local filename="$1" verb="$2"
     # Allow .example and .template files
     if [[ "$filename" =~ \.(example|template)$ ]]; then
-        exit 0
+        return 0
     fi
     # Block .env, .env.*, or *.env files
     if [[ "$filename" = ".env" ]] || [[ "$filename" =~ ^\.env\. ]] || [[ "$filename" =~ \.env$ ]]; then
-        hook_block "BLOCKED: $verb .env file may expose secrets. Use the .example version as a reference instead."
+        echo "BLOCKED: $verb .env file may expose secrets. Use the .example version as a reference instead."
     fi
 }
 
-# Check normalized path against BLOCKED_PATHS and SSH keys. Blocks if matched.
-# WARNING: May call hook_block() which exits the process — must run in main shell, not a subshell.
-# Usage: check_credential_path <normalized_path> <verb>
+# Return block reason (stdout) for a credential-path match, or empty to pass.
+# Usage: reason=$(_credential_path_block_reason <normalized_path> <verb>)
 #   verb: "Reading" or "Searching"
-check_credential_path() {
+_credential_path_block_reason() {
     local norm_path="$1" verb="$2"
 
     for entry in "${BLOCKED_PATHS[@]}"; do
         local pattern="${entry%%:::*}"
         local message="${entry##*:::}"
         if [[ "$norm_path" == "$pattern" ]] || [[ "$pattern" == */ && ( "$norm_path" == "$pattern"* || "$norm_path/" == "$pattern" ) ]]; then
-            hook_block "BLOCKED: $verb $message."
+            echo "BLOCKED: $verb $message."
+            return 0
         fi
     done
 
     # SSH private keys (allow .pub files)
     if [[ "$norm_path" == "$HOME/.ssh/id_"* ]] && [[ "$norm_path" != *".pub" ]]; then
-        hook_block "BLOCKED: $verb SSH private key. Private keys should never be exposed to AI tools."
+        echo "BLOCKED: $verb SSH private key. Private keys should never be exposed to AI tools."
     fi
+}
+
+# Thin wrappers preserving the pre-existing exit-on-block contract used by main().
+# WARNING: May call exit 0 or hook_block() — must run in main shell, not a subshell.
+check_env_file() {
+    local reason
+    reason=$(_env_file_block_reason "$1" "$2")
+    [ -n "$reason" ] && hook_block "$reason"
+}
+
+check_credential_path() {
+    local reason
+    reason=$(_credential_path_block_reason "$1" "$2")
+    [ -n "$reason" ] && hook_block "$reason"
+}
+
+# ============================================================
+# match_/check_ pairs for the grouped-read-guard dispatcher
+# ============================================================
+# Contract: dispatcher sets FILE_PATH (Read) or GREP_PATH/GREP_GLOB (Grep)
+# before calling match_; check_ returns 0=pass, 1=block (sets _BLOCK_REASON).
+#
+# Broad regex shared between match_*_read and match_*_grep — cheap predicate
+# covering every credential-path hint we block. Actual decision lives in check_.
+_SECRETS_MATCH_RE='\.env($|\.|/)|\.ssh/id_|\.gnupg|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/'
+
+match_secrets_guard_read() {
+    [ -n "$FILE_PATH" ] || return 1
+    local base norm
+    base=$(basename "$FILE_PATH")
+    norm=$(normalize_path "$FILE_PATH")
+    [[ "$base" =~ $_SECRETS_MATCH_RE ]] || [[ "$norm" =~ $_SECRETS_MATCH_RE ]]
+}
+
+check_secrets_guard_read() {
+    local reason
+    reason=$(_env_file_block_reason "$(basename "$FILE_PATH")" "Reading")
+    if [ -n "$reason" ]; then
+        _BLOCK_REASON="$reason"
+        return 1
+    fi
+    reason=$(_credential_path_block_reason "$(normalize_path "$FILE_PATH")" "Reading")
+    if [ -n "$reason" ]; then
+        _BLOCK_REASON="$reason"
+        return 1
+    fi
+    return 0
+}
+
+match_secrets_guard_grep() {
+    [ -n "$GREP_PATH" ] || [ -n "$GREP_GLOB" ] || return 1
+    [ -n "$GREP_PATH" ] && [[ "$GREP_PATH" =~ $_SECRETS_MATCH_RE ]] && return 0
+    [ -n "$GREP_GLOB" ] && [[ "$GREP_GLOB" =~ \.env ]] && return 0
+    return 1
+}
+
+check_secrets_guard_grep() {
+    local reason
+    if [ -n "$GREP_PATH" ]; then
+        reason=$(_env_file_block_reason "$(basename "$GREP_PATH")" "Searching")
+        if [ -n "$reason" ]; then
+            _BLOCK_REASON="$reason"
+            return 1
+        fi
+        reason=$(_credential_path_block_reason "$(normalize_path "$GREP_PATH")" "Searching")
+        if [ -n "$reason" ]; then
+            _BLOCK_REASON="$reason"
+            return 1
+        fi
+    fi
+    if [ -n "$GREP_GLOB" ]; then
+        # Allow .example/.template globs first
+        if [[ "$GREP_GLOB" =~ \.(example|template)$ ]]; then
+            return 0
+        fi
+        if [[ "$GREP_GLOB" == ".env" ]] || \
+           [[ "$GREP_GLOB" == ".env*" ]] || \
+           [[ "$GREP_GLOB" == ".env.*" ]] || \
+           [[ "$GREP_GLOB" == "*.env" ]]; then
+            _BLOCK_REASON="BLOCKED: Grep glob pattern targets .env files which may expose secrets."
+            return 1
+        fi
+    fi
+    return 0
 }
 
 # ============================================================

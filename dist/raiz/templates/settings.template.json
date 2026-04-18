@@ -87,16 +87,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/secrets-guard.sh"
+            "command": "bash .claude/hooks/grouped-read-guard.sh"
           }
         ]
       },
       {
-        "matcher": "Read",
+        "matcher": "Grep",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/suggest-read-json.sh"
+            "command": "bash .claude/hooks/secrets-guard.sh"
           }
         ]
       }
