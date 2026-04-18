@@ -23,17 +23,17 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-## P2 - Medium
-
-- **[TESTS]** Group runners into subdirs once they warrant splitting (`tests-rethink-suite-phase3`)
-    - **scope**: `tests`
-    - **notes**: v2.57.1 gave hooks the per-file + parallel pattern; v2.58.0 added the unified top-level `tests/run-all.sh` (all bash suites + pytest, parallel, single summary). Remaining residual: if any top-level suite grows large enough to warrant subdir grouping (`tests/cli/`, `tests/raiz/`, `tests/validate/`, `tests/lessons/`), apply the hook pattern — shared setup in a `lib/*-test-setup.sh`, per-file test-*.sh, dispatched by the existing `run-all.sh` (which already discovers top-level `test-*.sh`; grouped subdirs would need a dedicated runner like `run-hook-tests.sh`). Not urgent — current single-file suites are fine. Separate residual: align `-q`/`-v` semantics inside `lib/test-helpers.sh` assertion helpers (runner already captures child stdout regardless, so low-value).
-
-## P3 - Low
-
 - **[TESTS]** Remove TSV `hook-timing.log` writes from `hook-utils.sh` (`drop-hook-timing-tsv`)
     - **scope**: `tests, hooks`
     - **notes**: Follow-up from the test-hooks split. The TSV log has zero programmatic consumers — `hooks.db` is the only consumer used by tooling, and the test suite no longer reads the TSV at all (assertions removed in the split). To close the loop: drop the append-only TSV writes from `.claude/hooks/lib/hook-utils.sh` (lines 18, 180, 335), remove the `HOOK_LOG_FILE` default, update `docs/indexes/HOOKS.md` line 30 and `.claude/docs/relevant-toolkit-lessons.md` line 168. Human-debugging fallback: tail `hooks.db` via `sqlite3`. Kept out of the restructure PR to limit scope.
+
+## P2 - Medium
+
+## P3 - Low
+
+- **[TESTS]** Re-evaluate grouping runners into subdirs at some point (`tests-rethink-suite-phase3`)
+    - **scope**: `tests`
+    - **notes**: v2.57.1 gave hooks the per-file + parallel pattern; v2.58.0 added the unified top-level `tests/run-all.sh` (all bash suites + pytest, parallel, single summary). Residual: if any top-level suite grows large enough to warrant subdir grouping (`tests/cli/`, `tests/raiz/`, `tests/validate/`, `tests/lessons/`), apply the hook pattern — shared setup in a `lib/*-test-setup.sh`, per-file test-*.sh, dispatched by a dedicated runner like `run-hook-tests.sh`. Reviewed 2026-04-18: largest suite is `test-setup-toolkit-diagnose.sh` at 887 lines, `test-cli.sh` at 701; both cohesive single-concern files, no split warranted yet. Revisit if a suite passes ~1200 lines or gains a second distinct concern. Separate residual: align `-q`/`-v` semantics inside `lib/test-helpers.sh` assertion helpers (runner already captures child stdout regardless, so low-value).
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`

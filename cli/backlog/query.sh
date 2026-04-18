@@ -290,7 +290,7 @@ main() {
         validate)
             local script_dir
             script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-            exec "$script_dir/backlog-validate.sh" "$backlog"
+            exec "$script_dir/validate.sh" "$backlog"
             ;;
         *)
             echo "Unknown command: ${args[0]}" >&2
