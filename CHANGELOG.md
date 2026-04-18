@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.59.1] - 2026-04-18 - Fix backlog validate script path
+
+### Fixed
+- **cli**: `claude-toolkit backlog validate` exited 127 — `cli/backlog/query.sh` dispatched to `backlog-validate.sh` but the script is named `validate.sh` (per `cli/CLAUDE.md`).
+
+### Notes
+- Docs: `BACKLOG.md` reorganized — `drop-hook-timing-tsv` promoted to P1, `tests-rethink-suite-phase3` moved from P2 to P3 (retitled "Re-evaluate grouping runners into subdirs at some point") with a 2026-04-18 review note recording current suite sizes.
+
 ## [2.59.0] - 2026-04-18 - Normalize writer timestamps to UTC Z
 
 ### Changed
