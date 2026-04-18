@@ -23,7 +23,7 @@ help:
 test: test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-setup-diag
 
 test-hooks:
-	@bash tests/test-hooks.sh -q
+	@bash tests/run-hook-tests.sh -q
 
 test-cli:
 	@bash tests/test-cli.sh -q
