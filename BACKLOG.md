@@ -31,6 +31,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[TESTS]** Remove TSV `hook-timing.log` writes from `hook-utils.sh` (`drop-hook-timing-tsv`)
+    - **scope**: `tests, hooks`
+    - **notes**: Follow-up from the test-hooks split. The TSV log has zero programmatic consumers — `hooks.db` is the only consumer used by tooling, and the test suite no longer reads the TSV at all (assertions removed in the split). To close the loop: drop the append-only TSV writes from `.claude/hooks/lib/hook-utils.sh` (lines 18, 180, 335), remove the `HOOK_LOG_FILE` default, update `docs/indexes/HOOKS.md` line 30 and `.claude/docs/relevant-toolkit-lessons.md` line 168. Human-debugging fallback: tail `hooks.db` via `sqlite3`. Kept out of the restructure PR to limit scope.
+
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
     - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion. Waiting on usage data from claude-sessions to prioritize which skills to prune first.
