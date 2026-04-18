@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Bash(chmod:*), Glob
 
 Use when adding a new hook to `.claude/hooks/`.
 
-**See also:** `/evaluate-hook` (quality gate), `/create-skill` (when a skill fits better), `/create-agent` (when an agent fits better)
+**See also:** `.claude/docs/relevant-toolkit-hooks.md` (match/check pattern + dispatcher contract), `/evaluate-hook` (quality gate), `/create-skill` (when a skill fits better), `/create-agent` (when an agent fits better)
 
 Use `verb-noun.sh` format for hook names. See `relevant-conventions-naming`.
 
@@ -33,14 +33,27 @@ See `resources/HOOKS_API.md` for all events.
 
 All hooks source the shared library `.claude/hooks/lib/hook-utils.sh` for standardized initialization, outcome helpers, and execution timing.
 
-Use the script below as the LITERAL STARTING POINT. Copy it, then modify the tool name check, pattern matching, and block reason for your use case.
+**PreToolUse hooks use the match/check pattern.** The hook body defines three functions:
+
+- `match_<name>` — cheap predicate (bash pattern match only — no forks, no `jq`, no `git`, no I/O). Returns 0 if the hook applies.
+- `check_<name>` — the guard itself. Runs only when `match_` returned 0. Sets `_BLOCK_REASON` and returns 1 to block; returns 0 to pass.
+- `main` — standalone entry point. Parses stdin, calls `match_` + `check_`, emits the decision.
+
+A dual-mode trigger at the bottom runs `main` only when the script is executed directly, not when sourced. That lets the same file work as a standalone hook and as a library sourced by `grouped-bash-guard.sh`. See `.claude/docs/relevant-toolkit-hooks.md` for the full contract (cheapness rules, dispatcher internals, anti-patterns).
+
+Use the script below as the LITERAL STARTING POINT for a Bash PreToolUse hook. Copy it, then modify the match predicate, check body, and block reason for your use case.
 
 ```bash
 #!/bin/bash
-# PreToolUse hook: <description>
+# Hook: <name>
+# Event: PreToolUse (Bash)
+# Purpose: <one line>
 #
-# Settings.json:
-#   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "bash .claude/hooks/<name>.sh"}]}]
+# Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).
+# See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern.
+#
+# Settings.json (standalone):
+#   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": ".claude/hooks/<name>.sh"}]}]
 #
 # Test cases:
 #   echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ~/"}}' | bash .claude/hooks/<name>.sh
@@ -49,21 +62,49 @@ Use the script below as the LITERAL STARTING POINT. Copy it, then modify the too
 #   echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash .claude/hooks/<name>.sh
 #   # Expected: (empty - allowed)
 
-source "$(dirname "$0")/lib/hook-utils.sh"
-hook_init "<name>" "PreToolUse"
-hook_require_tool "Bash"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 
-COMMAND=$(hook_get_input '.tool_input.command')
-[ -z "$COMMAND" ] && exit 0
+# Cheap predicate — bash pattern match only. No forks, no jq, no git, no I/O.
+# False positives are fine (check_ will no-op); false negatives are safety bugs.
+match_<name>() {
+    [[ "$COMMAND" =~ rm[[:space:]]+-rf[[:space:]]+~/ ]]
+}
 
-# Check patterns and block if needed
-if [[ "$COMMAND" =~ rm\ -rf\ ~/ ]]; then
-    hook_block "Blocks rm -rf ~/"
+# Guard body — runs only when match_ returned 0. Expensive work is fine here.
+# Return 0 = pass, 1 = block (and set _BLOCK_REASON).
+check_<name>() {
+    if [[ "$COMMAND" =~ rm[[:space:]]+-rf[[:space:]]+~/ ]]; then
+        _BLOCK_REASON="Blocks rm -rf ~/ — use a specific path instead."
+        return 1
+    fi
+    return 0
+}
+
+main() {
+    hook_init "<name>" "PreToolUse"
+    hook_require_tool "Bash"
+
+    COMMAND=$(hook_get_input '.tool_input.command')
+    [ -z "$COMMAND" ] && exit 0
+
+    _BLOCK_REASON=""
+    if match_<name>; then
+        if ! check_<name>; then
+            hook_block "$_BLOCK_REASON"
+        fi
+    fi
+    exit 0
+}
+
+# Dual-mode trigger — main runs only when executed directly, not when sourced.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
 fi
-
-# Allow by default (empty output)
-exit 0
 ```
+
+**Why `${BASH_SOURCE[0]}` instead of `$0` for the source path:** when the grouped dispatcher sources this file, `$0` points to the dispatcher, not your hook. `${BASH_SOURCE[0]}` always points to the current file.
+
+**Other event types** (PostToolUse, Notification, PermissionRequest) don't currently participate in the dispatcher — use the simpler single-function shape shown in the examples below. Match/check is specifically for Bash PreToolUse hooks that could be grouped.
 
 **Shared library functions:**
 - `hook_init "name" "Event"` — reads stdin, sets up timing, registers EXIT trap for logging
@@ -85,20 +126,35 @@ echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash .claude/hoo
 # Expected: (empty)
 ```
 
-### 4. Configure in settings.json
+### 4. Register the Hook
 
-Use this configuration as the LITERAL STARTING POINT. Modify the event, matcher, and command path.
+A Bash PreToolUse hook is registered in **one** of two modes — never both. Dual registration would run the hook twice.
+
+**Standalone** — the harness runs the script directly. Use this for non-Bash branches, or if the hook is the only Bash hook in the project:
 
 ```json
 {
   "hooks": {
     "PreToolUse": [{
       "matcher": "Bash",
-      "hooks": [{"type": "command", "command": "bash .claude/hooks/<name>.sh"}]
+      "hooks": [{"type": "command", "command": ".claude/hooks/<name>.sh"}]
     }]
   }
 }
 ```
+
+**Grouped** — register the hook inside `grouped-bash-guard.sh`'s `CHECK_SPECS` array (toolkit default for Bash). The dispatcher sources your file and calls `match_<name>` / `check_<name>`. This amortizes bash startup + `jq` parsing across all Bash PreToolUse hooks:
+
+```bash
+# In .claude/hooks/grouped-bash-guard.sh
+CHECK_SPECS=(
+    "dangerous:block-dangerous-commands.sh"
+    ...
+    "<name>:<name>.sh"   # ← add your hook here
+)
+```
+
+Order matters — earlier checks run first. Put cheap-to-gate hooks before expensive ones. If your hook has a non-Bash branch (e.g., matches `EnterPlanMode` too), keep a standalone registration for the non-Bash matcher; the Bash branch still goes through the dispatcher only.
 
 ### 5. Quality Gate
 
@@ -112,7 +168,7 @@ PostToolUse hooks use the same `hook_init` + `hook_require_tool` pattern. Since 
 
 ```bash
 #!/bin/bash
-source "$(dirname "$0")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 hook_init "log-writes" "PostToolUse"
 hook_require_tool "Write"
 
@@ -139,7 +195,7 @@ Notification hooks don't have tool_name — simpler pattern using `hook_init` on
 
 ```bash
 #!/bin/bash
-source "$(dirname "$0")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 hook_init "desktop-alert" "Notification"
 
 MESSAGE=$(hook_get_input '.message')
@@ -165,7 +221,7 @@ A hook that auto-approves specific Bash commands from the permission prompt:
 
 ```bash
 #!/bin/bash
-source "$(dirname "$0")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 hook_init "auto-approve-safe" "PermissionRequest"
 hook_require_tool "Bash"
 

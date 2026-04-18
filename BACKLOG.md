@@ -25,9 +25,12 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[SKILLS]** Update `create-hook` and `evaluate-hook` for match/check pattern (`hook-skills-match-check-update`)
-    - **scope**: `skills`
-    - **notes**: `create-hook` should scaffold the `match_<name>` / `check_<name>` / `main` shape with the dual-mode trigger by default, and `evaluate-hook` should score against the match cheapness contract, dual-mode capability, and `_BLOCK_REASON` convention. Reference: `.claude/docs/relevant-toolkit-hooks.md`.
+- **[TESTS]** DB-related tests should point to a test DB, not `~/.claude/hooks.db` (`tests-isolate-db`)
+    - **scope**: `tests`
+    - **notes**: `test_session_id_from_stdin` and `test_session_start_source_capture` in `tests/test-hooks.sh` write rows into the user's real `~/.claude/hooks.db`. Rows are marked `is_test=1` but never cleaned up, polluting analytics and causing flakiness in DB-interacting tests. Proper fix: make `HOOK_LOG_DB` overridable via env var so tests can point at a temp DB (schema materialization decision pending — copy from real DB, replay migration, or maintain a test fixture).
+    - **decision pending**: how to materialize the test DB schema
+
+## P3 - Low
 
 - **[HOOKS]** Grouped Read dispatcher — extend match/check architecture to Read-tool hooks (`grouped-read-guard`)
     - **scope**: `hooks`
@@ -35,15 +38,8 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
-    - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion.
+    - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion. Waiting on usage data from claude-sessions to prioritize which skills to prune first.
     - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
-
-## P3 - Low
-
-- **[TESTS]** DB-related tests should point to a test DB, not `~/.claude/hooks.db` (`tests-isolate-db`)
-    - **scope**: `tests`
-    - **notes**: `test_session_id_from_stdin` and `test_session_start_source_capture` in `tests/test-hooks.sh` write rows into the user's real `~/.claude/hooks.db`. Rows are marked `is_test=1` but never cleaned up, polluting analytics. Proper fix: make `HOOK_LOG_DB` overridable via env var so tests can point at a temp DB (schema materialization decision pending — copy from real DB, replay migration, or maintain a test fixture).
-    - **decision pending**: how to materialize the test DB schema
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`

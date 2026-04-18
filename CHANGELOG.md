@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.55.1] - 2026-04-17 - Hook authoring skills teach match/check
+
+### Changed
+- **skills**: `create-hook` and `evaluate-hook` now teach and score the match/check pattern shipped in 2.54.0–2.55.0. `create-hook`'s Bash PreToolUse skeleton is the `match_<name>` + `check_<name>` + `main` + dual-mode-trigger shape, uses `${BASH_SOURCE[0]}` for the source path, and documents standalone-vs-grouped registration (including adding to `grouped-bash-guard.sh`'s `CHECK_SPECS`). `evaluate-hook`'s D1/D4 checks and anti-patterns table now cover the cheapness contract for `match_`, the `_BLOCK_REASON` convention, dual-mode trigger presence, `$0` vs `${BASH_SOURCE[0]}`, and dual registration. Edge-case table notes match/check is Bash-PreToolUse-only today.
+
 ### Added
 - **tests**: `tests/test-hooks.sh` — direct smoke tests for `grouped-bash-guard.sh` dispatcher. Covers base (all 6 guards present) and a raiz simulation (copies hooks to a `mktemp -d`, deletes `enforce-make-commands.sh` + `enforce-uv-run.sh`). Four cases: benign `ls` passes, `pytest` blocks via make guard, raiz-sim `pytest` passes, raiz-sim force-push still blocks via `git_safety`.
 - **hooks**: `grouped-bash-guard.sh` — emits `hook_log_substep` with section `check_<name>_missing_match_check` and outcome `skipped` when a guard's source file is present but its `match_/check_` pair is missing. Rename/drift signal; distribution-absent files short-circuit before the event so raiz's normal missing guards stay silent.
