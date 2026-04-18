@@ -27,10 +27,10 @@ Automation hooks configured in `settings.json`.
 All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 - Standardized initialization and stdin parsing
 - Outcome helpers (block, approve, inject)
-- Execution timing and logging to `.claude/logs/hook-timing.log`
+- Execution timing and logging to `~/.claude/hooks.db` (SQLite `hook_logs` table)
 - Section-level tracking for session-start
 
-Log format (TSV, 11 columns): session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected
+Columns: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. For human debugging, tail rows via `sqlite3 ~/.claude/hooks.db`.
 
 ---
 
