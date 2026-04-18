@@ -877,90 +877,25 @@ test_approve_safe_commands() {
 test_session_id_from_stdin() {
     report_section "=== session_id from stdin JSON ==="
     local hook="block-dangerous-commands.sh"
-    local test_log
-    test_log=$(mktemp)
 
-    # Override log file so we don't pollute real logs
-    # hook-utils.sh writes to .claude/logs/hook-timing.log — we check
-    # the session_id column (first field) in the log output.
-
-    # --- session_id present in JSON → appears in log ---
+    # --- session_id present in JSON: drive a hook call so DB assertions
+    # below can verify propagation. ---
     local test_session="test-session-$(date +%s)"
     echo "{\"session_id\":\"$test_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
         | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
-    TESTS_RUN=$((TESTS_RUN + 1))
-    if grep -q "$test_session" .claude/logs/hook-timing.log 2>/dev/null; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "session_id from stdin JSON propagates to hook log"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "session_id from stdin JSON not found in hook log"
-        report_detail "Expected session_id: $test_session"
-        report_detail "Last log line: $(tail -1 .claude/logs/hook-timing.log 2>/dev/null)"
-    fi
-
-    # Verify session_id is in the first column
-    TESTS_RUN=$((TESTS_RUN + 1))
-    local logged_sid
-    logged_sid=$(grep "$test_session" .claude/logs/hook-timing.log 2>/dev/null | tail -1 | cut -f1)
-    if [ "$logged_sid" = "$test_session" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "session_id is in column 1 of log entry"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "session_id not in column 1"
-        report_detail "Expected: $test_session"
-        report_detail "Got column 1: ${logged_sid:-<empty>}"
-    fi
-
-    # --- session_id missing from JSON → falls back to "unknown" ---
+    # --- session_id missing from JSON → falls back to "unknown" (verified via DB below) ---
     echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
         | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
-    TESTS_RUN=$((TESTS_RUN + 1))
-    local last_sid
-    last_sid=$(tail -1 .claude/logs/hook-timing.log 2>/dev/null | cut -f1)
-    if [ "$last_sid" = "unknown" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "missing session_id falls back to 'unknown'"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "missing session_id should fall back to 'unknown'"
-        report_detail "Got: ${last_sid:-<empty>}"
-    fi
-
-    # --- session_id=null in JSON → falls back to "unknown" ---
+    # --- session_id=null in JSON → falls back to "unknown" (verified via DB below) ---
     echo '{"session_id":null,"tool_name":"Bash","tool_input":{"command":"ls"}}' \
         | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
-
-    TESTS_RUN=$((TESTS_RUN + 1))
-    last_sid=$(tail -1 .claude/logs/hook-timing.log 2>/dev/null | cut -f1)
-    if [ "$last_sid" = "unknown" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "null session_id falls back to 'unknown'"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "null session_id should fall back to 'unknown'"
-        report_detail "Got: ${last_sid:-<empty>}"
-    fi
 
     # --- session_id with UUID format (realistic) ---
     local uuid_session="a1b2c3d4-e5f6-7890-abcd-ef1234567890"
     echo "{\"session_id\":\"$uuid_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
         | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
-
-    TESTS_RUN=$((TESTS_RUN + 1))
-    logged_sid=$(grep "$uuid_session" .claude/logs/hook-timing.log 2>/dev/null | tail -1 | cut -f1)
-    if [ "$logged_sid" = "$uuid_session" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "UUID-format session_id propagates correctly"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "UUID session_id not logged correctly"
-        report_detail "Expected: $uuid_session"
-        report_detail "Got: ${logged_sid:-<empty>}"
-    fi
 
     # --- malformed stdin → PreToolUse hooks block (fail-closed) ---
     TESTS_RUN=$((TESTS_RUN + 1))
@@ -1020,8 +955,6 @@ test_session_id_from_stdin() {
     else
         log_verbose "hooks.db not found — skipping DB tests"
     fi
-
-    rm -f "$test_log"
 }
 
 # === SessionStart source capture ===
