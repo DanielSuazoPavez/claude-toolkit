@@ -37,6 +37,7 @@ TOOL_NAME=""
 INVOCATION_ID=""
 SESSION_ID=""
 HOOK_SOURCE=""   # SessionStart source: startup|resume|clear|compact, empty for other events
+CALL_ID=""       # Per-call id: tool:<tool_use_id> (Pre/PostToolUse), agent:<agent_id> (SubagentStop), empty otherwise
 PROJECT=""
 HOOK_START_MS=0
 OUTCOME="pass"
@@ -201,6 +202,18 @@ hook_init() {
     fi
 
     SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
+
+    local _tid _aid
+    _tid=$(echo "$HOOK_INPUT" | jq -r '.tool_use_id // ""' 2>/dev/null)
+    _aid=$(echo "$HOOK_INPUT" | jq -r '.agent_id // ""' 2>/dev/null)
+    if [ -n "$_tid" ]; then
+        CALL_ID="tool:$_tid"
+    elif [ -n "$_aid" ]; then
+        CALL_ID="agent:$_aid"
+    else
+        CALL_ID=""
+    fi
+
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
         _HOOK_ACTIVE=true
@@ -306,8 +319,8 @@ hook_log_section() {
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$section" \
         "0" "pass" "$bytes" "$IS_TEST" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test, source)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, $IS_TEST, '$(_sql_escape "$HOOK_SOURCE")');"
+    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test, source, call_id)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, $IS_TEST, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
 }
 
 # ============================================================
@@ -333,8 +346,8 @@ hook_log_substep() {
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "$name" \
         "$duration_ms" "$outcome" "$bytes" "$IS_TEST" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test, source)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$name")', $duration_ms, '$(_sql_escape "$outcome")', $bytes, $IS_TEST, '$(_sql_escape "$HOOK_SOURCE")');"
+    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test, source, call_id)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$name")', $duration_ms, '$(_sql_escape "$outcome")', $bytes, $IS_TEST, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
 }
 
 # ============================================================
@@ -399,7 +412,7 @@ _hook_log_timing() {
         "$HOOK_EVENT" "$HOOK_NAME" "$TOOL_NAME" "" \
         "$duration_ms" "$OUTCOME" "$bytes" "$IS_TEST" \
         >> "$HOOK_LOG_FILE" 2>/dev/null || true
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test, source)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, $IS_TEST, '$(_sql_escape "$HOOK_SOURCE")');"
+    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, is_test, source, call_id)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, $IS_TEST, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
     _hook_flush_db
 }
