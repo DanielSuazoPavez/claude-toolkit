@@ -5,6 +5,16 @@
 ### Notes
 - Phase 2 `turn_id` population (referenced in v2.57.0) has been cancelled. Turn analytics (idle-vs-active detection, user→stop cycle grouping) will be derived from transcript data inside `claude-sessions` — which already indexes transcripts — rather than from hook-side state. The `turn_id` column in `hook_logs` stays empty by design.
 
+## [2.57.1] - 2026-04-18 - Hook test suite split + parallel runner
+
+### Changed
+- **tests**: `tests/test-hooks.sh` (monolithic, 1270 lines, ~36.5s sequential) split into 13 per-hook files under `tests/hooks/test-*.sh`. Shared setup extracted to `tests/lib/hook-test-setup.sh` (each file gets its own temp `hooks.db` clone via `HOOK_LOG_DB`, so parallel runs don't contend). Hook `expect_*` helpers moved into `tests/lib/test-helpers.sh`.
+- **tests**: new `tests/run-hook-tests.sh` dispatches the per-hook files in parallel via `xargs -P` (default `nproc`, override via `HOOK_TEST_JOBS`). Per-file stdout/stderr go to `tests/.logs/<name>.log` (gitignored); summary shows `✓/✗ test-<name>.sh (Xs)` per file and dumps failing files' full logs after the summary. `make test-hooks` now calls this runner with `-q`.
+- **tests**: `make check` drops from ~66s to ~36s on an 8-core dev box.
+
+### Removed
+- **tests**: 4 fragile `tail -1 | cut -f1` assertions against `.claude/logs/hook-timing.log` in `test_session_id_from_stdin`. Those patterns were only safe under sequential execution; DB-scoped assertions below already cover the same write contract via id-scoped queries. TSV writer in `hook-utils.sh` untouched (tracked as follow-up backlog `drop-hook-timing-tsv`).
+
 ## [2.57.0] - 2026-04-18 - hook_logs.call_id
 
 ### Added

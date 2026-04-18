@@ -25,11 +25,15 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P2 - Medium
 
-- **[TESTS]** Rethink the testing suite — folder structure and output mode (`tests-rethink-suite`)
+- **[TESTS]** Apply hook-test pattern to the remaining runners (`tests-rethink-suite`)
     - **scope**: `tests`
-    - **notes**: Current state: bash test runners (`test-*.sh`) and pytest files (`test_*.py`) live flat under `tests/`, each with its own ad-hoc helpers and section-header conventions; quiet/verbose modes vary per runner and `make check` output is noisy (many "=== Summary ===" blocks, hard to spot the one failing validation among passing ones). Explore: (1) **folder structure** — group by concern (hooks/, cli/, raiz/, lessons/) instead of flat; separate unit/smoke/integration; make `tests/lib/` conventions uniform across bash and pytest; (2) **output mode** — unified default output that hides passing suites and surfaces failing ones with context; an overall pass/fail summary at the end; consistent `-q`/`-v` semantics across runners; failing validations should print the diagnostic block inline instead of just a counter. Trigger: during the grouped-read-guard implementation, isolating the one failing validation inside `make check` required multiple re-runs because output was flat and section boundaries weren't preserved.
+    - **notes**: v2.57.1 solved this for hooks: per-hook files under `tests/hooks/`, shared setup in `tests/lib/hook-test-setup.sh`, parallel runner `tests/run-hook-tests.sh` with per-file ✓/✗ summary and failing-file log dump. Remaining suites are still flat and each prints its own `=== Summary ===` block inside `make check`: `test-cli.sh`, `test-backlog-query.sh`, `test-evaluation-query.sh`, `test-raiz-changelog.sh`, `test-raiz-publish.sh`, `test-setup-toolkit-diagnose.sh`, `test-validate-hook-utils.sh`, `test-verify-external-deps.sh`, `test-validate-resources-indexed.sh`, plus pytest (`test_lesson_db.py`). Next: (1) group by concern (`tests/cli/`, `tests/raiz/`, `tests/validate/`, `tests/lessons/`) where a runner is large enough to split; (2) a top-level `tests/run-all.sh` that dispatches bash suites in parallel + invokes pytest, with a single unified summary and failing-file logs (same shape as `run-hook-tests.sh`); (3) align `-q`/`-v` semantics across bash and pytest. Original trigger (isolating one failing validation inside noisy `make check`) is resolved for hooks — keep the entry so the pattern propagates.
 
 ## P3 - Low
+
+- **[TESTS]** Remove TSV `hook-timing.log` writes from `hook-utils.sh` (`drop-hook-timing-tsv`)
+    - **scope**: `tests, hooks`
+    - **notes**: Follow-up from the test-hooks split. The TSV log has zero programmatic consumers — `hooks.db` is the only consumer used by tooling, and the test suite no longer reads the TSV at all (assertions removed in the split). To close the loop: drop the append-only TSV writes from `.claude/hooks/lib/hook-utils.sh` (lines 18, 180, 335), remove the `HOOK_LOG_FILE` default, update `docs/indexes/HOOKS.md` line 30 and `.claude/docs/relevant-toolkit-lessons.md` line 168. Human-debugging fallback: tail `hooks.db` via `sqlite3`. Kept out of the restructure PR to limit scope.
 
 - **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
     - **scope**: `skills`
