@@ -22,7 +22,8 @@ INPUT="$(cat)"
     mkdir -p "${SNAPSHOTS_DIR}" 2>/dev/null || true
 
     # Add a timestamp and write the full raw payload as one JSON line
-    STAMPED="$(printf '%s' "${INPUT}" | jq -c '. + {captured_at: (now | todate)}' 2>/dev/null)" || true
+    CAPTURED_AT=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+    STAMPED="$(printf '%s' "${INPUT}" | jq -c --arg ts "$CAPTURED_AT" '. + {captured_at: $ts}' 2>/dev/null)" || true
     if [[ -n "${STAMPED}" ]]; then
         printf '%s\n' "${STAMPED}" >> "${SNAPSHOTS_FILE}" 2>/dev/null || true
     fi
