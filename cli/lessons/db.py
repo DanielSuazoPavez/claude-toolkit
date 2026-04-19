@@ -4,7 +4,10 @@
 Provides database initialization, CRUD helpers, and CLI for managing
 lessons captured across Claude Code sessions.
 
-Schema design: cli/lessons/schemas/lessons.yaml
+Schema design: canonical yaml lives in claude-sessions/schemas/lessons.yaml
+(ownership moved in claude-sessions v0.19.0 / claude-toolkit v2.59.3; toolkit
+retains INIT_SQL for runtime bootstrap — it must stay byte-compatible with
+the yaml).
 
 Usage:
     claude-toolkit lessons migrate [--json-path PATH]
