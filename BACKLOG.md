@@ -23,28 +23,31 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
+- **[SKILLS]** Revisit `/wrap-up` skill (`revisit-wrap-up`)
+    - **scope**: `skills`
+    - **notes**: Current `/wrap-up` conflates feature-finishing, version bumping, changelog editing, backlog pruning, and tag orchestration into one linear flow — steps leak into each other and the skill has grown steps (non-branch artifact check, backlog surfacing, merge/squash branching, tag-on-main caveat). Revisit the decomposition: what belongs in wrap-up vs `/draft-pr` vs a future release skill; whether version-bump logic should live in a separate `/bump-version` step; whether the code-before-docs ordering should be enforced by a hook instead of prose. Also reconsider edge cases currently handled inline (no CHANGELOG, first version, merge conflicts) — they bloat the skill without being the common path.
+
+- **[HOOKS]** Make lessons and traceability ecosystems opt-in (`ecosystems-opt-in`)
+    - **scope**: `hooks, toolkit`
+    - **notes**: Lessons (lessons.db, session-start surfacing, surface-lessons PreToolUse, /learn, /manage-lessons) and traceability/logging (session-start size logs, hooks.db, usage_snapshots, grouped-read-guard logs, surface-lessons logging) are currently always-on for every project that installs the toolkit. Cost: db writes on every tool call, session-start context overhead, nudge noise, disk growth. Make both opt-in per project — config flag in settings.json or .claude/config, default off, hooks no-op when disabled. Consider granularity: opt-in per ecosystem (lessons vs traceability) or finer per-hook. Must still work for the claude-toolkit repo itself where both are core dogfood.
+
 ## P2 - Medium
 
 ## P3 - Low
 
-- **[TESTS]** Re-evaluate grouping runners into subdirs at some point (`tests-rethink-suite-phase3`)
-    - **scope**: `tests`
-    - **notes**: v2.57.1 gave hooks the per-file + parallel pattern; v2.58.0 added the unified top-level `tests/run-all.sh` (all bash suites + pytest, parallel, single summary). Residual: if any top-level suite grows large enough to warrant subdir grouping (`tests/cli/`, `tests/raiz/`, `tests/validate/`, `tests/lessons/`), apply the hook pattern — shared setup in a `lib/*-test-setup.sh`, per-file test-*.sh, dispatched by a dedicated runner like `run-hook-tests.sh`. Reviewed 2026-04-18: largest suite is `test-setup-toolkit-diagnose.sh` at 887 lines, `test-cli.sh` at 701; both cohesive single-concern files, no split warranted yet. Revisit if a suite passes ~1200 lines or gains a second distinct concern. Separate residual: align `-q`/`-v` semantics inside `lib/test-helpers.sh` assertion helpers (runner already captures child stdout regardless, so low-value).
-
-- **[SKILLS]** Skill token density audit — prune structural overhead across distributed skills (`skill-token-density`)
-    - **scope**: `skills`
-    - **notes**: Skills ship to all downstream projects — their token cost is per-invocation across every project that uses them. 33 skills total 38.8K words (avg 1,176/skill). The evaluate-* family is heaviest (5 skills, avg 1,736 words — calibration tables, example evaluations). 15–25% of most skills is structural overhead (anti-patterns, edge cases, "See Also") that doesn't directly drive behavior. Separate concern from agent prompt trim — this is about cumulative token spend, not context exhaustion. Waiting on usage data from claude-sessions to prioritize which skills to prune first.
-    - **analysis**: `output/claude-toolkit/analysis/20260331_1000__analyze-idea__information-density-loadable-resources.md`
-
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
-    - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability.
-    - **design**: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`
-    - **drafts**: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection
+    - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side. When reworking the surfacing hook, evaluate folding it into `grouped-read-guard` (and/or a future `grouped-bash-guard` merge) — it currently averages 106ms with ~30-40ms of that being bash+jq startup. Constraints: async-injection contract, 5s timeout, Bash|Read|Write|Edit matcher (wider than grouped-read).
+
+## P99 - Nice to Have
+
+- **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
+    - **scope**: `skills`
+    - **notes**: AskUserQuestion supports single-select, multi-select, and preview panes — but most skills default to open-ended questions. Audit skills that use AskUserQuestion (brainstorm-idea may already use options organically) and convert categorical decision points to structured option selection where it fits. Keep free-text for creative/descriptive input.
 
 - **[AGENTS]** Explore resource-aware model routing for agent spawning (`agent-model-routing`)
     - **scope**: `agents, skills`
@@ -53,10 +56,4 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 - **[AGENTS]** Add structured reasoning activation to select agents (`agent-reasoning-activation`)
     - **scope**: `agents`
     - **notes**: Some agents would benefit from explicit reasoning technique activation (CoT, hypothesis-evidence patterns, structured decomposition). `code-debugger` already does this organically with its hypothesis-elimination approach. Audit other agents — candidates: `code-reviewer` (risk assessment reasoning), `goal-verifier` (backward verification logic), `proposal-reviewer` (audience perspective reasoning). Light touch — add reasoning prompts where they'd improve output, not a framework overhaul.
-
-## P99 - Nice to Have
-
-- **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
-    - **scope**: `skills`
-    - **notes**: AskUserQuestion supports single-select, multi-select, and preview panes — but most skills default to open-ended questions. Audit skills that use AskUserQuestion (brainstorm-idea may already use options organically) and convert categorical decision points to structured option selection where it fits. Keep free-text for creative/descriptive input.
 
