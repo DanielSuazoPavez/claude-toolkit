@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.59.3] - 2026-04-18 - Move canonical lessons schema to claude-sessions
+
+### Changed
+- **schema**: lessons schema ownership moved to claude-sessions repo — canonical `lessons.yaml` now lives at `claude-sessions/schemas/lessons.yaml` (moved in claude-sessions v0.19.0). Toolkit retains `INIT_SQL` in `cli/lessons/db.py` for runtime bootstrap (writer-owned pattern — the two must stay byte-compatible). Coordinates with the cross-repo data-model redesign. No user-facing behavior change.
+
+### Removed
+- `cli/lessons/schemas/lessons.yaml` (and the now-empty `cli/lessons/schemas/` directory).
+
 ## [2.59.2] - 2026-04-18 - Drop TSV hook-timing.log writes
 
 ### Removed
