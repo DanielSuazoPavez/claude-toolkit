@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Notes
+- Docs: `BACKLOG.md` reorganized — removed `tests-rethink-suite-phase3` and `skill-token-density`; demoted `agent-model-routing` and `agent-reasoning-activation` from P3 to P99; added two P1 tasks: `revisit-wrap-up` (rethink `/wrap-up` decomposition) and `ecosystems-opt-in` (make lessons + traceability/logging ecosystems opt-in per project). Folded `design`/`drafts` fields into `notes` for `design-aws` to satisfy backlog validator.
+
 ## [2.59.3] - 2026-04-18 - Move canonical lessons schema to claude-sessions
 
 ### Changed
