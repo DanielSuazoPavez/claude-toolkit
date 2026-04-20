@@ -99,7 +99,11 @@ _hook_perf_probe "toolkit_version"
 LESSONS_DB="$HOME/.claude/lessons.db"
 LEARNED_FILE=".claude/learned.json"
 
-if [ -f "$LESSONS_DB" ]; then
+if ! hook_feature_enabled lessons; then
+    # Lessons ecosystem disabled — skip entire section (query, output, nudge).
+    # ACK_MSG below will also skip the "N lessons noted" suffix.
+    :
+elif [ -f "$LESSONS_DB" ]; then
     # SQLite path — CURRENT_BRANCH already set in git context section
     # SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter flag,
     # and inputs come from $PWD / git refs (local, user-owned) — not external input.
@@ -215,14 +219,27 @@ elif [ -f "$LEARNED_FILE" ]; then
     echo ""
 fi
 
+# === ECOSYSTEMS OPT-IN NUDGE ===
+# Fires once per session when settings.json predates the opt-in schema
+# (both env keys unset — distinct from being explicitly set to "0" after
+# setup-toolkit ran). Self-extinguishes per project: as soon as
+# setup-toolkit writes the env block, the keys are present and the nudge
+# stops firing. Sunset tracked in BACKLOG.md → remove-ecosystems-opt-in-nudge.
+if [ -z "${CLAUDE_TOOLKIT_LESSONS+x}" ] && [ -z "${CLAUDE_TOOLKIT_TRACEABILITY+x}" ]; then
+    ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- Toolkit ecosystems (lessons, traceability) are now opt-in per project — run /setup-toolkit to configure"
+fi
+_hook_perf_probe "opt_in_nudge"
+
 # === ACKNOWLEDGMENT ===
 # ESSENTIAL_COUNT already set by the docs loop above
 LESSON_COUNT=0
-if [ -f "$LESSONS_DB" ]; then
-    # ACTIVE_COUNT already set by the combined query above
-    LESSON_COUNT="${ACTIVE_COUNT:-0}"
-elif [ -f "$LEARNED_FILE" ]; then
-    LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+if hook_feature_enabled lessons; then
+    if [ -f "$LESSONS_DB" ]; then
+        # ACTIVE_COUNT already set by the combined query above
+        LESSON_COUNT="${ACTIVE_COUNT:-0}"
+    elif [ -f "$LEARNED_FILE" ]; then
+        LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
+    fi
 fi
 echo ""
 echo "=== SESSION START ==="

@@ -64,6 +64,26 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | `JSON_SIZE_THRESHOLD_KB` | `50` | Size threshold for JSON blocking |
 | `PROTECTED_BRANCHES` | `^(main\|master)$` | Regex for protected branch names |
 
+### Ecosystem Opt-Ins
+Set in the `env` block of `.claude/settings.json` (not shell) so Claude Code injects them into every hook invocation.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `CLAUDE_TOOLKIT_LESSONS` | `"0"` | `"1"` enables: session-start lessons block, `surface-lessons` injection |
+| `CLAUDE_TOOLKIT_TRACEABILITY` | `"0"` | `"1"` enables: `hooks.db` logging (via `_hook_log_db`), `statusline-capture` usage-snapshots JSONL |
+
+Pre-opt-in projects (neither key present) get a session-start nudge pointing at `/setup-toolkit`. The nudge self-extinguishes once either key is written — distinguishing "unset" from "explicitly 0" uses `[ -z "${VAR+x}" ]`. `/setup-toolkit` Phase 1.5 writes both keys on first run.
+
+Template shape:
+```json
+"env": {
+  "CLAUDE_TOOLKIT_LESSONS": "0",
+  "CLAUDE_TOOLKIT_TRACEABILITY": "0"
+}
+```
+
+Hooks read the flags via `hook_feature_enabled <feature>` from `lib/hook-utils.sh` (returns exit 0 when `"1"`, non-zero otherwise). Any value other than `"1"` is treated as disabled.
+
 ---
 
 ## 4. Troubleshooting

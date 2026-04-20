@@ -63,6 +63,44 @@ After parsing the output, show:
 - **EXTRA** items: flag as informational — "These are in your settings.json but not in the template. If project-specific, consider moving to settings.local.json."
 - If all checks pass, report "All checks passed" and skip to Phase 3.
 
+## Phase 1.5: Ecosystem Opt-Ins
+
+Runs before drift fixes. Only fires when `.claude/settings.json` lacks the ecosystem env keys — i.e., a pre-opt-in project that hasn't chosen yet. Once either key exists, this phase is skipped on future runs.
+
+### Detection
+
+```bash
+jq -e '.env.CLAUDE_TOOLKIT_LESSONS // .env.CLAUDE_TOOLKIT_TRACEABILITY' .claude/settings.json >/dev/null 2>&1
+```
+
+- Exit 0 (either key present) → skip this phase.
+- Exit non-zero (both absent) → run the prompts below.
+
+### Prompts
+
+Ask each in turn. Present the tradeoff plainly — both ecosystems store data locally only.
+
+**Lessons ecosystem:**
+
+> Enable the lessons ecosystem? It stores learned corrections in `~/.claude/lessons.db`, surfaces relevant lessons at session start, and injects matches before Bash/Read/Write/Edit calls. Local SQLite only — nothing leaves the machine. Disabled by default. [y/N]
+
+**Traceability ecosystem:**
+
+> Enable traceability? Logs hook executions to `~/.claude/hooks.db` for debugging/observability. If you use the statusline capture wrapper, it also appends usage snapshots to `~/.claude/usage-snapshots/`. Local only. Disabled by default. [y/N]
+
+### Apply
+
+Write both keys regardless of answer — presence is what silences the session-start nudge. "y" → `"1"`, anything else → `"0"`.
+
+```bash
+jq '.env = (.env // {}) | .env.CLAUDE_TOOLKIT_LESSONS = "<lessons_val>" | .env.CLAUDE_TOOLKIT_TRACEABILITY = "<trace_val>"' \
+  .claude/settings.json > .claude/settings.json.tmp && mv .claude/settings.json.tmp .claude/settings.json
+```
+
+Confirm the write: re-run the detection jq expression; should now exit 0.
+
+Note: env vars take effect on the next Claude Code session, not mid-session. Let the user know if they want to verify immediately they'll need to restart.
+
 ## Phase 2: Fix
 
 Process each issue one at a time. Present the proposed change and ask for approval before applying.

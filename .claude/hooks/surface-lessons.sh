@@ -98,6 +98,10 @@ hook_log_context "$CONTEXT" "$KEYWORD_LIST" "$MATCH_COUNT" "$MATCHED_IDS"
 
 [ -z "$LESSONS" ] && exit 0
 
+# Lessons opt-in: skip injection when disabled. Context logging above still
+# runs (gated independently by traceability) so users can see what would match.
+hook_feature_enabled lessons || exit 0
+
 # Format as additionalContext — escape for JSON
 ESCAPED=$(echo "$LESSONS" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n- /g')
 _hook_perf_probe "format_output"

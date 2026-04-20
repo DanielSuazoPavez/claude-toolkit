@@ -17,17 +17,21 @@ POWERLINE_CMD="npx -y @owloops/claude-powerline@1.25.1 --config=.claude/claude-p
 # 1. Read full stdin into a variable
 INPUT="$(cat)"
 
-# 2. Append raw payload with timestamp (errors suppressed, backgrounded)
-{
-    mkdir -p "${SNAPSHOTS_DIR}" 2>/dev/null || true
+# 2. Append raw payload with timestamp (errors suppressed, backgrounded).
+# Traceability opt-in: skip capture entirely when CLAUDE_TOOLKIT_TRACEABILITY != "1".
+# Powerline forward below is unaffected — statusline renders the same either way.
+if [[ "${CLAUDE_TOOLKIT_TRACEABILITY:-0}" == "1" ]]; then
+    {
+        mkdir -p "${SNAPSHOTS_DIR}" 2>/dev/null || true
 
-    # Add a timestamp and write the full raw payload as one JSON line
-    CAPTURED_AT=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
-    STAMPED="$(printf '%s' "${INPUT}" | jq -c --arg ts "$CAPTURED_AT" '. + {captured_at: $ts}' 2>/dev/null)" || true
-    if [[ -n "${STAMPED}" ]]; then
-        printf '%s\n' "${STAMPED}" >> "${SNAPSHOTS_FILE}" 2>/dev/null || true
-    fi
-} &
+        # Add a timestamp and write the full raw payload as one JSON line
+        CAPTURED_AT=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+        STAMPED="$(printf '%s' "${INPUT}" | jq -c --arg ts "$CAPTURED_AT" '. + {captured_at: $ts}' 2>/dev/null)" || true
+        if [[ -n "${STAMPED}" ]]; then
+            printf '%s\n' "${STAMPED}" >> "${SNAPSHOTS_FILE}" 2>/dev/null || true
+        fi
+    } &
+fi
 
 # 3. Always forward original stdin to powerline (the critical path)
 printf '%s' "${INPUT}" | ${POWERLINE_CMD}
