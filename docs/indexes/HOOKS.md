@@ -30,7 +30,7 @@ All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 - Execution timing and logging to `~/.claude/hooks.db` (SQLite `hook_logs` table)
 - Section-level tracking for session-start
 
-Columns: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. For human debugging, tail rows via `sqlite3 ~/.claude/hooks.db`.
+Columns: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. `call_id` is a bare Anthropic id (`toolu_...` for tool-scoped events, `agent_id` for SubagentStop) — tool-vs-agent is derived from `hook_event`, not a prefix. Joins to `claude-sessions.tool_calls.tool_use_id` on `(session_id, call_id)`. For human debugging, tail rows via `sqlite3 ~/.claude/hooks.db`.
 
 ---
 

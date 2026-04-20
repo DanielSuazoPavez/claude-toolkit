@@ -33,7 +33,7 @@ TOOL_NAME=""
 INVOCATION_ID=""
 SESSION_ID=""
 HOOK_SOURCE=""   # SessionStart source: startup|resume|clear|compact, empty for other events
-CALL_ID=""       # Per-call id: tool:<tool_use_id> (Pre/PostToolUse), agent:<agent_id> (SubagentStop), empty otherwise
+CALL_ID=""       # Per-call id: bare tool_use_id (Pre/PostToolUse) or agent_id (SubagentStop), empty otherwise. Tool-vs-agent is derived from hook_event, not a prefix.
 PROJECT=""
 HOOK_START_MS=0
 OUTCOME="pass"
@@ -198,9 +198,9 @@ hook_init() {
     _tid=$(echo "$HOOK_INPUT" | jq -r '.tool_use_id // ""' 2>/dev/null)
     _aid=$(echo "$HOOK_INPUT" | jq -r '.agent_id // ""' 2>/dev/null)
     if [ -n "$_tid" ]; then
-        CALL_ID="tool:$_tid"
+        CALL_ID="$_tid"
     elif [ -n "$_aid" ]; then
-        CALL_ID="agent:$_aid"
+        CALL_ID="$_aid"
     else
         CALL_ID=""
     fi
