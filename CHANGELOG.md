@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.61.0] - 2026-04-20 - Ecosystems opt-in (lessons + traceability)
+
+### Changed
+- **hooks, toolkit**: Lessons and traceability ecosystems are now opt-in per project. Two env vars in `settings.json` gate the behavior: `CLAUDE_TOOLKIT_LESSONS` controls session-start lesson surfacing + the `surface-lessons` injection; `CLAUDE_TOOLKIT_TRACEABILITY` controls `hooks.db` writes (timing/section logs, `surface_lessons_context`) and `usage-snapshots` capture in `statusline-capture.sh`. Both default to `"0"` in `dist/base` / `dist/raiz` templates. The toolkit repo's own `.claude/settings.json` ships with both `"1"` (dogfood). Run `/setup-toolkit` to configure — new Phase 1.5 prompts per-ecosystem and writes the env block. Pre-opt-in projects (neither key present) get a session-start nudge until they choose; the nudge self-extinguishes once either key is written.
+
 ## [2.60.4] - 2026-04-20 - Relocate backup-transcripts.sh to claude-sessions
 
 ### Removed

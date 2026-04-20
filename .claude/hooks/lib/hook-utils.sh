@@ -233,6 +233,21 @@ _hook_perf_probe() {
 }
 
 # ============================================================
+# hook_feature_enabled FEATURE
+# ============================================================
+# Ecosystems are opt-in per project via env vars set in settings.json:
+#   CLAUDE_TOOLKIT_LESSONS=1       enables lessons (surface-lessons, session-start lessons, /learn, /manage-lessons)
+#   CLAUDE_TOOLKIT_TRACEABILITY=1  enables hooks.db logging + usage-snapshots capture
+# Unset or any value other than "1" → disabled. Callers should early-return.
+hook_feature_enabled() {
+    case "$1" in
+        lessons)      [ "${CLAUDE_TOOLKIT_LESSONS:-0}" = "1" ] ;;
+        traceability) [ "${CLAUDE_TOOLKIT_TRACEABILITY:-0}" = "1" ] ;;
+        *) return 1 ;;
+    esac
+}
+
+# ============================================================
 # hook_require_tool TOOL1 [TOOL2 ...]
 # ============================================================
 hook_require_tool() {
@@ -342,6 +357,7 @@ _sql_escape() {
 # _hook_log_db SQL  (internal — insert into claude-hook-logs.db)
 # ============================================================
 _hook_log_db() {
+    hook_feature_enabled traceability || return 0
     [ -f "$HOOK_LOG_DB" ] || return 0
     _HOOK_SQL_BATCH="${_HOOK_SQL_BATCH}${1}
 "
@@ -349,6 +365,7 @@ _hook_log_db() {
 
 # Flush all accumulated SQL in one sqlite3 call
 _hook_flush_db() {
+    hook_feature_enabled traceability || return 0
     [ -f "$HOOK_LOG_DB" ] || return 0
     [ -z "$_HOOK_SQL_BATCH" ] && return 0
     printf '%s' "$_HOOK_SQL_BATCH" | sqlite3 "$HOOK_LOG_DB" 2>/dev/null || true

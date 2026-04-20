@@ -23,13 +23,18 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[HOOKS]** Make lessons and traceability ecosystems opt-in (`ecosystems-opt-in`)
-    - **scope**: `hooks, toolkit`
-    - **notes**: Lessons (lessons.db, session-start surfacing, surface-lessons PreToolUse, /learn, /manage-lessons) and traceability/logging (session-start size logs, hooks.db, usage_snapshots, grouped-read-guard logs, surface-lessons logging) are currently always-on for every project that installs the toolkit. Cost: db writes on every tool call, session-start context overhead, nudge noise, disk growth. Make both opt-in per project — config flag in settings.json or .claude/config, default off, hooks no-op when disabled. Consider granularity: opt-in per ecosystem (lessons vs traceability) or finer per-hook. Must still work for the claude-toolkit repo itself where both are core dogfood.
-
 ## P2 - Medium
 
 ## P3 - Low
+
+- **[TOOLKIT]** Define what v3 looks like (`define-v3`)
+    - **scope**: `toolkit`
+    - **notes**: Behavior changes have been shipping as Minor bumps (2.x → 2.x+1), but the ecosystems opt-in in 2.61.0 is the kind of change that arguably warrants Major. Before the next breaking-ish change, write down: what's the v3 identity, what breaking changes are queued, what's the migration story, and what's the cutline between "bump Minor and nudge" vs "bump Major and gate sync". Surfaced while wrapping up `ecosystems-opt-in`.
+
+- **[HOOKS]** Remove ecosystems opt-in session-start nudge (`remove-ecosystems-opt-in-nudge`)
+    - **scope**: `hooks`
+    - **notes**: After `ecosystems-opt-in` ships, session-start shows a one-time nudge to projects that predate the new schema (no `CLAUDE_TOOLKIT_LESSONS` / `CLAUDE_TOOLKIT_TRACEABILITY` env keys in settings.json). The nudge is self-extinguishing per-project (setup-toolkit writes the keys → nudge stops firing), but the code itself should be deleted once all user projects have been updated. Triggered manually rather than version-based because toolkit ships faster than the user reaches each project. Signal to remove: user says "remove the opt-in nudge" or equivalent. Delete the relevant section from `.claude/hooks/session-start.sh` and any related tests.
+    - **depends on**: `ecosystems-opt-in`
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`

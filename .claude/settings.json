@@ -3,6 +3,10 @@
   "enableAllProjectMcpServers": false,
   "showClearContextOnPlanAccept": true,
   "plansDirectory": "output/claude-toolkit/plans",
+  "env": {
+    "CLAUDE_TOOLKIT_LESSONS": "1",
+    "CLAUDE_TOOLKIT_TRACEABILITY": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(ls:*)",

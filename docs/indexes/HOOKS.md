@@ -2,19 +2,28 @@
 
 Automation hooks configured in `settings.json`.
 
+## Opt-in Ecosystems
+
+Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` block). Defaults to disabled; `/setup-toolkit` prompts on first run.
+
+| Env var | Gates |
+|---------|-------|
+| `CLAUDE_TOOLKIT_LESSONS` | `session-start.sh` lessons section + lesson count in ack; `surface-lessons.sh` injection (context logging still runs, gated by traceability) |
+| `CLAUDE_TOOLKIT_TRACEABILITY` | `_hook_log_db` writes (hooks.db rows for every hook invocation); `statusline-capture.sh` usage-snapshots JSONL append |
+
 ## Included Hooks
 
-| Hook | Status | Trigger | Description |
-|------|--------|---------|-------------|
-| `session-start.sh` | stable | SessionStart | Loads essential docs, git context, lessons, and toolkit version drift check |
-| `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
-| `block-dangerous-commands.sh` | stable | Bash via dispatcher | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
-| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | Blocks writes to shell config, SSH, and git config files |
-| `suggest-read-json.sh` | stable | Read via dispatcher | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
-| `enforce-uv-run.sh` | stable | Bash via dispatcher | Blocks direct `python`/`python3` calls, suggests `uv run python` |
-| `enforce-make-commands.sh` | stable | Bash via dispatcher | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
-| `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | Surfaces relevant active lessons as additionalContext based on tool context keywords |
+| Hook | Status | Trigger | Opt-in | Description |
+|------|--------|---------|--------|-------------|
+| `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. |
+| `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
+| `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
+| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | — | Blocks writes to shell config, SSH, and git config files |
+| `suggest-read-json.sh` | stable | Read via dispatcher | — | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
+| `enforce-uv-run.sh` | stable | Bash via dispatcher | — | Blocks direct `python`/`python3` calls, suggests `uv run python` |
+| `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
+| `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | `lessons` (injection only) | Surfaces relevant active lessons as additionalContext based on tool context keywords. Context logging runs independently (gated by `traceability`). |
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
 | `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 6 guards |
 | `grouped-read-guard.sh` | stable | PreToolUse (Read) | Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks |
@@ -27,8 +36,9 @@ Automation hooks configured in `settings.json`.
 All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 - Standardized initialization and stdin parsing
 - Outcome helpers (block, approve, inject)
-- Execution timing and logging to `~/.claude/hooks.db` (SQLite `hook_logs` table)
+- Execution timing and logging to `~/.claude/hooks.db` (SQLite `hook_logs` table) — gated on `CLAUDE_TOOLKIT_TRACEABILITY=1`; no-op when disabled regardless of whether the db file exists
 - Section-level tracking for session-start
+- `hook_feature_enabled <feature>` helper — checks opt-in env vars (`lessons`, `traceability`); returns 0 when enabled, non-zero otherwise
 
 Columns: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. `call_id` is a bare Anthropic id (`toolu_...` for tool-scoped events, `agent_id` for SubagentStop) — tool-vs-agent is derived from `hook_event`, not a prefix. Joins to `claude-sessions.tool_calls.tool_use_id` on `(session_id, call_id)`. For human debugging, tail rows via `sqlite3 ~/.claude/hooks.db`.
 
