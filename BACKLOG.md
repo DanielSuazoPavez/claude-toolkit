@@ -23,10 +23,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P1 - High
 
-- **[SKILLS]** Revisit `/wrap-up` skill (`revisit-wrap-up`)
-    - **scope**: `skills`
-    - **notes**: Current `/wrap-up` conflates feature-finishing, version bumping, changelog editing, backlog pruning, and tag orchestration into one linear flow — steps leak into each other and the skill has grown steps (non-branch artifact check, backlog surfacing, merge/squash branching, tag-on-main caveat). Revisit the decomposition: what belongs in wrap-up vs `/draft-pr` vs a future release skill; whether version-bump logic should live in a separate `/bump-version` step; whether the code-before-docs ordering should be enforced by a hook instead of prose. Also reconsider edge cases currently handled inline (no CHANGELOG, first version, merge conflicts) — they bloat the skill without being the common path.
-
 - **[HOOKS]** Make lessons and traceability ecosystems opt-in (`ecosystems-opt-in`)
     - **scope**: `hooks, toolkit`
     - **notes**: Lessons (lessons.db, session-start surfacing, surface-lessons PreToolUse, /learn, /manage-lessons) and traceability/logging (session-start size logs, hooks.db, usage_snapshots, grouped-read-guard logs, surface-lessons logging) are currently always-on for every project that installs the toolkit. Cost: db writes on every tool call, session-start context overhead, nudge noise, disk growth. Make both opt-in per project — config flag in settings.json or .claude/config, default off, hooks no-op when disabled. Consider granularity: opt-in per ecosystem (lessons vs traceability) or finer per-hook. Must still work for the claude-toolkit repo itself where both are core dogfood.
