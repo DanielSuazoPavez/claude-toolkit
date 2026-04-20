@@ -39,8 +39,10 @@ declare -a CHECK_STATUS=()
 declare -a CHECK_DETAILS=()
 ISSUES_TOTAL=0
 
-# Temp file cleanup
-trap 'rm -f /tmp/ct-setup-diag-*' EXIT
+# Per-invocation temp dir for intermediate state passed between checks.
+# Scoped to this process — no shared /tmp state, safe for concurrent invocations.
+DIAG_TMP="$(mktemp -d -t ct-setup-diag.XXXXXX)"
+trap 'rm -rf "$DIAG_TMP"' EXIT
 
 # === Guards ===
 
@@ -217,15 +219,15 @@ check_hooks() {
         return
     fi
 
-    grep -oP '"command"\s*:\s*"\K[^"]+' "$SETTINGS" 2>/dev/null | sort > /tmp/ct-setup-diag-hooks-current.txt
-    grep -oP '"command"\s*:\s*"\K[^"]+' "$template" 2>/dev/null | sort > /tmp/ct-setup-diag-hooks-template.txt
+    grep -oP '"command"\s*:\s*"\K[^"]+' "$SETTINGS" 2>/dev/null | sort > "$DIAG_TMP/hooks-current.txt"
+    grep -oP '"command"\s*:\s*"\K[^"]+' "$template" 2>/dev/null | sort > "$DIAG_TMP/hooks-template.txt"
 
     local missing extra
-    missing=$(comm -23 /tmp/ct-setup-diag-hooks-template.txt /tmp/ct-setup-diag-hooks-current.txt)
-    extra=$(comm -13 /tmp/ct-setup-diag-hooks-template.txt /tmp/ct-setup-diag-hooks-current.txt)
+    missing=$(comm -23 "$DIAG_TMP/hooks-template.txt" "$DIAG_TMP/hooks-current.txt")
+    extra=$(comm -13 "$DIAG_TMP/hooks-template.txt" "$DIAG_TMP/hooks-current.txt")
 
     # Save extras to temp file for Check 8c cross-referencing
-    echo "$extra" > /tmp/ct-setup-diag-hooks-extra.txt
+    echo "$extra" > "$DIAG_TMP/hooks-extra.txt"
 
     if [ -n "$missing" ]; then
         while IFS= read -r line; do
@@ -264,15 +266,15 @@ check_permissions() {
         return
     fi
 
-    jq -r '.permissions.allow // [] | .[]' "$SETTINGS" 2>/dev/null | sort > /tmp/ct-setup-diag-perms-current.txt
-    jq -r '.permissions.allow // [] | .[]' "$template" 2>/dev/null | sort > /tmp/ct-setup-diag-perms-template.txt
+    jq -r '.permissions.allow // [] | .[]' "$SETTINGS" 2>/dev/null | sort > "$DIAG_TMP/perms-current.txt"
+    jq -r '.permissions.allow // [] | .[]' "$template" 2>/dev/null | sort > "$DIAG_TMP/perms-template.txt"
 
     local missing extra
-    missing=$(comm -23 /tmp/ct-setup-diag-perms-template.txt /tmp/ct-setup-diag-perms-current.txt)
-    extra=$(comm -13 /tmp/ct-setup-diag-perms-template.txt /tmp/ct-setup-diag-perms-current.txt)
+    missing=$(comm -23 "$DIAG_TMP/perms-template.txt" "$DIAG_TMP/perms-current.txt")
+    extra=$(comm -13 "$DIAG_TMP/perms-template.txt" "$DIAG_TMP/perms-current.txt")
 
     # Save extras to temp file for Check 8c cross-referencing
-    echo "$extra" > /tmp/ct-setup-diag-perms-extra.txt
+    echo "$extra" > "$DIAG_TMP/perms-extra.txt"
 
     if [ -n "$missing" ]; then
         while IFS= read -r line; do
@@ -325,11 +327,11 @@ check_mcp() {
     local actual_mcp="$mcp_file"
     [ ! -f "$actual_mcp" ] && actual_mcp="mcp.json"
 
-    jq -r '.mcpServers | keys[]' "$actual_mcp" 2>/dev/null | sort > /tmp/ct-setup-diag-mcp-current.txt
-    jq -r '.mcpServers | keys[]' "$mcp_template" 2>/dev/null | sort > /tmp/ct-setup-diag-mcp-template.txt
+    jq -r '.mcpServers | keys[]' "$actual_mcp" 2>/dev/null | sort > "$DIAG_TMP/mcp-current.txt"
+    jq -r '.mcpServers | keys[]' "$mcp_template" 2>/dev/null | sort > "$DIAG_TMP/mcp-template.txt"
 
     local missing
-    missing=$(comm -23 /tmp/ct-setup-diag-mcp-template.txt /tmp/ct-setup-diag-mcp-current.txt)
+    missing=$(comm -23 "$DIAG_TMP/mcp-template.txt" "$DIAG_TMP/mcp-current.txt")
 
     if [ -n "$missing" ]; then
         while IFS= read -r line; do
@@ -529,7 +531,7 @@ check_cleanup() {
 
     # --- 8c: Removal candidates (extra hooks/perms referencing missing files) ---
     # Cross-reference Check 1 extras with disk existence
-    if [ -f /tmp/ct-setup-diag-hooks-extra.txt ]; then
+    if [ -f "$DIAG_TMP/hooks-extra.txt" ]; then
         while IFS= read -r cmd; do
             [ -z "$cmd" ] && continue
             local hook_path
@@ -539,11 +541,11 @@ check_cleanup() {
                 output+="CLEANUP: hook \"$cmd\" not in template and not on disk"$'\n'
                 CURRENT_CHECK_CLEANUP=$((CURRENT_CHECK_CLEANUP + 1))
             fi
-        done < /tmp/ct-setup-diag-hooks-extra.txt
+        done < "$DIAG_TMP/hooks-extra.txt"
     fi
 
     # Cross-reference Check 2 extras: permissions referencing missing hooks
-    if [ -f /tmp/ct-setup-diag-perms-extra.txt ]; then
+    if [ -f "$DIAG_TMP/perms-extra.txt" ]; then
         while IFS= read -r perm; do
             [ -z "$perm" ] && continue
             local hook_path
@@ -553,7 +555,7 @@ check_cleanup() {
                 output+="CLEANUP: permission \"$perm\" references missing hook ($hook_path)"$'\n'
                 CURRENT_CHECK_CLEANUP=$((CURRENT_CHECK_CLEANUP + 1))
             fi
-        done < /tmp/ct-setup-diag-perms-extra.txt
+        done < "$DIAG_TMP/perms-extra.txt"
     fi
 
     check_end 8 "cleanup" "$output"

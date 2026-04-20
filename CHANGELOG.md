@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.60.3] - 2026-04-20 - Fix /tmp collision in setup-toolkit-diagnose
+
+### Fixed
+- **scripts**: `setup-toolkit-diagnose.sh` — concurrent invocations no longer corrupt each other's intermediate check state. Replaced shared `/tmp/ct-setup-diag-*` paths (8 distinct filenames, 18 references) with a per-invocation `mktemp -d -t ct-setup-diag.XXXXXX` directory; `EXIT` trap now `rm -rf`s the scoped dir instead of a wildcard glob. Reproduced as intermittent MISSING/EXTRA/PASS drift across Checks 1/2/3 under paired concurrent runs (6 of 8 rounds flaked before the fix). No interface change; no test change needed — the test harness already isolates each case via its own `mktemp -d`.
+
 ## [2.60.2] - 2026-04-20 - Shellcheck gate on shipped bash
 
 ### Added
