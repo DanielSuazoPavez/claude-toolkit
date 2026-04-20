@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.60.4] - 2026-04-20 - Relocate backup-transcripts.sh to claude-sessions
+
+### Removed
+- **scripts**: `backup-transcripts.sh` relocated to the claude-sessions repo (`claude-sessions/cron/backup-transcripts.sh`) — the script backs up data owned by that repo's indexing pipeline, so it now lives alongside its consumers. The user's crontab has been repointed; no behavior change. See claude-sessions `0.32.1`.
+
 ## [2.60.3] - 2026-04-20 - Fix /tmp collision in setup-toolkit-diagnose
 
 ### Fixed
