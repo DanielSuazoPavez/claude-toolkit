@@ -81,7 +81,6 @@ echo "=== Hook Format ==="
 # The nested format has "hooks": [ inside hook event arrays
 check_nested_format() {
     local file="$1"
-    local label="$2"
     # Look for the nested pattern: "hooks" key inside hook event arrays
     if grep -qP '"hooks"\s*:\s*\[' "$file"; then
         return 0
@@ -92,8 +91,8 @@ check_nested_format() {
 
 SETTINGS_NESTED=0
 TEMPLATE_NESTED=0
-check_nested_format "$SETTINGS" "settings.json" && SETTINGS_NESTED=1
-check_nested_format "$TEMPLATE" "template" && TEMPLATE_NESTED=1
+check_nested_format "$SETTINGS" && SETTINGS_NESTED=1
+check_nested_format "$TEMPLATE" && TEMPLATE_NESTED=1
 
 if [ "$SETTINGS_NESTED" -eq 1 ] && [ "$TEMPLATE_NESTED" -eq 1 ]; then
     echo -e "${GREEN}✓ Both files use nested hook format${NC}"

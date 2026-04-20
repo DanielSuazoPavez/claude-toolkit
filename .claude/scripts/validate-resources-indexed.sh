@@ -46,7 +46,7 @@ if [ -f "$MANIFEST_FILE" ] && [ ! -f "$PROJECT_ROOT/docs/indexes/SKILLS.md" ]; t
         line="${line%% }"
 
         case "$line" in
-            skills/*/|skills/*/)
+            skills/*/)
                 # Directory entry like skills/test-skill/ — extract skill name
                 name="${line#skills/}"
                 name="${name%/}"
@@ -98,7 +98,7 @@ SKILLS_DIR="$CLAUDE_DIR/skills"
 
 if [ -f "$SKILLS_INDEX" ] && [ -d "$SKILLS_DIR" ]; then
     # Get skills from disk
-    DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -exec dirname {} \; | xargs -n1 basename | sort)
+    DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -printf '%h\n' | xargs -n1 basename | sort)
 
     # Get skills from index (extract from markdown table: | `skill-name` |)
     INDEX_SKILLS=$(grep -oP '\| `\K[^`]+(?=` \|)' "$SKILLS_INDEX" | sort)

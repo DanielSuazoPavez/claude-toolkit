@@ -44,7 +44,8 @@ BLOCKED_CONFIGS=(
 is_blocked_config() {
     local filepath="$1"
 
-    # Normalize ~ to $HOME
+    # Normalize a literal leading "~/" typed by the user to $HOME.
+    # shellcheck disable=SC2088  # intentional literal-tilde match, not expansion
     if [[ "$filepath" == "~/"* ]]; then
         filepath="$HOME/${filepath#\~/}"
     fi

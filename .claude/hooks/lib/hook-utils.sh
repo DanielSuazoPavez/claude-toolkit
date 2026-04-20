@@ -160,7 +160,8 @@ hook_init() {
     HOOK_NAME="$1"
     HOOK_EVENT="$2"
     HOOK_INPUT=$(cat)
-    INPUT="$HOOK_INPUT"  # backward compat
+    # shellcheck disable=SC2034  # INPUT is read by sourcing hooks/scripts (statusline-capture.sh, tests)
+    INPUT="$HOOK_INPUT"
     INVOCATION_ID="$$-${EPOCHSECONDS:-$(date +%s)}"
     PROJECT="$(basename "$PWD")"
     # Capture timestamp once, reuse in all logging.

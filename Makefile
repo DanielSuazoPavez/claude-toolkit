@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-setup-diag test-pytest validate check backlog tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-setup-diag test-pytest lint-bash validate check backlog tag help
 
 install:
 	@uv sync --dev
@@ -16,10 +16,11 @@ help:
 	@echo "  make test-validate-hook-utils - Run validate-hook-utils tests only"
 	@echo "  make test-verify-ext-deps - Run verify-external-deps tests only"
 	@echo "  make test-pytest       - Run pytest suite only"
+	@echo "  make lint-bash         - Shellcheck shipped bash (hooks, scripts, cli)"
 	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make tag               - Create git tag from VERSION file"
 	@echo "  make backlog           - Show project backlog"
-	@echo "  make check             - Run everything (tests + validate)"
+	@echo "  make check             - Run everything (tests + lint-bash + validate)"
 
 test:
 	@bash tests/run-all.sh -q
@@ -68,7 +69,18 @@ tag:
 backlog:
 	@bash cli/backlog/query.sh
 
+lint-bash:
+	@command -v shellcheck >/dev/null || { \
+	  echo "shellcheck not installed — required for bash linting in this repo."; \
+	  echo "install: sudo apt install shellcheck   (or: brew install shellcheck)"; \
+	  exit 1; \
+	}
+	@shellcheck -S warning \
+	  .claude/hooks/*.sh .claude/hooks/lib/*.sh \
+	  .claude/scripts/*.sh .claude/scripts/cron/*.sh \
+	  cli/backlog/*.sh cli/eval/*.sh
+
 validate:
 	@bash .claude/scripts/validate-all.sh
 
-check: test validate
+check: test lint-bash validate

@@ -32,6 +32,8 @@ hook_init "grouped-read-guard" "PreToolUse"
 hook_require_tool "Read"
 
 # Capture inputs once up-front (single jq call).
+# Contract: sourced check functions (secrets-guard, suggest-read-json) read FILE_PATH.
+# shellcheck disable=SC2034  # read by sourced check modules, not directly
 FILE_PATH=$(hook_get_input '.tool_input.file_path')
 
 CHECK_SPECS=(

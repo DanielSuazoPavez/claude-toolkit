@@ -142,8 +142,6 @@ split_command() {
     local in_double_quote=0
     local i=0
     local len=${#cmd}
-    local prev_char=""
-
     while [ $i -lt $len ]; do
         local char="${cmd:$i:1}"
         local next_char="${cmd:$((i+1)):1}"
@@ -152,14 +150,12 @@ split_command() {
         if [ "$char" = "'" ] && [ $in_double_quote -eq 0 ]; then
             in_single_quote=$((1 - in_single_quote))
             result+="$char"
-            prev_char="$char"
             i=$((i + 1))
             continue
         fi
         if [ "$char" = '"' ] && [ $in_single_quote -eq 0 ]; then
             in_double_quote=$((1 - in_double_quote))
             result+="$char"
-            prev_char="$char"
             i=$((i + 1))
             continue
         fi
@@ -171,20 +167,17 @@ split_command() {
                { [ "$char" = "|" ] && [ "$next_char" = "|" ]; }; then
                 result+=$'\n'
                 i=$((i + 2))
-                prev_char=""
                 continue
             fi
             # Check for single | (pipe) or ;
             if [ "$char" = "|" ] || [ "$char" = ";" ]; then
                 result+=$'\n'
-                prev_char="$char"
                 i=$((i + 1))
                 continue
             fi
         fi
 
         result+="$char"
-        prev_char="$char"
         i=$((i + 1))
     done
 
