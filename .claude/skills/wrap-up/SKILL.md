@@ -32,28 +32,21 @@ Review commits since branching from main to understand what was done.
 
 ### 4. Determine version bump
 
-```
-What changed?
-├─ Breaking change (removes/renames public API, changes behavior)?
-│   └─ Yes → Major (X.0.0)
-├─ New feature (adds capability, new endpoint, new option)?
-│   └─ Yes → Minor (0.X.0)
-└─ Bug fix, refactor, docs, tests only?
-    └─ Yes → Patch (0.0.X)
-```
+Quick decision — pick the first row that matches:
+
+| Change | Action | Changelog target |
+|--------|--------|------------------|
+| Breaking (existing user code must change) | **Major** (X.0.0) | New version section |
+| New feature / new capability / new option | **Minor** (0.X.0) | New version section |
+| Bug fix, code refactor with user-visible effect, perf fix | **Patch** (0.0.X) | New version section |
+| Docs-only (BACKLOG, README, design notes, CHANGELOG prose) | **No bump** | `[Unreleased]` — `### Notes` |
+| Pure CI/CD, internal refactor with zero user-facing change | **No bump** | `[Unreleased]` — `### Notes` (or skip changelog) |
 
 **Breaking change test:** Does existing user code need to change? If yes → Major.
 
-**When NOT to bump version:**
-- Pure CI/CD changes (GitHub Actions, Dockerfiles for dev)
-- Internal refactors with no user-facing change AND no release planned
-- Documentation-only changes (unless docs are versioned artifacts)
-- Work-in-progress on feature branches that will be squashed
+**Pre-release (0.x.y):** breaking changes can be Minor instead of Major until 1.0.0.
 
-**Pre-release versions (0.x.y):**
-- Before 1.0.0, breaking changes can be Minor instead of Major
-- Document stability expectations in README
-- Consider 1.0.0 when: stable API, production users, semantic versioning commitment
+**When in doubt between Patch and no-bump:** if the change touches code that ships to users (skills, agents, hooks, CLI), lean Patch. If it only touches docs/backlog/design files, stay `[Unreleased]`.
 
 **Merge vs Squash considerations:**
 - If branch will be **squashed**: Single changelog entry for all work
@@ -62,6 +55,8 @@ What changed?
 
 ### 5. Update `CHANGELOG.md`
 Add new entry at the top following existing project style. **Never modify older entries** — they are historical record. Only add the current version's entry.
+
+**If `[Unreleased]` has existing content** (e.g., docs-only changes accumulated since the last release): fold those entries into the new version's section, then remove them from `[Unreleased]` (leave `[Unreleased]` empty or drop the header entirely, per project style). Don't leave stale `[Unreleased]` content sitting above a released version — that's the most common wrap-up bug. Check `[Unreleased]` before writing the new entry, not after.
 
 ### 6. Update version file
 Bump the version in the appropriate file (VERSION, pyproject.toml, package.json, etc.).
@@ -125,6 +120,7 @@ Output what was updated.
 | **Wrong Bump** | Patch for new feature | Major=breaking, Minor=feature, Patch=fix |
 | **Empty Changelog** | "Updated stuff" | Describe what changed and why |
 | **Stale Backlog** | Completed items still in TODO | Remove them (CHANGELOG is the record) |
+| **Stale Unreleased** | `[Unreleased]` content left above a freshly released version | Fold `[Unreleased]` entries into the new version section, then clear it |
 | **Bump Everything** | Version bump for CI-only changes | Skip bump for non-user-facing changes |
 | **Scope Tunnel Vision** | Ignoring non-branch artifacts and issues | Check git status for loose ends; ask user about unrelated changes |
 | **Dismissing Test Failures** | Calling failures "pre-existing and unrelated" without proof | Either fix them or explicitly call them out as known issues with a backlog item |
