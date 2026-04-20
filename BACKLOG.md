@@ -31,10 +31,6 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
-- **[SCRIPTS]** Fix `/tmp` collision in `setup-toolkit-diagnose.sh` (`diag-tmp-collision`)
-    - **scope**: `scripts, tests`
-    - **notes**: `.claude/scripts/setup-toolkit-diagnose.sh` uses hardcoded `/tmp/ct-setup-diag-*.txt` paths to pass state between Check 1/2/3 (writers) and Check 8 (reader, cleanup cross-ref). Any two concurrent invocations race — one process's Check 1 overwrites another's file mid-run, and the `trap 'rm -f /tmp/ct-setup-diag-*' EXIT` can wipe files the other process still needs. Symptom observed: `test-setup-toolkit-diagnose` intermittently fails one Check 8 orphan-agent assertion under the parallel `run-all.sh` runner (passes 40/40 when run solo; re-run passes). Currently no external caller runs during `make test`, so the in-process sequential 40 `run_diag` calls shouldn't collide — which means the trigger is probably a stale `/tmp` file from a prior aborted run persisting across invocations (trap doesn't fire on SIGKILL or uncaught errors with `set -e`). Fix: replace `/tmp/ct-setup-diag-*` with a per-invocation `mktemp -d` dir stored in a variable, with the trap cleaning that dir. Touches ~8 call sites in the script. No behavior change for happy path; eliminates the flake and the real-world multi-user `/tmp` collision risk.
-
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
