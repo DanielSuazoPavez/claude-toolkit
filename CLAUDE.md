@@ -21,7 +21,7 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 - **Capture lessons aggressively**: When you notice a correction, gotcha, pattern, or convention worth preserving, use `/learn` without hesitation. Bias toward capturing — pruning and crystallization happen later via `/manage-lessons`
 - **No sudo access**: Don't run sudo commands — provide shell commands for the user to run manually when elevated privileges are needed
 - **Verify before stating**: Don't state how a system works without checking the code first — read the actual implementation rather than assuming from names or conventions
-- **`make check` runs in full**: `make check` is SUPPOSED TO RUN without cutting output — never pipe it through `head`/`tail`/`grep` filters that hide test failures. Run it bare so the full pass/fail tally is visible
+- **Verification is `make check`, invoked bare**: Default verification after implementation is `make check`. Do NOT pipe through `head`/`tail`/`grep` or other filters — the full output is what you need. If it fails, read the complete output before re-running. `make check` here = `make test` + `make validate` (no lint target in this repo — it's bash-first; see `.claude/docs/essential-conventions-code_style.md` §4 for the full convention)
 
 ## Structure
 

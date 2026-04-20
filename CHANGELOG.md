@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.60.0] - 2026-04-20 - Verification flow standard (make check read-only, formatting in pre-commit)
+
+### Added
+- **docs**: `.claude/docs/essential-conventions-code_style.md` §4 Verification — defines the standard for consumer Python projects. `make check` = `make lint` (`ruff check` + `ty`, no `--fix`) + `make test` (pytest, `--tb=short -q`). Both read-only; `make check` never mutates files. Formatting lives in pre-commit (`ruff format`, whitespace hooks) and runs at `git commit`, not from `make check`. No `make format` target. Deferred-until-slow guidance for pytest markers (`unit`/`integration`/`slow` + `make test-all`) included. Rationale section calls out the reformat-on-exit-1 vs flaky-test confusion that motivated the separation.
+- **docs**: Python Tooling bullet in §3 updated to mention `ty` and point at §4 for the format-vs-lint split.
+
+### Changed
+- **docs**: `CLAUDE.md` `make check` rule tightened from "never pipe through head/tail/grep" (defensive) to "verification is `make check`, invoked bare" (prescriptive), with a pointer to the new §4. This repo stays bash-first — `make check` here remains `make test + make validate` (no lint target, no Python code to lint).
+
+### Notes
+- Backlog: new P3 entry `shellcheck-shipped-bash` — lint `.claude/scripts/`, `.claude/hooks/`, and shipped `cli/**/*.sh` with shellcheck. Skip test scripts. Trigger: next bash bug that shellcheck would have caught.
+- Design: `output/claude-toolkit/design/20260420_1229__brainstorm-idea__verification-flow-standard.md` (local, gitignored) captures the full problem framing (truncation, reformat confusion, slow-tests-latent).
+
 ## [2.59.4] - 2026-04-20 - Clarify /wrap-up version-bump triage and [Unreleased] fold rule
 
 ### Changed

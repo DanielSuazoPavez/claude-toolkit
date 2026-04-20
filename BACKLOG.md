@@ -31,6 +31,10 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P3 - Low
 
+- **[SCRIPTS]** Lint shipped bash with shellcheck (`shellcheck-shipped-bash`)
+    - **scope**: `scripts, hooks, toolkit`
+    - **notes**: Add `shellcheck` (and optionally `shfmt` via pre-commit) over shipped bash only — `.claude/scripts/`, `.claude/hooks/`, `cli/**/*.sh`. Skip `tests/*.sh` (low payoff for the noise). Decide whether to wire into a new `make lint` here or keep `make check = test + validate` unchanged and expose shellcheck as `make lint-bash`. Related: the verification convention in `essential-conventions-code_style.md` §4 applies to consumer Python projects; this task is the bash-first application of the same principle for this repo. Trigger to act: next time a bash bug slips through (unquoted var, `[ ]` pitfall) that shellcheck would have caught.
+
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
