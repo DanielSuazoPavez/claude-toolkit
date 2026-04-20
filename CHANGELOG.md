@@ -2,8 +2,14 @@
 
 ## [Unreleased]
 
+## [2.59.4] - 2026-04-20 - Clarify /wrap-up version-bump triage and [Unreleased] fold rule
+
+### Changed
+- **skills**: `/wrap-up` step 4 now uses a 5-row decision table (Major/Minor/Patch + two explicit no-bump → `[Unreleased]` rows) instead of the previous flowchart+prose. Step 5 adds an explicit fold rule: check `[Unreleased]` before writing the new version entry, fold any existing content into the new section, then clear it. New anti-pattern row "Stale Unreleased" flags the same bug in the quick-scan table. Redundant pre-release block collapsed into a single line.
+
 ### Notes
-- Docs: `BACKLOG.md` reorganized — removed `tests-rethink-suite-phase3` and `skill-token-density`; demoted `agent-model-routing` and `agent-reasoning-activation` from P3 to P99; added two P1 tasks: `revisit-wrap-up` (rethink `/wrap-up` decomposition) and `ecosystems-opt-in` (make lessons + traceability/logging ecosystems opt-in per project). Folded `design`/`drafts` fields into `notes` for `design-aws` to satisfy backlog validator.
+- Docs: `BACKLOG.md` reorganized (previous cycle) — removed `tests-rethink-suite-phase3` and `skill-token-density`; demoted `agent-model-routing` and `agent-reasoning-activation` from P3 to P99; added two P1 tasks: `ecosystems-opt-in` (make lessons + traceability/logging ecosystems opt-in per project) and `revisit-wrap-up` (now partially addressed by this release — backlog item removed).
+- Docs: `BACKLOG.md` — `revisit-wrap-up` removed. The stale-`[Unreleased]` symptom and bump-triage ambiguity were the core pain points and are addressed inline. Broader decomposition concerns (`/bump-version` split, hook-enforced ordering, edge-case extraction) are not yet done — reopen as a new task if they prove worth tackling.
 
 ## [2.59.3] - 2026-04-18 - Move canonical lessons schema to claude-sessions
 
