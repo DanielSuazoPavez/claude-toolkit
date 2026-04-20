@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [2.60.1] - 2026-04-20 - Drop tool:/agent: prefix from hook_logs.call_id
+
+### Fixed
+- **hooks**: `lib/hook-utils.sh` now writes the bare Anthropic id into `hook_logs.call_id` (`toolu_...` for Pre/PostToolUse, `agent_id` for SubagentStop) instead of the prefix-namespaced form (`tool:<id>` / `agent:<id>`) introduced in 2.57.0. The prefix broke the documented cross-DB join `tool_calls.tool_use_id = hooks.hook_logs.call_id` (on `session_id`) shipped by claude-sessions 0.31.0. Tool-vs-agent is already derivable from `hook_event`, so the prefix was redundant. `tests/hooks/test-call-id.sh` assertion updated to match. No toolkit read path parsed the prefix.
+
+### Changed
+- **docs**: `docs/indexes/HOOKS.md` hook_logs column reference now documents `call_id` as a bare id and names the `(session_id, call_id) ↔ claude-sessions.tool_calls.tool_use_id` join.
+
+### Notes
+- claude-sessions 0.31.0 ships a one-shot backfill that strips existing `tool:` / `agent:` prefixes from `hook_logs.call_id` on first open of `hooks.db`. After this release, the backfill becomes a permanent no-op — no migration coordination required.
+
 ## [2.60.0] - 2026-04-20 - Verification flow standard (make check read-only, formatting in pre-commit)
 
 ### Added

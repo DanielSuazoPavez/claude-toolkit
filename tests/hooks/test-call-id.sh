@@ -1,6 +1,6 @@
 #!/bin/bash
 # Verifies hook-utils.sh extracts .tool_use_id / .agent_id from stdin and
-# writes a prefix-namespaced value into hook_logs.call_id for per-call grouping.
+# writes the bare id into hook_logs.call_id (tool-vs-agent is derived from hook_event).
 set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
@@ -27,13 +27,13 @@ echo "{\"session_id\":\"$sid\",\"tool_use_id\":\"$tid\",\"tool_name\":\"Bash\",\
 
 TESTS_RUN=$((TESTS_RUN + 1))
 got=$(sqlite3 "$hooks_db" "SELECT call_id FROM hook_logs WHERE session_id = '$sid' LIMIT 1" 2>/dev/null)
-if [ "$got" = "tool:$tid" ]; then
+if [ "$got" = "$tid" ]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    report_pass "Bash PreToolUse call_id captured as tool:<tool_use_id>"
+    report_pass "Bash PreToolUse call_id captured as bare tool_use_id"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
     report_fail "Bash PreToolUse call_id not captured"
-    report_detail "Expected: tool:$tid"
+    report_detail "Expected: $tid"
     report_detail "Got: ${got:-<empty>}"
 fi
 
