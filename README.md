@@ -97,6 +97,12 @@ For full listings with status and details, see [`docs/indexes/`](docs/indexes/).
 - `make` — test runner and common task targets
 - `uv` — Python dependency management (Python-specific hooks expect this)
 
+### Contributing to this repo
+
+Additional tool required when developing the toolkit itself (not needed in consumer projects):
+
+- `shellcheck` — bash linter gating `make check` over shipped bash (`.claude/hooks/`, `.claude/scripts/`, `cli/**/*.sh`). Install: `sudo apt install shellcheck` (Debian/Ubuntu) or `brew install shellcheck` (macOS).
+
 ## Configuration
 
 ### settings.local.json

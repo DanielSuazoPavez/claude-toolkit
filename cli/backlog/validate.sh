@@ -34,11 +34,10 @@ if [[ -t 1 ]]; then
     RED='\033[0;31m'
     YELLOW='\033[0;33m'
     GREEN='\033[0;32m'
-    DIM='\033[0;90m'
     BOLD='\033[1m'
     RESET='\033[0m'
 else
-    RED='' YELLOW='' GREEN='' DIM='' BOLD='' RESET=''
+    RED='' YELLOW='' GREEN='' BOLD='' RESET=''
 fi
 
 errors=()

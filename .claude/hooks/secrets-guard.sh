@@ -57,9 +57,10 @@ BLOCKED_PATHS=(
     "$HOME/.gem/credentials:::gem credentials may expose RubyGems API keys"
 )
 
-# Normalize ~ to $HOME
+# Normalize a literal leading "~/" typed by the user to $HOME.
 normalize_path() {
     local p="$1"
+    # shellcheck disable=SC2088  # intentional literal-tilde match, not expansion
     if [[ "$p" == "~/"* ]]; then
         p="$HOME/${p#\~/}"
     fi

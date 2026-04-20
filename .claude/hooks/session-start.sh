@@ -44,21 +44,18 @@ fi
 # Output essential docs — these are always relevant
 ESSENTIAL_OUT=""
 ESSENTIAL_COUNT=0
-for dir in "$DOCS_DIR"; do
-  [ -d "$dir" ] || continue
-  for f in "$dir"/essential-*.md; do
-    if [ -f "$f" ]; then
-      ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
-      _name="${f##*/}"
-      _name="${_name%.md}"
-      _content=$(cat "$f" 2>/dev/null) || _content="(Error reading file - permission denied or corrupted)"
-      ENTRY_CONTENT="=== ${_name} ===
+for f in "$DOCS_DIR"/essential-*.md; do
+  if [ -f "$f" ]; then
+    ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
+    _name="${f##*/}"
+    _name="${_name%.md}"
+    _content=$(cat "$f" 2>/dev/null) || _content="(Error reading file - permission denied or corrupted)"
+    ENTRY_CONTENT="=== ${_name} ===
 ${_content}
 "
-      hook_log_section "essential:${_name}" "$ENTRY_CONTENT"
-      ESSENTIAL_OUT="${ESSENTIAL_OUT}${ENTRY_CONTENT}"
-    fi
-  done
+    hook_log_section "essential:${_name}" "$ENTRY_CONTENT"
+    ESSENTIAL_OUT="${ESSENTIAL_OUT}${ENTRY_CONTENT}"
+  fi
 done
 printf '%s' "$ESSENTIAL_OUT"
 _hook_perf_probe "essential_docs"

@@ -24,14 +24,12 @@
 #   1 - Issues found
 
 CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$CLAUDE_DIR/.." && pwd)"
 SETTINGS="$CLAUDE_DIR/settings.json"
 TEMPLATE_DIR="$CLAUDE_DIR/templates"
 
 # Colors
 RED='\033[0;31m'
-GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
@@ -66,8 +64,6 @@ fi
 # Start a check section. Sets current check context.
 # Usage: check_start <number> <name>
 check_start() {
-    local num="$1" name="$2"
-    CURRENT_CHECK_NUM="$num"
     CURRENT_CHECK_MISSING=0
     CURRENT_CHECK_EXTRA=0
     CURRENT_CHECK_ORPHANS=0
@@ -80,7 +76,6 @@ check_start() {
 # Usage: check_end <number> <name> <output_text>
 check_end() {
     local num="$1" name="$2" output="$3"
-    local total=$((CURRENT_CHECK_MISSING + CURRENT_CHECK_EXTRA + CURRENT_CHECK_ORPHANS + CURRENT_CHECK_STALE_REFS + CURRENT_CHECK_CLEANUP + CURRENT_CHECK_SUGGESTIONS))
     local status="PASS"
     # Issues that need fixing (not extras or suggestions)
     local fixable=$((CURRENT_CHECK_MISSING + CURRENT_CHECK_ORPHANS + CURRENT_CHECK_STALE_REFS + CURRENT_CHECK_CLEANUP))
