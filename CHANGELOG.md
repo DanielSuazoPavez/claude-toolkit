@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [2.60.2] - 2026-04-20 - Shellcheck gate on shipped bash
+
+### Added
+- **build**: `make lint-bash` target runs `shellcheck -S warning` over shipped bash (`.claude/hooks/`, `.claude/scripts/`, `cli/backlog/`, `cli/eval/`). Wired into `make check` between `test` and `validate`. Target fails clearly with an install hint if `shellcheck` is missing. Bash-first application of the §4 verification convention that covers Python in consumer projects.
+
+### Fixed
+- **hooks**: `session-start.sh` — the essential-docs loop `for dir in "$DOCS_DIR"` (SC2066) iterated exactly once regardless of intent; collapsed to a direct glob over `"$DOCS_DIR"/essential-*.md`. No behavioral change in practice (there was only ever one dir), but the loop was misleading scaffolding.
+- **hooks**: `approve-safe-commands.sh` — removed 6 dead `prev_char` assignments and its `local` declaration inside the tokenizer loop; the variable was assigned but never read (SC2034). No behavior change.
+- **scripts**: `validate-resources-indexed.sh` — `case "$line" in skills/*/|skills/*/)` had a duplicate pattern (SC2221/2222); collapsed to a single branch. Also switched `find ... -exec dirname {} \; | xargs` to `find ... -printf '%h\n' | xargs` for null-safety (SC2038).
+- **scripts**: dead-variable cleanup across `setup-toolkit-diagnose.sh` (SCRIPT_DIR, GREEN, CURRENT_CHECK_NUM, unused `local total`), `validate-settings-template.sh` (unused `label` param + matching call-site args), `cli/backlog/validate.sh` (DIM — never referenced), `cli/eval/query.sh` (BLUE — never referenced).
+
+### Changed
+- **hooks**: `lib/hook-utils.sh` — added `# shellcheck disable=SC2034` on `INPUT="$HOOK_INPUT"` with a note that it's read by sourcing hooks/scripts (`statusline-capture.sh`, `test-validate-hook-utils.sh`). The "backward compat" intent is now explicit to shellcheck and readers.
+- **hooks**: `grouped-read-guard.sh` — added `# shellcheck disable=SC2034` on `FILE_PATH=...` documenting the contract (dispatcher sets, sourced check modules read). The variable had been removed in an earlier pass of this change and broke 5 `test-grouped-read.sh` assertions; suppression with a comment is the right fix.
+- **hooks**: `block-config-edits.sh`, `secrets-guard.sh` — added `# shellcheck disable=SC2088` on `[[ "$x" == "~/"* ]]` tilde-prefix matches. This is an intentional literal-tilde match (detecting a `~/`-prefixed path the user typed), not a failed tilde expansion. SC2088 is a false positive in this context.
+
+### Notes
+- Contributors now need `shellcheck` locally (`sudo apt install shellcheck` / `brew install shellcheck`). Documented in `README.md` under a new **Contributing to this repo** sub-section of Dependencies — kept separate from the consumer-facing runtime deps list so synced projects don't inherit a phantom requirement.
+- Backlog: `shellcheck-shipped-bash` removed (completed). New P3 entry `diag-tmp-collision` surfaced during this work — `setup-toolkit-diagnose.sh` uses shared `/tmp/ct-setup-diag-*` paths for cross-check state, causing intermittent test flakes and a real-world multi-invocation collision risk.
+
 ## [2.60.1] - 2026-04-20 - Drop tool:/agent: prefix from hook_logs.call_id
 
 ### Fixed
