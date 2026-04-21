@@ -17,15 +17,15 @@ Three findings:
 
 1. **`type:` frontmatter drift — 2 instances** (`build-communication-style: type: command` at **line 6** not line 3 — frontmatter is reordered here vs the other 17; `snap-back: type: command`). Both picked up by the repo-wide sweep (workflow queue item 7). The `build-communication-style` variant at line 6 is the only instance in the whole directory that doesn't live at line 3; the sweep should handle it regardless (it's matching `^type:`), but worth noting that frontmatter field ordering isn't normalized across skills.
 
-2. **`casual_communication_style` reference in `snap-back`** (line 75) — **the doc exists, but in `.claude/memories/`, not `.claude/docs/`.** Not a broken reference — just potentially ambiguous because readers seeing `casual_communication_style` naturally look in `.claude/docs/` first (where most named-reference docs live). The reference itself is valid; the location isn't implied and isn't obvious. Options: (a) leave as-is (the memory system auto-loads under its own conditions — the skill's reader doesn't need to know the path), (b) qualify the reference (e.g., "`casual_communication_style` memory"), or (c) tolerate ambiguity. Low-priority polish, not drift.
+2. **`casual_communication_style` reference in `snap-back`** (line 75) — **remove.** User confirmed: the memory is user-explicit only (loaded on-demand by user, never auto-triggered), has no bearing on `snap-back`'s reset protocol, and doesn't belong in the skill's See also. The reference is incidental, not load-bearing. Drop the line.
 
 3. **`AskUserQuestion` in allowed-tools** (`build-communication-style` line 5) — this is the only skill in the directory using that tool. Ties to backlog task **`skill-interactive-options`** (P99): *"Add interactive option selection to skills that ask questions."* That backlog item frames `build-communication-style`'s use of `AskUserQuestion` as the pattern reference — calibration-by-paired-examples already uses structured single-select. Other skills that ask categorical questions could convert similar decision points to structured option selection. So this isn't just a rare tool — it's the canonical example of a shape the backlog wants to spread.
 
 **User resolutions surfaced during review:**
-- **`casual_communication_style` is a memory, not a `.claude/docs/` file** — the reference in `snap-back` is valid (doc exists at `.claude/memories/casual_communication_style.md`), just not path-qualified. Low-priority polish at most; status-quo is acceptable.
+- **Remove `casual_communication_style` reference from `snap-back`.** The memory is user-explicit only and has no place in the skill's See also. Line 75 drops.
 - **`AskUserQuestion` use in `build-communication-style` is the canonical pattern for `skill-interactive-options` backlog task (P99).** The skill's paired-example calibration is already the shape the backlog wants to spread to other categorical-question skills — this is a reference example, not a one-off.
 
-Findings below: 2 Rewrite (both on `type:` sweep), no Investigate, no Keep independent of the sweep.
+Findings below: 2 Rewrite (both on `type:` sweep; `snap-back` additionally drops one See also line), no Investigate, no Keep independent of the sweep.
 
 ---
 
@@ -86,18 +86,16 @@ Findings below: 2 Rewrite (both on `type:` sweep), no Investigate, no Keep indep
 
   **"The Balance" (line 65-70)** — three-state illustration (Too cold / Too warm / Just right). *"That won't work because X. Try Y instead"* as the just-right example is practical — shows that anti-sycophancy ≠ hostility; direct ≠ rude.
 
-  **`casual_communication_style` reference on line 75 — valid but location-ambiguous.** User confirmed: the doc exists at `.claude/memories/casual_communication_style.md`, not `.claude/docs/`. The reference is correct by name; the implied path is ambiguous because most named-reference docs in this tree live under `.claude/docs/`. The memory system auto-loads under its own conditions (on-demand only — line 10 of the memory itself: *"User on-demand ONLY - never auto-load or proactively read"*), so the reader typically doesn't need to know the path. No urgent action.
-
-  Low-priority polish options (none required): qualify to `` `casual_communication_style` memory `` for clarity, or leave status-quo. Either is acceptable.
+  **`casual_communication_style` reference on line 75 — remove.** User-locked: the memory is user-explicit only (on-demand loading, never auto-triggered) and has no role in `snap-back`'s reset protocol. Including it in See also implies relevance that isn't there. Drop the line; the remaining reference to `essential-preferences-communication_style` carries the whole See also correctly.
 
   **Frontmatter drift:** `type: command` at line 3. Picked up by repo-wide sweep (workflow queue item 7).
 
-  See also references `essential-preferences-communication_style` (canonical — correct) and `casual_communication_style` (valid memory reference, see above). No agent / brainstorm references.
+  See also references `essential-preferences-communication_style` (canonical — correct; stays) and `casual_communication_style` (remove per above). No agent / brainstorm references.
 
   Workshop-shaped: runs in consumer session, re-reads consumer's preferences doc, does not write anything. Pure in-context course correction.
 
-- **Action:** `type: command` → `metadata: { type: command }` as part of repo-wide sweep (queue item 7). No other action required — `casual_communication_style` reference is valid as-is.
-- **Scope:** trivial (sweep-covered).
+- **Action:** at decision point: (1) `type: command` → `metadata: { type: command }` as part of repo-wide sweep (queue item 7); (2) remove the `casual_communication_style` bullet from See also (line 75). Two trivial edits.
+- **Scope:** (1) trivial (sweep-covered). (2) trivial (1-line removal).
 
 ---
 
@@ -116,7 +114,7 @@ Findings below: 2 Rewrite (both on `type:` sweep), no Investigate, no Keep indep
 
 - **Frontmatter field ordering isn't normalized.** `build-communication-style` has frontmatter field order: `name, description, argument-hint, allowed-tools, type`. Most other skills use `name, type, description, ...`. The content sweep (move `type:` → `metadata.type`) resolves the `type` placement, but field ordering more broadly is inconsistent. Polish pass candidate, not v3-blocking. Could be automated via a small linter.
 
-- **Named cross-references are ambiguous across `.claude/docs/` vs `.claude/memories/`.** `snap-back` → `casual_communication_style` is valid (the memory exists) but the path isn't qualified, and the name's shape (`*_communication_style`) matches the `.claude/docs/essential-preferences-communication_style.md` pattern — readers naturally look in docs first. A small cross-reference validator that resolves names against *both* `.claude/docs/` and `.claude/memories/` (and maybe `.claude/agents/`, skills) would catch the broader "does this reference resolve anywhere?" question, not just the narrow "does it exist in docs." Related to the output-path validator thought (workflow queue item 10) and the indexes-validator drift — same family of "small validator prevents small drift."
+- **Named cross-references blur `.claude/docs/` vs `.claude/memories/` scope.** The `snap-back` → `casual_communication_style` reference was resolvable by name but wrong on relevance — the memory is user-explicit only and doesn't belong as a skill See also regardless of path. That's a judgment failure, not a validator-catchable drift: a link-checker would say "resolves, fine." The broader thought still stands — a cross-reference validator that resolves names across docs + memories + agents + skills would catch *other* drift — but it wouldn't have caught this one. Flag as a validator feature for stage-5 polish, not as justification for the specific fix here.
 
 - **`AskUserQuestion` use in `build-communication-style` is the reference pattern for backlog task `skill-interactive-options` (P99).** Not a rare one-off — it's the model the backlog wants to spread to other skills with categorical decision points. When that task gets picked up, this skill's paired-example calibration is the template.
 
@@ -130,18 +128,18 @@ Findings below: 2 Rewrite (both on `type:` sweep), no Investigate, no Keep indep
 
 **Resolved during review (pending execution — trivial scope):**
 
-1. `build-communication-style/SKILL.md` line 11 — **update `/brainstorm-idea` reference → `/brainstorm-feature`** when the brainstorm rename ships (workflow queue item 3). Rename-lockstep, 1 occurrence.
+1. `snap-back/SKILL.md` line 75 — **remove `casual_communication_style` See also bullet.** Memory is user-explicit only; not relevant to this skill's reset protocol. 1-line deletion.
+
+2. `build-communication-style/SKILL.md` line 11 — **update `/brainstorm-idea` reference → `/brainstorm-feature`** when the brainstorm rename ships (workflow queue item 3). Rename-lockstep, 1 occurrence.
 
 **Coordinated with other audit directories:**
 
-2. **`type:` frontmatter sweep** — contributes 2 instances from this subset (both `command`). Running total across audited subsets: 10 (4 workflow + 1 code quality + 3 design & arch + 2 personalization). Remaining dev tools and toolkit dev subsets will add more. Picked up by workflow queue item 7.
+3. **`type:` frontmatter sweep** — contributes 2 instances from this subset (both `command`). Running total across audited subsets: 10 (4 workflow + 1 code quality + 3 design & arch + 2 personalization). Remaining dev tools and toolkit dev subsets will add more. Picked up by workflow queue item 7.
 
-3. **Cross-reference validator** — `snap-back`'s `casual_communication_style` reference resolves (to `.claude/memories/`, not `.claude/docs/`), but the ambiguity of where to look surfaces a broader validator need: walk all `.claude/` markdown cross-references and resolve against docs + memories + agents + skills. Same family as the output-path validator (workflow queue item 10) and the indexes-validator drift. Worth bundling into a single "small validators" backlog item for stage-5 polish.
+4. **Cross-reference validator** — while the `snap-back` → `casual_communication_style` issue was judgment (not link-resolution) and wouldn't have been caught by a link-checker, the broader need stands: walk all `.claude/` markdown cross-references and resolve against docs + memories + agents + skills. Same family as the output-path validator (workflow queue item 10) and the indexes-validator drift. Bundle into a single "small validators" backlog item for stage-5 polish.
 
-4. **`skill-interactive-options` backlog task (P99)** — `build-communication-style`'s `AskUserQuestion` use is the reference pattern. When the task gets picked up, this skill is the template; `brainstorm-idea` (and `brainstorm` after the rename) should also be evaluated for AskUserQuestion conversion.
+5. **`skill-interactive-options` backlog task (P99)** — `build-communication-style`'s `AskUserQuestion` use is the reference pattern. When the task gets picked up, this skill is the template; `brainstorm-idea` (and `brainstorm` after the rename) should also be evaluated for AskUserQuestion conversion.
 
 **Still open / low-priority:**
 
-5. **Frontmatter field ordering normalization** — `build-communication-style` uses a non-standard field order (`name, description, argument-hint, allowed-tools, type`). Most other skills use `name, type, description, ...`. The `type:` sweep resolves the `type` placement; broader ordering is a polish pass, not v3-blocking. Could be automated with a small linter.
-
-6. **Cross-reference ambiguity polish** — optional qualification of `snap-back`'s `casual_communication_style` reference (e.g., "` casual_communication_style` memory") to disambiguate from docs-by-default reading. Status-quo is acceptable; the memory's auto-load conditions mean path-awareness isn't required of the reader.
+6. **Frontmatter field ordering normalization** — `build-communication-style` uses a non-standard field order (`name, description, argument-hint, allowed-tools, type`). Most other skills use `name, type, description, ...`. The `type:` sweep resolves the `type` placement; broader ordering is a polish pass, not v3-blocking. Could be automated with a small linter.
