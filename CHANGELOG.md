@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.61.3] - 2026-04-21 - skill path references + adaptive thinking gating
+
+### Changed
+- **skills**: Updated 3 path references across `analyze-idea`, `create-agent`, and `review-plan` to align with workshop literal paths (output/claude-toolkit/...).
+- **settings**: Disabled adaptive thinking in base distribution template and toolkit repo settings — reduces API cost and latency overhead for deterministic operations.
+- **skills**: `write-handoff` updated (audit v3 B4); `create-hook` refactored (audit v3 B4).
+- **skills**: Increased line limits in `create-skill` skill for longer skill source files.
+
 ## [2.61.2] - 2026-04-21 - v3 A2: brainstorm pair rename + audit completion
 
 ### Changed
