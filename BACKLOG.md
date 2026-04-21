@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-**v3 — Resource workshop reframe.** claude-toolkit is a resource workshop (canonical place where Claude Code resources are authored, refined, distributed), not an orchestrator. v3 is a deliberate review moment: rewrite self-description, exhaustively audit code/resources for orchestrator-thinking leakage, revisit resources through workshop + Opus 4.7 clarity lens, verify setup-toolkit, polish. Staged (stages 1–5 at P0). Design: `output/claude-toolkit/design/20260420_2007__brainstorm-idea__claude-toolkit-v3.md`. Distribution tailoring and lessons-ecosystem data analysis are explicitly post-v3.
+**v3 — Resource workshop reframe complete.** All 5 stages done: identity rewrite, exhaustive code/structure audit, resource revisit (4.7 clarity pass), setup-toolkit health-check, and polish scoping. The tasks below at P2 and P3 are the direct output of the v3 audit — concrete fixes and follow-ups surfaced during the stage-2 skills walk and consolidated in `planning/v3-audit/stage2-decisions.md`. Design: `output/claude-toolkit/design/20260420_2007__brainstorm-idea__claude-toolkit-v3.md`. Distribution tailoring and lessons-ecosystem data analysis are explicitly post-v3.
 
 **See also:** `output/claude-toolkit/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
 
@@ -19,35 +19,41 @@
 
 ---
 
-## P0 - Critical
-
-- **[TOOLKIT]** v3 Stage 1 — Identity rewrite (`v3-stage-1-identity-rewrite`)
-    - **scope**: `toolkit`
-    - **notes**: Pure prose work. Rewrite self-description from "orchestrator" to "resource workshop" across: README.md, CLAUDE.md, .claude/docs/relevant-project-identity.md, suggestions-box/CLAUDE.md, docs/ top-level user-facing docs, .claude/memories/ auto-memory, any .claude/docs/relevant-* docs touching project purpose/role. Explicitly NOT touching skills/agents/hooks descriptions (stage 3), dist/CLI code (stage 2), or suggestions-box workflow (stage 2). Design: `output/claude-toolkit/design/20260420_2007__brainstorm-idea__claude-toolkit-v3.md`.
-
-- **[TOOLKIT]** v3 Stage 2 — Code/structure audit (exhaustive) (`v3-stage-2-code-audit`)
-    - **scope**: `toolkit`
-    - **notes**: Walk every file in the repo asking "does this shape assume orchestration, or is it workshop-shaped?" Output: one findings doc per directory at `planning/v3-audit/{directory}.md` (tracked, new top-level `planning/` folder). Every file listed with a finding tag: Keep / Rewrite / Defer / Investigate. Checklist-style, resumable across sessions. Audit targets: cli/, dist/, .claude/hooks/, .claude/agents/, .claude/skills/, .claude/docs/, suggestions-box/, output/ layout, .github/, top-level files. Decision point after audit: which Rewrite items are v3-scope vs deferred. Don't let distribution tailoring or lessons-ecosystem analysis sneak in.
-    - **depends on**: `v3-stage-1-identity-rewrite`
-
-- **[TOOLKIT]** v3 Stage 3 — Resource revisit (4.7 clarity pass) (`v3-stage-3-resource-revisit`)
-    - **scope**: `toolkit, skills, agents, hooks`
-    - **notes**: Walk skills/agents/hooks/docs through two lenses simultaneously: workshop framing (any identity residue from stage 2) + Opus 4.7's preference for more explicit/clear instructions. Same checklist-per-directory pattern as stage 2. Stage 2 will have already flagged framing issues — stage 3 focuses on clarity/explicitness.
-    - **depends on**: `v3-stage-2-code-audit`
-
-- **[TOOLKIT]** v3 Stage 4 — setup-toolkit health-check (`v3-stage-4-setup-toolkit-check`)
-    - **scope**: `toolkit, skills`
-    - **notes**: Narrow single-skill audit: does setup-toolkit reliably make a project a consumer of the workshop? Identity is now settled, so the question is focused. Likely produces a short findings doc, possibly small fixes. Not a known problem — this is verification.
-    - **depends on**: `v3-stage-3-resource-revisit`
-
-- **[TOOLKIT]** v3 Stage 5 — Polish (`v3-stage-5-polish`)
-    - **scope**: `toolkit`
-    - **notes**: Sweep accumulated small stuff from stages 2–4 tagged "Defer — but worth doing" or "Investigate." Natural end-of-v3 cleanup. Also a home for cruft noticed during the work.
-    - **depends on**: `v3-stage-4-setup-toolkit-check`
-
 ## P1 - High
 
 ## P2 - Medium
+
+- **[SKILLS]** v3 A1 — `metadata.type` sweep across all 35 skills (`v3-a1-metadata-type-sweep`)
+    - **scope**: `skills`
+    - **notes**: All-or-nothing coordinated commit. Move 17 skills carrying `type:` to `metadata: { type: ... }`. Add explicit `metadata: { type: knowledge }` to the 18 skills with no `type:` field (don't rely on the default). Lockstep update to `evaluate-skill/SKILL.md` at 4 locations: lines 42-48 (Skill Types table), 54-58 (Dimension Adjustments table), 259 (Evaluation Protocol step 2), 224 (JSON output schema). `evaluations.json` keeps `type` at top level. Full file list in `planning/v3-audit/stage2-decisions.md` §A1.
+
+- **[SKILLS]** v3 A2 — brainstorm pair rename (`v3-a2-brainstorm-rename`)
+    - **scope**: `skills`
+    - **notes**: Coordinated lockstep commit. `/brainstorm` → `/brainstorm-idea` (output path: `output/claude-toolkit/brainstorms/`). `/brainstorm-idea` → `/brainstorm-feature` (output path unchanged: `output/claude-toolkit/design/`). Run `grep -r '/brainstorm' .claude/skills/` first to find all See also refs. Confirmed: `analyze-idea:11`, `shape-project:108`, `shape-proposal:13`, `refactor:47,105,210`, `build-communication-style:11`. Also update `docs/indexes/SKILLS.md`, `docs/getting-started.md`, `README.md`. Resolves `brainstorm/SKILL.md` output-path drift (`{project}` placeholder → literal path).
+
+- **[SKILLS]** v3 B2+B3+B5 — trivial 1-line skill fixes (`v3-b2-b3-b5-trivial-fixes`)
+    - **scope**: `skills`
+    - **notes**: Three independent 1-line fixes, can land in one commit. B2: `write-handoff/SKILL.md:104` — `mkdir -p .claude/sessions` → `output/claude-toolkit/sessions/` (or remove; Write tool creates parents). B3: `write-documentation/SKILL.md:40` — `output/claude-toolkit/reviews/codebase/` → `.claude/docs/codebase-explorer/{version}/` (codebase-explorer agent writes there, not to reviews/). B5: `evaluate-hook/SKILL.md:274` — `$(dirname "$0")` → `$(dirname "${BASH_SOURCE[0]}")` (Before/After example contradicts rubric anti-pattern table line 202).
+
+- **[SKILLS]** v3 B4 — `write-handoff` prompt pass against intent-attribution (`v3-b4-write-handoff-intent-attribution`)
+    - **scope**: `skills`
+    - **notes**: 15-30 line prompt rewrite. (1) Shrink `## Recent Work` — git log is authoritative for what was done; don't restate commits. (2) Rename `## Context Notes` → `## Blockers / Hidden State` — only for things not in code/git that would prevent resumption. (3) Add "Attributing Intent" anti-pattern: don't synthesize forward-direction from past work; record the user's explicit request, don't extrapolate intent. (4) Optional: validation check — before writing, does every bullet in Next Steps map to something the user explicitly said or a concrete git/file state?
+
+- **[SKILLS]** v3 B6 — `create-hook` upstream link + extract `resources/TEMPLATE.md` (`v3-b6-create-hook-template`)
+    - **scope**: `skills`
+    - **notes**: Two changes in one commit. (a) Add explicit link to official Claude Code hooks documentation in skill body (currently only `resources/HOOKS_API.md:3` links out; skill body does not). (b) Extract lines 44-103 (60-line Bash PreToolUse starting-point script) into `resources/TEMPLATE.md`, matching the `create-skill` / `create-agent` convention — new hooks start by file-copy, not re-typing. Skill body becomes lean: reference TEMPLATE.md as LITERAL STARTING POINT, keep only the *why* inline. ~60 lines moved + new file + skill body adjusted.
+
+- **[SKILLS]** v3 C1 — `read-json` reshape to hook-pointed reference (`v3-c1-read-json-reshape`)
+    - **scope**: `skills`
+    - **notes**: Demote to `metadata: { type: knowledge }`, add `user-invocable: false` (hide from / menu), strip redundant sections (categorical rule, progressive inspection pattern, file-size table, anti-patterns table). Keep shell-quoting traps (lines 37-64: `--arg`/`--argjson` vs interpolation) and malformed-JSON recipes (lines 66-90: BOM, JSONL, trailing commas, truncated, embedded). Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at skill path rather than `/read-json` command syntax.
+
+- **[SKILLS]** v3 C2 — loosen supporting-file rule to 600 lines in `create-skill` (`v3-c2-hooks-api-rule`)
+    - **scope**: `skills`
+    - **notes**: `create-hook/resources/HOOKS_API.md` is 548 lines; `create-skill/SKILL.md:173` says supporting files must be under 500. Resolution: bump threshold to 600 lines — the 500-line limit guards against context bloat, and a 548-line reference loaded on-demand isn't that pattern. Fix: update `create-skill:173` (`<500 lines` → `<600 lines`) and `create-skill:188` (stale "400 lines" count for HOOKS_API.md → actual 548).
+
+- **[SKILLS]** v3 C3 — document opus model rationale in evaluate-* invocation blocks (`v3-c3-evaluate-opus-rationale`)
+    - **scope**: `skills`
+    - **notes**: All 4 evaluate-* skills dispatch `model: "opus"` subagents (evaluate-skill:240, evaluate-agent:165, evaluate-hook:155, evaluate-docs:204). Decision: keep opus — evaluate-* requires cross-dimension judgment, not just checklist execution. Add a brief rationale comment to each invocation block so the choice isn't mistaken for an oversight or an unreviewed default.
 
 ## P3 - Low
 
@@ -77,11 +83,31 @@
     - **scope**: `toolkit`
     - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
 
+- **[TOOLKIT]** v3 E1 — small validators bundle (output-path, cross-reference, indexes) (`v3-e1-validators-bundle`)
+    - **scope**: `scripts, tests`
+    - **notes**: Three validators surfaced across audit subsets. (1) Output-path validator: checks each skill's `Save to:` path matches `output/claude-toolkit/<category>/...` convention. (2) Cross-reference validator: resolves all `.claude/` markdown cross-refs against docs + memories + agents + skills — catches stale See also links. (3) Indexes-validator: verifies `docs/indexes/SKILLS.md` entries match actual filesystem. Bundle into a single script or make target.
+
+- **[DOCS]** v3 E2 — output-shape convention doc (save vs inline) (`v3-e2-output-shape-doc`)
+    - **scope**: `toolkit`
+    - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
+
+- **[SKILLS]** v3 E4 — `setup-toolkit` powerline version bump tracking (`v3-e4-powerline-version-tracking`)
+    - **scope**: `skills`
+    - **notes**: `@owloops/claude-powerline@1.25.1` is hardcoded at `setup-toolkit/SKILL.md:321`. When the next powerline bump lands, grep the full workshop for all references and bump together. Consider adding a single constants location so future bumps are atomic. Polish, triggered by next statusline-related change.
+
+- **[SKILLS]** v3 E5 — frontmatter field ordering normalization across skills (`v3-e5-frontmatter-ordering`)
+    - **scope**: `skills`
+    - **notes**: `build-communication-style` uses non-standard frontmatter order (`name, description, argument-hint, allowed-tools, type`); most skills use `name, type, description, ...`. The A1 sweep resolves `type:` placement but doesn't normalize broader ordering. Could be automated with a small ruff-style linter or a sed pass. Polish, not v3-blocking.
+
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
     - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side. When reworking the surfacing hook, evaluate folding it into `grouped-read-guard` (and/or a future `grouped-bash-guard` merge) — it currently averages 106ms with ~30-40ms of that being bash+jq startup. Constraints: async-injection contract, 5s timeout, Bash|Read|Write|Edit matcher (wider than grouped-read).
 
 ## P99 - Nice to Have
+
+- **[SKILLS]** v3 E3 — `teardown-worktree` artifact-copy scope decision (`v3-e3-teardown-artifact-scope`)
+    - **scope**: `skills`
+    - **notes**: Currently copies only `output/claude-toolkit/reviews/*` from worktree to parent at teardown. Does not copy `pr-descriptions/`, `design/`, `plans/`, `sessions/`. Decide: (a) deliberate — keep per-worktree ephemera scoped, only review artifacts persist; or (b) broaden to include other `output/claude-toolkit/` subdirs a user is likely to want after teardown. No clear right answer; needs a decision before implementing.
 
 - **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
     - **scope**: `skills`
