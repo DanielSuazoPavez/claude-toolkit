@@ -15,7 +15,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 
 | Hook | Status | Trigger | Opt-in | Description |
 |------|--------|---------|--------|-------------|
-| `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. |
+| `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured `session_start_context` row (branch, main branch, cwd) into `hooks.db` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
@@ -59,6 +59,7 @@ Loads essential memories and git context at the start of each session.
 - Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
 - Outputs guidance text for memory usage
 - Logs each section's byte/token size to `.claude/logs/session-start-sizes.log` (SESSION_ID, timestamp, project, section, bytes, ~tokens)
+- Persists a structured row into `hooks.session_start_context` (source, git_branch, main_branch, cwd) per firing — consumed by the claude-sessions projector to seed `state_changes` baselines instead of emitting `from_value=NULL` on first-observation rows. Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1` via the same batched `_hook_log_db` path as `hook_logs`.
 
 ### git-safety.sh
 

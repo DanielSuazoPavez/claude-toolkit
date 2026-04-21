@@ -385,6 +385,21 @@ hook_log_context() {
 }
 
 # ============================================================
+# hook_log_session_start_context GIT_BRANCH MAIN_BRANCH CWD
+# ============================================================
+# Records the structured git/cwd payload observed at each session-start hook
+# firing (startup / resume / clear / compact). Consumed by the sessions
+# projector to seed state_changes baselines with the real starting branch
+# instead of emitting from_value=NULL on first observation.
+hook_log_session_start_context() {
+    local git_branch="$1"
+    local main_branch="$2"
+    local cwd="$3"
+    _hook_log_db "INSERT INTO session_start_context (session_id, invocation_id, timestamp, project, source, git_branch, main_branch, cwd)
+    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$git_branch")', '$(_sql_escape "$main_branch")', '$(_sql_escape "$cwd")');"
+}
+
+# ============================================================
 # _hook_log_timing  (internal — EXIT trap)
 # ============================================================
 _hook_log_timing() {

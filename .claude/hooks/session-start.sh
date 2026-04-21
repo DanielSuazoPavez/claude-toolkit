@@ -75,6 +75,11 @@ GIT_OUT="=== GIT CONTEXT ===
 Branch: $CURRENT_BRANCH
 Main: $MAIN_BRANCH"
 hook_log_section "git" "$GIT_OUT"
+# Structured mirror of the git context, consumed by the sessions projector
+# to seed state_changes baselines instead of emitting from_value=NULL on
+# first-observation rows. Cheap — appends one row to the already-batched
+# hooks.db write.
+hook_log_session_start_context "$CURRENT_BRANCH" "$MAIN_BRANCH" "$PWD"
 echo ""
 echo "$GIT_OUT"
 _hook_perf_probe "git_context"
