@@ -23,11 +23,6 @@
 
 ## P2 - Medium
 
-
-- **[SKILLS]** v3 B2+B3+B5 — trivial 1-line skill fixes (`v3-b2-b3-b5-trivial-fixes`)
-    - **scope**: `skills`
-    - **notes**: Three independent 1-line fixes, can land in one commit. B2: `write-handoff/SKILL.md:104` — `mkdir -p .claude/sessions` → `output/claude-toolkit/sessions/` (or remove; Write tool creates parents). B3: `write-documentation/SKILL.md:40` — `output/claude-toolkit/reviews/codebase/` → `.claude/docs/codebase-explorer/{version}/` (codebase-explorer agent writes there, not to reviews/). B5: `evaluate-hook/SKILL.md:274` — `$(dirname "$0")` → `$(dirname "${BASH_SOURCE[0]}")` (Before/After example contradicts rubric anti-pattern table line 202).
-
 - **[SKILLS]** v3 B4 — `write-handoff` prompt pass against intent-attribution (`v3-b4-write-handoff-intent-attribution`)
     - **scope**: `skills`
     - **notes**: 15-30 line prompt rewrite. (1) Shrink `## Recent Work` — git log is authoritative for what was done; don't restate commits. (2) Rename `## Context Notes` → `## Blockers / Hidden State` — only for things not in code/git that would prevent resumption. (3) Add "Attributing Intent" anti-pattern: don't synthesize forward-direction from past work; record the user's explicit request, don't extrapolate intent. (4) Optional: validation check — before writing, does every bullet in Next Steps map to something the user explicitly said or a concrete git/file state?

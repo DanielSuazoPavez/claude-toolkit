@@ -173,7 +173,7 @@ Contains:
 
 | Requirement | Why |
 |-------------|-----|
-| <500 lines each | Prevent context bloat |
+| <600 lines each | Prevent context bloat |
 | Table of contents if >100 lines | Enable navigation |
 | One level deep | No nested references |
 
@@ -186,7 +186,7 @@ Contains:
 
 `create-hook` demonstrates this pattern:
 - `SKILL.md` (~165 lines): Process + triggers
-- `resources/HOOKS_API.md` (400 lines): Complete API reference
+- `resources/HOOKS_API.md` (548 lines): Complete API reference
 
 ## Testing Your Skill
 
