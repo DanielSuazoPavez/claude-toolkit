@@ -1,5 +1,6 @@
 ---
 name: evaluate-skill
+metadata: { type: knowledge }
 description: Use when reviewing, auditing, or scoring a SKILL.md file. Keywords: skill evaluation, skill audit, skill quality, evaluate skill, score skill, review skill.
 argument-hint: "[skill-name-or-path]"
 compatibility: jq
@@ -38,7 +39,7 @@ Value = knowledge delta. Skills should contain decision trees, trade-offs, edge 
 
 ## Skill Types
 
-Skills declare a `type` in frontmatter: `knowledge` (default) or `command`.
+Skills declare `metadata.type` in frontmatter: `knowledge` (default) or `command`.
 
 | Type | Value Proposition | Examples |
 |------|-------------------|----------|
@@ -256,7 +257,7 @@ Using a separate agent ensures objective assessment without influence from prior
 ## Evaluation Protocol
 
 1. Read completely, mark sections as [E]xpert, [A]ctivation, [R]edundant
-2. Determine type from frontmatter (`type: knowledge|command`, default: `knowledge`). Apply dimension adjustments from [Skill Types](#skill-types) accordingly.
+2. Determine type from frontmatter (`metadata.type: knowledge|command`, default: `knowledge`). Apply dimension adjustments from [Skill Types](#skill-types) accordingly.
 3. Analyze structure: frontmatter, line count, pattern
 4. Score each dimension with evidence
 5. Calculate total and percentage

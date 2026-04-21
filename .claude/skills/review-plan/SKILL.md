@@ -1,11 +1,12 @@
 ---
 name: review-plan
+metadata: { type: knowledge }
 description: Review a plan against quality criteria before approving. Use when requests mention "review plan", "check plan", "verify plan", or "approve plan".
 argument-hint: "[inline] [path-to-plan]"
 allowed-tools: Read, Glob, Agent
 ---
 
-**See also:** `/brainstorm-idea` (when the plan reveals requirements are still unclear), `/wrap-up` (finalize branch after implementation), `code-reviewer` agent (post-implementation code review), `goal-verifier` agent (verify feature completeness), `implementation-checker` agent (compare implementation to plan)
+**See also:** `/brainstorm-idea` (to review decisions after general brainstorming), `/brainstorm-feature` (when the plan reveals requirements are still unclear), `/wrap-up` (finalize branch after implementation), `code-reviewer` agent (post-implementation code review), `goal-verifier` agent (verify feature completeness), `implementation-checker` agent (compare implementation to plan)
 
 ## Dispatch
 

@@ -1,6 +1,6 @@
 ---
 name: setup-worktree
-type: command
+metadata: { type: command }
 description: Set up a git worktree with full Claude configuration. Use when working on multiple branches simultaneously or isolating work for parallel Claude instances. Keywords: worktree, parallel, branch isolation.
 argument-hint: "[optional] Path to context file to symlink into worktree"
 allowed-tools: Bash(git:*), Bash(ln:*), Bash(ls:*), Bash(mkdir:*), Read

@@ -1,5 +1,6 @@
 ---
 name: evaluate-docs
+metadata: { type: knowledge }
 description: Evaluate doc file quality against conventions. Use when reviewing, auditing, or improving docs in .claude/docs/.
 argument-hint: "[doc-name-or-path]"
 compatibility: jq

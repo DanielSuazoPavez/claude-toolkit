@@ -1,6 +1,6 @@
 ---
 name: design-diagram
-type: knowledge
+metadata: { type: knowledge }
 description: Use when requests mention "diagram", "visualize", "architecture diagram", "sequence diagram", "flowchart", "ERD", "C4", or "map out".
 ---
 

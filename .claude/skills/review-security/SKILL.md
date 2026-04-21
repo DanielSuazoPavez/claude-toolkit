@@ -1,5 +1,6 @@
 ---
 name: review-security
+metadata: { type: knowledge }
 description: Targeted security audit of specific files or modules. Use when requests mention "security review", "vulnerability check", "security audit", "attack surface", or "pen test review".
 argument-hint: File paths, module names, or leave empty for recent changes
 allowed-tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*)

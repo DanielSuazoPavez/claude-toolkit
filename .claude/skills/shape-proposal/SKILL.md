@@ -1,16 +1,17 @@
 ---
 name: shape-proposal
-description: Shape a validated design into a presentable proposal for a specific audience. Use AFTER brainstorm-idea when the design is solid but needs to be shared with a team, client, or stakeholder. Keywords: proposal, present, audience, share, reframe, pitch, stakeholder, client.
+metadata: { type: knowledge }
+description: Shape a validated design into a presentable proposal for a specific audience. Use AFTER brainstorm-feature when the design is solid but needs to be shared with a team, client, or stakeholder. Keywords: proposal, present, audience, share, reframe, pitch, stakeholder, client.
 allowed-tools: Read, Write, Agent
 ---
 
-Shape a validated design into a presentable proposal. Use AFTER `brainstorm-idea`, BEFORE plan mode.
+Shape a validated design into a presentable proposal. Use AFTER `brainstorm-feature`, BEFORE plan mode.
 
 ```
-brainstorm-idea -> shape-proposal -> plan mode -> implementation
+brainstorm-feature -> shape-proposal -> plan mode -> implementation
 ```
 
-**See also:** `/brainstorm-idea` (if the design isn't solid yet), `/review-plan` (after proposal is accepted and you're planning implementation)
+**See also:** `/brainstorm-feature` (if the design isn't solid yet), `/review-plan` (after proposal is accepted and you're planning implementation)
 
 ## When to Use
 
@@ -20,7 +21,7 @@ brainstorm-idea -> shape-proposal -> plan mode -> implementation
 
 ## When NOT to Use
 
-- Idea is still fuzzy → use `/brainstorm-idea`
+- Idea is still fuzzy → use `/brainstorm-feature`
 - Ready to implement → use plan mode
 - Document is for yourself / internal notes only
 - Source material is too thin (<1 page) → needs more design work first, not presentation work

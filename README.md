@@ -79,7 +79,7 @@ A skill tells Claude *what to do*. A doc tells Claude *what to know*.
 
 | Resource | Count | Examples |
 |----------|-------|---------|
-| **Skills** | 32 | `/brainstorm-idea`, `/draft-pr`, `/refactor`, `/learn` |
+| **Skills** | 32 | `/brainstorm-feature`, `/draft-pr`, `/refactor`, `/learn` |
 | **Agents** | 7 | `code-reviewer`, `code-debugger`, `pattern-finder` |
 | **Hooks** | 10 | git safety, secrets guard, dangerous command blocking |
 | **Docs** | 12 | code style, communication style, testing conventions |

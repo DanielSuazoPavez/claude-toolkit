@@ -1,5 +1,6 @@
 ---
 name: shape-project
+metadata: { type: knowledge }
 description: Use when defining or refining a project's identity, scope, and boundaries. Use before major refactors, reshaping efforts, or to set guardrails on early-stage projects. Keywords: project identity, scope, boundaries, refactor direction, what is this project.
 allowed-tools: Read, Write, Glob, AskUserQuestion
 ---
@@ -105,7 +106,7 @@ The generic column applies to any project. The specific column makes real keep/c
 
 ## See Also
 
-- `/brainstorm-idea` — use first when the project direction itself is unclear
+- `/brainstorm-feature` — use first when the project direction itself is unclear
 - `.claude/docs/` — where the output is saved (Phase 5)
 - `/refactor` — often follows this skill when cutting scope
 

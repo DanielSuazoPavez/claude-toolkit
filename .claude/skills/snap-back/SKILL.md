@@ -1,6 +1,6 @@
 ---
 name: snap-back
-type: command
+metadata: { type: command }
 description: Use when tone drifts into sycophancy, excessive agreement, or customer-service voice. Also use after user praise or long sessions where style degrades.
 allowed-tools: Read
 ---

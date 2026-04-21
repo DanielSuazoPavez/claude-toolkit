@@ -1,6 +1,6 @@
 ---
 name: design-db
-type: knowledge
+metadata: { type: knowledge }
 description: Use when requests mention "schema design", "database migration", "data modeling", "table design", "indexing strategy", or "normalize".
 ---
 

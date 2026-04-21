@@ -1,6 +1,6 @@
 ---
 name: teardown-worktree
-type: command
+metadata: { type: command }
 description: Close out a worktree after work is complete. Checks for uncommitted changes, copies artifacts, removes worktree, and checks out the branch. Keywords: worktree complete, close worktree, teardown, done.
 allowed-tools: Bash(git:*), Bash(cp:*), Bash(rm:*), Bash(ls:*), Read
 ---

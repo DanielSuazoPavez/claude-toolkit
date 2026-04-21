@@ -1,5 +1,6 @@
 ---
 name: create-agent
+metadata: { type: knowledge }
 description: Create new agents for specialized tasks. Use when adding behavioral specialists to `.claude/agents/`. Keywords: agent creation, new agent, behavioral specialist, subagent, Task tool, spawned agent.
 allowed-tools: Read, Write, Glob, Skill
 ---
