@@ -27,17 +27,9 @@
     - **scope**: `skills`
     - **notes**: 15-30 line prompt rewrite. (1) Shrink `## Recent Work` — git log is authoritative for what was done; don't restate commits. (2) Rename `## Context Notes` → `## Blockers / Hidden State` — only for things not in code/git that would prevent resumption. (3) Add "Attributing Intent" anti-pattern: don't synthesize forward-direction from past work; record the user's explicit request, don't extrapolate intent. (4) Optional: validation check — before writing, does every bullet in Next Steps map to something the user explicitly said or a concrete git/file state?
 
-- **[SKILLS]** v3 B6 — `create-hook` upstream link + extract `resources/TEMPLATE.md` (`v3-b6-create-hook-template`)
-    - **scope**: `skills`
-    - **notes**: Two changes in one commit. (a) Add explicit link to official Claude Code hooks documentation in skill body (currently only `resources/HOOKS_API.md:3` links out; skill body does not). (b) Extract lines 44-103 (60-line Bash PreToolUse starting-point script) into `resources/TEMPLATE.md`, matching the `create-skill` / `create-agent` convention — new hooks start by file-copy, not re-typing. Skill body becomes lean: reference TEMPLATE.md as LITERAL STARTING POINT, keep only the *why* inline. ~60 lines moved + new file + skill body adjusted.
-
 - **[SKILLS]** v3 C1 — `read-json` reshape to hook-pointed reference (`v3-c1-read-json-reshape`)
     - **scope**: `skills`
     - **notes**: Demote to `metadata: { type: knowledge }`, add `user-invocable: false` (hide from / menu), strip redundant sections (categorical rule, progressive inspection pattern, file-size table, anti-patterns table). Keep shell-quoting traps (lines 37-64: `--arg`/`--argjson` vs interpolation) and malformed-JSON recipes (lines 66-90: BOM, JSONL, trailing commas, truncated, embedded). Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at skill path rather than `/read-json` command syntax.
-
-- **[SKILLS]** v3 C2 — loosen supporting-file rule to 600 lines in `create-skill` (`v3-c2-hooks-api-rule`)
-    - **scope**: `skills`
-    - **notes**: `create-hook/resources/HOOKS_API.md` is 548 lines; `create-skill/SKILL.md:173` says supporting files must be under 500. Resolution: bump threshold to 600 lines — the 500-line limit guards against context bloat, and a 548-line reference loaded on-demand isn't that pattern. Fix: update `create-skill:173` (`<500 lines` → `<600 lines`) and `create-skill:188` (stale "400 lines" count for HOOKS_API.md → actual 548).
 
 - **[SKILLS]** v3 C3 — document opus model rationale in evaluate-* invocation blocks (`v3-c3-evaluate-opus-rationale`)
     - **scope**: `skills`
