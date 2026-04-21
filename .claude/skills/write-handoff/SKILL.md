@@ -64,6 +64,7 @@ Create `output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{contex
 ## Recent Work
 - [What was just done in bullet points]
 - [Key changes made]
+- Don't restate commits, `git log` is for that.
 
 ## Key Files
 - `path/to/file.py` - [why it's relevant]
@@ -82,8 +83,8 @@ Create `output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{contex
 2. [Following action]
 3. [Or: See `backlog_[project].md` section X]
 
-## Context Notes
-[Any important context that wouldn't be obvious from files alone]
+## Blockers / Hidden State
+[Any important context that wouldn't be obvious from files alone or git status, and that would block resumption]
 
 ## Resume Prompt
 Read [path] — this is a handoff from a previous session. Resume the work described there: [1-sentence summary of next steps].
@@ -124,6 +125,7 @@ To resume in a new session, paste:
 | **Vague Actions** | "Continue working on feature" | Specific: "Add tests for X in file Y" |
 | **Missing Dependencies** | Next step requires context not saved | Include blockers and prerequisites |
 | **Over-documenting** | Every detail from session | Only what's needed to resume |
+| **Attributing Intent** | Paraphrasing user intent | Record explicit user's request |
 
 ### Examples
 
