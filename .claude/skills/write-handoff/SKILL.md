@@ -101,7 +101,7 @@ The **Resume Prompt** section is a paste-ready sentence for the next session. It
 
 ### 4. Output
 
-1. Create directory if needed: `mkdir -p .claude/sessions`
+1. Create directory if needed: `mkdir -p output/claude-toolkit/sessions`
 2. Write the file to `output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
 3. Report with the resume prompt from the continuation file:
 

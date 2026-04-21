@@ -272,7 +272,7 @@ cat | grep -q "password\|secret\|key" && echo "blocked" && exit 1
 #   echo '{"tool_name":"Bash","tool_input":{"command":"export AWS_SECRET=abc123"}}' | bash secrets-check.sh
 #   # Expected: {"decision":"block","reason":"Potential secret detected..."}
 
-source "$(dirname "$0")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 hook_init "secrets-check" "PreToolUse"
 hook_require_tool "Bash" "Write"
 
