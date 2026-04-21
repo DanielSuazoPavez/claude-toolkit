@@ -1,6 +1,6 @@
 # Suggestions Box
 
-Inbox for resources sent from other projects via `claude-toolkit send`.
+Upstream feedback channel for the workshop. Any downstream project — consumer or satellite — can send resources (new skills, hook modifications, doc suggestions) or issues back to claude-toolkit via `claude-toolkit send`. Organized by source project.
 
 ## When Asked to "Check Suggestions"
 

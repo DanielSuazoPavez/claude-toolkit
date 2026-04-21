@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Notes
+- **v3 Stage 1 — identity rewrite (no version bump).** Toolkit self-description reframed from implicit "orchestrator / center of an ecosystem" to explicit **resource workshop**: the canonical place where Claude Code resources are authored, refined, and distributed; downstream projects (consumers + satellite peers) pull via `claude-toolkit sync`. Edits: `.claude/docs/relevant-project-identity.md` (full rewrite with new Downstream Projects section and runtime-infrastructure scoping rule), `CLAUDE.md` and `README.md` (Project Overview / Design Philosophy sharpened), `docs/getting-started.md` (opening reorients consumers), `suggestions-box/CLAUDE.md` (reframed as upstream feedback channel for any downstream project), `.claude/memories/auto/project_ecosystem.md` + `project_databases_global.md` + `MEMORY.md` (auto-memory; gitignored, local only — corrected "orchestrator" framing and stale `session-index.db` → `sessions.db`). Stage 1 is prose-only and sets the canon stages 2–5 audit against. No code/resource behavior changes. New tracked folder `planning/v3-audit/` introduced for the audit checklists; `planning/v3-audit/dist.md` pre-logs a stage 2 finding (stale gitignore entries for `session-index.db` / `hooks.db` in `dist/base/templates/gitignore.claude-toolkit`). Design: `output/claude-toolkit/design/20260420_2007__brainstorm-idea__claude-toolkit-v3.md`. Backlog: v3 goal + stages 1–5 at P0; old `define-v3` P3 entry removed (superseded).
+
 ## [2.61.0] - 2026-04-20 - Ecosystems opt-in (lessons + traceability)
 
 ### Changed
