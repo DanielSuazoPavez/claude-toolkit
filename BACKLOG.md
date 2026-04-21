@@ -23,26 +23,9 @@
 
 ## P2 - Medium
 
-
-- **[SKILLS]** v3 B2+B3+B5 — trivial 1-line skill fixes (`v3-b2-b3-b5-trivial-fixes`)
-    - **scope**: `skills`
-    - **notes**: Three independent 1-line fixes, can land in one commit. B2: `write-handoff/SKILL.md:104` — `mkdir -p .claude/sessions` → `output/claude-toolkit/sessions/` (or remove; Write tool creates parents). B3: `write-documentation/SKILL.md:40` — `output/claude-toolkit/reviews/codebase/` → `.claude/docs/codebase-explorer/{version}/` (codebase-explorer agent writes there, not to reviews/). B5: `evaluate-hook/SKILL.md:274` — `$(dirname "$0")` → `$(dirname "${BASH_SOURCE[0]}")` (Before/After example contradicts rubric anti-pattern table line 202).
-
-- **[SKILLS]** v3 B4 — `write-handoff` prompt pass against intent-attribution (`v3-b4-write-handoff-intent-attribution`)
-    - **scope**: `skills`
-    - **notes**: 15-30 line prompt rewrite. (1) Shrink `## Recent Work` — git log is authoritative for what was done; don't restate commits. (2) Rename `## Context Notes` → `## Blockers / Hidden State` — only for things not in code/git that would prevent resumption. (3) Add "Attributing Intent" anti-pattern: don't synthesize forward-direction from past work; record the user's explicit request, don't extrapolate intent. (4) Optional: validation check — before writing, does every bullet in Next Steps map to something the user explicitly said or a concrete git/file state?
-
-- **[SKILLS]** v3 B6 — `create-hook` upstream link + extract `resources/TEMPLATE.md` (`v3-b6-create-hook-template`)
-    - **scope**: `skills`
-    - **notes**: Two changes in one commit. (a) Add explicit link to official Claude Code hooks documentation in skill body (currently only `resources/HOOKS_API.md:3` links out; skill body does not). (b) Extract lines 44-103 (60-line Bash PreToolUse starting-point script) into `resources/TEMPLATE.md`, matching the `create-skill` / `create-agent` convention — new hooks start by file-copy, not re-typing. Skill body becomes lean: reference TEMPLATE.md as LITERAL STARTING POINT, keep only the *why* inline. ~60 lines moved + new file + skill body adjusted.
-
 - **[SKILLS]** v3 C1 — `read-json` reshape to hook-pointed reference (`v3-c1-read-json-reshape`)
     - **scope**: `skills`
     - **notes**: Demote to `metadata: { type: knowledge }`, add `user-invocable: false` (hide from / menu), strip redundant sections (categorical rule, progressive inspection pattern, file-size table, anti-patterns table). Keep shell-quoting traps (lines 37-64: `--arg`/`--argjson` vs interpolation) and malformed-JSON recipes (lines 66-90: BOM, JSONL, trailing commas, truncated, embedded). Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at skill path rather than `/read-json` command syntax.
-
-- **[SKILLS]** v3 C2 — loosen supporting-file rule to 600 lines in `create-skill` (`v3-c2-hooks-api-rule`)
-    - **scope**: `skills`
-    - **notes**: `create-hook/resources/HOOKS_API.md` is 548 lines; `create-skill/SKILL.md:173` says supporting files must be under 500. Resolution: bump threshold to 600 lines — the 500-line limit guards against context bloat, and a 548-line reference loaded on-demand isn't that pattern. Fix: update `create-skill:173` (`<500 lines` → `<600 lines`) and `create-skill:188` (stale "400 lines" count for HOOKS_API.md → actual 548).
 
 - **[SKILLS]** v3 C3 — document opus model rationale in evaluate-* invocation blocks (`v3-c3-evaluate-opus-rationale`)
     - **scope**: `skills`
@@ -84,13 +67,6 @@
     - **scope**: `toolkit`
     - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
 
-- **[SKILLS]** v3 E4 — `setup-toolkit` powerline version bump tracking (`v3-e4-powerline-version-tracking`)
-    - **scope**: `skills`
-    - **notes**: `@owloops/claude-powerline@1.25.1` is hardcoded at `setup-toolkit/SKILL.md:321`. When the next powerline bump lands, grep the full workshop for all references and bump together. Consider adding a single constants location so future bumps are atomic. Polish, triggered by next statusline-related change.
-
-- **[SKILLS]** v3 E5 — frontmatter field ordering normalization across skills (`v3-e5-frontmatter-ordering`)
-    - **scope**: `skills`
-    - **notes**: `build-communication-style` uses non-standard frontmatter order (`name, description, argument-hint, allowed-tools, type`); most skills use `name, type, description, ...`. The A1 sweep resolves `type:` placement but doesn't normalize broader ordering. Could be automated with a small ruff-style linter or a sed pass. Polish, not v3-blocking.
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
@@ -98,9 +74,17 @@
 
 ## P99 - Nice to Have
 
+- **[SKILLS]** v3 E5 — frontmatter field ordering normalization across skills (`v3-e5-frontmatter-ordering`)
+    - **scope**: `skills`
+    - **notes**: `build-communication-style` uses non-standard frontmatter order (`name, description, argument-hint, allowed-tools, type`); most skills use `name, type, description, ...`. The A1 sweep resolves `type:` placement but doesn't normalize broader ordering. Could be automated with a small ruff-style linter or a sed pass. Polish, not v3-blocking.
+
 - **[SKILLS]** v3 E3 — `teardown-worktree` artifact-copy scope decision (`v3-e3-teardown-artifact-scope`)
     - **scope**: `skills`
     - **notes**: Currently copies only `output/claude-toolkit/reviews/*` from worktree to parent at teardown. Does not copy `pr-descriptions/`, `design/`, `plans/`, `sessions/`. Decide: (a) deliberate — keep per-worktree ephemera scoped, only review artifacts persist; or (b) broaden to include other `output/claude-toolkit/` subdirs a user is likely to want after teardown. No clear right answer; needs a decision before implementing.
+
+- **[SKILLS]** v3 E4 — `setup-toolkit` powerline version bump tracking (`v3-e4-powerline-version-tracking`)
+    - **scope**: `skills`
+    - **notes**: `@owloops/claude-powerline@1.25.1` is hardcoded at `setup-toolkit/SKILL.md:321`. When the next powerline bump lands, grep the full workshop for all references and bump together. Consider adding a single constants location so future bumps are atomic. Polish, triggered by next statusline-related change.
 
 - **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
     - **scope**: `skills`

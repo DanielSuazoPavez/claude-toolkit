@@ -27,7 +27,8 @@ Use `verb-noun.sh` format for hook names. See `relevant-conventions-naming`.
 - Want to **react after** something happens? → `PostToolUse`
 - Want **alerts when Claude waits**? → `Notification`
 
-See `resources/HOOKS_API.md` for all events.
+See `resources/HOOKS_API.md` for all events (local snapshot/summary).
+See `https://code.claude.com/docs/en/hooks` for the full official Claude Code documentation on hooks.
 
 ### 2. Write the Hook
 
@@ -41,66 +42,7 @@ All hooks source the shared library `.claude/hooks/lib/hook-utils.sh` for standa
 
 A dual-mode trigger at the bottom runs `main` only when the script is executed directly, not when sourced. That lets the same file work as a standalone hook and as a library sourced by `grouped-bash-guard.sh`. See `.claude/docs/relevant-toolkit-hooks.md` for the full contract (cheapness rules, dispatcher internals, anti-patterns).
 
-Use the script below as the LITERAL STARTING POINT for a Bash PreToolUse hook. Copy it, then modify the match predicate, check body, and block reason for your use case.
-
-```bash
-#!/bin/bash
-# Hook: <name>
-# Event: PreToolUse (Bash)
-# Purpose: <one line>
-#
-# Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).
-# See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern.
-#
-# Settings.json (standalone):
-#   "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": ".claude/hooks/<name>.sh"}]}]
-#
-# Test cases:
-#   echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf ~/"}}' | bash .claude/hooks/<name>.sh
-#   # Expected: {"decision":"block","reason":"..."}
-#
-#   echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash .claude/hooks/<name>.sh
-#   # Expected: (empty - allowed)
-
-source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
-
-# Cheap predicate — bash pattern match only. No forks, no jq, no git, no I/O.
-# False positives are fine (check_ will no-op); false negatives are safety bugs.
-match_<name>() {
-    [[ "$COMMAND" =~ rm[[:space:]]+-rf[[:space:]]+~/ ]]
-}
-
-# Guard body — runs only when match_ returned 0. Expensive work is fine here.
-# Return 0 = pass, 1 = block (and set _BLOCK_REASON).
-check_<name>() {
-    if [[ "$COMMAND" =~ rm[[:space:]]+-rf[[:space:]]+~/ ]]; then
-        _BLOCK_REASON="Blocks rm -rf ~/ — use a specific path instead."
-        return 1
-    fi
-    return 0
-}
-
-main() {
-    hook_init "<name>" "PreToolUse"
-    hook_require_tool "Bash"
-
-    COMMAND=$(hook_get_input '.tool_input.command')
-    [ -z "$COMMAND" ] && exit 0
-
-    _BLOCK_REASON=""
-    if match_<name>; then
-        if ! check_<name>; then
-            hook_block "$_BLOCK_REASON"
-        fi
-    fi
-    exit 0
-}
-
-# Dual-mode trigger — main runs only when executed directly, not when sourced.
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
-```
+Use the script in `resources/TEMPLATE.md` as the LITERAL STARTING POINT for a Bash PreToolUse hook. Copy it, then modify the match predicate, check body, and block reason for your use case.
 
 **Why `${BASH_SOURCE[0]}` instead of `$0` for the source path:** when the grouped dispatcher sources this file, `$0` points to the dispatcher, not your hook. `${BASH_SOURCE[0]}` always points to the current file.
 
