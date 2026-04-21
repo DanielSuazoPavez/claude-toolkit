@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, AskUserQuestion
 
 Build or refine a `.claude/docs/essential-preferences-communication_style.md` file through guided discovery.
 
-**See also:** `/snap-back` (reset tone mid-session), `/brainstorm-idea` (discovery process reference)
+**See also:** `/snap-back` (reset tone mid-session), `/brainstorm-feature` (discovery process reference)
 
 ## When to Use
 

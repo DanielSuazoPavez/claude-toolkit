@@ -106,7 +106,7 @@ The generic column applies to any project. The specific column makes real keep/c
 
 ## See Also
 
-- `/brainstorm-idea` — use first when the project direction itself is unclear
+- `/brainstorm-feature` — use first when the project direction itself is unclear
 - `.claude/docs/` — where the output is saved (Phase 5)
 - `/refactor` — often follows this skill when cutting scope
 

@@ -45,7 +45,7 @@ Classify the situation before doing deep analysis.
 |-------|---------|--------|
 | **Cosmetic** | Naming inconsistencies, minor reorganization | Short summary with suggestions. Stop here — not worth the ceremony. |
 | **Structural** | Mixed responsibilities, bloated modules, tangled imports | Full analysis (continue to Step 2) |
-| **Architectural** | Wrong abstractions, inverted dependencies, circular deps | Full analysis + flag that `/brainstorm-idea` may be needed first |
+| **Architectural** | Wrong abstractions, inverted dependencies, circular deps | Full analysis + flag that `/brainstorm-feature` may be needed first |
 
 In targeted mode, skip to Step 2 — the user already decided it's worth analyzing.
 
@@ -103,7 +103,7 @@ Show the full analysis to the user. Note the saved file path. Do NOT proceed to 
 
 **Related resources:**
 - **Before**: Use `/analyze-idea` when you need to research feasibility or gather evidence before committing to a refactoring direction. Use the `code-reviewer` agent for complementary pre-refactoring analysis.
-- **During triage**: If architectural-level issues surface, escalate to `/brainstorm-idea` to explore the design space before writing the analysis.
+- **During triage**: If architectural-level issues surface, escalate to `/brainstorm-feature` to explore the design space before writing the analysis.
 - **After**: Use the `code-reviewer` agent to verify the refactoring, `/design-tests` if test structure needs updating to match the new module layout.
 
 ## Example: Shared Patterns Lens
@@ -208,7 +208,7 @@ Cohesion issue at helpers.py
 ## See Also
 
 - `/analyze-idea` — Research feasibility before committing to a refactoring direction.
-- `/brainstorm-idea` — Explore design space for architectural-level issues.
+- `/brainstorm-feature` — Explore design space for architectural-level issues.
 - `code-reviewer` agent — Pre/post-refactoring code review.
 - `/design-tests` — Update test structure to match new module layout.
 - `/design-diagram` — Visualize dependency structure before and after refactoring.

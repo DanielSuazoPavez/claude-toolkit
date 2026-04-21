@@ -20,7 +20,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots. Related: /shape-proposal creates documents to review, /brainstorm-idea for earlier-stage designs, code-reviewer for code quality (vs document quality). | Read, Grep, Glob, Write |
+| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots. Related: /shape-proposal creates documents to review, /brainstorm-feature for earlier-stage designs, code-reviewer for code quality (vs document quality). | Read, Grep, Glob, Write |
 
 ## Verification
 

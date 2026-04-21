@@ -1,14 +1,14 @@
 ---
 name: analyze-idea
 metadata: { type: knowledge }
-description: Research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report. Use for feasibility analysis, coverage gaps, codebase audits. Do NOT use for ideation or weighing options (use /brainstorm or /brainstorm-idea).
+description: Research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report. Use for feasibility analysis, coverage gaps, codebase audits. Do NOT use for ideation or weighing options (use /brainstorm-idea or /brainstorm-feature).
 argument-hint: "[topic]"
 allowed-tools: Read, Grep, Glob, Write, Agent
 ---
 
 Use for research and exploration tasks. Investigates a topic, gathers evidence, and generates a saved report.
 
-**See also:** `/brainstorm-idea` (when scope is unclear and needs structured dialogue first), `/review-plan` (review plans informed by analysis), `pattern-finder` agent (targeted pattern searches), `codebase-explorer` agent (full codebase mapping)
+**See also:** `/brainstorm-feature` (when scope is unclear and needs structured dialogue first), `/review-plan` (review plans informed by analysis), `pattern-finder` agent (targeted pattern searches), `codebase-explorer` agent (full codebase mapping)
 
 ## Context
 

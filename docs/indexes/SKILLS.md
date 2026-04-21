@@ -8,8 +8,8 @@ User-invocable skills activated with `/skill-name`.
 
 | Skill | Status | Description |
 |-------|--------|-------------|
-| `brainstorm` | alpha | General-purpose brainstorm facilitation — converges on clarity, not design docs |
-| `brainstorm-idea` | stable | Turn fuzzy ideas into clear designs through structured dialogue |
+| `brainstorm-idea` | alpha | General-purpose brainstorm facilitation — converges on clarity, not design docs |
+| `brainstorm-feature` | stable | Turn fuzzy ideas into clear designs through structured dialogue |
 | `shape-project` | beta | Define project identity, scope, and boundaries as a doc |
 | `shape-proposal` | beta | Shape validated designs into audience-aware proposals |
 | `analyze-idea` | stable | Research tasks - investigate topics, gather evidence, generate reports |

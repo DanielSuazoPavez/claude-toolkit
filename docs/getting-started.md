@@ -14,7 +14,7 @@ Commands you invoke by typing `/name` in Claude Code. Think of them as repeatabl
 
 | Skill | What it does |
 |-------|-------------|
-| `/brainstorm-idea` | Turns a fuzzy idea into a clear design through structured Q&A |
+| `/brainstorm-feature` | Turns a fuzzy idea into a clear design through structured Q&A |
 | `/build-communication-style` | Builds or refines a doc that customizes how Claude communicates with you |
 | `/create-docs` | Creates new doc files following project conventions |
 | `/draft-pr` | Analyzes branch commits and generates a PR title and description |
@@ -63,12 +63,12 @@ Reference documentation in `.claude/docs/` that shapes how Claude behaves. Essen
 
 ---
 
-## 2. Try It: `/brainstorm-idea`
+## 2. Try It: `/brainstorm-feature`
 
 This is the "hello world" of the toolkit. It works for any project and any tech stack — all you need is a fuzzy idea.
 
 1. Open Claude Code in your project directory
-2. Type `/brainstorm-idea`
+2. Type `/brainstorm-feature`
 3. Describe something you've been thinking about but haven't fully defined — a feature, a refactor, an integration, anything
 4. Claude will ask clarifying questions one at a time (often multiple choice) to understand the problem, audience, constraints, and success criteria
 5. After a few rounds, Claude presents 2-3 approaches with trade-offs in a comparison table
