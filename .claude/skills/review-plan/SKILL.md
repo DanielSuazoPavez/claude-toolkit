@@ -1,5 +1,6 @@
 ---
 name: review-plan
+metadata: { type: knowledge }
 description: Review a plan against quality criteria before approving. Use when requests mention "review plan", "check plan", "verify plan", or "approve plan".
 argument-hint: "[inline] [path-to-plan]"
 allowed-tools: Read, Glob, Agent

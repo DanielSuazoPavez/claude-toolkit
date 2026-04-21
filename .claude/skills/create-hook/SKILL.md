@@ -1,6 +1,6 @@
 ---
 name: create-hook
-type: command
+metadata: { type: command }
 description: Create new hooks for Claude Code. Use when adding safety, automation, or notification hooks. Keywords: PreToolUse, PostToolUse, block commands, hook script, settings.json hooks.
 allowed-tools: Read, Write, Bash(chmod:*), Glob
 ---

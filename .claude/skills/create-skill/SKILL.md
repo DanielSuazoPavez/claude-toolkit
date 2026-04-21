@@ -1,5 +1,6 @@
 ---
 name: create-skill
+metadata: { type: knowledge }
 description: Use when adding a new skill, improving an unreliable skill, or extracting a repeatable pattern. Keywords: create skill, new skill, skill template, SKILL.md.
 allowed-tools: Read, Write, Glob, Bash(mkdir:*), Skill
 ---

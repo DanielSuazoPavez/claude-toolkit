@@ -1,6 +1,6 @@
 ---
 name: design-tests
-type: knowledge
+metadata: { type: knowledge }
 description: Use when writing or reviewing Python tests with pytest. Use when requests mention "pytest", "fixtures", "mocking", "conftest", "parametrize", "pytest structure", "missing pytest tests", "pytest audit", "coverage audit", "pytest test plan", "pytest QA strategy", "pytest regression testing", "release testing".
 ---
 

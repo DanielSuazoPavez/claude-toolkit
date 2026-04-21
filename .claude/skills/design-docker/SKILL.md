@@ -1,6 +1,6 @@
 ---
 name: design-docker
-type: knowledge
+metadata: { type: knowledge }
 description: Use when requests mention "dockerfile", "docker-compose", "containerize", "image size", or "deployment config".
 ---
 

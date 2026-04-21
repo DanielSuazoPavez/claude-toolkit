@@ -1,6 +1,6 @@
 ---
 name: list-docs
-type: command
+metadata: { type: command }
 description: List available docs with their Quick Reference summaries. Use to discover relevant context without loading full files into conversation. Keywords: docs, context, preview, discover, scan, list docs.
 allowed-tools: Bash(for f in .claude/docs/*)
 ---

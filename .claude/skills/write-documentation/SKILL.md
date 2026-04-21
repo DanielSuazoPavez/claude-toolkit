@@ -1,6 +1,6 @@
 ---
 name: write-documentation
-type: knowledge
+metadata: { type: knowledge }
 description: Use when writing or updating project documentation. Do NOT use for creating new .claude/docs/ convention files (use /create-docs). Keywords: docs, documentation, README, docstrings, API docs, write docs, update docs, document.
 argument-hint: "[target-file-or-module]"
 ---

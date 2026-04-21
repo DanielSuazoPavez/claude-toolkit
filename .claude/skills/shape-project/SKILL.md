@@ -1,5 +1,6 @@
 ---
 name: shape-project
+metadata: { type: knowledge }
 description: Use when defining or refining a project's identity, scope, and boundaries. Use before major refactors, reshaping efforts, or to set guardrails on early-stage projects. Keywords: project identity, scope, boundaries, refactor direction, what is this project.
 allowed-tools: Read, Write, Glob, AskUserQuestion
 ---

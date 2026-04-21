@@ -1,9 +1,9 @@
 ---
 name: build-communication-style
+metadata: { type: command }
 description: Build or refine a communication style doc through guided discovery. Use when setting up Claude's voice, tuning tone, or customizing how Claude communicates. Keywords: communication, style, tone, voice, preferences.
 argument-hint: "[refine]"
 allowed-tools: Read, Write, Edit, Glob, AskUserQuestion
-type: command
 ---
 
 Build or refine a `.claude/docs/essential-preferences-communication_style.md` file through guided discovery.

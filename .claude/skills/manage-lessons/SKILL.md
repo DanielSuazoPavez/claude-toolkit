@@ -1,5 +1,6 @@
 ---
 name: manage-lessons
+metadata: { type: knowledge }
 description: Review and manage lesson lifecycle. Use when the user says "manage lessons", "review lessons", "promote lessons", "clean up lessons", "prune lessons", or when session-start nudge suggests it.
 compatibility: sqlite3
 allowed-tools: Bash(claude-toolkit lessons:*), Bash(sqlite3:*), Read, Write

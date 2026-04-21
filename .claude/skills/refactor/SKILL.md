@@ -1,5 +1,6 @@
 ---
 name: refactor
+metadata: { type: knowledge }
 description: Structural refactoring analysis. Use when requests mention "refactor", "restructure", "split module", "dependency tangle", "coupling", "cohesion", "circular imports", "duplicated code", or "shared patterns".
 argument-hint: Target file/module/directory, or a specific pain point
 allowed-tools: Read, Grep, Glob, Write

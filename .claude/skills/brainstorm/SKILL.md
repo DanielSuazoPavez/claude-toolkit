@@ -1,5 +1,6 @@
 ---
 name: brainstorm
+metadata: { type: knowledge }
 description: General-purpose brainstorm facilitation through structured dialogue. Use when exploring ideas, clarifying problems, or weighing tradeoffs — not building software. Do NOT use for software design/requirements (use /brainstorm-idea) or research/evidence-gathering (use /analyze-idea). Keywords: brainstorm, think through, ideas, explore, tradeoffs, weigh options.
 argument-hint: "[topic]"
 allowed-tools: Read, Write, AskUserQuestion

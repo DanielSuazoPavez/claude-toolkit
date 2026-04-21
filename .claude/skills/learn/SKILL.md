@@ -1,5 +1,6 @@
 ---
 name: learn
+metadata: { type: knowledge }
 description: Capture a lesson from this session. Use when the user says "remember this", "learn this", "save this lesson", "don't forget", "note this for next time", "keep this in mind", or asks to capture a correction, pattern, convention, or gotcha.
 argument-hint: "[topic-hint]"
 compatibility: sqlite3

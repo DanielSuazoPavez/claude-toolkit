@@ -1,5 +1,6 @@
 ---
 name: evaluate-batch
+metadata: { type: knowledge }
 description: Use when evaluating multiple resources of one type. Keywords: batch evaluation, parallel evaluation, bulk evaluate, evaluate all, mass evaluation.
 argument-hint: "[type] [re-evaluate]"
 compatibility: jq

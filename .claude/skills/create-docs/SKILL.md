@@ -1,5 +1,6 @@
 ---
 name: create-docs
+metadata: { type: knowledge }
 description: Create a new doc file following project conventions. Use when user asks to create a doc for rules, conventions, or reference documentation. Do NOT use for updating existing docs or writing README/docstrings (use /write-documentation). Keywords: create doc, new doc, write doc, add convention, add reference.
 allowed-tools: Read, Write, Glob
 ---
