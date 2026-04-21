@@ -24,9 +24,11 @@ Consumer file (1): `evaluate-skill/SKILL.md` — 4 lockstep locations:
 - Line 259: Evaluation Protocol step 2 (`"Determine type from frontmatter..."`)
 - Line 224: JSON output schema (`"type": "knowledge|command"`)
 
-**Open decision before executing:** does `evaluations.json` keep `type` at top-level in the output schema, or nest under `metadata`? Recommendation: keep top-level in the JSON output (simpler; the field is reporting only, not behavioral). Lock before the commit.
+**Resolved decisions:**
+- `evaluations.json` keeps `type` at **top level** — simpler; the field is reporting only, not behavioral.
+- The 18 skills with no `type:` field today will receive **explicit `metadata: { type: knowledge }`** rather than relying on the default. Add to the sweep commit alongside the 17 moves. Post-sweep pass (D3) is resolved: include them in the same commit.
 
-18 skills with no `type:` field default to `knowledge` per evaluate-skill:259 — no change needed for the sweep, but see queue item D3 for a post-sweep pass.
+18 skills with no `type:` field: include in the sweep with explicit `metadata: { type: knowledge }` (same commit).
 
 ### A2. Brainstorm pair rename (coordinated lockstep)
 
@@ -79,54 +81,23 @@ Medium scope — ~60 lines moved + new file + skill body adjusted. One commit.
 
 ## C. Open Decisions (need user input before execution)
 
-### C1. `read-json` reshape — Option A vs B
-The skill is falling flat: `suggest-read-json` hook already catches the pain point; sessions now default to jq anyway.
+### C1. `read-json` reshape — **resolved: Option A**
+Demote to `metadata: { type: knowledge }`, add `user-invocable: false`, strip redundant sections (categorical rule, progressive pattern, file-size table, anti-patterns table), keep shell-quoting traps and malformed-JSON recipes. Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at skill path rather than `/read-json` command syntax.
 
-Load-bearing content: shell-quoting traps (`--arg`/`--argjson` vs interpolation, lines 37-64) and malformed-JSON recipes (BOM, JSONL, trailing commas, truncated, embedded, lines 66-90).
-Redundant content: categorical rule, progressive inspection pattern, file-size table, anti-patterns table.
+### C2. `HOOKS_API.md` 548-line rule violation — **resolved: Option A**
+Bump `create-skill` threshold to 600 lines. Update `create-skill:173` (`<500 lines` → `<600 lines`) and `create-skill:188` (stale "400 lines" count → actual 548).
 
-- **Option A (preferred):** demote to `type: knowledge`, add `user-invocable: false`, strip redundant sections, keep quoting+malformed content. Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at skill path rather than `/read-json` command.
-- **Option B (ruthless):** delete skill, fold load-bearing content into a new short doc (`.claude/docs/reference-jq-patterns.md`) the hook points at.
+### C3. Evaluate-* model — **resolved: keep opus, document the decision**
+Evaluate-* skills are not called all the time and their output is a signal of possible needed changes on resources — deeper reasoning is warranted. Keep `model: "opus"` across all 4 evaluate-* skills. Add a brief rationale comment to each skill's invocation block so the choice isn't mistaken for an oversight. Not the same as `code-reviewer` / `implementation-checker` (those are checklist-only; evaluate-* requires cross-dimension judgment).
 
-A is lower-risk. B raises the question of whether "hook-pointed knowledge doc" is a resource shape worth formalizing.
+### C4. `list-docs` docs-surfacing direction — **resolved: backlog task added**
+New `surface-docs.sh` hook is the direction — same algorithm as `surface-lessons.sh`. Backlog task `surface-docs-hook` added at P3, **gated on `improve-lessons-lifecycle` being validated first**. No action on `list-docs/SKILL.md` itself until hook is built.
 
-### C2. `HOOKS_API.md` 548-line rule violation — loosen vs split
-`create-hook/resources/HOOKS_API.md` is 548 lines; `create-skill/SKILL.md:173` says supporting files should be under 500.
+### C5. `manage-lessons` — **resolved: backlog task added**
+Backlog task `manage-lessons-cli-routing` added. Prerequisites: check CLI for existing `promote`/`deactivate`/`delete` subcommands; add any missing; rewrite skill to route everything through CLI; drop `Bash(sqlite3:*)` from `allowed-tools`. Coordinates with `.claude/hooks/` queue item 2 (`LESSONS_DB` env var).
 
-- **Option A (preferred):** bump `create-skill` threshold to 600 lines. The 500-line limit was for context bloat; a 548-line reference loaded on-demand isn't the pattern it guards against. Update `create-skill:173` (`<500 lines` → `<600 lines`) and `create-skill:188` (stale "400 lines" count → actual 548).
-- **Option B:** split `HOOKS_API.md` by section (events / types / input fields / output / config / debugging). Navigation overhead added.
-
-A is lower-friction. Resolves `create-skill:188` stale count as a side effect.
-
-### C3. Evaluate-* model flip — opus → sonnet?
-All 4 evaluate-* skills dispatch `model: "opus"` subagents:
-- `evaluate-skill:240`, `evaluate-agent:165`, `evaluate-hook:155`, `evaluate-docs:204`
-
-Rubric scoring is structured checklist work — same argument that's moving `code-reviewer` / `implementation-checker` from opus → sonnet (agents queue items 1-2). Worth aligning evaluate-* with the agent-level decision.
-
-**Recommendation:** decide alongside the agents queue flip so the whole rubric-scoring lane is consistent. Don't do this ad hoc before the agents decision lands.
-
-### C4. `list-docs` docs-surfacing direction
-User flagged: relevant docs rarely surface when they'd help. Two options:
-- **Status quo:** explicit-invocation only (user runs `/list-docs`, Claude reads on relevance). Defensible but unsatisfying.
-- **New `surface-docs.sh` hook:** context-aware hook matching tool context against `relevant-*` Quick References, same algorithmic approach as the fixed `surface-lessons.sh`. Coordinates with `.claude/hooks/` queue item 5 (dedup window + minimum match specificity).
-
-No decision yet. Coordinates with hooks-audit queue item 5.
-
-### C5. `manage-lessons` — CLI routing for promote/deactivate/delete
-Skill currently has direct `sqlite3` calls for 3 operations (lines 94-106). Direction: route everything through `claude-toolkit lessons` CLI; drop `Bash(sqlite3:*)` from `allowed-tools`.
-
-**Prerequisite:** check CLI for existing `promote`, `deactivate`, `delete` subcommands. Add any missing ones. Then rewrite the skill.
-
-Coordinates with `.claude/hooks/` queue item 2 (`LESSONS_DB` env var) — once CLI routes through the env var, skill inherits behavior automatically.
-
-### C6. `review-security` worthyness diagnostic
-Skill has never been invoked in the wild (to user's knowledge). Run invocation-frequency check (same approach as pattern-finder agents queue item 8). Based on data:
-- **(a) Keep** — content already solid, no rewrite needed.
-- **(b) Sharpen** — broaden description triggers, consider `surface-*` hook path.
-- **(c) Deprecate** — CC's built-in `/security-review` may cover enough of the surface.
-
-Same timing as the pattern-finder diagnostic — do both together.
+### C6. `review-security` worthyness — **resolved: backlog task added**
+Backlog task `review-security-worthyness` added. Do alongside pattern-finder diagnostic (agents queue item 8) — same diagnostic shape.
 
 ---
 
@@ -135,16 +106,16 @@ Same timing as the pattern-finder diagnostic — do both together.
 ### D1. `analyze-idea/SKILL.md` — pattern-finder See also (line 11)
 Update when `.claude/agents/` queue item 8 (pattern-finder: deprecate/sharpen/keep) resolves. No action until that decision lands.
 
-### D2. Satellite-contract rule — schema-smith removal
-Remove `design-db/resources/schema-smith-input-spec.md` after schema-smith satellite exposes its `input/CLAUDE.md`-equivalent consumer doc via CLI (e.g., `schema-smith --print-input-spec`). Direction is locked; timing depends on satellite readiness.
+### D2. Satellite-contract rule — schema-smith removal + backlog task
+**Backlog task `satellite-cli-docs-convention` added** at P3: spec how workshop skills should reference satellite CLI documentation (via `--print-input-spec` or equivalent), make that convention available through the CLI, and document it in a new doc (e.g., `relevant-toolkit-satellite-contracts.md`). When the convention lands, schema-smith removes the workshop copy; the same rule applies for aws-toolkit when `/design-aws` ships.
 
-Order: (1) satellite ships CLI flag, (2) design-db Schema Smith Integration section updated to reference the CLI command, (3) workshop removes the spec file.
+Schema-smith removal order: (1) convention doc ships, (2) schema-smith satellite exposes its input spec via CLI, (3) design-db Schema Smith Integration section updated, (4) workshop removes `resources/schema-smith-input-spec.md`.
 
-### D3. Post-sweep pass — 18 skills with no `type:` field
-After the A1 sweep lands: are any of the 18 type-undeclared skills actually command-shaped and would benefit from explicit `metadata.type` declaration? Low-priority; deferred until after the sweep.
+### D3. Post-sweep pass — **resolved: included in A1**
+18 skills with no `type:` field will receive explicit `metadata: { type: knowledge }` in the same A1 sweep commit. Not a separate pass.
 
-### D4. `design-aws` scaffold — backlog annotation
-Mark the P3 backlog item as "reference + satellite ready; user-postponed" — no dependency blockers. 1-line backlog edit. When skill ships, enforce satellite-contract rule (link out to aws-toolkit docs; no duplicated spec).
+### D4. `design-aws` scaffold — **resolved: backlog updated**
+`design-aws` backlog item notes updated: reference + satellite ready; user-postponed; no dependency blockers. When skill ships, enforce satellite-contract rule (link out to aws-toolkit docs via convention from D2; no duplicated spec).
 
 ---
 

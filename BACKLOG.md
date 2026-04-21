@@ -58,7 +58,24 @@
 
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
-    - **notes**: Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
+    - **notes**: Reference + satellite ready; user-postponed (no dependency blockers). Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. When skill ships: enforce satellite-contract rule — link out to aws-toolkit docs via CLI convention (see `satellite-cli-docs-convention` task), no duplicated spec in workshop. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
+
+- **[SKILLS]** `manage-lessons` — route all CLI lifecycle ops through `claude-toolkit lessons` (`manage-lessons-cli-routing`)
+    - **scope**: `skills`
+    - **notes**: Skill currently calls sqlite3 directly for promote/deactivate/delete (lines 94-106). Direction: route everything through `claude-toolkit lessons` CLI; drop `Bash(sqlite3:*)` from `allowed-tools`. Prerequisites: (1) check CLI for existing promote/deactivate/delete subcommands, (2) add any missing ones, (3) rewrite skill to use CLI only. Coordinates with hooks-audit queue item 2 (LESSONS_DB env var) — once CLI honors the env var, skill inherits behavior automatically.
+
+- **[SKILLS]** `review-security` — worthyness diagnostic (`review-security-worthyness`)
+    - **scope**: `skills`
+    - **notes**: Skill has never been invoked in the wild (to user's knowledge). Run invocation-frequency check (same approach as pattern-finder agents diagnostic). Based on data: (a) Keep — content already solid; (b) Sharpen — broaden description triggers and/or add surfacing-hook path; (c) Deprecate — CC's built-in /security-review may cover enough of the surface. Do alongside pattern-finder diagnostic for consistency.
+
+- **[HOOKS]** `surface-docs.sh` hook — context-aware doc surfacing (`surface-docs-hook`)
+    - **scope**: `hooks`
+    - **notes**: New hook matching tool context against `relevant-*` doc Quick References and injecting a one-liner suggestion when a relevant doc hasn't been loaded. Same deterministic algorithm as `surface-lessons.sh` (dedup window + minimum match specificity). **Gated on `improve-lessons-lifecycle` being validated first** — only build after the surface-lessons rework proves the algorithm works reliably. Coordinates with `.claude/hooks/` queue item 5.
+    - **depends on**: `improve-lessons-lifecycle`
+
+- **[TOOLKIT]** Satellite CLI docs convention — how workshop skills reference satellite contracts (`satellite-cli-docs-convention`)
+    - **scope**: `toolkit`
+    - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
 
 - **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
     - **scope**: `hooks, scripts`
