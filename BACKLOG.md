@@ -27,9 +27,6 @@
     - **scope**: `skills`
     - **notes**: All-or-nothing coordinated commit. Move 17 skills carrying `type:` to `metadata: { type: ... }`. Add explicit `metadata: { type: knowledge }` to the 18 skills with no `type:` field (don't rely on the default). Lockstep update to `evaluate-skill/SKILL.md` at 4 locations: lines 42-48 (Skill Types table), 54-58 (Dimension Adjustments table), 259 (Evaluation Protocol step 2), 224 (JSON output schema). `evaluations.json` keeps `type` at top level. Full file list in `planning/v3-audit/stage2-decisions.md` §A1.
 
-- **[SKILLS]** v3 A2 — brainstorm pair rename (`v3-a2-brainstorm-rename`)
-    - **scope**: `skills`
-    - **notes**: Coordinated lockstep commit. `/brainstorm` → `/brainstorm-idea` (output path: `output/claude-toolkit/brainstorms/`). `/brainstorm-idea` → `/brainstorm-feature` (output path unchanged: `output/claude-toolkit/design/`). Run `grep -r '/brainstorm' .claude/skills/` first to find all See also refs. Confirmed: `analyze-idea:11`, `shape-project:108`, `shape-proposal:13`, `refactor:47,105,210`, `build-communication-style:11`. Also update `docs/indexes/SKILLS.md`, `docs/getting-started.md`, `README.md`. Resolves `brainstorm/SKILL.md` output-path drift (`{project}` placeholder → literal path).
 
 - **[SKILLS]** v3 B2+B3+B5 — trivial 1-line skill fixes (`v3-b2-b3-b5-trivial-fixes`)
     - **scope**: `skills`
