@@ -23,13 +23,13 @@ Findings:
 
 4. **Worktree pair is tight and correct (Keep for both).** `setup-worktree` creates worktrees and optionally symlinks `.claude/` from main (the ".claude/ is gitignored, synced via toolkit" case); `teardown-worktree` checks for uncommitted work, copies artifacts, removes. Mechanical, no orchestration. Each references the other in See also.
 
-5. **`read-json`'s "DON'T use the Read tool" rule is tool-policy-shaped but correctly scoped.** Lines 16-19: *"DON'T use the Read tool on JSON files. DO use jq commands with Bash. This applies even if the file seems small."* That's a categorical instruction to the invoking session — strong shape for a skill body, but it's paired with the `suggest-read-json` PreToolUse hook (referenced in See also) which enforces the same rule at hook level for large files. The skill is the "when user asks for JSON work, here's how to do it right" companion; the hook is the guardrail. Correct workshop shape.
+5. **`read-json` skill is falling flat and partly outdated — Investigate (user-raised during review).** Lines 16-19 tell the invoking session *"DON'T use the Read tool on JSON files. DO use jq commands with Bash. This applies even if the file seems small."* In practice: (a) nobody invokes `/read-json` — the `suggest-read-json` PreToolUse hook catches the actual pain point (files >50KB outside the config-file allowlist) before a user thinks to reach for a skill, and (b) current Claude sessions default to jq for JSON inspection anyway, so the "progressive inspection pattern" and "file size table" sections (lines 22-36, 103-107) are documenting what's already baseline behavior. The genuinely load-bearing sections are the shell-quoting traps (lines 37-64: `--arg` vs interpolation, `--argjson` for numbers) and malformed-JSON recipes (lines 66-90: BOM, JSONL, trailing commas, truncated). Direction: reshape the skill into a reference the hook points at rather than a user-invocable command. See queue item 4 for the concrete proposal.
 
 6. **No `brainstorm-idea` See also references in this subset.** Workflow queue item 3 (brainstorm rename lockstep) has zero burden here. Confirmed by grep across all 6 skills.
 
 **User resolutions surfaced during review:** none — no paired-example or judgment cases this subset.
 
-Findings below: 1 Rewrite (`write-documentation` broken path), 5 Keep-with-sweep (all carry `type:`, content otherwise clean). No Investigate, no Defer.
+Findings below: 1 Rewrite (`write-documentation` broken path), 1 Investigate (`read-json` — user flagged as falling flat / partly outdated; reshape toward hook-pointed reference, see queue item 4), 4 Keep-with-sweep (all carry `type:`, content otherwise clean). No Defer.
 
 ---
 
@@ -165,27 +165,44 @@ Findings below: 1 Rewrite (`write-documentation` broken path), 5 Keep-with-sweep
 
 ### `read-json/SKILL.md`
 
-- **Tag:** `Keep` (sweep only)
+- **Tag:** `Investigate` (reshape toward hook-pointed reference; also `type:` sweep)
 - **Finding:** 123 lines. `type: command`. Tool-policy skill: progressive jq inspection pattern (keys → length → sample → extract), shell-quoting traps, malformed JSON handling, size-based tool selection.
 
-  **"DON'T use the Read tool on JSON files"** (line 16-19) — strong rule, categorically applied ("even if the file seems small"). This is a skill body telling the invoking session to override its default tool choice. Strong shape for a skill, but paired with `suggest-read-json` PreToolUse hook (verified exists at `.claude/hooks/suggest-read-json.sh`) which enforces the same rule on large files at hook level. The skill is the "how to do JSON work right" companion; the hook is the guardrail. The split is correct: the hook catches accidental Read tool usage; the skill teaches the right pattern when the user explicitly asks for JSON inspection.
+  **User-raised during review:** the skill is falling flat — `/read-json` isn't being invoked. Two reasons: (1) the `suggest-read-json` PreToolUse hook (verified at `.claude/hooks/suggest-read-json.sh`) already catches the actual pain point — Read tool on `.json` files >50KB that aren't in the config-file allowlist (`package.json`, `tsconfig.json`, `*.config.json`, etc.) get blocked with a message pointing at `/read-json`. So the user never has a reason to type `/read-json` themselves; the hook does the catching. (2) Claude sessions now default to jq for JSON inspection; the behavior this skill was originally pushing against ("oh, a 2000-line JSON, let's Read it") isn't the failure mode anymore.
 
-  **Shell quoting section** (line 37-64) — the most load-bearing part. Five calibrated patterns: (1) double-quotes-inside-double-quotes bug (eats inner quotes silently), (2) shell-variable interpolation inside jq (wrong-results bug), (3) `--arg` for string vars, (4) `--argjson` for numeric vars (avoids string coercion), (5) quote file paths with spaces. These are the actual jq footguns — the kind that produce wrong results without errors. Correct focus.
+  What the skill's sections are actually worth today:
 
-  **Malformed JSON Handling** (line 66-90) — 7 failure modes (validate / parse error / trailing commas / JSONL / BOM / truncated / embedded in other output) each with a concrete recipe. The BOM case (line 83) is the kind of Windows-creates-files gotcha that's impossible to debug without knowing to look for it.
+  | Section | Lines | Status |
+  |---------|-------|--------|
+  | "DON'T use Read tool" categorical rule | 16-19 | Redundant with hook; also overstated (hook correctly allows small JSON) |
+  | Progressive inspection pattern (keys → length → sample → extract) | 22-36 | Baseline session behavior — low load-bearing |
+  | File Size table (<1MB / 1-50MB / >50MB) | 103-107 | Baseline session behavior — low load-bearing |
+  | Shell quoting traps (`--arg` vs interpolation, `--argjson` for numbers) | 37-64 | **Load-bearing** — these are the actual wrong-results bugs |
+  | Malformed JSON recipes (BOM, JSONL, trailing commas, truncated, embedded) | 66-90 | **Load-bearing** — non-obvious gotchas |
+  | Anti-patterns table | 109-118 | Mostly redundant with the above |
 
-  **File Size table** (line 103-107) — `<1MB` either fine / `1-50MB` jq preferred (streaming) / `>50MB` `jq --stream` or `-c`. Calibrated thresholds.
+  **Direction (proposal):** reshape as a short hook-pointed reference rather than a user-invocable command. Two concrete shapes to consider in queue item 4:
 
-  **Anti-patterns** (line 109-118) — 6 patterns (Load Full File / Blind Extraction / Read Tool for JSON / No Length Check / Shell Interpolation / Assuming Valid JSON). Each has a concrete Fix.
+  - **Option A (preferred):** demote to `type: knowledge`, set `user-invocable: false` (hide from `/` menu), strip the redundant sections (categorical rule, progressive pattern, file size table, anti-patterns), keep the shell-quoting + malformed-JSON content. Update the `suggest-read-json` hook's block-reason to point at the skill path rather than the `/read-json` command. The skill becomes "what the hook's block-reason is telling you to read," not "a command a user types."
 
-  **See also** — 1 ref: `suggest-read-json` hook (verified exists). Correct — the skill and the hook are a matched pair.
+  - **Option B (more ruthless):** delete the skill entirely, fold the shell-quoting + malformed-JSON content into either (i) the hook's block-reason message (cost: longer block message) or (ii) a short doc (`.claude/docs/reference-jq-patterns.md` or similar) that the hook points at. Same net effect as A but no skill resource at all.
 
-  **`type: command`** — correct. Picked up by repo-wide sweep.
+  A is lower-risk: preserves the content in place, costs only frontmatter edits + hook message tweak. B is cleaner but requires deciding where the content lives and whether there's a pattern here worth generalizing (hook-pointed knowledge docs as their own resource shape). Decision deferred to a follow-up session — this audit flags the shape problem, not the specific fix.
+
+  **Other content notes** (in case option A is chosen):
+
+  **Shell quoting section** (line 37-64) — the most load-bearing part. Five calibrated patterns: (1) double-quotes-inside-double-quotes bug (eats inner quotes silently), (2) shell-variable interpolation inside jq (wrong-results bug), (3) `--arg` for string vars, (4) `--argjson` for numeric vars (avoids string coercion), (5) quote file paths with spaces. These are the actual jq footguns — the kind that produce wrong results without errors. Keep as-is.
+
+  **Malformed JSON Handling** (line 66-90) — 7 failure modes (validate / parse error / trailing commas / JSONL / BOM / truncated / embedded in other output) each with a concrete recipe. The BOM case (line 83) is the kind of Windows-creates-files gotcha that's impossible to debug without knowing to look for it. Keep as-is.
+
+  **See also** — 1 ref: `suggest-read-json` hook (verified exists). Correct — the skill and the hook are a matched pair, but the pair's direction today is hook → skill (hook points at skill for the "how"), not user → skill → hook-as-guardrail.
+
+  **`type: command`** — likely changes to `type: knowledge` under option A. Picked up by repo-wide sweep regardless.
 
   Workshop-shaped: runs in consumer's session, operates on consumer's JSON files, references a hook that also syncs to consumers. No cross-project coordination.
 
-- **Action:** `type: command` → `metadata: { type: command }` as part of repo-wide sweep (queue item 7).
-- **Scope:** trivial (sweep-covered).
+- **Action:** (1) reshape per queue item 4 — option A (demote to knowledge, hide from `/` menu, strip redundant sections, update hook block-reason) is the preferred direction; (2) `type:` → `metadata: { type: ... }` as part of repo-wide sweep (queue item 7) — value becomes `knowledge` if option A applies, `command` otherwise.
+- **Scope:** (1) small — frontmatter edits + section strip + 1-line hook message change. (2) trivial (sweep-covered).
 
 ---
 
@@ -209,7 +226,7 @@ Findings below: 1 Rewrite (`write-documentation` broken path), 5 Keep-with-sweep
 
 - **Worktree pair is canonical small-pair shape.** `setup-worktree` ⇄ `teardown-worktree`. Each references the other in See also. Each does one thing (create / remove). No overlap. Same pattern as the `build-communication-style` ⇄ `snap-back` pair from personalization subset. When small pairs are this tight, they're the easiest shapes to Keep.
 
-- **Skill-plus-hook pair (`read-json` + `suggest-read-json`) is another correct small-pair shape.** Skill teaches the pattern; hook enforces the guardrail on large files. Different resource types, coordinated purpose. Worth catalog: this is the second dev-tools skill that has a matched hook (alongside `setup-toolkit`'s `setup-toolkit-diagnose.sh` and `validate-all.sh` scripts, though those are invoked by the skill rather than paired as guardrails).
+- **Skill-plus-hook pair (`read-json` + `suggest-read-json`) has a direction problem.** The skill was designed as a user-invocable command with the hook as backup guardrail. In practice the hook does all the catching and the skill is never invoked directly — so the pair's direction is actually hook → skill (hook blocks Read on large JSON, points user at jq patterns for the "how"), not user → skill → hook-as-guardrail. See `read-json/SKILL.md` finding and queue item 4 for the reshape proposal. **Implication for future skill-plus-hook pairs:** if the hook covers the trigger condition reliably, the skill should be shaped as a hook-pointed reference (knowledge, hidden from `/` menu), not as a user-invocable command competing with the hook for the same job. Worth cataloging as a small-pair shape distinct from the tight user-invocable pair seen in worktrees and personalization.
 
 - **No `/brainstorm-idea` See also references in this subset.** Workflow queue item 3 (brainstorm rename to `/brainstorm-feature`) imposes zero lockstep burden here.
 
@@ -231,10 +248,24 @@ Findings below: 1 Rewrite (`write-documentation` broken path), 5 Keep-with-sweep
 
 3. **Small validators theme** — `write-documentation`'s broken path (`output/claude-toolkit/reviews/codebase/` vs `.claude/docs/codebase-explorer/`) is the kind of drift a cross-reference validator that understands agent-output-path conventions could catch. Feeds the same "small validators" backlog bundle from personalization queue item 4 — output-path validator (workflow queue item 10) + cross-reference validator + indexes-validator. Stage-5 polish.
 
+**Open — needs decision in a follow-up session:**
+
+4. **Review `read-json` skill — reshape toward hook-pointed reference (user-raised during this review).** The skill is falling flat: `/read-json` isn't invoked because the `suggest-read-json` hook already catches the pain point (Read on >50KB non-allowlisted `.json`), and sessions now default to jq anyway — so the "don't Read JSON" / "progressive inspection" / "file size table" sections are documenting what's already baseline. The load-bearing content is the shell-quoting traps (`--arg`/`--argjson` vs interpolation) and malformed-JSON recipes (BOM, JSONL, trailing commas, truncated, embedded).
+
+   Two shapes to choose between:
+
+   - **Option A (preferred, low-risk):** demote to `type: knowledge`, add `user-invocable: false` (hide from `/` menu), strip the redundant sections (categorical rule, progressive pattern, file-size table, anti-patterns table), keep shell-quoting + malformed-JSON content. Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at the skill path rather than `/read-json` command syntax. Net: the skill becomes what the hook tells users to read, not a command.
+
+   - **Option B (more ruthless):** delete the skill, fold the load-bearing content into either (i) the hook's block-reason message (cost: longer block text) or (ii) a new short doc (e.g., `.claude/docs/reference-jq-patterns.md`) the hook points at.
+
+   A is lower-risk and preserves the content in place. B is cleaner but raises a broader question — whether "hook-pointed knowledge doc" is a resource shape the workshop should formalize. Deferred to a follow-up session; this audit logs the finding, not the fix.
+
+   **Broader implication:** this is the first dev-tools skill-plus-hook pair where the direction flipped from (user → skill, hook as guardrail) to (hook → skill, hook does the catching). If the pattern generalizes, future skills paired with reliable-coverage hooks should be shaped as hook-pointed references by default, not as user-invocable commands.
+
 **Still open / low-priority:**
 
-4. **`teardown-worktree` artifact-copy scope.** Currently copies only `output/claude-toolkit/reviews/*` from worktree to parent. Does not copy `pr-descriptions/`, `design/`, `plans/`, `sessions/`, or other `output/claude-toolkit/` subdirs. Could be deliberate (keep per-worktree ephemera scoped to the worktree; only preserve review artifacts) or could be overscoped-to-reviews (a user who ran `/draft-pr` or `/brainstorm-idea` in the worktree loses those artifacts at teardown). Defer decision to a follow-up pass — neither choice is v3-blocking.
+5. **`teardown-worktree` artifact-copy scope.** Currently copies only `output/claude-toolkit/reviews/*` from worktree to parent. Does not copy `pr-descriptions/`, `design/`, `plans/`, `sessions/`, or other `output/claude-toolkit/` subdirs. Could be deliberate (keep per-worktree ephemera scoped to the worktree; only preserve review artifacts) or could be overscoped-to-reviews (a user who ran `/draft-pr` or `/brainstorm-idea` in the worktree loses those artifacts at teardown). Defer decision to a follow-up pass — neither choice is v3-blocking.
 
-5. **`setup-toolkit` powerline version bump tracking.** `@owloops/claude-powerline@1.25.1` is pinned inline at line 321. If there are other references to powerline version across the workshop, they should bump in lockstep. Worth a quick grep during the next statusline-related change. Polish, not v3-blocking.
+6. **`setup-toolkit` powerline version bump tracking.** `@owloops/claude-powerline@1.25.1` is pinned inline at line 321. If there are other references to powerline version across the workshop, they should bump in lockstep. Worth a quick grep during the next statusline-related change. Polish, not v3-blocking.
 
-6. **`setup-toolkit` size.** 431 lines is large but load-bearing — no reasonable split. Noted for context; no action.
+7. **`setup-toolkit` size.** 431 lines is large but load-bearing — no reasonable split. Noted for context; no action.
