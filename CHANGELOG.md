@@ -2,13 +2,13 @@
 
 ## [Unreleased]
 
-### Notes
-- **v3 audit complete (stages 1–5, execution ongoing).** Full exhaustive audit of all repo directories against the resource-workshop canon. Stage 1: identity rewrite (orchestrator → resource workshop) across `relevant-project-identity.md`, `CLAUDE.md`, `README.md`, `docs/getting-started.md`, `suggestions-box/CLAUDE.md`. Stages 2–5: per-directory findings in `planning/v3-audit/` (one file per directory); consolidated skills decisions in `planning/v3-audit/stage2-decisions.md`. Execution tasks spawned to backlog at P2 (`v3-a*`, `v3-b*`, `v3-c*`) and P3 (`v3-e*`, plus `manage-lessons-cli-routing`, `review-security-worthyness`, `surface-docs-hook`, `satellite-cli-docs-convention`).
-
-## [2.61.2] - 2026-04-21 - v3 A2: brainstorm pair rename
+## [2.61.2] - 2026-04-21 - v3 A2: brainstorm pair rename + audit completion
 
 ### Changed
 - **skills**: Renamed `/brainstorm-idea` → `/brainstorm-feature` (software design skill — more specific purpose). Renamed `/brainstorm` → `/brainstorm-idea` (general-purpose skill — name freed up by above). Updated all cross-references across 6 related skills (`analyze-idea`, `build-communication-style`, `refactor`, `review-plan`, `shape-project`, `shape-proposal`), 2 index files (`docs/indexes/SKILLS.md`, `docs/indexes/AGENTS.md`), 2 docs (`docs/getting-started.md`, `README.md`). Fixed `/brainstorm-idea` output path from generic `output/{project}/design/` to specific `output/claude-toolkit/brainstorm/` — consistent with workshop's literal paths. Coordinated single-commit rename resolves naming confusion (brainstorm-idea was the software design skill; now brainstorm-feature is clearer) and output-path drift.
+
+### Notes
+- **v3 audit complete (stages 1–5, execution ongoing).** Full exhaustive audit of all repo directories against the resource-workshop canon. Stage 1: identity rewrite (orchestrator → resource workshop) across `relevant-project-identity.md`, `CLAUDE.md`, `README.md`, `docs/getting-started.md`, `suggestions-box/CLAUDE.md`. Stages 2–5: per-directory findings in `planning/v3-audit/` (one file per directory); consolidated skills decisions in `planning/v3-audit/stage2-decisions.md`. Execution tasks spawned to backlog at P2 (`v3-b*`, `v3-c*`) and P3 (`v3-e*`, plus `manage-lessons-cli-routing`, `review-security-worthyness`, `surface-docs-hook`, `satellite-cli-docs-convention`). A1 and A2 execution tasks completed.
 
 ## [2.61.1] - 2026-04-21 - session_start_context row for claude-sessions projector
 

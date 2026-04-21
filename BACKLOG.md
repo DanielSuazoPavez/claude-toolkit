@@ -23,10 +23,6 @@
 
 ## P2 - Medium
 
-- **[SKILLS]** v3 A1 — `metadata.type` sweep across all 35 skills (`v3-a1-metadata-type-sweep`)
-    - **scope**: `skills`
-    - **notes**: All-or-nothing coordinated commit. Move 17 skills carrying `type:` to `metadata: { type: ... }`. Add explicit `metadata: { type: knowledge }` to the 18 skills with no `type:` field (don't rely on the default). Lockstep update to `evaluate-skill/SKILL.md` at 4 locations: lines 42-48 (Skill Types table), 54-58 (Dimension Adjustments table), 259 (Evaluation Protocol step 2), 224 (JSON output schema). `evaluations.json` keeps `type` at top level. Full file list in `planning/v3-audit/stage2-decisions.md` §A1.
-
 
 - **[SKILLS]** v3 B2+B3+B5 — trivial 1-line skill fixes (`v3-b2-b3-b5-trivial-fixes`)
     - **scope**: `skills`
