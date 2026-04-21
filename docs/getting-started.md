@@ -1,6 +1,6 @@
 # Getting Started
 
-You've received a `.claude/` folder — a curated configuration layer for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Anthropic's CLI tool for working with Claude in your terminal.
+You've received a `.claude/` folder — a curated configuration layer for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Anthropic's CLI tool for working with Claude in your terminal. The resources in it come from **claude-toolkit**, a workshop where these skills, agents, hooks, and docs are authored, refined, and distributed. Your project is a downstream consumer: pull updates with `claude-toolkit sync`, customize locally as needed.
 
 This toolkit adds skills (commands you invoke), agents (subtask specialists Claude uses), hooks (automatic guardrails), and docs (reference documentation that shapes behavior) on top of Claude Code. Everything is designed to work together out of the box — except hooks, which need a one-time activation step (see [Activating Hooks](#3-activating-hooks)).
 

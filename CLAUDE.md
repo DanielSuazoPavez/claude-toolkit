@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Claude Toolkit - curated Claude Code configuration with skills, agents, hooks, and docs templates.
+Claude Toolkit — a **resource workshop** for Claude Code. Authors and distributes skills, agents, hooks, and docs to downstream projects (consumers and satellites) via `claude-toolkit sync`. The workshop supplies resources; it does not orchestrate downstream projects. See `.claude/docs/relevant-project-identity.md` for the full identity.
 
 ## Quick Start
 

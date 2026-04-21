@@ -1,6 +1,6 @@
 # Claude Toolkit
 
-Curated Claude Code configuration: skills, agents, hooks, and docs for productive AI-assisted development.
+A **resource workshop** for Claude Code: the canonical place where skills, agents, hooks, and docs are authored, refined, and distributed to downstream projects via `claude-toolkit sync`.
 
 ## Quick Start
 
@@ -116,7 +116,9 @@ Hooks are configured in `settings.json` (committed, shared).
 
 ## Design Philosophy
 
-See [`.claude/docs/relevant-project-identity.md`](.claude/docs/relevant-project-identity.md) for the toolkit's identity document — what it is, what it isn't, and how to evaluate whether a new resource belongs.
+The toolkit is a **resource workshop**: resources are authored and refined here, then flow outward to downstream projects (consumers) and specialist projects (satellites) via `claude-toolkit sync`. Satellites — like `claude-sessions` (session analytics), `aws-toolkit` (AWS architecture), `schema-smith` (DDL generation) — are peers that consume toolkit resources and can feed specialist extensions back upstream via `suggestions-box/`. The workshop supplies; it does not orchestrate.
+
+See [`.claude/docs/relevant-project-identity.md`](.claude/docs/relevant-project-identity.md) for the full identity document — what the toolkit is, what it isn't, and how to evaluate whether a new resource belongs.
 
 See also [`.claude/docs/relevant-philosophy-reducing_entropy.md`](.claude/docs/relevant-philosophy-reducing_entropy.md) for the curation philosophy — why less is more, and how to keep the toolkit lean.
 

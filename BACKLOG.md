@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Post-v2 — improve resources through real usage, expand into AWS and security domains.
+**v3 — Resource workshop reframe.** claude-toolkit is a resource workshop (canonical place where Claude Code resources are authored, refined, distributed), not an orchestrator. v3 is a deliberate review moment: rewrite self-description, exhaustively audit code/resources for orchestrator-thinking leakage, revisit resources through workshop + Opus 4.7 clarity lens, verify setup-toolkit, polish. Staged (stages 1–5 at P0). Design: `output/claude-toolkit/design/20260420_2007__brainstorm-idea__claude-toolkit-v3.md`. Distribution tailoring and lessons-ecosystem data analysis are explicitly post-v3.
 
 **See also:** `output/claude-toolkit/exploration/BACKLOG.md` — repo exploration queue (pending reviews, theme searches).
 
@@ -21,15 +21,35 @@ Post-v2 — improve resources through real usage, expand into AWS and security d
 
 ## P0 - Critical
 
+- **[TOOLKIT]** v3 Stage 1 — Identity rewrite (`v3-stage-1-identity-rewrite`)
+    - **scope**: `toolkit`
+    - **notes**: Pure prose work. Rewrite self-description from "orchestrator" to "resource workshop" across: README.md, CLAUDE.md, .claude/docs/relevant-project-identity.md, suggestions-box/CLAUDE.md, docs/ top-level user-facing docs, .claude/memories/ auto-memory, any .claude/docs/relevant-* docs touching project purpose/role. Explicitly NOT touching skills/agents/hooks descriptions (stage 3), dist/CLI code (stage 2), or suggestions-box workflow (stage 2). Design: `output/claude-toolkit/design/20260420_2007__brainstorm-idea__claude-toolkit-v3.md`.
+
+- **[TOOLKIT]** v3 Stage 2 — Code/structure audit (exhaustive) (`v3-stage-2-code-audit`)
+    - **scope**: `toolkit`
+    - **notes**: Walk every file in the repo asking "does this shape assume orchestration, or is it workshop-shaped?" Output: one findings doc per directory at `planning/v3-audit/{directory}.md` (tracked, new top-level `planning/` folder). Every file listed with a finding tag: Keep / Rewrite / Defer / Investigate. Checklist-style, resumable across sessions. Audit targets: cli/, dist/, .claude/hooks/, .claude/agents/, .claude/skills/, .claude/docs/, suggestions-box/, output/ layout, .github/, top-level files. Decision point after audit: which Rewrite items are v3-scope vs deferred. Don't let distribution tailoring or lessons-ecosystem analysis sneak in.
+    - **depends on**: `v3-stage-1-identity-rewrite`
+
+- **[TOOLKIT]** v3 Stage 3 — Resource revisit (4.7 clarity pass) (`v3-stage-3-resource-revisit`)
+    - **scope**: `toolkit, skills, agents, hooks`
+    - **notes**: Walk skills/agents/hooks/docs through two lenses simultaneously: workshop framing (any identity residue from stage 2) + Opus 4.7's preference for more explicit/clear instructions. Same checklist-per-directory pattern as stage 2. Stage 2 will have already flagged framing issues — stage 3 focuses on clarity/explicitness.
+    - **depends on**: `v3-stage-2-code-audit`
+
+- **[TOOLKIT]** v3 Stage 4 — setup-toolkit health-check (`v3-stage-4-setup-toolkit-check`)
+    - **scope**: `toolkit, skills`
+    - **notes**: Narrow single-skill audit: does setup-toolkit reliably make a project a consumer of the workshop? Identity is now settled, so the question is focused. Likely produces a short findings doc, possibly small fixes. Not a known problem — this is verification.
+    - **depends on**: `v3-stage-3-resource-revisit`
+
+- **[TOOLKIT]** v3 Stage 5 — Polish (`v3-stage-5-polish`)
+    - **scope**: `toolkit`
+    - **notes**: Sweep accumulated small stuff from stages 2–4 tagged "Defer — but worth doing" or "Investigate." Natural end-of-v3 cleanup. Also a home for cruft noticed during the work.
+    - **depends on**: `v3-stage-4-setup-toolkit-check`
+
 ## P1 - High
 
 ## P2 - Medium
 
 ## P3 - Low
-
-- **[TOOLKIT]** Define what v3 looks like (`define-v3`)
-    - **scope**: `toolkit`
-    - **notes**: Behavior changes have been shipping as Minor bumps (2.x → 2.x+1), but the ecosystems opt-in in 2.61.0 is the kind of change that arguably warrants Major. Before the next breaking-ish change, write down: what's the v3 identity, what breaking changes are queued, what's the migration story, and what's the cutline between "bump Minor and nudge" vs "bump Major and gate sync". Surfaced while wrapping up `ecosystems-opt-in`.
 
 - **[HOOKS]** Remove ecosystems opt-in session-start nudge (`remove-ecosystems-opt-in-nudge`)
     - **scope**: `hooks`
