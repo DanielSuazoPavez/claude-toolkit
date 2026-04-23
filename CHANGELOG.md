@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.61.5] - 2026-04-23 - v3 C3: document opus rationale in evaluate-* skills
+
+### Changed
+- **skills**: Added opus-model rationale note to the Invocation block of all 4 evaluate-* skills (`evaluate-skill`, `evaluate-agent`, `evaluate-hook`, `evaluate-docs`) plus an inline comment next to `model: "opus"`. The choice is judgment-heavy rubric scoring, not checklist execution — future readers shouldn't mistake it for an unreviewed default and downgrade without revisiting.
+
 ## [2.61.4] - 2026-04-23 - v3 C1: read-json knowledge reshape + raiz MANIFEST sync
 
 ### Changed

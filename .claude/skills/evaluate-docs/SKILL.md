@@ -204,10 +204,12 @@ Compute file_hash with: `md5sum <doc-file> | cut -c1-8`
 
 **Launch a subagent** for fresh, unbiased evaluation.
 
+Opus is required here: rubric scoring is cross-dimension judgment (weighing trade-offs, spotting omissions), not checklist execution. A cheaper model produces plausible scores that drift under scrutiny. Do not downgrade without revisiting this.
+
 ```
 Task tool with:
   subagent_type: "general-purpose"
-  model: "opus"
+  model: "opus"  # judgment-heavy rubric — see rationale above
   prompt: |
     Evaluate the doc at <path> using the evaluate-docs rubric.
     Read .claude/skills/evaluate-docs/SKILL.md for the full rubric.

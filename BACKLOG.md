@@ -23,10 +23,6 @@
 
 ## P2 - Medium
 
-- **[SKILLS]** v3 C3 — document opus model rationale in evaluate-* invocation blocks (`v3-c3-evaluate-opus-rationale`)
-    - **scope**: `skills`
-    - **notes**: All 4 evaluate-* skills dispatch `model: "opus"` subagents (evaluate-skill:240, evaluate-agent:165, evaluate-hook:155, evaluate-docs:204). Decision: keep opus — evaluate-* requires cross-dimension judgment, not just checklist execution. Add a brief rationale comment to each invocation block so the choice isn't mistaken for an oversight or an unreviewed default.
-
 ## P3 - Low
 
 - **[HOOKS]** Remove ecosystems opt-in session-start nudge (`remove-ecosystems-opt-in-nudge`)
