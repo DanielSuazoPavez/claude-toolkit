@@ -30,7 +30,7 @@ The toolkit publishes two distribution profiles, each with its own templates (pr
 - 12 skills (analyze-idea, brainstorm-feature, brainstorm-idea, build-communication-style, create-docs, draft-pr, read-json, review-plan, setup-toolkit, wrap-up, write-documentation, write-handoff)
 - 5 agents (codebase-explorer, code-debugger, code-reviewer, goal-verifier, implementation-checker)
 - 9 hooks (guardrails + session-start + grouped dispatcher — no enforce-make, no enforce-uv, no surface-lessons)
-- 3 docs (code style, context conventions, permissions config)
+- 4 docs (code style, context conventions, permissions config, artifacts convention)
 
 ## When Editing Templates
 

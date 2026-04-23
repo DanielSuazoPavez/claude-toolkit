@@ -40,6 +40,7 @@ hooks/lib/hook-utils.sh
 docs/essential-conventions-code_style.md
 docs/relevant-toolkit-context.md
 docs/relevant-toolkit-permissions_config.md
+docs/relevant-toolkit-artifacts.md
 
 # docs (copied to project root, outside .claude/)
 docs/getting-started.md

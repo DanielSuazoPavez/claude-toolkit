@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.61.7] - 2026-04-23 - raiz MANIFEST: include artifacts convention doc
+
+### Changed
+- **raiz**: Added `docs/relevant-toolkit-artifacts.md` to `dist/raiz/MANIFEST` (missed in 2.61.6). 11 of 17 raiz-included resources declare `output/claude-toolkit/` paths, and two (`draft-pr`, `review-plan`) now explicitly reference the new doc. `dist/CLAUDE.md` doc count updated from 3 → 4.
+- **base**: Updated stale path in `dist/base/EXCLUDE` — `docs/relevant-conventions-naming.md` → `docs/relevant-toolkit-resource_naming.md` (followup to the 2.61.6 rename; without this the excluded doc would have started syncing to base projects).
+
 ## [2.61.6] - 2026-04-23 - rename naming doc + add artifacts convention doc
 
 ### Changed
