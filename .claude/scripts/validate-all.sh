@@ -71,6 +71,16 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- Dist manifest existence ---
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Running: validate-dist-manifests.sh"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+bash "$SCRIPTS_DIR/validate-dist-manifests.sh"
+if [ $? -ne 0 ]; then
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
 # --- Summary ---
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ $FAILURES -eq 0 ]; then
