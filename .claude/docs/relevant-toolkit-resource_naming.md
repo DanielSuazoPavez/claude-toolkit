@@ -29,6 +29,7 @@ Guidelines for naming resources in Claude Toolkit.
 | Agents | `context-role` | `code-reviewer`, `goal-verifier` |
 | Memories | `descriptive_name` | `professional_profile`, `user` |
 | Hooks | `functionality-context-detail` | `enforce-feature-branch` |
+| Docs | `{essential\|relevant}-{context}-{name}` | `essential-conventions-code_style`, `relevant-toolkit-artifacts` (full pattern in `relevant-toolkit-context`) |
 
 ---
 

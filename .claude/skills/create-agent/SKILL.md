@@ -53,7 +53,7 @@ What does this agent do that default Claude doesn't?
 
 Location: `.claude/agents/<agent-name>.md`
 
-Use `context-role` format for agent names. See `relevant-conventions-naming`.
+Use `context-role` format for agent names. See `relevant-toolkit-resource_naming`.
 
 **Required frontmatter:**
 ```yaml

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.61.6] - 2026-04-23 - rename naming doc + add artifacts convention doc
+
+### Changed
+- **docs**: Renamed `.claude/docs/relevant-conventions-naming.md` → `relevant-toolkit-resource_naming.md` to align with the `relevant-toolkit-*` family (parallels `relevant-toolkit-resource_frontmatter.md`). Updated the 4 referencing skills (`create-hook`, `create-skill`, `create-agent`, `create-docs`) and `docs/indexes/DOCS.md`.
+- **skills**: `draft-pr` output path tightened — was `{timestamp}_{branch-name}` (date-only, no source segment), now `{YYYYMMDD}_{HHMM}__draft-pr__{branch-name}`. `review-plan` output path tightened — was `{timestamp}__review_plan__{plan-name}` (underscore source, unspecified timestamp), now `{YYYYMMDD}_{HHMM}__review-plan__{plan-name}`; also corrected the `date` format hint from `+%Y%m%d_%H%M%S` (seconds) to `+%Y%m%d_%H%M` to match the standard.
+
+### Added
+- **docs**: New `.claude/docs/relevant-toolkit-artifacts.md` documents the output-artifact filename convention (`output/claude-toolkit/<category>/{YYYYMMDD}_{HHMM}__<source>__<slug>.md`). Covers components, rationale, exceptions (`shape-project`, `evaluate-*`, `build-communication-style`), and gotchas. Audit of all declared `Save to:` paths found 12 files already on-pattern and the two above drifting — both now fixed and anchored to the new doc.
+- **docs**: `relevant-toolkit-resource_naming.md` now lists Docs in the resource-pattern table (pointing at `relevant-toolkit-context` for the full `{essential\|relevant}-{context}-{name}` spec). `CLAUDE.md` Changelog rule tightened to name "shipped docs in `.claude/docs/` or `docs/`" explicitly as resource changes requiring a version bump — removes the previous ambiguity with "docs-only changes."
+
 ## [2.61.5] - 2026-04-23 - v3 C3: document opus rationale in evaluate-* skills
 
 ### Changed

@@ -28,7 +28,7 @@ Is this prescriptive rules, conventions, or reference documentation?
 
 For procedures (step-by-step workflows), use `/create-skill` instead.
 
-**See also:** `/evaluate-docs` (quality gate), `/list-docs` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `relevant-conventions-naming`
+**See also:** `/evaluate-docs` (quality gate), `/list-docs` (check for duplicates), `/create-skill` (for procedures), `/create-hook` (for enforcement), `/create-agent` (for behavioral specialists), `relevant-toolkit-resource_naming`
 
 ## Instructions
 

@@ -54,7 +54,7 @@ Summary and status of all resources:
 ## Changelog
 
 - Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
-- Code/resource changes: version bump + changelog entry under version
+- Resource changes (skills, agents, hooks, shipped docs in `.claude/docs/` or `docs/`): version bump + changelog entry under version
 - When adding a version entry, fold any existing `[Unreleased]` changes into it
 - **Raiz notification on version bump**: The publish-raiz workflow auto-detects raiz-relevant changes by trimming changelog entries against the MANIFEST — no manual flagging needed. CI picks up an override file at `dist/raiz/changelog/<version>.html` if it exists, otherwise auto-generates from the changelog
 

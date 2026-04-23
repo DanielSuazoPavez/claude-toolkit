@@ -9,7 +9,7 @@ Use when adding a new hook to `.claude/hooks/`.
 
 **See also:** `.claude/docs/relevant-toolkit-hooks.md` (match/check pattern + dispatcher contract), `/evaluate-hook` (quality gate), `/create-skill` (when a skill fits better), `/create-agent` (when an agent fits better)
 
-Use `verb-noun.sh` format for hook names. See `relevant-conventions-naming`.
+Use `verb-noun.sh` format for hook names. See `relevant-toolkit-resource_naming`.
 
 ## When to Use
 

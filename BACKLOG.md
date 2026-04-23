@@ -51,10 +51,6 @@
     - **scope**: `toolkit`
     - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
 
-- **[TOOLKIT]** v3 E1 — small validators bundle (output-path, cross-reference, indexes) (`v3-e1-validators-bundle`)
-    - **scope**: `scripts, tests`
-    - **notes**: Three validators surfaced across audit subsets. (1) Output-path validator: checks each skill's `Save to:` path matches `output/claude-toolkit/<category>/...` convention. (2) Cross-reference validator: resolves all `.claude/` markdown cross-refs against docs + memories + agents + skills — catches stale See also links. (3) Indexes-validator: verifies `docs/indexes/SKILLS.md` entries match actual filesystem. Bundle into a single script or make target.
-
 - **[DOCS]** v3 E2 — output-shape convention doc (save vs inline) (`v3-e2-output-shape-doc`)
     - **scope**: `toolkit`
     - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
