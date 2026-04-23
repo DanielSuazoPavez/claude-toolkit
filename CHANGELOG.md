@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.61.4] - 2026-04-23 - v3 C1: read-json knowledge reshape + raiz MANIFEST sync
+
+### Changed
+- **skills**: `read-json` reshaped from user-invocable command to knowledge reference (`type: knowledge`, `user-invocable: false`). Stripped redundant sections (categorical rule, progressive inspection, file-size table, anti-patterns) — modern sessions already default to jq for JSON. Kept the load-bearing content: shell-quoting traps (`--arg`/`--argjson`) and malformed-JSON recipes (BOM, JSONL, trailing commas, truncated, embedded). `suggest-read-json` hook's block-reason now points at the skill path instead of the `/read-json` command. User-facing references updated across `README.md`, `docs/getting-started.md`, `docs/indexes/SKILLS.md`, `docs/indexes/HOOKS.md`, `.claude/docs/relevant-toolkit-hooks_config.md`, and the `grouped-read-guard` dispatcher comment.
+- **raiz**: Dist MANIFEST synced to reflect brainstorm rename (`brainstorm` → `brainstorm-feature`) and `write-documentation` addition (12 skills total). `dist/CLAUDE.md` skill list updated.
+
 ## [2.61.3] - 2026-04-21 - skill path references + adaptive thinking gating
 
 ### Changed

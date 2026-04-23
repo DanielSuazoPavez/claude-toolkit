@@ -5,8 +5,8 @@
 
 # skills
 skills/analyze-idea/
-skills/brainstorm/
 skills/brainstorm-idea/
+skills/brainstorm-feature/
 skills/build-communication-style/
 skills/create-docs/
 skills/draft-pr/
@@ -15,6 +15,7 @@ skills/review-plan/
 skills/setup-toolkit/
 skills/wrap-up/
 skills/write-handoff/
+skills/write-documentation/
 
 # agents
 agents/codebase-explorer.md

@@ -23,10 +23,6 @@
 
 ## P2 - Medium
 
-- **[SKILLS]** v3 C1 — `read-json` reshape to hook-pointed reference (`v3-c1-read-json-reshape`)
-    - **scope**: `skills`
-    - **notes**: Demote to `metadata: { type: knowledge }`, add `user-invocable: false` (hide from / menu), strip redundant sections (categorical rule, progressive inspection pattern, file-size table, anti-patterns table). Keep shell-quoting traps (lines 37-64: `--arg`/`--argjson` vs interpolation) and malformed-JSON recipes (lines 66-90: BOM, JSONL, trailing commas, truncated, embedded). Update `suggest-read-json` hook's `_BLOCK_REASON` (hook line 73) to point at skill path rather than `/read-json` command syntax.
-
 - **[SKILLS]** v3 C3 — document opus model rationale in evaluate-* invocation blocks (`v3-c3-evaluate-opus-rationale`)
     - **scope**: `skills`
     - **notes**: All 4 evaluate-* skills dispatch `model: "opus"` subagents (evaluate-skill:240, evaluate-agent:165, evaluate-hook:155, evaluate-docs:204). Decision: keep opus — evaluate-* requires cross-dimension judgment, not just checklist execution. Add a brief rationale comment to each invocation block so the choice isn't mistaken for an oversight or an unreviewed default.

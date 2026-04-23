@@ -44,7 +44,7 @@ User-invocable skills activated with `/skill-name`.
 | `setup-toolkit` | beta | Diagnose and fix Claude Toolkit configuration after sync or drift |
 | `setup-worktree` | beta | Set up git worktree with full Claude configuration for branch isolation |
 | `teardown-worktree` | beta | Close out a worktree — check, copy artifacts, remove, checkout branch |
-| `read-json` | stable | Read and analyze JSON files efficiently using jq |
+| `read-json` | stable | jq reference — shell-quoting traps and malformed-JSON recipes (knowledge, not user-invocable) |
 | `design-docker` | beta | Dockerfile and docker-compose patterns, health checks, multi-stage builds |
 
 ## Toolkit Development

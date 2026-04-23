@@ -91,7 +91,7 @@ For full listings with status and details, see [`docs/indexes/`](docs/indexes/).
 ## Dependencies
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — the CLI this toolkit extends
-- `jq` — JSON processing in hooks and skills (`/read-json`, session-start, evaluations)
+- `jq` — JSON processing in hooks and skills (session-start, `read-json` reference, evaluations)
 - `sqlite3` — lesson storage and retrieval (`/learn`, `surface-lessons` hook)
 - `bash` — all hooks and scripts target bash
 - `make` — test runner and common task targets
