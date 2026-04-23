@@ -2,7 +2,7 @@
 # Shared setup for hook tests.
 #
 # Sourced by tests/hooks/test-*.sh and the legacy tests/test-hooks.sh.
-# Sets HOOKS_DIR and redirects HOOK_LOG_DB
+# Sets HOOKS_DIR and redirects CLAUDE_ANALYTICS_HOOKS_DB
 # to a per-process temp SQLite file so ~/.claude/hooks.db is never
 # touched by the suite. Each sourcing process gets its own DB, so
 # parallel runners don't contend.
@@ -19,7 +19,7 @@ if [ -f "$HOME/.claude/hooks.db" ]; then
         echo "warning: hooks.db schema clone failed — DB-dependent assertions will skip" >&2
     fi
 fi
-export HOOK_LOG_DB="$TEST_HOOKS_DB"
+export CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB"
 # bash resets traps in subshells, so `( ... )` blocks (e.g. the cd-into-tempdir
 # pattern in test-git-safety.sh) don't fire this on subshell exit — the DB
 # survives until the parent process exits via print_summary.

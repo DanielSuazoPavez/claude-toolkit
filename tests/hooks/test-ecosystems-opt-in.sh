@@ -51,7 +51,7 @@ if [ -f "$TEST_HOOKS_DB" ] && sqlite3 "$TEST_HOOKS_DB" "SELECT 1 FROM hook_logs 
     (
         unset CLAUDE_TOOLKIT_LESSONS CLAUDE_TOOLKIT_TRACEABILITY
         echo "{\"session_id\":\"$sid\",\"source\":\"startup\"}" \
-            | HOOK_LOG_DB="$TEST_HOOKS_DB" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
+            | CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
     ) || true
 
     TESTS_RUN=$((TESTS_RUN + 1))
@@ -70,7 +70,7 @@ if [ -f "$TEST_HOOKS_DB" ] && sqlite3 "$TEST_HOOKS_DB" "SELECT 1 FROM hook_logs 
         export CLAUDE_TOOLKIT_TRACEABILITY=1
         unset CLAUDE_TOOLKIT_LESSONS
         echo "{\"session_id\":\"$sid\",\"source\":\"startup\"}" \
-            | HOOK_LOG_DB="$TEST_HOOKS_DB" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
+            | CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
     ) || true
 
     TESTS_RUN=$((TESTS_RUN + 1))
@@ -92,7 +92,7 @@ run_session_start() {
     local envline="$1"
     local sid="nudge-$(date +%s%N)"
     # shellcheck disable=SC2086  # $envline is a space-separated KEY=val list
-    env -i PATH="$PATH" HOME="$HOME" HOOK_LOG_DB="$TEST_HOOKS_DB" $envline bash -c \
+    env -i PATH="$PATH" HOME="$HOME" CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB" $envline bash -c \
         "echo '{\"session_id\":\"$sid\",\"source\":\"startup\"}' | '$HOOKS_DIR/session-start.sh' 2>/dev/null"
 }
 

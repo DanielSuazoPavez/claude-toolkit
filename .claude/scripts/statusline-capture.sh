@@ -12,7 +12,8 @@ set -euo pipefail
 
 SNAPSHOTS_DIR="${HOME}/.claude/usage-snapshots"
 SNAPSHOTS_FILE="${SNAPSHOTS_DIR}/snapshots.jsonl"
-POWERLINE_CMD="npx -y @owloops/claude-powerline@1.25.1 --config=.claude/claude-powerline.json"
+POWERLINE_VERSION="${CLAUDE_TOOLKIT_POWERLINE_VERSION:-1.25.1}"
+POWERLINE_CMD="npx -y @owloops/claude-powerline@${POWERLINE_VERSION} --config=.claude/claude-powerline.json"
 
 # 1. Read full stdin into a variable
 INPUT="$(cat)"

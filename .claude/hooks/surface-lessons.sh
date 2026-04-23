@@ -19,7 +19,7 @@
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.claude/hooks/foo.sh"}}' | bash .claude/hooks/surface-lessons.sh
 #   # Expected: additionalContext with hooks-tagged lessons
 
-LESSONS_DB="$HOME/.claude/lessons.db"
+LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
 [ -f "$LESSONS_DB" ] || exit 0
 
 source "$(dirname "$0")/lib/hook-utils.sh"
