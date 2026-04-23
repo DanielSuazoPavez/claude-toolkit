@@ -155,10 +155,12 @@ Compute file_hash with: `md5sum <hook-file> | cut -c1-8`
 
 **Launch a subagent** for fresh, unbiased evaluation.
 
+Opus is required here: rubric scoring is cross-dimension judgment (weighing trade-offs, spotting omissions), not checklist execution. A cheaper model produces plausible scores that drift under scrutiny. Do not downgrade without revisiting this.
+
 ```
 Task tool with:
   subagent_type: "general-purpose"
-  model: "opus"
+  model: "opus"  # judgment-heavy rubric — see rationale above
   prompt: |
     Evaluate the hook at <path> using the evaluate-hook rubric.
     Read .claude/skills/evaluate-hook/SKILL.md for the full rubric.
