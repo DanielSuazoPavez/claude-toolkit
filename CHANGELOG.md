@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [2.63.1] - 2026-04-23 - dist-manifest existence validator
+
+### Added
+- **scripts**: New `.claude/scripts/validate-dist-manifests.sh` — checks every entry in `dist/raiz/MANIFEST` and `dist/base/EXCLUDE` resolves to a real path on disk. Resolution mirrors `.github/scripts/publish.py` (`docs/*` → `.claude/docs/` with repo-root fallback, `templates/*` → `dist/base/templates/`, otherwise `.claude/`). Trailing-slash entries checked as dirs, others as files. Catches rename/delete drift on every `make check` instead of only at CI publish time.
+- **scripts**: Wired into `.claude/scripts/validate-all.sh` as a sixth stanza.
 
 ## [2.63.0] - 2026-04-23 - profile marker for .claude/MANIFEST + detect_profile helper
 

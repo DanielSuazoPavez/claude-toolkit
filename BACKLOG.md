@@ -21,10 +21,6 @@
 
 ## P0 - Critical
 
-- **[SCRIPTS]** Dist-manifest existence validator (`dist-manifest-existence-validator`)
-    - **scope**: `scripts`
-    - **notes**: Nothing validates `dist/raiz/MANIFEST` or `dist/base/EXCLUDE` against disk today — rename drift is only caught at CI publish time (on a version bump). Surfaced in 2.61.7 after `dist/base/EXCLUDE` was found with a stale `relevant-conventions-naming.md` entry from the 2.61.6 rename. Small script: for each entry in `dist/raiz/MANIFEST` and `dist/base/EXCLUDE`, check the file exists in `.claude/`. Wire into `validate-all.sh`. ~15 lines. Catches stale entries after renames/deletes. Does NOT catch the "forgot to add new doc to raiz" case — that's the harder version and lives elsewhere.
-
 - **[SCRIPTS]** Reframe base-project MANIFEST warnings (`base-project-manifest-warnings-reframe`)
     - **scope**: `scripts`
     - **notes**: In base-project MANIFEST mode, `validate-resources-indexed.sh` and `verify-resource-deps.sh` warn "Extra file not in MANIFEST" for every project-local resource (skills/agents/hooks/docs the project added itself, not synced from toolkit). That's wrong — MANIFEST is a whitelist of what the toolkit *owns*, not an allowlist of what's *allowed on disk*. Fix options: (1) silent skip, (2) reframe message to "Project-local (not toolkit-owned): X" as info-not-warning, (3) keep as opt-in `--strict` flag. Concrete symptom: noise when running `setup-toolkit` diagnose in base projects with their own resources.
