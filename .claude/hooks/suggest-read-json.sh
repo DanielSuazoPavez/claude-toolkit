@@ -1,5 +1,5 @@
 #!/bin/bash
-# PreToolUse hook: suggest /read-json skill for JSON files
+# PreToolUse hook: block Read on large JSON files, point at the read-json jq reference
 #
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Read", "hooks": [{"type": "command", "command": "bash .claude/hooks/suggest-read-json.sh"}]}]
@@ -12,7 +12,7 @@
 #   - Excludes common config files by default
 #
 # Reason:
-#   JSON files can be large; /read-json uses jq for efficient querying
+#   JSON files can be large; jq via Bash is more efficient than loading into context
 #
 # Test cases:
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' | bash suggest-read-json.sh
@@ -70,7 +70,7 @@ check_suggest_read_json() {
         fi
     fi
 
-    _BLOCK_REASON="Use \`/read-json\` skill for JSON files — it uses jq for efficient querying instead of loading entire files."
+    _BLOCK_REASON="Use jq via Bash for this JSON file instead of the Read tool — it avoids loading the entire file into context. See .claude/skills/read-json/SKILL.md for shell-quoting and malformed-JSON recipes."
     return 1
 }
 

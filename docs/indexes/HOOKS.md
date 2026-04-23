@@ -20,7 +20,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | — | Blocks writes to shell config, SSH, and git config files |
-| `suggest-read-json.sh` | stable | Read via dispatcher | — | Suggests /read-json skill for large JSON files (>50KB, excludes common configs) |
+| `suggest-read-json.sh` | stable | Read via dispatcher | — | Blocks Read on large JSON files (>50KB, excludes common configs), points at `read-json` jq reference |
 | `enforce-uv-run.sh` | stable | Bash via dispatcher | — | Blocks direct `python`/`python3` calls, suggests `uv run python` |
 | `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | `lessons` (injection only) | Surfaces relevant active lessons as additionalContext based on tool context keywords. Context logging runs independently (gated by `traceability`). |
@@ -122,12 +122,12 @@ Blocks writes to shell config and SSH files to prevent persistent environment po
 
 **Trigger**: PreToolUse (Read)
 
-Suggests using `/read-json` skill for large JSON files.
+Blocks Read on large JSON files and points at the `read-json` jq reference.
 
 - Blocks: `.json` files larger than size threshold
 - Allows: Common config files (package.json, tsconfig.json, etc.) and `*.config.json`
 - Config: `JSON_SIZE_THRESHOLD_KB` env var (default: 50)
-- Reason: Large JSON files are better queried with jq via `/read-json`
+- Reason: Large JSON files are better queried with jq via Bash — the `read-json` skill (`.claude/skills/read-json/SKILL.md`) holds the shell-quoting and malformed-JSON recipes
 
 ### enforce-uv-run.sh
 

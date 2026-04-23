@@ -10,8 +10,9 @@
 # Current checks (in CHECKS order):
 #   1. secrets_guard_read  — sourced from secrets-guard.sh; blocks .env /
 #                            credential files on Read.
-#   2. suggest_read_json   — sourced from suggest-read-json.sh; redirects
-#                            large .json Reads to the /read-json skill.
+#   2. suggest_read_json   — sourced from suggest-read-json.sh; blocks
+#                            large .json Reads and points at the read-json
+#                            jq reference.
 #
 # Security check runs before the suggest-json check so it can't be
 # bypassed by short-circuiting.

@@ -18,7 +18,6 @@ Commands you invoke by typing `/name` in Claude Code. Think of them as repeatabl
 | `/build-communication-style` | Builds or refines a doc that customizes how Claude communicates with you |
 | `/create-docs` | Creates new doc files following project conventions |
 | `/draft-pr` | Analyzes branch commits and generates a PR title and description |
-| `/read-json` | Reads and queries JSON files using jq — handles large files safely |
 | `/review-plan` | Reviews a plan against quality criteria before you approve it |
 | `/setup-toolkit` | Diagnoses and fixes toolkit configuration — the recommended way to get started |
 | `/wrap-up` | Finalizes a feature branch — commits, version bump, changelog |
@@ -48,7 +47,7 @@ Automatic guardrails that run every time Claude uses certain tools. They block d
 | git-safety | Enforces branch safety — blocks commits, force pushes on protected branches |
 | secrets-guard | Blocks access to secret files: `.env`, SSH keys, cloud credentials, tokens |
 | session-start | Loads essential docs and git context at the start of each session |
-| suggest-read-json | Suggests `/read-json` for large JSON files instead of reading them raw |
+| suggest-read-json | Blocks Read on large JSON files and points to the `read-json` jq reference |
 
 ### Docs
 
