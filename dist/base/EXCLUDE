@@ -22,7 +22,7 @@ skills/evaluate-skill/
 skills/shape-proposal/
 
 # Toolkit-internal docs
-docs/relevant-conventions-naming.md
+docs/relevant-toolkit-resource_naming.md
 docs/relevant-project-identity.md
 docs/relevant-toolkit-resource_frontmatter.md
 
