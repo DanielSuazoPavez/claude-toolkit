@@ -209,7 +209,7 @@ Before outputting the skill, evaluate it with `/evaluate-skill`:
 
 Use `verb-noun` format: `create-skill`, `review-plan`, `brainstorm-idea`
 
-See `relevant-conventions-naming` for the full naming guide.
+See `relevant-toolkit-resource_naming` for the full naming guide.
 
 ## Iteration Example
 

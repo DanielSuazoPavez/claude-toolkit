@@ -30,10 +30,10 @@ You are reviewing a plan. Write the full review to a file — do NOT return the 
 
 ## Output
 
-Write the review to: output/claude-toolkit/reviews/{timestamp}__review_plan__{plan-name}.md
+Write the review to: output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__review-plan__{plan-name}.md
 
 Where:
-- {timestamp} — run `date +%Y%m%d_%H%M%S` to get the current datetime
+- {YYYYMMDD}_{HHMM} — run `date +%Y%m%d_%H%M` to get the current datetime (see `relevant-toolkit-artifacts` for the convention)
 - {plan-name} is the plan filename without extension (e.g., if the plan is `add-caching.md`, use `add-caching`)
 
 After writing, respond with only the file path you wrote to.
