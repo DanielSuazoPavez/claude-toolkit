@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.63.2] - 2026-04-23 - reframe MANIFEST-mode project-local resource reports
+
+### Changed
+- **scripts**: `validate-resources-indexed.sh` no longer emits yellow "Extra file not in MANIFEST" warnings for disk resources outside MANIFEST. Reframed as neutral blue "Project-local (not toolkit-owned): …" info lines, with a matching summary count. MANIFEST is a toolkit-ownership whitelist, not a disk allowlist — base projects carry their own skills/agents/hooks/docs and should not be warned about them.
+- **scripts**: `validate-resources-indexed.sh` now also honors `.claude-toolkit-ignore` in MANIFEST mode. Paths matching ignore patterns (same directory-trailing-slash / exact-file logic as `setup-toolkit-diagnose.sh` and `bin/claude-toolkit`) are suppressed entirely. Opt-in silence for known project-local paths; unknown extras still surface as info.
+- **scripts**: MANIFEST-mode detection for skills/agents/hooks/docs/scripts now runs whenever the resource directory exists (previously gated behind the index file also existing — which is false in base projects, so the branch was effectively dead). Toolkit-mode behavior unchanged.
+- **scripts**: `verify-resource-deps.sh` cross-MANIFEST reference reports retoned the same way — yellow "not in MANIFEST, skipped" → blue "not in MANIFEST, scope-skipped", counter renamed to `SCOPED_REFS`, summary wording updated.
+
+### Notes
+- Exit codes unchanged (still 0 for both conditions); this is output retone only.
+- Both scripts ship in `dist/raiz/MANIFEST` — raiz consumers receive the updated output on the next publish.
+
 ## [2.63.1] - 2026-04-23 - dist-manifest existence validator
 
 ### Added
