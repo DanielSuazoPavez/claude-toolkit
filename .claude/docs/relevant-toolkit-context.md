@@ -116,3 +116,26 @@ ln -s /path/to/project/.claude/memories/auto ~/.claude/projects/<project-hash>/m
 ```
 
 The `auto/` directory is gitignored via `.claude/memories/.gitignore`.
+
+---
+
+## 7. Detecting the Distribution Profile
+
+Skills and scripts that need to branch on where they're running can source `.claude/scripts/lib/profile.sh` and call `detect_profile`. It prints one of:
+
+| Outcome | Condition |
+|---------|-----------|
+| `toolkit` | `docs/indexes/SKILLS.md` exists (the workshop repo itself) |
+| `base` | `.claude/MANIFEST` has `# profile: base` within its first 5 non-blank lines |
+| `raiz` | `.claude/MANIFEST` has `# profile: raiz` within its first 5 non-blank lines |
+| `unknown` | no marker found |
+
+**Precedence** (checked in order — the toolkit check wins over the MANIFEST marker, the marker wins over absence, `unknown` returns last).
+
+```bash
+source "$PROJECT_ROOT/.claude/scripts/lib/profile.sh"
+profile=$(detect_profile)              # uses PROJECT_ROOT or $PWD
+profile=$(detect_profile "/some/path") # explicit root
+```
+
+The base-sync MANIFEST (`bin/claude-toolkit`) and raiz publish output (`.github/scripts/publish.py`) both emit the marker as the first non-blank line so the scan window is cheap.

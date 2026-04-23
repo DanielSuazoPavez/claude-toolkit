@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.63.0] - 2026-04-23 - profile marker for .claude/MANIFEST + detect_profile helper
+
+### Added
+- **dist**: Auto-generated `.claude/MANIFEST` now carries a `# profile: base|raiz` marker on its first non-blank line — base sync emits it from `bin/claude-toolkit`, and raiz publish (`.github/scripts/publish.py`) now ships a MANIFEST at all (previously omitted) with `# profile: raiz` prepended and the source documentary header stripped. Source `dist/raiz/MANIFEST` unchanged.
+- **scripts**: New shared library `.claude/scripts/lib/profile.sh` exposing `detect_profile()` → `toolkit | base | raiz | unknown`. Precedence: toolkit (presence of `docs/indexes/SKILLS.md`) wins over MANIFEST marker, marker wins over absence, `unknown` returns last. Idempotent source guard mirrors `.claude/hooks/lib/hook-utils.sh`. Added to `dist/raiz/MANIFEST` so it reaches raiz consumers.
+- **tests**: New `tests/test-profile-lib.sh` (10 cases covering all four outcomes, 5-line scan window, positional/env/pwd overrides, `##` rejection). `tests/test-raiz-publish.sh` now asserts MANIFEST presence + marker + lib; `tests/test-cli.sh` asserts base marker.
+- **docs**: `.claude/docs/relevant-toolkit-context.md` §7 documents `detect_profile`. `dist/CLAUDE.md` notes the profile-marker convention under resource selection.
+
+### Notes
+- No existing caller is migrated in this release — `setup-toolkit-diagnose.sh`, `verify-resource-deps.sh`, `validate-resources-indexed.sh`, and `validate-settings-template.sh` still use directory-presence checks. Follow-up tasks adopt the lib.
+- Raiz consumer repos receive the new file automatically on the next `publish-raiz.yml` run (workflow does `rm -rf target-repo/.claude && cp -r dist-output/raiz/.claude …`).
+
 ## [2.62.0] - 2026-04-23 - centralized env-var surface for analytics DBs + powerline pin
 
 ### Added

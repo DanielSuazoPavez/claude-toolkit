@@ -403,6 +403,9 @@ test_sync_generates_manifest() {
     expect_file_content "MANIFEST contains auto-generated header" \
         "$TEMP_DIR/project/.claude/MANIFEST" \
         "Auto-generated"
+    expect_file_content "MANIFEST contains profile marker (base)" \
+        "$TEMP_DIR/project/.claude/MANIFEST" \
+        "# profile: base"
 
     teardown_test_env
 }

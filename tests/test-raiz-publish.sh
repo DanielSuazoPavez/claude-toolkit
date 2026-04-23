@@ -173,8 +173,20 @@ assert_file_contains "raiz CLAUDE.md.template used (has toolkit note)" \
 assert_file_exists "getting-started.md included" "$OUTPUT_DIR/docs/getting-started.md"
 assert_file_not_exists "getting-started.md not inside .claude" "$OUTPUT_DIR/.claude/docs/getting-started.md"
 
-# MANIFEST should NOT be included (no validation scripts in raiz)
-assert_file_not_exists "MANIFEST not included" "$OUTPUT_DIR/.claude/MANIFEST"
+# MANIFEST should be included with a profile marker (consumer self-identification)
+assert_file_exists "MANIFEST included" "$OUTPUT_DIR/.claude/MANIFEST"
+assert_file_contains "MANIFEST starts with profile marker" \
+    "$OUTPUT_DIR/.claude/MANIFEST" \
+    "# profile: raiz"
+assert_file_contains "MANIFEST lists profile.sh" \
+    "$OUTPUT_DIR/.claude/MANIFEST" \
+    "scripts/lib/profile.sh"
+assert_file_not_contains "MANIFEST drops documentary header" \
+    "$OUTPUT_DIR/.claude/MANIFEST" \
+    "Raiz Manifest — scoped subset"
+
+# profile.sh lib shipped to raiz consumers
+assert_file_exists "profile.sh lib included" "$OUTPUT_DIR/.claude/scripts/lib/profile.sh"
 
 teardown
 

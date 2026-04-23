@@ -22,6 +22,7 @@ __pycache__/
 # Claude session artifacts
 output/claude-toolkit/
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 .worktrees/
 
 # Distribution output

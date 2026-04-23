@@ -19,9 +19,35 @@
 
 ---
 
+## P0 - Critical
+
+- **[SCRIPTS]** Dist-manifest existence validator (`dist-manifest-existence-validator`)
+    - **scope**: `scripts`
+    - **notes**: Nothing validates `dist/raiz/MANIFEST` or `dist/base/EXCLUDE` against disk today — rename drift is only caught at CI publish time (on a version bump). Surfaced in 2.61.7 after `dist/base/EXCLUDE` was found with a stale `relevant-conventions-naming.md` entry from the 2.61.6 rename. Small script: for each entry in `dist/raiz/MANIFEST` and `dist/base/EXCLUDE`, check the file exists in `.claude/`. Wire into `validate-all.sh`. ~15 lines. Catches stale entries after renames/deletes. Does NOT catch the "forgot to add new doc to raiz" case — that's the harder version and lives elsewhere.
+
+- **[SCRIPTS]** Reframe base-project MANIFEST warnings (`base-project-manifest-warnings-reframe`)
+    - **scope**: `scripts`
+    - **notes**: In base-project MANIFEST mode, `validate-resources-indexed.sh` and `verify-resource-deps.sh` warn "Extra file not in MANIFEST" for every project-local resource (skills/agents/hooks/docs the project added itself, not synced from toolkit). That's wrong — MANIFEST is a whitelist of what the toolkit *owns*, not an allowlist of what's *allowed on disk*. Fix options: (1) silent skip, (2) reframe message to "Project-local (not toolkit-owned): X" as info-not-warning, (3) keep as opt-in `--strict` flag. Concrete symptom: noise when running `setup-toolkit` diagnose in base projects with their own resources.
+
 ## P1 - High
 
+- **[SKILLS]** `manage-lessons` — route all CLI lifecycle ops through `claude-toolkit lessons` (`manage-lessons-cli-routing`)
+    - **scope**: `skills`
+    - **notes**: Skill currently calls sqlite3 directly for promote/deactivate/delete (lines 94-106). Direction: route everything through `claude-toolkit lessons` CLI; drop `Bash(sqlite3:*)` from `allowed-tools`. Prerequisites: (1) check CLI for existing promote/deactivate/delete subcommands, (2) add any missing ones, (3) rewrite skill to use CLI only. Coordinates with hooks-audit queue item 2 (LESSONS_DB env var) — once CLI honors the env var, skill inherits behavior automatically.
+
+- **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
+    - **scope**: `hooks, scripts`
+    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side. When reworking the surfacing hook, evaluate folding it into `grouped-read-guard` (and/or a future `grouped-bash-guard` merge) — it currently averages 106ms with ~30-40ms of that being bash+jq startup. Constraints: async-injection contract, 5s timeout, Bash|Read|Write|Edit matcher (wider than grouped-read).
+
 ## P2 - Medium
+
+- **[TOOLKIT]** Satellite CLI docs convention — how workshop skills reference satellite contracts (`satellite-cli-docs-convention`)
+    - **scope**: `toolkit`
+    - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
+
+- **[DOCS]** v3 E2 — output-shape convention doc (save vs inline) (`v3-e2-output-shape-doc`)
+    - **scope**: `toolkit`
+    - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
 
 ## P3 - Low
 
@@ -34,10 +60,6 @@
     - **scope**: `skills`
     - **notes**: Reference + satellite ready; user-postponed (no dependency blockers). Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. When skill ships: enforce satellite-contract rule — link out to aws-toolkit docs via CLI convention (see `satellite-cli-docs-convention` task), no duplicated spec in workshop. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
 
-- **[SKILLS]** `manage-lessons` — route all CLI lifecycle ops through `claude-toolkit lessons` (`manage-lessons-cli-routing`)
-    - **scope**: `skills`
-    - **notes**: Skill currently calls sqlite3 directly for promote/deactivate/delete (lines 94-106). Direction: route everything through `claude-toolkit lessons` CLI; drop `Bash(sqlite3:*)` from `allowed-tools`. Prerequisites: (1) check CLI for existing promote/deactivate/delete subcommands, (2) add any missing ones, (3) rewrite skill to use CLI only. Coordinates with hooks-audit queue item 2 (LESSONS_DB env var) — once CLI honors the env var, skill inherits behavior automatically.
-
 - **[SKILLS]** `review-security` — worthyness diagnostic (`review-security-worthyness`)
     - **scope**: `skills`
     - **notes**: Skill has never been invoked in the wild (to user's knowledge). Run invocation-frequency check (same approach as pattern-finder agents diagnostic). Based on data: (a) Keep — content already solid; (b) Sharpen — broaden description triggers and/or add surfacing-hook path; (c) Deprecate — CC's built-in /security-review may cover enough of the surface. Do alongside pattern-finder diagnostic for consistency.
@@ -47,33 +69,11 @@
     - **notes**: New hook matching tool context against `relevant-*` doc Quick References and injecting a one-liner suggestion when a relevant doc hasn't been loaded. Same deterministic algorithm as `surface-lessons.sh` (dedup window + minimum match specificity). **Gated on `improve-lessons-lifecycle` being validated first** — only build after the surface-lessons rework proves the algorithm works reliably. Coordinates with `.claude/hooks/` queue item 5.
     - **depends on**: `improve-lessons-lifecycle`
 
-- **[TOOLKIT]** Satellite CLI docs convention — how workshop skills reference satellite contracts (`satellite-cli-docs-convention`)
-    - **scope**: `toolkit`
-    - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
-
-- **[DOCS]** v3 E2 — output-shape convention doc (save vs inline) (`v3-e2-output-shape-doc`)
-    - **scope**: `toolkit`
-    - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
-
-- **[SCRIPTS]** Dist-manifest existence validator (`dist-manifest-existence-validator`)
-    - **scope**: `scripts`
-    - **notes**: Nothing validates `dist/raiz/MANIFEST` or `dist/base/EXCLUDE` against disk today — rename drift is only caught at CI publish time (on a version bump). Surfaced in 2.61.7 after `dist/base/EXCLUDE` was found with a stale `relevant-conventions-naming.md` entry from the 2.61.6 rename. Small script: for each entry in `dist/raiz/MANIFEST` and `dist/base/EXCLUDE`, check the file exists in `.claude/`. Wire into `validate-all.sh`. ~15 lines. Catches stale entries after renames/deletes. Does NOT catch the "forgot to add new doc to raiz" case — that's the harder version and lives elsewhere.
-
-- **[SCRIPTS]** Reframe base-project MANIFEST warnings (`base-project-manifest-warnings-reframe`)
-    - **scope**: `scripts`
-    - **notes**: In base-project MANIFEST mode, `validate-resources-indexed.sh` and `verify-resource-deps.sh` warn "Extra file not in MANIFEST" for every project-local resource (skills/agents/hooks/docs the project added itself, not synced from toolkit). That's wrong — MANIFEST is a whitelist of what the toolkit *owns*, not an allowlist of what's *allowed on disk*. Fix options: (1) silent skip, (2) reframe message to "Project-local (not toolkit-owned): X" as info-not-warning, (3) keep as opt-in `--strict` flag. Concrete symptom: noise when running `setup-toolkit` diagnose in base projects with their own resources.
-
-- **[TOOLKIT]** Profile discriminator for `.claude/MANIFEST` (`dist-profile-marker`)
-    - **scope**: `toolkit, scripts`
-    - **notes**: Consumer projects of both base and raiz dists get a `.claude/MANIFEST` at sync time — base's is auto-generated with header `"# Auto-generated by claude-toolkit sync"`, raiz's is the committed `dist/raiz/MANIFEST` with header `"# Raiz Manifest"`. Any skill/script that wants to branch on profile (base vs raiz) today has to do a fragile header grep. Surfaced in 2.62.0 when scoping `setup-toolkit` Phase 1.6 — we chose "runs for all consumers" to sidestep this, but the next phase that needs profile-specific branching will hit it. Fix: add a `# profile: base` / `# profile: raiz` first-line comment in both manifests (update `bin/claude-toolkit` MANIFEST generator + commit change to `dist/raiz/MANIFEST`). Small shared parser in a lib location so skills/scripts read one field.
 
 - **[SCRIPTS]** Move `backup-lessons-db.sh` to claude-sessions (`move-backup-lessons-to-claude-sessions`)
     - **scope**: `scripts`
     - **notes**: `.claude/scripts/cron/backup-lessons-db.sh` backs up a DB whose schema is owned by claude-sessions. Flagged in `planning/v3-audit/claude-docs.md:101` as arguably belonging there. Deferred from 2.62.0 (the env-var centralization touched it but left it in place). Coordinated move: (1) drop script into claude-sessions with the same path or a parallel `scripts/cron/` location, (2) update `.claude/docs/relevant-toolkit-lessons.md:205-209` to point readers at the new location, (3) delete from toolkit, (4) add changelog entry in both repos. Anyone currently running it from a crontab needs a heads-up to update their schedule.
 
-- **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
-    - **scope**: `hooks, scripts`
-    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side. When reworking the surfacing hook, evaluate folding it into `grouped-read-guard` (and/or a future `grouped-bash-guard` merge) — it currently averages 106ms with ~30-40ms of that being bash+jq startup. Constraints: async-injection contract, 5s timeout, Bash|Read|Write|Edit matcher (wider than grouped-read).
 
 ## P99 - Nice to Have
 
@@ -84,10 +84,6 @@
 - **[SKILLS]** v3 E3 — `teardown-worktree` artifact-copy scope decision (`v3-e3-teardown-artifact-scope`)
     - **scope**: `skills`
     - **notes**: Currently copies only `output/claude-toolkit/reviews/*` from worktree to parent at teardown. Does not copy `pr-descriptions/`, `design/`, `plans/`, `sessions/`. Decide: (a) deliberate — keep per-worktree ephemera scoped, only review artifacts persist; or (b) broaden to include other `output/claude-toolkit/` subdirs a user is likely to want after teardown. No clear right answer; needs a decision before implementing.
-
-- **[SKILLS]** v3 E4 — `setup-toolkit` powerline version bump tracking (`v3-e4-powerline-version-tracking`)
-    - **scope**: `skills`
-    - **notes**: Partially addressed in 2.62.0: `statusline-capture.sh` now reads `CLAUDE_TOOLKIT_POWERLINE_VERSION` from `settings.json` env (default `1.25.1`), so the wrapper script no longer carries the version literal. But `setup-toolkit/SKILL.md:~321` still hardcodes `@owloops/claude-powerline@1.25.1` in its install snippet, and the 3 settings files (toolkit + 2 dist templates) each carry their own copy of the env default. Finish: (1) grep for any remaining literal `1.25.1` after the 2.62.0 change, (2) replace the skill's install snippet with a reference to the env var, (3) decide whether a single source-of-truth file is worth the indirection given there are only 4 locations now.
 
 - **[SKILLS]** Add interactive option selection to skills that ask questions (`skill-interactive-options`)
     - **scope**: `skills`

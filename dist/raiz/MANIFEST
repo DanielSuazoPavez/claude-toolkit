@@ -47,6 +47,7 @@ docs/getting-started.md
 
 # scripts
 scripts/setup-toolkit-diagnose.sh
+scripts/lib/profile.sh
 
 # templates
 templates/CLAUDE.md.template
