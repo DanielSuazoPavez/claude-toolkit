@@ -19,13 +19,11 @@
 
 ---
 
-## P0 - Critical
-
-- **[SCRIPTS]** Reframe base-project MANIFEST warnings (`base-project-manifest-warnings-reframe`)
-    - **scope**: `scripts`
-    - **notes**: In base-project MANIFEST mode, `validate-resources-indexed.sh` and `verify-resource-deps.sh` warn "Extra file not in MANIFEST" for every project-local resource (skills/agents/hooks/docs the project added itself, not synced from toolkit). That's wrong — MANIFEST is a whitelist of what the toolkit *owns*, not an allowlist of what's *allowed on disk*. Fix options: (1) silent skip, (2) reframe message to "Project-local (not toolkit-owned): X" as info-not-warning, (3) keep as opt-in `--strict` flag. Concrete symptom: noise when running `setup-toolkit` diagnose in base projects with their own resources.
-
 ## P1 - High
+
+- **[TESTS]** Investigate suspected `test-raiz-changelog.sh` flake under parallel `make check` (`test-raiz-changelog-flake-hunt`)
+    - **scope**: `tests`
+    - **notes**: Observed once during a parallel `make check` run: `FAIL: keeps section: ### Changed` at `tests/test-raiz-changelog.sh:235`, while the neighboring `### Added` assertion passed in the same run. Not reproduced across 13+ subsequent `make check` / `make test` runs in isolation or under load. The `trim_for_raiz` logic in `.github/scripts/format-raiz-changelog.sh` (lines 167-212) treats both sections identically, so a real bug would fail both. Likely a test-runner interleaving issue but unconfirmed. **Caveat:** the original failure report was captured from an output piped through `tail -80`, which means the failure might have been an artifact of my truncated buffer rather than a real test failure — re-verify before investing. Direction: (1) re-run `make check` bare several times in a row to see if it reappears, (2) if it does, add a debug dump inside `assert_contains` that writes the raw `$output` to `tests/.logs/raiz-flake-<pid>.txt` on failure, (3) if it doesn't reappear after ~50 runs, close this task as non-reproducible. Original trigger: commit reframing MANIFEST-mode warnings (2.63.2).
 
 - **[SKILLS]** `manage-lessons` — route all CLI lifecycle ops through `claude-toolkit lessons` (`manage-lessons-cli-routing`)
     - **scope**: `skills`
