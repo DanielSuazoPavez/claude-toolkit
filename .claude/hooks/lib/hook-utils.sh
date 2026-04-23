@@ -39,7 +39,7 @@ HOOK_START_MS=0
 OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
-HOOK_LOG_DB="${HOOK_LOG_DB:-$HOME/.claude/hooks.db}"
+HOOK_LOG_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 _HOOK_SQL_BATCH=""  # accumulated SQL statements, flushed once in EXIT trap
 

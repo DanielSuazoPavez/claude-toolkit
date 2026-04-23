@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 import sys
 from datetime import datetime, timezone
@@ -33,7 +34,7 @@ from cli.lessons.formatting import _c
 # Constants
 # ---------------------------------------------------------------------------
 
-LESSONS_DB_PATH = Path.home() / ".claude" / "lessons.db"
+LESSONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_LESSONS_DB") or (Path.home() / ".claude" / "lessons.db"))
 LEARNED_JSON_PATH = Path(".claude/learned.json")
 
 # ---------------------------------------------------------------------------

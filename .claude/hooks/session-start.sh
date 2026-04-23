@@ -101,7 +101,7 @@ fi
 _hook_perf_probe "toolkit_version"
 
 # === LESSONS ===
-LESSONS_DB="$HOME/.claude/lessons.db"
+LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
 LEARNED_FILE=".claude/learned.json"
 
 if ! hook_feature_enabled lessons; then

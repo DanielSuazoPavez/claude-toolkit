@@ -26,4 +26,4 @@ cli/
 - Shell scripts are self-contained (no external dependencies beyond coreutils/bash)
 - Python CLI uses `argparse`, no third-party CLI frameworks
 - Colors respect `NO_COLOR` env and non-TTY detection (see `formatting.py`)
-- Database path defaults to `~/.claude/lessons.db` (global, not per-project)
+- Database path defaults to `~/.claude/lessons.db` (global, not per-project); overridable via `CLAUDE_ANALYTICS_LESSONS_DB`

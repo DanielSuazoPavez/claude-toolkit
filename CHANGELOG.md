@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [2.62.0] - 2026-04-23 - centralized env-var surface for analytics DBs + powerline pin
+
+### Added
+- **skills**: `setup-toolkit` gains Phase 1.6 — "Analytics DB Paths." Consumer projects are prompted once for the lessons/hooks DB paths (defaults offered: `$HOME/.claude/lessons.db`, `$HOME/.claude/hooks.db`); resolved paths are written to `.claude/settings.local.json` `env` block. Runs for all consumer projects (no profile gating). Skipped when either key already exists. The anti-pattern "never edit settings.local.json" carves out this specific exception — per-user resolved paths belong in the gitignored local file, not the shared one.
+
+### Changed
+- **settings**: Added `CLAUDE_TOOLKIT_POWERLINE_VERSION` (scoped to the toolkit) to the `env` block of `.claude/settings.json` and both dist templates (`dist/base/templates/settings.template.json`, `dist/raiz/templates/settings.template.json`). `_env_config` documentation block expanded to cover every env var the hooks/scripts actually read — previously only 4 of them were documented.
+- **hooks**: `HOOK_LOG_DB` env var renamed to `CLAUDE_ANALYTICS_HOOKS_DB` (no back-compat alias — `lib/hook-utils.sh`, `tests/lib/hook-test-setup.sh`, `tests/hooks/test-ecosystems-opt-in.sh`, `tests/CLAUDE.md`). The internal bash variable name `HOOK_LOG_DB` inside `lib/hook-utils.sh` is unchanged; only the externally-set env var name changed.
+- **hooks**: `session-start.sh` and `surface-lessons.sh` now read the lessons DB path from `CLAUDE_ANALYTICS_LESSONS_DB` (falling back to `$HOME/.claude/lessons.db`) — previously hardcoded.
+- **cli**: `cli/lessons/db.py` reads `LESSONS_DB_PATH` from `CLAUDE_ANALYTICS_LESSONS_DB` with the same fallback.
+- **scripts**: `.claude/scripts/statusline-capture.sh` now reads the pinned `@owloops/claude-powerline` npm version from `CLAUDE_TOOLKIT_POWERLINE_VERSION` (fallback: `1.25.1`).
+- **docs**: `.claude/docs/relevant-toolkit-hooks_config.md` env-var tables updated with the new variables; `cli/CLAUDE.md` notes the `CLAUDE_ANALYTICS_LESSONS_DB` override.
+
+### Notes
+- Path-valued analytics vars (`CLAUDE_ANALYTICS_LESSONS_DB`, `CLAUDE_ANALYTICS_HOOKS_DB`) are intentionally **not declared in `.claude/settings.json`** because Claude Code passes JSON `env` values through literally — `"$HOME/..."` is not expanded. The natural override surface for these is `.claude/settings.local.json`, written by `setup-toolkit` Phase 1.6 with fully-resolved paths. Scripts fall back to `$HOME/.claude/*.db` when the vars are unset.
+- `CLAUDE_TOOLKIT_POWERLINE_VERSION` is scoped to the toolkit (not `CLAUDE_ANALYTICS_*`) because the powerline statusline is a toolkit-specific integration, not a cross-project analytics surface.
+- `backup-lessons-db.sh` still lives in `.claude/scripts/cron/` — it's a candidate to move to claude-sessions (schema ownership) but that move is deferred.
+
 ## [2.61.7] - 2026-04-23 - raiz MANIFEST: include artifacts convention doc
 
 ### Changed

@@ -57,12 +57,20 @@ Set these in your shell or `.envrc` to customize hook behavior.
 |----------|---------|---------|
 | `CLAUDE_DOCS_DIR` | `.claude/docs` | Docs directory |
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
+| `CLAUDE_ANALYTICS_LESSONS_DB` | `$HOME/.claude/lessons.db` | Global lessons SQLite DB. Set in shell/`.envrc` — Claude Code does not expand `$HOME` in `settings.json` values, so path-valued vars must come from the shell environment |
+| `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/.claude/hooks.db` | Global hook-logs SQLite DB. Same `$HOME`-expansion caveat as above |
+
+### Version Pins
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `CLAUDE_TOOLKIT_POWERLINE_VERSION` | `1.25.1` | `@owloops/claude-powerline` npm version used by `statusline-capture.sh` |
 
 ### Thresholds & Configuration
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `JSON_SIZE_THRESHOLD_KB` | `50` | Size threshold for JSON blocking |
 | `PROTECTED_BRANCHES` | `^(main\|master)$` | Regex for protected branch names |
+| `HOOK_PERF` | _(unset)_ | Set to `1` to emit per-phase `HOOK_PERF` timing lines to stderr |
 
 ### Ecosystem Opt-Ins
 Set in the `env` block of `.claude/settings.json` (not shell) so Claude Code injects them into every hook invocation.
@@ -78,7 +86,8 @@ Template shape:
 ```json
 "env": {
   "CLAUDE_TOOLKIT_LESSONS": "0",
-  "CLAUDE_TOOLKIT_TRACEABILITY": "0"
+  "CLAUDE_TOOLKIT_TRACEABILITY": "0",
+  "CLAUDE_TOOLKIT_POWERLINE_VERSION": "1.25.1"
 }
 ```
 

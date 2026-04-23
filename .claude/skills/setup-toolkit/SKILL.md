@@ -101,6 +101,65 @@ Confirm the write: re-run the detection jq expression; should now exit 0.
 
 Note: env vars take effect on the next Claude Code session, not mid-session. Let the user know if they want to verify immediately they'll need to restart.
 
+## Phase 1.6: Analytics DB Paths
+
+Runs after ecosystem opt-in. Captures per-user paths for the two global analytics SQLite databases (`lessons.db`, `hooks.db`) and writes them into `.claude/settings.local.json` `env`.
+
+**Why here and not `.claude/settings.json`:** Claude Code passes JSON `env` values through literally — `"$HOME/..."` is not expanded. So the paths must be fully resolved. `settings.local.json` is per-user and gitignored, which is the right place for fully-resolved user-specific paths (avoids leaking `/home/alice/...` into shared repos).
+
+**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/.claude/lessons.db` and `$HOME/.claude/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
+
+### Detection
+
+```bash
+jq -e '.env.CLAUDE_ANALYTICS_LESSONS_DB // .env.CLAUDE_ANALYTICS_HOOKS_DB' .claude/settings.local.json >/dev/null 2>&1
+```
+
+- Exit 0 (either key present) → skip (user already configured).
+- Exit non-zero (both absent or file absent) → run prompts below.
+
+### Prompts
+
+Resolve `$HOME` to a real path first (`echo "$HOME"`). Offer it as the default in each prompt.
+
+**Lessons DB path:**
+
+> Where should the lessons DB live? Stores learned corrections across all your projects (global, not per-project). [$HOME/.claude/lessons.db]
+
+**Hooks DB path:**
+
+> Where should the hooks DB live? Stores hook execution logs for debugging/observability (global, not per-project). [$HOME/.claude/hooks.db]
+
+Empty input → accept default. Any non-empty input → use verbatim (don't re-expand — the user is giving a resolved path).
+
+### Confirm before writing
+
+`settings.local.json` is user-private config — never mutate silently. After the two prompts, show the exact JSON that will be merged into `.claude/settings.local.json` `env` and ask one final yes/no:
+
+```
+The following will be added to .claude/settings.local.json (env block):
+  "CLAUDE_ANALYTICS_LESSONS_DB": "<resolved_lessons_path>"
+  "CLAUDE_ANALYTICS_HOOKS_DB": "<resolved_hooks_path>"
+
+Apply? [y/n]
+```
+
+Only proceed on explicit "y". On "n" (or anything else), skip this phase — scripts fall back to `$HOME/.claude/*.db` defaults, which is correct for most users.
+
+### Apply
+
+If `.claude/settings.local.json` doesn't exist, create it as `{}`. Then merge:
+
+```bash
+jq --arg lessons "<resolved_lessons_path>" --arg hooks "<resolved_hooks_path>" \
+   '.env = (.env // {}) | .env.CLAUDE_ANALYTICS_LESSONS_DB = $lessons | .env.CLAUDE_ANALYTICS_HOOKS_DB = $hooks' \
+   .claude/settings.local.json > .claude/settings.local.json.tmp && mv .claude/settings.local.json.tmp .claude/settings.local.json
+```
+
+Confirm: re-run the detection jq expression; should now exit 0.
+
+Note: same Claude-Code-restart caveat as Phase 1.5.
+
 ## Phase 2: Fix
 
 Process each issue one at a time. Present the proposed change and ask for approval before applying.
@@ -424,7 +483,7 @@ If yes, invoke `/build-communication-style`.
 |---------|---------|-----|
 | Auto-fix without asking | User loses control | Always present and ask before each fix |
 | Remove existing entries (Checks 1-2) | Breaks project config | Additive only for hooks/permissions — never delete |
-| Edit settings.local.json | That's user-private config | Never touch it |
+| Edit settings.local.json | That's user-private config | Never touch it — **except** Phase 1.6, which writes the analytics DB paths there (per-user resolved paths belong in the gitignored local file, not the shared one) |
 | Skip final validation | Fixes might be incomplete | Always run validate-all.sh at the end |
 | Overwrite files entirely | Loses project customizations | Merge, don't replace |
 | Auto-delete orphans without asking | User may want to keep them | Always ask per-item, offer re-sync as alternative |
