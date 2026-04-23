@@ -443,14 +443,14 @@ test_validate_indexed_manifest_mode() {
         echo "    Output: $output"
     fi
 
-    # Verify no errors about unindexed resources (no index files in target)
+    # Verify no red errors about unindexed resources (MANIFEST mode suppresses index-check errors)
     TESTS_RUN=$((TESTS_RUN + 1))
-    if echo "$output" | grep -q "no index files in target project"; then
+    if ! echo "$output" | grep -q "Not indexed in"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "skips index checks when no index files (expected for target)"
+        report_pass "no unindexed-resource errors in MANIFEST mode"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "skips index checks when no index files (expected for target)"
+        report_fail "no unindexed-resource errors in MANIFEST mode"
         echo "    Output: $output"
     fi
 

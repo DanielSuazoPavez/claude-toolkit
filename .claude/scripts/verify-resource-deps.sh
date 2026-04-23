@@ -16,12 +16,13 @@ CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ERRORS=0
-WARNINGS=0
+SCOPED_REFS=0
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # === MANIFEST loading ===
@@ -92,8 +93,8 @@ report_broken_ref() {
             hook) manifest_path="hooks/$ref_name" ;;
         esac
         if [ -n "$manifest_path" ] && ! in_manifest "$manifest_path"; then
-            echo -e "${YELLOW}$source references $ref_type '$ref_name' (not in MANIFEST, skipped)${NC}"
-            WARNINGS=$((WARNINGS + 1))
+            echo -e "${BLUE}$source references $ref_type '$ref_name' (not in MANIFEST, scope-skipped)${NC}"
+            SCOPED_REFS=$((SCOPED_REFS + 1))
             return
         fi
     fi
@@ -436,8 +437,8 @@ fi
 echo ""
 
 # === SUMMARY ===
-if [ $WARNINGS -gt 0 ]; then
-    echo -e "${YELLOW}$WARNINGS warning(s): references to resources not in MANIFEST${NC}"
+if [ $SCOPED_REFS -gt 0 ]; then
+    echo -e "${BLUE}$SCOPED_REFS reference(s) scope-skipped (target not in MANIFEST)${NC}"
 fi
 
 if [ $ERRORS -eq 0 ]; then

@@ -311,11 +311,42 @@ test_manifest_skips_without_indexes() {
 
     cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
 skills/alpha/
+scripts/validate-resources-indexed.sh
 EOF
 
     expect_success "exits 0 in MANIFEST mode without indexes"
     expect_output "skips with expected message" "no index files in target project"
     expect_output "shows up to date" "All indexes are up to date"
+    expect_not_output "no 'Extra file' warning" "Extra file not in MANIFEST"
+    expect_output "reframes as project-local info" "Project-local (not toolkit-owned): skills/extra-skill"
+    expect_output "summary counts project-local" "1 project-local resource(s)"
+
+    teardown_test_env
+}
+
+test_manifest_ignore_silences_local() {
+    report_section "=== MANIFEST mode — .claude-toolkit-ignore silences project-local ==="
+    setup_test_env
+
+    mkdir -p "$TEMP_DIR/.claude/skills/alpha"
+    echo "# Alpha" > "$TEMP_DIR/.claude/skills/alpha/SKILL.md"
+    mkdir -p "$TEMP_DIR/.claude/skills/company-private"
+    echo "# Private" > "$TEMP_DIR/.claude/skills/company-private/SKILL.md"
+    mkdir -p "$TEMP_DIR/.claude/skills/unexpected-extra"
+    echo "# Extra" > "$TEMP_DIR/.claude/skills/unexpected-extra/SKILL.md"
+
+    cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
+skills/alpha/
+scripts/validate-resources-indexed.sh
+EOF
+    cat > "$TEMP_DIR/.claude-toolkit-ignore" << 'EOF'
+skills/company-private/
+EOF
+
+    expect_success "exits 0"
+    expect_not_output "ignored skill is silent" "skills/company-private"
+    expect_output "non-ignored extra still shown" "Project-local (not toolkit-owned): skills/unexpected-extra"
+    expect_output "summary shows count of 1" "1 project-local resource(s)"
 
     teardown_test_env
 }
@@ -367,6 +398,7 @@ test_missing_dirs
 test_docs_missing_from_index
 test_manifest_mode_activates
 test_manifest_skips_without_indexes
+test_manifest_ignore_silences_local
 test_manifest_with_indexes
 
 print_summary
