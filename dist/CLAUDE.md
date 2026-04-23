@@ -26,6 +26,8 @@ The toolkit publishes two distribution profiles, each with its own templates (pr
 
 **Base** uses `dist/base/EXCLUDE` — syncs everything in `.claude/` except toolkit-meta resources (create-*, evaluate-*, etc.). New resources sync by default. A MANIFEST is generated at sync time for target project validation.
 
+Both profiles ship a `.claude/MANIFEST` whose first non-blank line is `# profile: base` or `# profile: raiz` — consumer-side skills/scripts can source `.claude/scripts/lib/profile.sh` and call `detect_profile` to branch on where they're running.
+
 **Raiz** uses `dist/raiz/MANIFEST` — cherry-picks a specific subset:
 - 12 skills (analyze-idea, brainstorm-feature, brainstorm-idea, build-communication-style, create-docs, draft-pr, read-json, review-plan, setup-toolkit, wrap-up, write-documentation, write-handoff)
 - 5 agents (codebase-explorer, code-debugger, code-reviewer, goal-verifier, implementation-checker)
