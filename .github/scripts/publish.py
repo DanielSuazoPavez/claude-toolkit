@@ -344,6 +344,18 @@ def main() -> None:
         trimmed = trim_settings_json(content, resources["hooks"])
         settings_file.write_text(trimmed)
 
+    # Write profile-marked MANIFEST for consumer self-identification.
+    # Strips the source MANIFEST's documentary header block (everything up to
+    # and including the first blank line) and prepends `# profile: <name>`.
+    src_lines = manifest_path.read_text().splitlines()
+    i = 0
+    while i < len(src_lines) and src_lines[i].strip() != "":
+        i += 1
+    body_lines = src_lines[i + 1:]  # skip the blank separator itself
+    (claude_output / "MANIFEST").write_text(
+        f"# profile: {dist_name}\n\n" + "\n".join(body_lines).rstrip() + "\n"
+    )
+
     print()
     print(f"{GREEN}{dist_name.capitalize()} distribution built at: {output_dir}{NC}")
     print()
