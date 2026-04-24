@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.63.11] - 2026-04-24 - claude-toolkit docs command (dogfood satellite contracts convention)
+
+### Added
+- **cli**: New `claude-toolkit docs` base command, living at `cli/docs/query.sh` and dispatched from `bin/claude-toolkit`. Bare `claude-toolkit docs` lists available contracts; `claude-toolkit docs <name>` emits the contract markdown to stdout (UTF-8, exit 0, read-only). Unknown contract names exit 1 with the available-names list on stderr. First contract: `satellite-contracts` → `.claude/docs/relevant-toolkit-satellite-contracts.md`. This is the workshop dogfooding its own convention: satellites that need to read the contracts doc can now fetch it at runtime via `claude-toolkit docs satellite-contracts` instead of carrying a copy.
+- **backlog**: `satellite-cli-docs-convention` (P2) sub-task 2 (CLI discoverability) closed out. Sub-task 3 (schema-smith workshop-side removal after satellite ships `schema-smith docs input-spec`) still open, now unblocked on the workshop side — schema-smith has a concrete `claude-toolkit docs` reference to mirror.
+
+### Changed
+- **docs**: `.claude/docs/relevant-toolkit-satellite-contracts.md` §6 Current State gains a `claude-toolkit` row (workshop dogfooding). Closing note explicitly points satellite maintainers at the new command as the reference implementation.
+- **cli**: `cli/CLAUDE.md` structure block and "How Subcommands Are Wired" updated for the new `docs/` subdirectory.
+- **tests**: New `tests/test-docs-query.sh` (10 assertions) — list contracts, emit known contract to stdout, unknown contract → non-zero + stderr name list, `--help` surfaces usage. Registered in `tests/CLAUDE.md` file map. Picked up by `run-all.sh` automatically.
+
+### Notes
+- Distribution: the CLI script lives at `cli/docs/query.sh` and is driven by `bin/claude-toolkit`; neither is in any sync manifest, so raiz and base consumers are unaffected at sync time. Consumers that have the `claude-toolkit` binary installed get the new command automatically.
+- Scope: deliberately narrow — only `satellite-contracts` is exposed. Internal docs (`code_style`, `resource_naming`, etc.) are agent-facing context, not stable cross-project contracts, and stay out of `docs`.
+
 ## [2.63.10] - 2026-04-24 - satellite CLI contracts convention
 
 ### Added
