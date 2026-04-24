@@ -30,6 +30,7 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 ├── skills/     # User-invocable skills (/skill-name)
 ├── agents/     # Specialized task agents
 ├── hooks/      # Automation hooks
+├── scripts/    # Workshop-internal tooling — validators, diagnostics, cron; a subset ships (see docs/indexes/SCRIPTS.md)
 ├── docs/       # Internal docs — conventions, configs, rules (synced to projects via distributions)
 └── memories/   # Organic context (project identity, user preferences, auto-memory)
 docs/
