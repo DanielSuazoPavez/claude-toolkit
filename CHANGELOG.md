@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.63.15] - 2026-04-24 - scripts index accuracy + structure visibility
+
+### Changed
+- **scripts**: `validate-resources-indexed.sh` now recurses into `.claude/scripts/` subdirectories when scanning disk (was `-maxdepth 1`), so indexed subdir entries like `lib/profile.sh` and `cron/backup-lessons-db.sh` validate correctly. MANIFEST mode was already subdir-aware; this aligns local mode with it.
+- **docs**: `docs/indexes/SCRIPTS.md` reframed as workshop-internal tooling (not a product catalog), renamed the `Synced` column to `Ships` with `base`/`raiz`/`no` values (replacing the boolean that conflated base vs raiz), and added Libraries (`lib/profile.sh`) and Maintenance (`cron/backup-lessons-db.sh`) sections for full coverage.
+
+### Fixed
+- **docs**: `docs/indexes/SCRIPTS.md` corrected `validate-dist-manifests.sh` and `verify-external-deps.sh` rows — both ship to base (not excluded in `dist/base/EXCLUDE`), previous `Synced: no` was wrong.
+
+### Updated
+- **docs**: `CLAUDE.md` Structure diagram now lists `.claude/scripts/` alongside skills/agents/hooks/docs/memories, pointing at `SCRIPTS.md` for the ships/doesn't-ship split.
+
+### Deleted
+- **backlog**: Removed `shipped-scripts-first-class` task from BACKLOG.md (completed — scope was an index/visibility audit, not a parallel ecosystem).
+
+### Added
+- **backlog**: P0 `manifest-paths-from-project-root` — standardize `dist/raiz/MANIFEST` and `dist/base/EXCLUDE` on project-root-relative paths to drop the `.claude/`-stripping logic scattered across sync/publish/validators.
+
+### Notes
+- Scripts stay workshop-internal tooling, not product. Audit confirmed ~10 small bash utilities (validators, diagnostic, statusline, profile lib) with narrow contracts — no value in a parallel `create-script`/`evaluate-script` skill pair. Index accuracy + CLAUDE.md visibility were the real gaps.
+
 ## [2.63.14] - 2026-04-24 - satellite consumer convention
 
 ### Added

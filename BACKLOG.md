@@ -21,6 +21,10 @@
 
 ## P0 - Critical
 
+- **[TOOLKIT]** Manifest paths from project root (`manifest-paths-from-project-root`)
+    - **scope**: `toolkit`
+    - **notes**: `dist/raiz/MANIFEST` and `dist/base/EXCLUDE` mix path schemes — most entries are relative to `.claude/` (`skills/foo/`, `scripts/foo.sh`, `docs/foo.md`) but root-shipped docs like `docs/getting-started.md` are project-root-relative, forcing parsers to special-case them. Standardize on project-root-relative paths (`.claude/skills/foo/`, `docs/getting-started.md`) so all consumers resolve entries the same way. Blast radius: (1) `bin/claude-toolkit` base sync logic, (2) `.github/scripts/publish.py` raiz publish, (3) `.claude/scripts/validate-resources-indexed.sh` MANIFEST mode (strips `scripts/` prefix to reconstruct disk paths), (4) `.claude/scripts/validate-dist-manifests.sh` resolver, (5) rewrite every line in `dist/raiz/MANIFEST` and `dist/base/EXCLUDE`. Drops the `.claude/`-stripping logic wherever it appears. Coordinates with `rename-claude-docs-to-conventions` — both touch the same MANIFEST lines, so sequence one after the other.
+
 ## P1 - High
 
 ## P2 - Medium
@@ -58,11 +62,6 @@
 - **[TOOLKIT]** Rename `.claude/docs/` to `.claude/conventions/` (`rename-claude-docs-to-conventions`)
     - **scope**: `toolkit`
     - **notes**: `.claude/docs/` is overloaded — name suggests user-facing docs but contents are agent-loaded conventions/rules (`essential-*`, `relevant-*`, `codebase-explorer/`). Shared name with top-level `docs/` hides the audience split (agent context vs user-facing). "rules" conflates with Claude Code's native rules concept, so `conventions/` is the preferred name. Coordinated rename: (1) move files, (2) update session-start loader and surface-* hooks, (3) update sync paths in CLI + dist profiles (base and raiz MANIFESTs), (4) update CLAUDE.md "Structure" section, (5) update `claude-toolkit docs` command and any skill references (grep for `.claude/docs/`), (6) update downstream satellites' synced copies via next sync. Non-trivial churn — schedule when nothing else is touching those paths.
-
-- **[TOOLKIT]** First-class treatment for shipped scripts (`shipped-scripts-first-class`)
-    - **scope**: `toolkit`
-    - **notes**: Workshop ships scripts (`.claude/scripts/`, cron jobs, validation helpers) via sync but they're second-class compared to skills/agents/hooks/docs — no `docs/indexes/SCRIPTS.md`, no evaluation criteria, not mentioned in CLAUDE.md "Structure" section, inconsistent treatment in raiz sidecar `kind` enum. Tasks: (1) audit what actually ships (base vs raiz MANIFESTs), (2) add `docs/indexes/SCRIPTS.md` listing each with purpose/trigger/consumers, (3) decide whether scripts need an evaluation pass like skills/agents or if a lighter audit convention suffices, (4) update CLAUDE.md Structure section to list `.claude/scripts/`, (5) ensure raiz sidecar `sections[].kind: scripts` usage is consistent. Coordinates with `move-backup-lessons-to-claude-sessions` — do the audit first to know what's actually workshop-owned vs borrowed from satellites.
-
 
 ## P99 - Nice to Have
 
