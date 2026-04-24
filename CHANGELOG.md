@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.63.6] - 2026-04-24 - surface-lessons intra-session dedup
+
+### Changed
+- **hooks**: `surface-lessons.sh` now dedupes by `session_id`. A lesson already surfaced earlier in the session is excluded from further matches until the session ends. Implementation is a pre-query against `surface_lessons_context` (existing log table — no schema change) plus a `NOT IN` splice on the main SELECT. Graceful fallback: if `hooks.db` is missing or `SESSION_ID='unknown'`, the filter is omitted and behavior matches prior versions.
+
+### Added
+- **tests**: `tests/hooks/test-surface-lessons-dedup.sh` — three-case coverage (first surface, second surface excluded, fresh session not deduped).
+
+### Notes
+- Combined with v2.63.5's keyword narrowing, a single session that does trip a git-hazard keyword now surfaces its matches once rather than on every subsequent tool call. The `matched_lesson_ids` log column remains honest: each row records what was surfaced *that* invocation (post-dedup).
+
 ## [2.63.5] - 2026-04-24 - narrow git tag keywords to hazard scenarios
 
 ### Changed
