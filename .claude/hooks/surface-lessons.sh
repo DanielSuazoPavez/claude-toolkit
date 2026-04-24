@@ -70,6 +70,29 @@ _hook_perf_probe "build_sql"
 
 [ -z "$CONDITIONS" ] && exit 0
 
+# Intra-session dedup: exclude lesson IDs already surfaced earlier in this session.
+# Cross-DB via a pre-query (no ATTACH); empty on first invocation or if hooks.db
+# is absent, which degrades gracefully to "no dedup".
+HOOKS_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
+NOT_IN_CLAUSE=""
+if [ -f "$HOOKS_DB" ] && [ -n "$SESSION_ID" ] && [ "$SESSION_ID" != "unknown" ]; then
+    SAFE_SESSION="${SESSION_ID//\'/\'\'}"
+    SEEN_IDS=$(sqlite3 "$HOOKS_DB" "
+        SELECT DISTINCT matched_lesson_ids
+        FROM surface_lessons_context
+        WHERE session_id = '${SAFE_SESSION}' AND match_count > 0;
+    " 2>/dev/null | tr ',' '\n' | awk 'NF' | sort -u)
+    if [ -n "$SEEN_IDS" ]; then
+        QUOTED=""
+        for id in $SEEN_IDS; do
+            safe_id="${id//\'/\'\'}"
+            QUOTED="${QUOTED:+$QUOTED,}'${safe_id}'"
+        done
+        NOT_IN_CLAUSE="AND l.id NOT IN ($QUOTED)"
+    fi
+fi
+_hook_perf_probe "seen_lookup"
+
 # Query matching active lessons (id + text in one query), scope-filtered
 # SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter flag,
 # and $PROJECT comes from $PWD (local, user-owned) — not external input.
@@ -84,6 +107,7 @@ RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
       AND t.status = 'active'
       AND ($CONDITIONS)
       AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
+      ${NOT_IN_CLAUSE}
     LIMIT 3;
 " 2>/dev/null)
 _hook_perf_probe "sqlite_query"
