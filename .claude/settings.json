@@ -5,7 +5,7 @@
   "plansDirectory": "output/claude-toolkit/plans",
   "env": {
     "CLAUDE_CODE_ADAPTIVE_THINKING": "0",
-    "CLAUDE_TOOLKIT_LESSONS": "0",
+    "CLAUDE_TOOLKIT_LESSONS": "1",
     "CLAUDE_TOOLKIT_TRACEABILITY": "1",
     "CLAUDE_TOOLKIT_POWERLINE_VERSION": "1.25.1"
   },

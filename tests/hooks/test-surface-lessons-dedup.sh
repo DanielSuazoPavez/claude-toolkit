@@ -18,7 +18,7 @@ CREATE TABLE projects (id INTEGER PRIMARY KEY, name TEXT UNIQUE);
 CREATE TABLE tags (id INTEGER PRIMARY KEY, name TEXT UNIQUE, keywords TEXT, status TEXT DEFAULT 'active', lesson_count INTEGER DEFAULT 0);
 CREATE TABLE lessons (id TEXT PRIMARY KEY, text TEXT, tier TEXT DEFAULT 'recent', active INTEGER DEFAULT 1, scope TEXT DEFAULT 'global', project_id INTEGER);
 CREATE TABLE lesson_tags (lesson_id TEXT, tag_id INTEGER);
-INSERT INTO tags (name, keywords, status) VALUES ('git-hazard', 'rebase,cherry-pick', 'active');
+INSERT INTO tags (name, keywords, status) VALUES ('git-hazard', 'rebase,cherry-pick,head', 'active');
 INSERT INTO lessons (id, text, tier, active, scope) VALUES ('test-dedup_001', 'do not rebase shared branches', 'key', 1, 'global');
 INSERT INTO lesson_tags (lesson_id, tag_id) VALUES ('test-dedup_001', (SELECT id FROM tags WHERE name='git-hazard'));
 SQL
