@@ -1,0 +1,21 @@
+{
+  "version": "2.63.16",
+  "date": "2026-04-24",
+  "headline": "MANIFEST paths from project root",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "other",
+      "bullets": [
+        "MANIFEST format: paths are now project-root-relative (.claude/skills/foo/, docs/getting-started.md). Matches disk layout in both toolkit and consumer.",
+        ".claude-toolkit-ignore convention aligned — entries use the same project-root-relative paths as MANIFEST. Old-style entries (skills/foo/, hooks/bar.sh) stop matching; prefix them with .claude/."
+      ]
+    },
+    {
+      "kind": "templates",
+      "bullets": [
+        "claude-toolkit-ignore.template updated with new path convention. New syncs pick it up automatically; existing projects should update hand-maintained entries."
+      ]
+    }
+  ]
+}

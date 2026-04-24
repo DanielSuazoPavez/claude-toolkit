@@ -21,10 +21,6 @@
 
 ## P0 - Critical
 
-- **[TOOLKIT]** Manifest paths from project root (`manifest-paths-from-project-root`)
-    - **scope**: `toolkit`
-    - **notes**: `dist/raiz/MANIFEST` and `dist/base/EXCLUDE` mix path schemes — most entries are relative to `.claude/` (`skills/foo/`, `scripts/foo.sh`, `docs/foo.md`) but root-shipped docs like `docs/getting-started.md` are project-root-relative, forcing parsers to special-case them. Standardize on project-root-relative paths (`.claude/skills/foo/`, `docs/getting-started.md`) so all consumers resolve entries the same way. Blast radius: (1) `bin/claude-toolkit` base sync logic, (2) `.github/scripts/publish.py` raiz publish, (3) `.claude/scripts/validate-resources-indexed.sh` MANIFEST mode (strips `scripts/` prefix to reconstruct disk paths), (4) `.claude/scripts/validate-dist-manifests.sh` resolver, (5) rewrite every line in `dist/raiz/MANIFEST` and `dist/base/EXCLUDE`. Drops the `.claude/`-stripping logic wherever it appears. Coordinates with `rename-claude-docs-to-conventions` — both touch the same MANIFEST lines, so sequence one after the other.
-
 ## P1 - High
 
 ## P2 - Medium

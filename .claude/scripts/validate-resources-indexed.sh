@@ -48,28 +48,28 @@ if [ -f "$MANIFEST_FILE" ] && [ ! -f "$PROJECT_ROOT/docs/indexes/SKILLS.md" ]; t
         line="${line%% }"
 
         case "$line" in
-            skills/*/)
-                # Directory entry like skills/test-skill/ — extract skill name
-                name="${line#skills/}"
+            .claude/skills/*/)
+                # Directory entry like .claude/skills/test-skill/ — extract skill name
+                name="${line#.claude/skills/}"
                 name="${name%/}"
                 MANIFEST_SKILLS+=("$name")
                 ;;
-            agents/*.md)
-                name="${line#agents/}"
+            .claude/agents/*.md)
+                name="${line#.claude/agents/}"
                 name="${name%.md}"
                 MANIFEST_AGENTS+=("$name")
                 ;;
-            hooks/*.sh)
-                name="${line#hooks/}"
+            .claude/hooks/*.sh)
+                name="${line#.claude/hooks/}"
                 MANIFEST_HOOKS+=("$name")
                 ;;
-            docs/*.md)
-                name="${line#docs/}"
+            .claude/docs/*.md)
+                name="${line#.claude/docs/}"
                 name="${name%.md}"
                 MANIFEST_DOCS+=("$name")
                 ;;
-            scripts/*.sh)
-                name="${line#scripts/}"
+            .claude/scripts/*.sh)
+                name="${line#.claude/scripts/}"
                 MANIFEST_SCRIPTS+=("$name")
                 ;;
         esac
@@ -131,8 +131,8 @@ if $MANIFEST_MODE && [ -d "$SKILLS_DIR" ]; then
     while IFS= read -r disk_skill; do
         [ -z "$disk_skill" ] && continue
         if ! in_array "$disk_skill" "${MANIFEST_SKILLS[@]}"; then
-            is_ignored "skills/$disk_skill/" && continue
-            echo -e "${BLUE}Project-local (not toolkit-owned): skills/$disk_skill${NC}"
+            is_ignored ".claude/skills/$disk_skill/" && continue
+            echo -e "${BLUE}Project-local (not toolkit-owned): .claude/skills/$disk_skill${NC}"
             LOCAL_RESOURCES=$((LOCAL_RESOURCES + 1))
         fi
     done <<< "$DISK_SKILLS"
@@ -180,8 +180,8 @@ if $MANIFEST_MODE && [ -d "$AGENTS_DIR" ]; then
     while IFS= read -r disk_agent; do
         [ -z "$disk_agent" ] && continue
         if ! in_array "$disk_agent" "${MANIFEST_AGENTS[@]}"; then
-            is_ignored "agents/$disk_agent.md" && continue
-            echo -e "${BLUE}Project-local (not toolkit-owned): agents/$disk_agent.md${NC}"
+            is_ignored ".claude/agents/$disk_agent.md" && continue
+            echo -e "${BLUE}Project-local (not toolkit-owned): .claude/agents/$disk_agent.md${NC}"
             LOCAL_RESOURCES=$((LOCAL_RESOURCES + 1))
         fi
     done <<< "$DISK_AGENTS"
@@ -226,8 +226,8 @@ if $MANIFEST_MODE && [ -d "$HOOKS_DIR" ]; then
     while IFS= read -r disk_hook; do
         [ -z "$disk_hook" ] && continue
         if ! in_array "$disk_hook" "${MANIFEST_HOOKS[@]}"; then
-            is_ignored "hooks/$disk_hook" && continue
-            echo -e "${BLUE}Project-local (not toolkit-owned): hooks/$disk_hook${NC}"
+            is_ignored ".claude/hooks/$disk_hook" && continue
+            echo -e "${BLUE}Project-local (not toolkit-owned): .claude/hooks/$disk_hook${NC}"
             LOCAL_RESOURCES=$((LOCAL_RESOURCES + 1))
         fi
     done <<< "$DISK_HOOKS"
@@ -273,8 +273,8 @@ if $MANIFEST_MODE && [ -d "$DOCS_DIR" ]; then
     while IFS= read -r disk_doc; do
         [ -z "$disk_doc" ] && continue
         if ! in_array "$disk_doc" "${MANIFEST_DOCS[@]}"; then
-            is_ignored "docs/$disk_doc.md" && continue
-            echo -e "${BLUE}Project-local (not toolkit-owned): docs/$disk_doc.md${NC}"
+            is_ignored ".claude/docs/$disk_doc.md" && continue
+            echo -e "${BLUE}Project-local (not toolkit-owned): .claude/docs/$disk_doc.md${NC}"
             LOCAL_RESOURCES=$((LOCAL_RESOURCES + 1))
         fi
     done <<< "$DISK_DOCS"
@@ -320,8 +320,8 @@ if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
     while IFS= read -r disk_script; do
         [ -z "$disk_script" ] && continue
         if ! in_array "$disk_script" "${MANIFEST_SCRIPTS[@]}"; then
-            is_ignored "scripts/$disk_script" && continue
-            echo -e "${BLUE}Project-local (not toolkit-owned): scripts/$disk_script${NC}"
+            is_ignored ".claude/scripts/$disk_script" && continue
+            echo -e "${BLUE}Project-local (not toolkit-owned): .claude/scripts/$disk_script${NC}"
             LOCAL_RESOURCES=$((LOCAL_RESOURCES + 1))
         fi
     done <<< "$DISK_SCRIPTS"

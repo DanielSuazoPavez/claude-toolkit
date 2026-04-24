@@ -2,13 +2,10 @@
 # Validates that every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE
 # resolves to a real path on disk. Catches stale entries after renames or deletes.
 #
-# Resolution mirrors .github/scripts/publish.py:
-#   MANIFEST
-#     docs/*      → .claude/docs/<path>, fallback <repo-root>/docs/<path>
-#     templates/* → dist/base/templates/<basename>
-#     otherwise   → .claude/<path>
-#   EXCLUDE
-#     always      → .claude/<path>
+# MANIFEST and EXCLUDE entries are project-root-relative: where the file lives
+# in the toolkit repo and where it ships in the consumer project. The only
+# exception is .claude/templates/* — those live under dist/base/templates/ in
+# the source tree but ship to .claude/templates/ in the consumer.
 #
 # Usage:
 #   bash .claude/scripts/validate-dist-manifests.sh
@@ -28,23 +25,16 @@ NC='\033[0m'
 echo "Validating dist manifests against disk..."
 echo ""
 
-# Resolve a MANIFEST entry to its source path. Mirrors publish.py resolve_source_file/_dir.
+# Resolve a MANIFEST/EXCLUDE entry to its source path. Mirrors publish.py.
 resolve_manifest_entry() {
     local entry="$1"
     local clean="${entry%/}"  # strip trailing slash for dirs
     case "$clean" in
-        docs/*)
-            if [ -e ".claude/$clean" ]; then
-                echo ".claude/$clean"
-            else
-                echo "$clean"  # repo-root fallback
-            fi
-            ;;
-        templates/*)
-            echo "dist/base/$clean"
+        .claude/templates/*)
+            echo "dist/base/templates/${clean#.claude/templates/}"
             ;;
         *)
-            echo ".claude/$clean"
+            echo "$clean"
             ;;
     esac
 }
@@ -91,12 +81,8 @@ check_file() {
     echo ""
 }
 
-resolve_exclude_entry() {
-    echo ".claude/${1%/}"
-}
-
 check_file "$MANIFEST" "Raiz MANIFEST" resolve_manifest_entry
-check_file "$EXCLUDE"  "Base EXCLUDE"  resolve_exclude_entry
+check_file "$EXCLUDE"  "Base EXCLUDE"  resolve_manifest_entry
 
 if [ "$ERRORS" -eq 0 ]; then
     echo -e "${GREEN}All dist manifest entries resolve to disk.${NC}"

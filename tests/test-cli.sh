@@ -350,7 +350,7 @@ test_sync_ignore_patterns() {
     setup_test_env
 
     # Create ignore file
-    echo "skills/" > "$TEMP_DIR/project/.claude-toolkit-ignore"
+    echo ".claude/skills/" > "$TEMP_DIR/project/.claude-toolkit-ignore"
 
     run_toolkit sync --force > /dev/null 2>&1 || true
 
@@ -396,10 +396,10 @@ test_sync_generates_manifest() {
     expect_file_exists "MANIFEST generated in target" "$TEMP_DIR/project/.claude/MANIFEST"
     expect_file_content "MANIFEST contains skill entry" \
         "$TEMP_DIR/project/.claude/MANIFEST" \
-        "skills/test-skill/"
+        ".claude/skills/test-skill/"
     expect_file_content "MANIFEST contains hook entry" \
         "$TEMP_DIR/project/.claude/MANIFEST" \
-        "hooks/test-hook.sh"
+        ".claude/hooks/test-hook.sh"
     expect_file_content "MANIFEST contains auto-generated header" \
         "$TEMP_DIR/project/.claude/MANIFEST" \
         "Auto-generated"

@@ -180,7 +180,7 @@ assert_file_contains "MANIFEST starts with profile marker" \
     "# profile: raiz"
 assert_file_contains "MANIFEST lists profile.sh" \
     "$OUTPUT_DIR/.claude/MANIFEST" \
-    "scripts/lib/profile.sh"
+    ".claude/scripts/lib/profile.sh"
 assert_file_not_contains "MANIFEST drops documentary header" \
     "$OUTPUT_DIR/.claude/MANIFEST" \
     "Raiz Manifest — scoped subset"

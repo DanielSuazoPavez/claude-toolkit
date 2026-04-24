@@ -135,25 +135,25 @@ if [ -f "$MANIFEST_FILE" ]; then
         line="${line## }"
         line="${line%% }"
         case "$line" in
-            skills/*/)
-                name="${line#skills/}"
+            .claude/skills/*/)
+                name="${line#.claude/skills/}"
                 name="${name%/}"
                 MANIFEST_SKILLS+=("$name")
                 ;;
-            agents/*.md)
-                name="${line#agents/}"
+            .claude/agents/*.md)
+                name="${line#.claude/agents/}"
                 name="${name%.md}"
                 MANIFEST_AGENTS+=("$name")
                 ;;
-            hooks/*.sh)
-                name="${line#hooks/}"
+            .claude/hooks/*.sh)
+                name="${line#.claude/hooks/}"
                 MANIFEST_HOOKS+=("$name")
                 ;;
-            hooks/lib/*)
-                MANIFEST_HOOKS+=("${line#hooks/}")
+            .claude/hooks/lib/*)
+                MANIFEST_HOOKS+=("${line#.claude/hooks/}")
                 ;;
-            docs/*.md)
-                name="${line#docs/}"
+            .claude/docs/*.md)
+                name="${line#.claude/docs/}"
                 name="${name%.md}"
                 MANIFEST_DOCS+=("$name")
                 ;;
@@ -448,7 +448,7 @@ check_cleanup() {
                 local skill_name
                 skill_name=$(basename "$skill_dir")
                 # Skip if in ignore file
-                is_ignored "skills/$skill_name/" && continue
+                is_ignored ".claude/skills/$skill_name/" && continue
                 if ! in_array "$skill_name" "${MANIFEST_SKILLS[@]+"${MANIFEST_SKILLS[@]}"}"; then
                     output+="ORPHAN: skills/$skill_name/ (not in MANIFEST)"$'\n'
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
@@ -462,7 +462,7 @@ check_cleanup() {
                 [ -f "$agent_file" ] || continue
                 local agent_name
                 agent_name=$(basename "$agent_file" .md)
-                is_ignored "agents/$agent_name.md" && continue
+                is_ignored ".claude/agents/$agent_name.md" && continue
                 if ! in_array "$agent_name" "${MANIFEST_AGENTS[@]+"${MANIFEST_AGENTS[@]}"}"; then
                     output+="ORPHAN: agents/$agent_name.md (not in MANIFEST)"$'\n'
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
@@ -476,7 +476,7 @@ check_cleanup() {
                 [ -f "$hook_file" ] || continue
                 local hook_name
                 hook_name=$(basename "$hook_file")
-                is_ignored "hooks/$hook_name" && continue
+                is_ignored ".claude/hooks/$hook_name" && continue
                 if ! in_array "$hook_name" "${MANIFEST_HOOKS[@]+"${MANIFEST_HOOKS[@]}"}"; then
                     output+="ORPHAN: hooks/$hook_name (not in MANIFEST)"$'\n'
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
@@ -490,7 +490,7 @@ check_cleanup() {
                 [ -f "$doc_file" ] || continue
                 local doc_name
                 doc_name=$(basename "$doc_file" .md)
-                is_ignored "docs/$doc_name.md" && continue
+                is_ignored ".claude/docs/$doc_name.md" && continue
                 if ! in_array "$doc_name" "${MANIFEST_DOCS[@]+"${MANIFEST_DOCS[@]}"}"; then
                     output+="ORPHAN: docs/$doc_name.md (not in MANIFEST)"$'\n'
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))

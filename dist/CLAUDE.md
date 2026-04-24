@@ -24,6 +24,10 @@ The toolkit publishes two distribution profiles, each with its own templates (pr
 
 ### Resource Selection
 
+Both `dist/raiz/MANIFEST` and `dist/base/EXCLUDE` use **project-root-relative** paths — the path in the file is where the resource lives on disk in the toolkit *and* where it ships in the consumer project. A `.claude/skills/foo/` entry lives at `.claude/skills/foo/` in both trees. The only exception is `.claude/templates/*`: those live under `dist/<profile>/templates/` in the source tree (per-profile overrides, fallback to `dist/base/templates/`) but ship to `.claude/templates/` in the consumer.
+
+The consumer-side `.claude-toolkit-ignore` uses the same convention — users can copy paths from MANIFEST and they match.
+
 **Base** uses `dist/base/EXCLUDE` — syncs everything in `.claude/` except toolkit-meta resources (create-*, evaluate-*, etc.). New resources sync by default. A MANIFEST is generated at sync time for target project validation.
 
 Both profiles ship a `.claude/MANIFEST` whose first non-blank line is `# profile: base` or `# profile: raiz` — consumer-side skills/scripts can source `.claude/scripts/lib/profile.sh` and call `detect_profile` to branch on where they're running.
