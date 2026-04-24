@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.63.8] - 2026-04-24 - backlog: hide P99 by default in `make backlog`
+
+### Changed
+- **cli**: `cli/backlog/query.sh` gains `--exclude-priority <csv>` (e.g. `P99` or `P99,P3`). Applied as a pre-filter, so it composes with every subcommand (`summary`, `priority`, `status`, `scope`, `blocked`/`unblocked`, `branch`, `id`) — not just the default list view.
+- **makefile**: `make backlog` now passes `--exclude-priority P99`, so nice-to-haves stay out of the everyday view. Bare `claude-toolkit backlog` (or `bash cli/backlog/query.sh`) still shows everything; `claude-toolkit backlog priority P99` still works for the explicit view.
+- **dist/base**: `dist/base/templates/Makefile.claude-toolkit` now ships a `backlog` target with the same default, so base-dist consumers inherit the behavior via `claude-toolkit backlog --exclude-priority P99`.
+- **docs**: `.claude/docs/relevant-workflow-backlog.md` documents the flag and the Makefile default.
+
+### Added
+- **tests**: `tests/test-backlog-query.sh` — new `test_exclude_priority` block (single exclude, comma list, lowercase, composition with `priority` subcommand, missing-value error). Fixture grew a `## P99 - Nice to Have` row with `status: deferred` so the flag has something to hide without perturbing existing status/unblocked counts.
+
+### Notes
+- Raiz is unaffected: the raiz distribution does not ship the `claude-toolkit` CLI, so the new Make default only applies to base-dist consumers.
+
 ## [2.63.7] - 2026-04-24 - surface-lessons 2+ keyword-hit threshold
 
 ### Changed
