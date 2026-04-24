@@ -26,4 +26,5 @@ Always loaded at session start:
 | `relevant-conventions-testing` | stable | Test structure, runners, and conventions |
 | `relevant-toolkit-lessons` | stable | Lessons ecosystem: schema, tiers, tags, skills, hooks, CLI, lifecycle |
 | `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
+| `relevant-toolkit-satellite-contracts` | stable | Advisory convention for satellite maintainers: expose agent-facing contracts via `<satellite> docs <contract>` so workshop skills don't carry drifting copies |
 | `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |
