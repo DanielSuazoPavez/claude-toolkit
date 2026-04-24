@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.63.12] - 2026-04-24 - backlog CLI resolves from CWD
+
+### Fixed
+- **cli**: `claude-toolkit backlog` and `claude-toolkit backlog validate` now resolve `BACKLOG.md` from the current working directory only. The script-relative fallback (which preferred the toolkit's own `BACKLOG.md` over the caller's) is gone — invoking the tool from a consumer project correctly surfaces that project's backlog. `--path FILE` remains the override. `make backlog` in the workshop is unaffected (make runs from the repo root).
+
+### Notes
+- Backlog (non-version-bumping, folded from `[Unreleased]`):
+    - Added `## P0 - Critical` and `## P1 - High` empty headers to `BACKLOG.md` so `claude-toolkit backlog validate` stops flagging missing required headings.
+    - Added `rename-claude-docs-to-conventions` (P3) — rename `.claude/docs/` to `.claude/conventions/` to disambiguate agent-loaded conventions from user-facing `docs/`. "rules" avoided because it collides with Claude Code's native rules concept.
+    - Added `shipped-scripts-first-class` (P3) — scripts under `.claude/scripts/` ship via sync but lack an index, evaluation treatment, and CLAUDE.md structure coverage. Audit + index + conventions pass, coordinates with the backup-lessons-db.sh move to claude-sessions.
+    - Added `satellite-consumer-convention` (P2) — companion to `satellite-cli-docs-convention`. Defines the skill side of satellite contract consumption: `resources/<contract>.md` pointer layout, versioning source-of-truth (contract-embedded), hard-coded contract discovery, failure ladder (missing/error/malformed → fallback with user-visible report for malformed), fallback path choice (reduced-quality vs. refuse). Unblocks `design-db` as first concrete consumer; schema-smith's satellite side already shipped `docs` + `version` (v1.6.0).
+- Distribution: the CLI scripts live at `cli/backlog/` and are driven by `bin/claude-toolkit`; neither path is in any sync manifest, so raiz and base consumers are unaffected at sync time.
+
 ## [2.63.11] - 2026-04-24 - claude-toolkit docs command (dogfood satellite contracts convention)
 
 ### Added

@@ -19,7 +19,16 @@
 
 ---
 
+## P0 - Critical
+
+## P1 - High
+
 ## P2 - Medium
+
+- **[TOOLKIT]** Satellite consumer convention — how workshop skills consume satellite contracts (`satellite-consumer-convention`)
+    - **scope**: `toolkit`
+    - **notes**: Companion to `satellite-cli-docs-convention` (which defines the satellite's side). This defines the skill's side. Schema-smith is already implementing the satellite half, so this unblocks `design-db` as the first concrete consumer. Shape (agreed in conversation 2026-04-24): (1) **CLI surface** — satellites expose `<satellite> docs --help` (list contracts) + `<satellite> docs <contract>` (fetch) + `<satellite> version`. (2) **Versioning** — satellite's `version` command and contract-embedded version share source-of-truth on satellite side; skill consumes the contract-embedded one. (3) **Pointer location** — `resources/<contract-name>.md` in the skill, one file per satellite contract, with two sections: "using the satellite" (short explanation + invocation) and "no satellite" (fallback path). (4) **Discovery** — skill hard-codes which contract it needs; `docs --help` is for humans/debugging, not runtime discovery. (5) **Failure ladder** — satellite missing → fallback silently (pre-existing behavior); command errors → fallback; malformed output → report to user, fall back to "satellite unavailable" path. Open: whether to persist failed output to `output/<skill>/satellite-errors/` for review. (6) **Fallback content** — convention requires skill authors to explicitly choose reduced-quality path vs. refuse; no implicit default. Deliverable: new convention doc (`relevant-toolkit-satellite-consumers.md` or similar), update `design-db` as first application, coordinate with schema-smith's satellite-side landing.
+    - **depends on**: `satellite-cli-docs-convention` (satellite side — schema-smith in progress)
 
 - **[TOOLKIT]** Satellite CLI docs convention — how workshop skills reference satellite contracts (`satellite-cli-docs-convention`)
     - **scope**: `toolkit`
@@ -53,6 +62,14 @@
 - **[SCRIPTS]** Move `backup-lessons-db.sh` to claude-sessions (`move-backup-lessons-to-claude-sessions`)
     - **scope**: `scripts`
     - **notes**: `.claude/scripts/cron/backup-lessons-db.sh` backs up a DB whose schema is owned by claude-sessions. Flagged in `planning/v3-audit/claude-docs.md:101` as arguably belonging there. Deferred from 2.62.0 (the env-var centralization touched it but left it in place). Coordinated move: (1) drop script into claude-sessions with the same path or a parallel `scripts/cron/` location, (2) update `.claude/docs/relevant-toolkit-lessons.md:205-209` to point readers at the new location, (3) delete from toolkit, (4) add changelog entry in both repos. Anyone currently running it from a crontab needs a heads-up to update their schedule.
+
+- **[TOOLKIT]** Rename `.claude/docs/` to `.claude/conventions/` (`rename-claude-docs-to-conventions`)
+    - **scope**: `toolkit`
+    - **notes**: `.claude/docs/` is overloaded — name suggests user-facing docs but contents are agent-loaded conventions/rules (`essential-*`, `relevant-*`, `codebase-explorer/`). Shared name with top-level `docs/` hides the audience split (agent context vs user-facing). "rules" conflates with Claude Code's native rules concept, so `conventions/` is the preferred name. Coordinated rename: (1) move files, (2) update session-start loader and surface-* hooks, (3) update sync paths in CLI + dist profiles (base and raiz MANIFESTs), (4) update CLAUDE.md "Structure" section, (5) update `claude-toolkit docs` command and any skill references (grep for `.claude/docs/`), (6) update downstream satellites' synced copies via next sync. Non-trivial churn — schedule when nothing else is touching those paths.
+
+- **[TOOLKIT]** First-class treatment for shipped scripts (`shipped-scripts-first-class`)
+    - **scope**: `toolkit`
+    - **notes**: Workshop ships scripts (`.claude/scripts/`, cron jobs, validation helpers) via sync but they're second-class compared to skills/agents/hooks/docs — no `docs/indexes/SCRIPTS.md`, no evaluation criteria, not mentioned in CLAUDE.md "Structure" section, inconsistent treatment in raiz sidecar `kind` enum. Tasks: (1) audit what actually ships (base vs raiz MANIFESTs), (2) add `docs/indexes/SCRIPTS.md` listing each with purpose/trigger/consumers, (3) decide whether scripts need an evaluation pass like skills/agents or if a lighter audit convention suffices, (4) update CLAUDE.md Structure section to list `.claude/scripts/`, (5) ensure raiz sidecar `sections[].kind: scripts` usage is consistent. Coordinates with `move-backup-lessons-to-claude-sessions` — do the audit first to know what's actually workshop-owned vs borrowed from satellites.
 
 
 ## P99 - Nice to Have
