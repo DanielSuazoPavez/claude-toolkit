@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.63.5] - 2026-04-24 - narrow git tag keywords to hazard scenarios
+
+### Changed
+- **lessons**: `DOMAIN_TAG_KEYWORDS['git']` in `cli/lessons/db.py` narrowed from `git,commit,merge,rebase,branch,push,pull,checkout` to `rebase,cherry-pick,force-push,reset,--force,--no-verify,--amend`. The old list substring-matched every `git status`/`git diff`/`git log` via the PreToolUse `surface-lessons.sh` filter, firing the same 3-lesson combo on 76% of tool invocations (2,730 / 3,590 over 14 days). The new list only matches genuine git-hazard scenarios. Affects (a) new `lessons add` auto-inference via `_infer_domain_tags` and (b) fresh-install tag seeding in `cmd_migrate`.
+
+### Notes
+- Existing users need a one-shot DB update to see the effect on their current `git` tag row (the code change only affects new seeds / new `lessons add` calls): `sqlite3 ~/.claude/lessons.db "UPDATE tags SET keywords='rebase,cherry-pick,force-push,reset,--force,--no-verify,--amend' WHERE name='git';"`
+- Tradeoff: lessons containing generic `commit`/`merge`/`branch` wording no longer auto-tag as `git`. Explicit `--tags git` on `lessons add` still works.
+
 ## [2.63.4] - 2026-04-23 - manage-lessons CLI routing
 
 ### Added

@@ -326,7 +326,7 @@ CATEGORY_TAG_MAP = {
 
 # Domain keywords to auto-infer tags from lesson text
 DOMAIN_TAG_KEYWORDS = {
-    "git": ["git", "commit", "merge", "rebase", "branch", "push", "pull", "checkout"],
+    "git": ["rebase", "cherry-pick", "force-push", "reset", "--force", "--no-verify", "--amend"],
     "hooks": ["hook", "PreToolUse", "PostToolUse", "session-start"],
     "skills": ["skill", "/learn", "/manage", "SKILL.md", "auto-trigger"],
     "docs": ["doc", "docs", "CLAUDE.md", "essential-", "relevant-"],
