@@ -2,8 +2,7 @@
 name: manage-lessons
 metadata: { type: knowledge }
 description: Review and manage lesson lifecycle. Use when the user says "manage lessons", "review lessons", "promote lessons", "clean up lessons", "prune lessons", or when session-start nudge suggests it.
-compatibility: sqlite3
-allowed-tools: Bash(claude-toolkit lessons:*), Bash(sqlite3:*), Read, Write
+allowed-tools: Bash(claude-toolkit lessons:*), Read, Write
 ---
 
 # Manage Lessons
@@ -27,6 +26,8 @@ lessons search <query>                    # Full-text search (text only, not ID 
 lessons clusters                          # Find crystallization candidates
 lessons crystallize --ids "A,B" --text …  # Merge lessons
 lessons absorb --id "X" --into "hook:…"   # Mark as absorbed
+lessons promote --id <ID>                 # Promote to key tier
+lessons deactivate --id <ID>              # Deactivate (searchable only)
 lessons health                            # Health report
 lessons tag-hygiene                       # Tag quality issues
 ```
@@ -85,7 +86,6 @@ Lesson: <text>
   → promote (move to key — validated, eligible for surfacing)
   → absorb (already in a resource — record and deactivate)
   → deactivate (no longer relevant — searchable only)
-  → delete (remove entirely)
   → skip (leave as recent)
 ```
 
@@ -93,17 +93,12 @@ Execute decisions:
 
 **Promote:**
 ```bash
-sqlite3 ~/.claude/lessons.db "UPDATE lessons SET tier='key', promoted='$(date +%Y-%m-%d)' WHERE id='<ID>';"
+claude-toolkit lessons promote --id <ID>
 ```
 
 **Deactivate:**
 ```bash
-sqlite3 ~/.claude/lessons.db "UPDATE lessons SET active=0 WHERE id='<ID>';"
-```
-
-**Delete:**
-```bash
-sqlite3 ~/.claude/lessons.db "DELETE FROM lessons WHERE id='<ID>';"
+claude-toolkit lessons deactivate --id <ID>
 ```
 
 Wait for user decision on each one. Don't batch.
@@ -115,7 +110,7 @@ claude-toolkit lessons tag-hygiene
 ```
 
 Address reported issues:
-- Orphaned tags → delete or add lessons
+- Orphaned tags → remove or repurpose
 - Tags without keywords → add keywords so hooks can surface them
 - Deprecated tags still in use → migrate lessons to canonical tag
 
