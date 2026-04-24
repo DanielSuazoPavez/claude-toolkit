@@ -15,6 +15,8 @@ Usage:
     claude-toolkit lessons search <query> [--limit N]
     claude-toolkit lessons list [--tier T] [--active] [--tags t1,t2] [--project P]
     claude-toolkit lessons summary
+    claude-toolkit lessons promote --id ID
+    claude-toolkit lessons deactivate --id ID
     claude-toolkit lessons set-meta KEY VALUE
 """
 
@@ -811,6 +813,39 @@ def cmd_crystallize(args: argparse.Namespace) -> None:
     print(f"  Text: {args.text[:100]}")
 
 
+def cmd_promote(args: argparse.Namespace) -> None:
+    """Promote a lesson to key tier."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    row = conn.execute("SELECT text FROM lessons WHERE id = ?", (args.id,)).fetchone()
+    if not row:
+        print(f"Error: lesson {args.id} not found", file=sys.stderr)
+        sys.exit(1)
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    update_lesson(conn, args.id, tier="key", promoted=today)
+    conn.close()
+
+    print(f"{c['green']}Promoted:{c['reset']} {args.id} → key (promoted={today})")
+
+
+def cmd_deactivate(args: argparse.Namespace) -> None:
+    """Deactivate a lesson (searchable but not surfaced)."""
+    conn = init_lessons_db(args.db_path)
+    c = _c()
+
+    row = conn.execute("SELECT text FROM lessons WHERE id = ?", (args.id,)).fetchone()
+    if not row:
+        print(f"Error: lesson {args.id} not found", file=sys.stderr)
+        sys.exit(1)
+
+    update_lesson(conn, args.id, active=0)
+    conn.close()
+
+    print(f"{c['green']}Deactivated:{c['reset']} {args.id}")
+
+
 def cmd_absorb(args: argparse.Namespace) -> None:
     """Mark a lesson as absorbed into a resource, deactivating it."""
     conn = init_lessons_db(args.db_path)
@@ -1004,7 +1039,10 @@ def _detect_branch() -> str | None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Lessons database — manage cross-project actionable rules",
+        description=(
+            "Lessons database — manage cross-project actionable rules. "
+            "See cli/lessons/CLAUDE.md for the full lifecycle guide."
+        ),
     )
     parser.add_argument(
         "--db", type=Path, default=LESSONS_DB_PATH, dest="db_path",
@@ -1074,6 +1112,14 @@ def build_parser() -> argparse.ArgumentParser:
     ab.add_argument("--id", required=True, help="Lesson ID")
     ab.add_argument("--into", required=True, help="Resource (e.g. hook:git-safety, skill:learn)")
 
+    # promote
+    pr = sub.add_parser("promote", help="Promote a lesson to key tier")
+    pr.add_argument("--id", required=True, help="Lesson ID")
+
+    # deactivate
+    de = sub.add_parser("deactivate", help="Deactivate a lesson (searchable but not surfaced)")
+    de.add_argument("--id", required=True, help="Lesson ID")
+
     # tag-hygiene
     sub.add_parser("tag-hygiene", help="Report tag quality issues")
 
@@ -1103,6 +1149,8 @@ def main() -> None:
         "clusters": cmd_clusters,
         "crystallize": cmd_crystallize,
         "absorb": cmd_absorb,
+        "promote": cmd_promote,
+        "deactivate": cmd_deactivate,
         "tag-hygiene": cmd_tag_hygiene,
         "health": cmd_health,
     }
