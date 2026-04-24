@@ -516,8 +516,8 @@ touch "$TEMP_DIR/.claude/hooks/guard-b.sh"
 touch "$TEMP_DIR/.claude/hooks/session-start.sh"
 # Create MANIFEST with one skill
 cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/good-skill/
-agents/good-agent.md
+.claude/skills/good-skill/
+.claude/agents/good-agent.md
 EOF
 # Create resources — one in MANIFEST, one orphaned
 mkdir -p "$TEMP_DIR/.claude/skills/good-skill"
@@ -569,14 +569,14 @@ touch "$TEMP_DIR/.claude/hooks/guard-a.sh"
 touch "$TEMP_DIR/.claude/hooks/guard-b.sh"
 touch "$TEMP_DIR/.claude/hooks/session-start.sh"
 cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/listed-skill/
+.claude/skills/listed-skill/
 EOF
 mkdir -p "$TEMP_DIR/.claude/skills/listed-skill"
 echo "# Listed" > "$TEMP_DIR/.claude/skills/listed-skill/SKILL.md"
 mkdir -p "$TEMP_DIR/.claude/skills/ignored-skill"
 echo "# Ignored" > "$TEMP_DIR/.claude/skills/ignored-skill/SKILL.md"
 # Add to ignore file
-echo "skills/ignored-skill/" > "$TEMP_DIR/.claude-toolkit-ignore"
+echo ".claude/skills/ignored-skill/" > "$TEMP_DIR/.claude-toolkit-ignore"
 
 OUTPUT=$(run_diag)
 CHECK8=$(get_check_output 8 "$OUTPUT")
@@ -761,9 +761,9 @@ touch "$TEMP_DIR/.claude/hooks/git-safety.sh"
 touch "$TEMP_DIR/.claude/hooks/session-start.sh"
 # Raiz MANIFEST with minimal resources
 cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/setup-toolkit/
-hooks/git-safety.sh
-hooks/session-start.sh
+.claude/skills/setup-toolkit/
+.claude/hooks/git-safety.sh
+.claude/hooks/session-start.sh
 EOF
 mkdir -p "$TEMP_DIR/.claude/skills/setup-toolkit"
 echo "# Setup" > "$TEMP_DIR/.claude/skills/setup-toolkit/SKILL.md"
@@ -825,7 +825,7 @@ mkdir -p "$TEMP_DIR/.claude/hooks"
 touch "$TEMP_DIR/.claude/hooks/session-start.sh"
 # MANIFEST only lists session-start hook
 cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-hooks/session-start.sh
+.claude/hooks/session-start.sh
 EOF
 # Add an extra hook not in MANIFEST (simulates leftover from previous sync)
 touch "$TEMP_DIR/.claude/hooks/removed-hook.sh"

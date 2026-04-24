@@ -289,7 +289,7 @@ test_manifest_mode_activates() {
     echo "# Alpha" > "$TEMP_DIR/.claude/skills/alpha/SKILL.md"
 
     cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/alpha/
+.claude/skills/alpha/
 EOF
 
     expect_success "exits 0 in MANIFEST mode"
@@ -310,15 +310,15 @@ test_manifest_skips_without_indexes() {
     echo "# Extra" > "$TEMP_DIR/.claude/skills/extra-skill/SKILL.md"
 
     cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/alpha/
-scripts/validate-resources-indexed.sh
+.claude/skills/alpha/
+.claude/scripts/validate-resources-indexed.sh
 EOF
 
     expect_success "exits 0 in MANIFEST mode without indexes"
     expect_output "skips with expected message" "no index files in target project"
     expect_output "shows up to date" "All indexes are up to date"
     expect_not_output "no 'Extra file' warning" "Extra file not in MANIFEST"
-    expect_output "reframes as project-local info" "Project-local (not toolkit-owned): skills/extra-skill"
+    expect_output "reframes as project-local info" "Project-local (not toolkit-owned): .claude/skills/extra-skill"
     expect_output "summary counts project-local" "1 project-local resource(s)"
 
     teardown_test_env
@@ -336,16 +336,16 @@ test_manifest_ignore_silences_local() {
     echo "# Extra" > "$TEMP_DIR/.claude/skills/unexpected-extra/SKILL.md"
 
     cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/alpha/
-scripts/validate-resources-indexed.sh
+.claude/skills/alpha/
+.claude/scripts/validate-resources-indexed.sh
 EOF
     cat > "$TEMP_DIR/.claude-toolkit-ignore" << 'EOF'
-skills/company-private/
+.claude/skills/company-private/
 EOF
 
     expect_success "exits 0"
     expect_not_output "ignored skill is silent" "skills/company-private"
-    expect_output "non-ignored extra still shown" "Project-local (not toolkit-owned): skills/unexpected-extra"
+    expect_output "non-ignored extra still shown" "Project-local (not toolkit-owned): .claude/skills/unexpected-extra"
     expect_output "summary shows count of 1" "1 project-local resource(s)"
 
     teardown_test_env
@@ -359,8 +359,8 @@ test_manifest_with_indexes() {
     # When both MANIFEST and index files exist, MANIFEST mode does NOT activate
     # (this is the toolkit itself). It runs in normal disk-vs-index mode.
     cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
-skills/alpha/
-agents/agent-a.md
+.claude/skills/alpha/
+.claude/agents/agent-a.md
 EOF
 
     # Should behave like normal toolkit mode
