@@ -23,7 +23,7 @@
 
 - **[TOOLKIT]** Satellite CLI docs convention — how workshop skills reference satellite contracts (`satellite-cli-docs-convention`)
     - **scope**: `toolkit`
-    - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
+    - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose agent-facing contracts via a `<satellite> docs <contract>` base command; workshop skills call the command at runtime instead of carrying a copy. Tasks: (1) ~~write `relevant-toolkit-satellite-contracts.md` convention doc~~ DONE (v2.63.10), (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements `schema-smith docs input-spec`. Same rule applies to aws-toolkit when `/design-aws` ships. Full analysis: `output/claude-toolkit/analysis/20260424_1004__analyze-idea__satellite-cli-docs-convention.md`.
 
 ## P3 - Low
 

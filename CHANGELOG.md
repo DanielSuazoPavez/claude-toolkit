@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.63.10] - 2026-04-24 - satellite CLI contracts convention
+
+### Added
+- **docs**: `.claude/docs/relevant-toolkit-satellite-contracts.md` — advisory convention for satellite maintainers whose CLIs pair with workshop skills (schema-smith ↔ `/design-db`, aws-toolkit ↔ `/design-aws`, claude-sessions ↔ workshop hooks). Recommends exposing agent-facing contracts via a `<satellite> docs <contract>` base command so workshop skills can fetch the contract at runtime instead of carrying drifting copies (current example: `.claude/skills/design-db/resources/schema-smith-input-spec.md`). Covers command form, wire contract (stdout / markdown / exit 0 / read-only / UTF-8), content shape, versioning, and when not to adopt.
+- **backlog**: `satellite-cli-docs-convention` (P2) sub-task 1 marked done; sub-tasks 2 (CLI discoverability) and 3 (schema-smith workshop-side removal after satellite ships `docs input-spec`) remain open.
+
+### Notes
+- Distribution routing: doc ships to **base** automatically (not in `dist/base/EXCLUDE`). Does **not** ship to raiz (not added to `dist/raiz/MANIFEST`) — raiz consumers are not satellite maintainers.
+
 ## [2.63.9] - 2026-04-24 - artifacts doc: save vs inline convention
 
 ### Changed
