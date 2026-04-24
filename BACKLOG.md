@@ -25,10 +25,6 @@
     - **scope**: `toolkit`
     - **notes**: Workshop skills currently duplicate satellite input specs (e.g., `design-db/resources/schema-smith-input-spec.md` duplicates schema-smith's contract). Direction: satellites expose their input spec via CLI flag (e.g., `schema-smith --print-input-spec`); workshop skills reference the CLI command at runtime instead of carrying a copy. Tasks: (1) write `relevant-toolkit-satellite-contracts.md` convention doc, (2) make the convention discoverable via the CLI, (3) coordinate schema-smith removal from workshop after schema-smith satellite implements the flag. Same rule applies to aws-toolkit when `/design-aws` ships.
 
-- **[DOCS]** v3 E2 — output-shape convention doc (save vs inline) (`v3-e2-output-shape-doc`)
-    - **scope**: `toolkit`
-    - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
-
 ## P3 - Low
 
 - **[HOOKS]** Fold `surface-lessons.sh` into `grouped-bash-guard.sh` (`surface-lessons-fold`)

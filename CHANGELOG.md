@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.63.9] - 2026-04-24 - artifacts doc: save vs inline convention
+
+### Changed
+- **docs**: `.claude/docs/relevant-toolkit-artifacts.md` gains a new §4 "Save vs Inline" documenting the deliberate split between file-saving skills (`analyze-idea`, `refactor`, `shape-proposal`, `review-plan`, `brainstorm-feature`) and inline-findings skills (`review-security`, `list-docs`, `read-json`, `snap-back`). Half-life framing: security findings age poorly, saved artifacts should be worth reviewing later or by someone else, knowledge skills are inline by default. "When It Doesn't Apply" and "Gotchas" renumbered §5/§6.
+- **docs**: `.claude/docs/relevant-toolkit-context.md` See-also now points to `relevant-toolkit-artifacts` for skill output shape.
+
 ## [2.63.8] - 2026-04-24 - backlog: hide P99 by default in `make backlog`
 
 ### Changed
