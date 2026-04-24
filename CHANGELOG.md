@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.63.7] - 2026-04-24 - surface-lessons 2+ keyword-hit threshold
+
+### Changed
+- **hooks**: `surface-lessons.sh` matching now requires **2+ distinct context-word hits against the same tag's keywords** for a lesson to surface. Previously a single substring hit (e.g. `reset` alone against the `git` tag) was enough, which fired the same 3-lesson combo on underspecified triggers. Replaced the flat `OR` across keyword `LIKE`s with a CTE whose `HAVING` sums per-word `CASE` terms per tag. Per-tag, not cross-tag: a lesson carrying tag A (1 hit) + tag B (1 hit) does not qualify.
+- **hooks**: Dropped the plural-strip `CASE` term. Substring `LIKE` already matches plural→singular (keywords `hook` hits context `hooks`); the reverse case was rare, and the extra term became a double-count footgun under arithmetic matching.
+- **settings**: Flipped `CLAUDE_TOOLKIT_LESSONS` from `0` to `1` in `.claude/settings.json` — lessons injection now enabled by default in this repo. Safe to flip now that the filter is tight enough to avoid the noise that kept it off.
+
+### Added
+- **tests**: `tests/hooks/test-surface-lessons-two-hit.sh` — four assertions: single-hit suppressed, two-hit same-tag surfaces, hits split across two tags suppressed (validates per-tag semantics), plural single-hit suppressed.
+- **tests**: Extended `tests/hooks/test-surface-lessons-dedup.sh` fixture — added `head` to the `git-hazard` seed keywords so the existing `git rebase -i HEAD~3` test command continues to 2-hit under the new rule.
+
+### Notes
+- Behavior risk: a legitimately unambiguous single keyword (e.g. a future tag whose only keyword is very specific) won't surface under the new rule. Mitigation is tag-side curation — split such a keyword into two synonymous entries so a matching command still hits twice. Lower maintenance cost than a per-tag min-hits override.
+- Stacking with v2.63.5 (narrowed git keywords) and v2.63.6 (intra-session dedup): single-hit coincidental matches should stop surfacing, and the hazard commands that still hit 2 (e.g. `git reset --amend`, `git push --force`) surface exactly once per session.
+- Workshop-internal: `surface-lessons.sh` is not in `dist/raiz/MANIFEST`, so raiz consumers are unaffected.
+
 ## [2.63.6] - 2026-04-24 - surface-lessons intra-session dedup
 
 ### Changed
