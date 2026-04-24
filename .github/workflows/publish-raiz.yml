@@ -11,7 +11,7 @@ on:
       - '.claude/memories/**'
       - 'dist/**'
       - '.github/scripts/publish.py'
-      - '.github/scripts/format-raiz-changelog.sh'
+      - '.github/scripts/format-raiz-changelog.py'
       - '.github/workflows/publish-raiz.yml'
 
 jobs:
@@ -85,7 +85,7 @@ jobs:
           fi
 
           # Always call formatter — it produces a minimal message when no raiz changes exist
-          MSG=$(.github/scripts/format-raiz-changelog.sh "$VERSION" $FROM_FLAG --html)
+          MSG=$(python .github/scripts/format-raiz-changelog.py "$VERSION" $FROM_FLAG --html)
 
           # Write to file — avoids shell expansion issues in curl
           echo "$MSG" > /tmp/telegram-msg.html

@@ -38,7 +38,7 @@ test-raiz:
 	@bash tests/test-raiz-publish.sh -q
 
 test-raiz-changelog:
-	@bash tests/test-raiz-changelog.sh -q
+	@uv run pytest tests/test_format_raiz_changelog.py -q
 
 test-eval:
 	@bash tests/test-evaluation-query.sh -q
