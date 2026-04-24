@@ -1,0 +1,15 @@
+{
+  "version": "2.63.9",
+  "date": "2026-04-24",
+  "headline": "artifacts doc: save vs inline convention for skill outputs",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "docs",
+      "bullets": [
+        "`relevant-toolkit-artifacts` now documents when a skill should save a file vs present findings inline. Half-life framing: saved artifacts should be worth reviewing later or by someone else; security findings and quick lookups age poorly and stay inline.",
+        "`relevant-toolkit-context` See-also cross-references the artifacts doc for skill output shape."
+      ]
+    }
+  ]
+}

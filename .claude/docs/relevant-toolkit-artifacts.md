@@ -44,7 +44,22 @@ output/claude-toolkit/<category>/{YYYYMMDD}_{HHMM}__<source>__<slug>.md
 
 ---
 
-## 4. When It Doesn't Apply
+## 4. Save vs Inline
+
+Not every skill produces a file. Some present findings inline in the conversation and write nothing. The split is deliberate:
+
+| Shape | Use when | Examples |
+|-------|----------|----------|
+| **Save to file** | The output has a half-life — someone will review it later, share it, or act on it after the session ends. Investigation artifacts, design docs, proposals, plans. | `analyze-idea`, `refactor`, `shape-proposal`, `review-plan`, `brainstorm-feature` |
+| **Inline** | The output is knowledge the user consumes right now, or findings that age poorly if frozen to disk. Security findings, doc listings, quick lookups. | `review-security`, `list-docs`, `read-json`, `snap-back` |
+
+**Half-life framing:** security findings age poorly — a saved file from last month may describe a vulnerability that's already patched, misleading a future reader. Knowledge/reference skills are inline by default because their value is in the moment. Saved artifacts should be things worth reviewing later or by someone else.
+
+When in doubt, ask: *would anyone benefit from reading this file next week?* If no, present inline.
+
+---
+
+## 5. When It Doesn't Apply
 
 Some resources legitimately write outside `output/claude-toolkit/`:
 
@@ -58,7 +73,7 @@ These are not exceptions to the format — they're *not artifacts* in the first 
 
 ---
 
-## 5. Gotchas
+## 6. Gotchas
 
 - **Don't use `YYYY-MM-DD`.** The hyphenated form has appeared in some older `plans/` artifacts; treat those as pre-convention and don't reproduce the format.
 - **Don't use underscores in the source slot.** `review-plan`, not `review_plan` — source must match the skill/agent filename exactly.

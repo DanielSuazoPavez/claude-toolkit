@@ -9,7 +9,7 @@
 
 Defines the two context systems (docs and memories), their categories, naming conventions, and the auto-memory integration.
 
-**See also:** `/create-docs` skill, `/evaluate-docs` for quality audits, `relevant-project-identity` for resource roles
+**See also:** `/create-docs` skill, `/evaluate-docs` for quality audits, `relevant-project-identity` for resource roles, `relevant-toolkit-artifacts` for skill output shape (save vs inline)
 
 ---
 
