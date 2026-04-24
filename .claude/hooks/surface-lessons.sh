@@ -45,30 +45,29 @@ WORDS=$(echo "$CONTEXT" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:]_-' '\n'
 _hook_perf_probe "tokenize"
 [ -z "$WORDS" ] && exit 0
 
-# Build SQL OR conditions matching context words against tag keywords
-# Each tag has comma-separated keywords. Match if any context word
-# appears as a substring in the keywords field.
-# Also try without trailing 's' for basic plural handling.
-CONDITIONS=""
+# Build CASE-sum terms: each context word contributes at most 1 to a tag's
+# hit count. Require >= 2 distinct context-word hits against the same tag's
+# keywords for the tag (and its lessons) to surface. A single-word match
+# (e.g. `reset` alone against the `git` tag) is too coincidental; two
+# distinct tokens from a tag's vocabulary is strong evidence the command
+# is about that domain.
+CASE_SUM=""
+WORD_COUNT=0
 for word in $WORDS; do
-    # Skip very short words
     [ ${#word} -lt 3 ] && continue
-    # Escape single quotes for SQL
     safe_word="${word//\'/\'\'}"
-    if [ -n "$CONDITIONS" ]; then
-        CONDITIONS="$CONDITIONS OR t.keywords LIKE '%${safe_word}%'"
+    term="(CASE WHEN t.keywords LIKE '%${safe_word}%' THEN 1 ELSE 0 END)"
+    if [ -n "$CASE_SUM" ]; then
+        CASE_SUM="$CASE_SUM + $term"
     else
-        CONDITIONS="t.keywords LIKE '%${safe_word}%'"
+        CASE_SUM="$term"
     fi
-    # Try without trailing 's' for plural matching
-    stripped="${safe_word%s}"
-    if [ "$stripped" != "$safe_word" ] && [ ${#stripped} -ge 3 ]; then
-        CONDITIONS="$CONDITIONS OR t.keywords LIKE '%${stripped}%'"
-    fi
+    WORD_COUNT=$((WORD_COUNT + 1))
 done
 _hook_perf_probe "build_sql"
 
-[ -z "$CONDITIONS" ] && exit 0
+# Need at least 2 candidate words to possibly reach the 2-hit threshold.
+[ "$WORD_COUNT" -lt 2 ] && exit 0
 
 # Intra-session dedup: exclude lesson IDs already surfaced earlier in this session.
 # Cross-DB via a pre-query (no ATTACH); empty on first invocation or if hooks.db
@@ -98,14 +97,19 @@ _hook_perf_probe "seen_lookup"
 # and $PROJECT comes from $PWD (local, user-owned) — not external input.
 SAFE_PROJECT="${PROJECT//\'/\'\'}"
 RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
+    WITH candidate_tags AS (
+        SELECT t.id AS tag_id
+        FROM tags t
+        WHERE t.status = 'active'
+        GROUP BY t.id
+        HAVING ($CASE_SUM) >= 2
+    )
     SELECT DISTINCT l.id, l.text
     FROM lessons l
     JOIN lesson_tags lt ON l.id = lt.lesson_id
-    JOIN tags t ON lt.tag_id = t.id
+    JOIN candidate_tags c ON lt.tag_id = c.tag_id
     LEFT JOIN projects p ON p.id = l.project_id
     WHERE l.active = 1
-      AND t.status = 'active'
-      AND ($CONDITIONS)
       AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
       ${NOT_IN_CLAUSE}
     LIMIT 3;
