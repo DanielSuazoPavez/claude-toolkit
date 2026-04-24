@@ -27,4 +27,5 @@ Always loaded at session start:
 | `relevant-toolkit-lessons` | stable | Lessons ecosystem: schema, tiers, tags, skills, hooks, CLI, lifecycle |
 | `relevant-project-identity` | stable | What the toolkit is, resource roles, decision checklist |
 | `relevant-toolkit-satellite-contracts` | stable | Advisory convention for satellite maintainers: expose agent-facing contracts via `<satellite> docs <contract>` so workshop skills don't carry drifting copies |
+| `relevant-toolkit-satellite-consumers` | stable | Consumer-side convention for workshop skills that call satellite contracts: pointer file structure, failure ladder, invocation pattern |
 | `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |

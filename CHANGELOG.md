@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.63.14] - 2026-04-24 - satellite consumer convention
+
+### Added
+- **docs**: `.claude/docs/relevant-toolkit-satellite-consumers.md` — consumer-side convention for workshop skills that call satellite contracts. Defines pointer file structure (`resources/<contract-name>.md`), invocation pattern (4-step runtime ladder), failure ladder (missing/error/malformed → fallback), and skill documentation refactor guidance. Pairs with `relevant-toolkit-satellite-contracts` (satellite maintainer view).
+- **skills**: `.claude/skills/design-db/resources/schema-smith-input-spec.md` — pointer file for the schema-smith input-spec contract. Defines "Using the satellite" (fetch via `schema-smith docs input-spec`, min v1.6.0) and "No satellite" fallback (produce raw SQL DDL).
+
+### Changed
+- **skills**: `design-db` SKILL.md § Schema Smith Integration refactored to use the new satellite consumer convention. Removed inlined schema-smith invocation logic and replaced with a reference to the pointer file for invocation pattern and fallback path.
+
+### Updated
+- **indexes**: `docs/indexes/DOCS.md` now registers `relevant-toolkit-satellite-consumers` as a stable doc.
+
+### Deleted
+- **backlog**: Removed `satellite-consumer-convention` task from BACKLOG.md (completed).
+
+### Notes
+- Formalizes the consumer-side pattern. This doc + pointer file pattern becomes the standard for all new skill ↔ satellite integrations.
+
 ## [2.63.13] - 2026-04-24 - design-db: call schema-smith docs at runtime
 
 ### Changed

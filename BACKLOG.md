@@ -25,11 +25,6 @@
 
 ## P2 - Medium
 
-- **[TOOLKIT]** Satellite consumer convention — how workshop skills consume satellite contracts (`satellite-consumer-convention`)
-    - **scope**: `toolkit`
-    - **notes**: Companion to `satellite-cli-docs-convention` (which defines the satellite's side). This defines the skill's side. Schema-smith is already implementing the satellite half, so this unblocks `design-db` as the first concrete consumer. Shape (agreed in conversation 2026-04-24): (1) **CLI surface** — satellites expose `<satellite> docs --help` (list contracts) + `<satellite> docs <contract>` (fetch) + `<satellite> version`. (2) **Versioning** — satellite's `version` command and contract-embedded version share source-of-truth on satellite side; skill consumes the contract-embedded one. (3) **Pointer location** — `resources/<contract-name>.md` in the skill, one file per satellite contract, with two sections: "using the satellite" (short explanation + invocation) and "no satellite" (fallback path). (4) **Discovery** — skill hard-codes which contract it needs; `docs --help` is for humans/debugging, not runtime discovery. (5) **Failure ladder** — satellite missing → fallback silently (pre-existing behavior); command errors → fallback; malformed output → report to user, fall back to "satellite unavailable" path. Open: whether to persist failed output to `output/<skill>/satellite-errors/` for review. (6) **Fallback content** — convention requires skill authors to explicitly choose reduced-quality path vs. refuse; no implicit default. Deliverable: new convention doc (`relevant-toolkit-satellite-consumers.md` or similar), update `design-db` as first application, coordinate with schema-smith's satellite-side landing.
-    - **depends on**: `satellite-cli-docs-convention` (satellite side — schema-smith in progress)
-
 
 ## P3 - Low
 
