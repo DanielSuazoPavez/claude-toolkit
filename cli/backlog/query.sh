@@ -15,6 +15,7 @@
 #     backlog-query.sh validate       # Validate backlog format
 #     backlog-query.sh -v ...         # Verbose output (shows all fields)
 #     backlog-query.sh --path FILE    # Use specific backlog file
+#     backlog-query.sh --exclude-priority P99,P3  # Hide listed priorities
 
 set -euo pipefail
 
@@ -197,6 +198,7 @@ display_summary() {
 main() {
     local verbose=0
     local backlog_path=""
+    local exclude_priority=""
     local args=()
 
     # Parse flags
@@ -204,7 +206,7 @@ main() {
         case "$1" in
             -v|--verbose) verbose=1 ;;
             -h|--help|help)
-                head -18 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
+                head -19 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
                 exit 0
                 ;;
             --path)
@@ -219,6 +221,14 @@ main() {
                     exit 1
                 fi
                 ;;
+            --exclude-priority)
+                shift
+                exclude_priority="${1:-}"
+                if [[ -z "$exclude_priority" ]]; then
+                    echo "Error: --exclude-priority requires a comma-separated list (e.g. P99 or P99,P3)" >&2
+                    exit 1
+                fi
+                ;;
             *) args+=("$1") ;;
         esac
         shift
@@ -229,6 +239,30 @@ main() {
         backlog="$backlog_path"
     else
         backlog="$(find_backlog)"
+    fi
+
+    # Build an awk filter that drops any row whose priority is in the exclude list.
+    # Applied as a pre-filter before subcommand filters, so it composes with all of them
+    # (including summary, which consumes parse_backlog directly).
+    local exclude_cmd="cat"
+    if [[ -n "$exclude_priority" ]]; then
+        local upper="${exclude_priority^^}"
+        # Turn "P99,P3" into awk: $1 != "P99" && $1 != "P3"
+        local awk_expr=""
+        local IFS=','
+        # shellcheck disable=SC2206
+        local parts=($upper)
+        for p in "${parts[@]}"; do
+            [[ -z "$p" ]] && continue
+            if [[ -z "$awk_expr" ]]; then
+                awk_expr="\$1 != \"$p\""
+            else
+                awk_expr="$awk_expr && \$1 != \"$p\""
+            fi
+        done
+        if [[ -n "$awk_expr" ]]; then
+            exclude_cmd="awk -F'\t' '$awk_expr'"
+        fi
     fi
 
     local filter_cmd="cat"
@@ -284,7 +318,7 @@ main() {
             filter_cmd="awk -F'\t' '\$7 != \"\"'"
             ;;
         summary)
-            parse_backlog "$backlog" | display_summary
+            parse_backlog "$backlog" | eval "$exclude_cmd" | display_summary
             return
             ;;
         validate)
@@ -299,7 +333,7 @@ main() {
             ;;
     esac
 
-    parse_backlog "$backlog" | eval "$filter_cmd" | display_tasks "$verbose"
+    parse_backlog "$backlog" | eval "$exclude_cmd" | eval "$filter_cmd" | display_tasks "$verbose"
 }
 
 main "$@"

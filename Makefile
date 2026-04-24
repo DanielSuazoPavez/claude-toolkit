@@ -19,7 +19,7 @@ help:
 	@echo "  make lint-bash         - Shellcheck shipped bash (hooks, scripts, cli)"
 	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make tag               - Create git tag from VERSION file"
-	@echo "  make backlog           - Show project backlog"
+	@echo "  make backlog           - Show project backlog (hides P99 nice-to-haves — use 'claude-toolkit backlog' for all)"
 	@echo "  make check             - Run everything (tests + lint-bash + validate)"
 
 test:
@@ -67,7 +67,7 @@ tag:
 	fi
 
 backlog:
-	@bash cli/backlog/query.sh
+	@bash cli/backlog/query.sh --exclude-priority P99
 
 lint-bash:
 	@command -v shellcheck >/dev/null || { \

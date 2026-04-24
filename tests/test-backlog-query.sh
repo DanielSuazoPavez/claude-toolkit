@@ -73,6 +73,14 @@ create_test_backlog() {
     - **scope**: `toolkit`
     - **branch**: `feature/toolkit-task`
 
+---
+
+## P99 - Nice to Have
+
+- **[ICEBOX]** Nice-to-have idea task
+    - **status**: `deferred`
+    - **scope**: `icebox`
+
 EOF
 }
 
@@ -225,7 +233,7 @@ test_list_all() {
     expect_output "shows P0 task" "Critical test task"
     expect_output "shows P1 task" "High priority skill"
     expect_output "shows P2 task" "Medium toolkit task"
-    expect_count "finds 4 tasks" "4"
+    expect_count "finds 5 tasks" "5"
 
     teardown_test_env
 }
@@ -315,6 +323,35 @@ test_verbose() {
     teardown_test_env
 }
 
+test_exclude_priority() {
+    report_section "=== --exclude-priority filter ==="
+    setup_test_env
+    create_test_backlog
+
+    # Baseline: P99 task is visible without the flag
+    expect_output "P99 task visible by default" "Nice-to-have idea task"
+    expect_count "lists all 5 without flag" "5"
+
+    # Single-priority exclude
+    expect_count "excludes P99 (4 remain)" "4" --exclude-priority P99
+    expect_not_output "hides P99 task" "Nice-to-have idea task" --exclude-priority P99
+
+    # Comma list
+    expect_count "excludes P99,P2 (3 remain)" "3" --exclude-priority P99,P2
+    expect_not_output "hides P2 task too" "Medium toolkit task" --exclude-priority P99,P2
+
+    # Lowercase accepted
+    expect_count "accepts lowercase p99" "4" --exclude-priority p99
+
+    # Composes with subcommand filter: priority P1 still finds 2
+    expect_count "composes with priority subcommand" "2" --exclude-priority P99 priority P1
+
+    # Error when value missing
+    expect_failure "errors without value" --exclude-priority
+
+    teardown_test_env
+}
+
 test_unknown_command() {
     report_section "=== unknown command ==="
     setup_test_env
@@ -339,6 +376,7 @@ test_filter_scope
 test_blocked_unblocked
 test_branch
 test_verbose
+test_exclude_priority
 test_unknown_command
 
 print_summary

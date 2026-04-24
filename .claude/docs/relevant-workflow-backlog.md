@@ -121,5 +121,8 @@ bash cli/backlog/query.sh status in-progress # Filter by status
 bash cli/backlog/query.sh blocked            # Tasks with dependencies
 bash cli/backlog/query.sh unblocked          # Actionable tasks
 bash cli/backlog/query.sh --path FILE        # Use specific file
+bash cli/backlog/query.sh --exclude-priority P99       # Hide listed priorities (comma list: P99,P3)
 bash cli/backlog/validate.sh                 # Validate format
 ```
+
+`make backlog` uses `--exclude-priority P99` by default so nice-to-haves stay out of the everyday view. Use `claude-toolkit backlog` (no flag) or `claude-toolkit backlog priority P99` to see them.
