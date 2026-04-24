@@ -1,58 +1,63 @@
 # Raiz Manifest — scoped subset for claude-toolkit-raiz.
 #
-# Same format as MANIFEST. Only resources listed here are published.
-# Reference-trimming script strips cross-references to anything not listed.
+# Paths are project-root-relative: where the file lives on disk in the toolkit
+# repo and where it ships in the consumer project. Reference-trimming strips
+# cross-references to anything not listed.
+#
+# Exception: .claude/templates/* entries live under dist/base/templates/ (or
+# dist/<profile>/templates/ for overrides) in the source tree; they still
+# ship to .claude/templates/ in the consumer.
 
 # skills
-skills/analyze-idea/
-skills/brainstorm-idea/
-skills/brainstorm-feature/
-skills/build-communication-style/
-skills/create-docs/
-skills/draft-pr/
-skills/read-json/
-skills/review-plan/
-skills/setup-toolkit/
-skills/wrap-up/
-skills/write-handoff/
-skills/write-documentation/
+.claude/skills/analyze-idea/
+.claude/skills/brainstorm-idea/
+.claude/skills/brainstorm-feature/
+.claude/skills/build-communication-style/
+.claude/skills/create-docs/
+.claude/skills/draft-pr/
+.claude/skills/read-json/
+.claude/skills/review-plan/
+.claude/skills/setup-toolkit/
+.claude/skills/wrap-up/
+.claude/skills/write-handoff/
+.claude/skills/write-documentation/
 
 # agents
-agents/codebase-explorer.md
-agents/code-debugger.md
-agents/code-reviewer.md
-agents/goal-verifier.md
-agents/implementation-checker.md
+.claude/agents/codebase-explorer.md
+.claude/agents/code-debugger.md
+.claude/agents/code-reviewer.md
+.claude/agents/goal-verifier.md
+.claude/agents/implementation-checker.md
 
 # hooks
-hooks/block-config-edits.sh
-hooks/block-dangerous-commands.sh
-hooks/git-safety.sh
-hooks/grouped-bash-guard.sh
-hooks/grouped-read-guard.sh
-hooks/secrets-guard.sh
-hooks/suggest-read-json.sh
-hooks/approve-safe-commands.sh
-hooks/session-start.sh
-hooks/lib/hook-utils.sh
+.claude/hooks/block-config-edits.sh
+.claude/hooks/block-dangerous-commands.sh
+.claude/hooks/git-safety.sh
+.claude/hooks/grouped-bash-guard.sh
+.claude/hooks/grouped-read-guard.sh
+.claude/hooks/secrets-guard.sh
+.claude/hooks/suggest-read-json.sh
+.claude/hooks/approve-safe-commands.sh
+.claude/hooks/session-start.sh
+.claude/hooks/lib/hook-utils.sh
 
 # docs (inside .claude/)
-docs/essential-conventions-code_style.md
-docs/relevant-toolkit-context.md
-docs/relevant-toolkit-permissions_config.md
-docs/relevant-toolkit-artifacts.md
+.claude/docs/essential-conventions-code_style.md
+.claude/docs/relevant-toolkit-context.md
+.claude/docs/relevant-toolkit-permissions_config.md
+.claude/docs/relevant-toolkit-artifacts.md
 
 # docs (copied to project root, outside .claude/)
 docs/getting-started.md
 
 # scripts
-scripts/setup-toolkit-diagnose.sh
-scripts/lib/profile.sh
+.claude/scripts/setup-toolkit-diagnose.sh
+.claude/scripts/lib/profile.sh
 
 # templates
-templates/CLAUDE.md.template
-templates/gitignore.claude-toolkit
-templates/Makefile.claude-toolkit
-templates/mcp.template.json
-templates/PULL_REQUEST_TEMPLATE.md
-templates/settings.template.json
+.claude/templates/CLAUDE.md.template
+.claude/templates/gitignore.claude-toolkit
+.claude/templates/Makefile.claude-toolkit
+.claude/templates/mcp.template.json
+.claude/templates/PULL_REQUEST_TEMPLATE.md
+.claude/templates/settings.template.json
