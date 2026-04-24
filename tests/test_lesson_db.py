@@ -8,8 +8,12 @@ from pathlib import Path
 
 import pytest
 
+from datetime import datetime, timezone
+
 from cli.lessons.db import (
+    cmd_deactivate,
     cmd_get,
+    cmd_promote,
     get_metadata,
     get_or_create_project,
     get_or_create_tag,
@@ -526,3 +530,86 @@ class TestCmdGet:
         args = argparse.Namespace(db_path=tmp_path / "test-lessons.db", id="nonexistent_123")
         with pytest.raises(SystemExit, match="1"):
             cmd_get(args)
+
+
+# ---------------------------------------------------------------------------
+# Lifecycle commands: promote / deactivate
+# ---------------------------------------------------------------------------
+
+
+class TestLifecycleCommands:
+    def test_promote_sets_tier_and_date(self, db: sqlite3.Connection, tmp_path: Path) -> None:
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_001",
+            project_name="proj",
+            date="2026-03-24",
+            text="Recent lesson",
+            tag_names=["pattern"],
+        )
+        db.close()
+        args = argparse.Namespace(
+            db_path=tmp_path / "test-lessons.db", id="proj_20260324T1200_001"
+        )
+        cmd_promote(args)
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        conn = init_lessons_db(tmp_path / "test-lessons.db")
+        row = conn.execute(
+            "SELECT tier, promoted FROM lessons WHERE id = ?",
+            ("proj_20260324T1200_001",),
+        ).fetchone()
+        conn.close()
+        assert row == ("key", today)
+
+    def test_promote_missing_id_exits(self, tmp_path: Path) -> None:
+        init_lessons_db(tmp_path / "test-lessons.db").close()
+        args = argparse.Namespace(db_path=tmp_path / "test-lessons.db", id="nonexistent")
+        with pytest.raises(SystemExit, match="1"):
+            cmd_promote(args)
+
+    def test_deactivate_clears_active_and_refreshes_counts(
+        self, db: sqlite3.Connection, tmp_path: Path
+    ) -> None:
+        # Two active lessons sharing a tag -> lesson_count starts at 2
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_001",
+            project_name="proj",
+            date="2026-03-24",
+            text="Lesson A",
+            tag_names=["shared"],
+        )
+        insert_lesson(
+            db,
+            lesson_id="proj_20260324T1200_002",
+            project_name="proj",
+            date="2026-03-24",
+            text="Lesson B",
+            tag_names=["shared"],
+        )
+        count_before = db.execute(
+            "SELECT lesson_count FROM tags WHERE name = 'shared'"
+        ).fetchone()[0]
+        assert count_before == 2
+        db.close()
+        args = argparse.Namespace(
+            db_path=tmp_path / "test-lessons.db", id="proj_20260324T1200_001"
+        )
+        cmd_deactivate(args)
+        conn = init_lessons_db(tmp_path / "test-lessons.db")
+        active = conn.execute(
+            "SELECT active FROM lessons WHERE id = ?",
+            ("proj_20260324T1200_001",),
+        ).fetchone()[0]
+        count_after = conn.execute(
+            "SELECT lesson_count FROM tags WHERE name = 'shared'"
+        ).fetchone()[0]
+        conn.close()
+        assert active == 0
+        assert count_after == 1
+
+    def test_deactivate_missing_id_exits(self, tmp_path: Path) -> None:
+        init_lessons_db(tmp_path / "test-lessons.db").close()
+        args = argparse.Namespace(db_path=tmp_path / "test-lessons.db", id="nonexistent")
+        with pytest.raises(SystemExit, match="1"):
+            cmd_deactivate(args)
