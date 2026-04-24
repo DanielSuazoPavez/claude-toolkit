@@ -47,15 +47,10 @@ err()  { errors+=("L${1}: ${2}"); }
 warn() { warnings+=("L${1}: ${2}"); }
 
 find_backlog() {
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-    if [[ -f "$script_dir/../../BACKLOG.md" ]]; then
-        echo "$script_dir/../../BACKLOG.md"
-    elif [[ -f "BACKLOG.md" ]]; then
+    if [[ -f "BACKLOG.md" ]]; then
         echo "BACKLOG.md"
     else
-        echo "Error: BACKLOG.md not found" >&2
+        echo "Error: BACKLOG.md not found in current directory (use --path FILE to override)" >&2
         exit 1
     fi
 }
