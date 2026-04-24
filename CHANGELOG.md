@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.63.13] - 2026-04-24 - design-db: call schema-smith docs at runtime
+
+### Changed
+- **skills**: `design-db` SKILL.md now fetches the input spec at runtime via `schema-smith docs input-spec` (requires schema-smith ≥ 1.6.0) instead of carrying a local copy. Removes dependency drift — the spec is always current. If the command fails, falls back to raw SQL DDL (existing fallback behavior preserved).
+- **docs**: `.claude/docs/relevant-toolkit-satellite-contracts.md` schema-smith status row updated: now shows "Yes" (has `docs` command) and "No" (no duplicated contract in workshop).
+
+### Deleted
+- **skills**: `.claude/skills/design-db/resources/schema-smith-input-spec.md` — 305-line local copy removed; runtime call is the source of truth.
+
+### Notes
+- This completes `satellite-cli-docs-convention` sub-task 3: schema-smith workshop-side removal after satellite shipped `docs input-spec` (schema-smith v1.6.0).
+
 ## [2.63.12] - 2026-04-24 - backlog CLI resolves from CWD
 
 ### Fixed
