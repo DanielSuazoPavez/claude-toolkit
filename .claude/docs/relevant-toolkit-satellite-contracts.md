@@ -124,7 +124,7 @@ Reference snapshot for satellite maintainers; will drift — check the satellite
 | Satellite | Has `docs` command? | Duplicated contract in workshop? |
 |---|---|---|
 | claude-toolkit | Yes — `claude-toolkit docs satellite-contracts` emits this doc | n/a (workshop) |
-| schema-smith | No | Yes — `design-db` carried a copy; being migrated |
+| schema-smith | Yes | No — workshop calls `schema-smith docs input-spec` at runtime (≥ v1.6.0) |
 | claude-sessions | No | No (preventative adoption) |
 | aws-toolkit | No | No (skill `/design-aws` not yet built) |
 

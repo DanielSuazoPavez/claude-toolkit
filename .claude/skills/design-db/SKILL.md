@@ -180,9 +180,9 @@ See `/design-diagram` for format selection (Mermaid vs ASCII) and theme presets.
 
 ## Schema Smith Integration
 
-If `schema-smith` is available (`which schema-smith`), generate schemas as YAML instead of raw DDL.
+If `schema-smith` is available (`which schema-smith`), generate schemas as YAML instead of raw DDL. Requires schema-smith ≥ 1.6.0 (which ships `docs` and `version` commands).
 
-1. **Read the input spec** at `resources/schema-smith-input-spec.md` before writing any YAML
+1. **Fetch the current input spec** by running `schema-smith docs input-spec` — this emits the YAML shape as markdown to stdout. If the command fails for any reason, fall back to raw SQL (same existing fallback below).
 2. **Design first** — use the knowledge sections above to make schema decisions (normalization, indexing, types)
 3. **Output as schema-smith YAML** — structure the design as YAML files following the input spec
 4. **Generate DDL** — run schema-smith to produce the SQL:
@@ -196,6 +196,6 @@ Useful flags:
 - `--strict` — treat warnings as errors
 - `--json` — structured output for programmatic use
 
-If `schema-smith` is not available, fall back to raw SQL as usual.
+If `schema-smith` is not available or the `docs input-spec` command fails, fall back to raw SQL as usual.
 
 **See also:** `/design-diagram` (ER diagrams and relationship visualization), `/design-tests` (test database fixtures and factory patterns), `/refactor` (restructuring data access layers), `/design-docker` (database containers for local dev)
