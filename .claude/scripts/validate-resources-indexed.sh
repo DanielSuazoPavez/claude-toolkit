@@ -316,7 +316,7 @@ SCRIPTS_INDEX="$PROJECT_ROOT/docs/indexes/SCRIPTS.md"
 SCRIPTS_DIR="$CLAUDE_DIR/scripts"
 
 if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
-    DISK_SCRIPTS=$(find "$SCRIPTS_DIR" -maxdepth 1 -name "*.sh" -exec basename {} \; | sort)
+    DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f -printf '%P\n' | sort)
     while IFS= read -r disk_script; do
         [ -z "$disk_script" ] && continue
         if ! in_array "$disk_script" "${MANIFEST_SCRIPTS[@]}"; then
@@ -329,7 +329,7 @@ if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
     manifest_count=${#MANIFEST_SCRIPTS[@]}
     echo -e "${GREEN}✓ $manifest_count scripts from MANIFEST validated${NC}"
 elif [ -f "$SCRIPTS_INDEX" ] && [ -d "$SCRIPTS_DIR" ]; then
-    DISK_SCRIPTS=$(find "$SCRIPTS_DIR" -maxdepth 1 -name "*.sh" -exec basename {} \; | sort)
+    DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f -printf '%P\n' | sort)
     INDEX_SCRIPTS=$(grep -oP '\| `\K[^`]+\.sh(?=` \|)' "$SCRIPTS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_SCRIPTS") <(echo "$INDEX_SCRIPTS"))
