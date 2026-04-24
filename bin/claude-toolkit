@@ -49,6 +49,7 @@ COMMANDS:
     send <path>     Send a resource from another project to suggestions-box
     lessons <cmd>   Manage lessons database (add, search, list, health, ...)
     backlog <cmd>   Query backlog (summary, id, status, priority, scope, ...)
+    docs [name]     List or emit workshop agent-facing contracts
     eval <cmd>      Query evaluation status (stale, unevaluated, above, type)
     validate        Validate toolkit configuration in current project
     version         Print toolkit version
@@ -763,6 +764,7 @@ case "${1:-}" in
         exec "$CT_LESSONS" "$@"
         ;;
     backlog) shift; exec "$TOOLKIT_DIR/cli/backlog/query.sh" "$@" ;;
+    docs) shift; exec "$TOOLKIT_DIR/cli/docs/query.sh" "$@" ;;
     eval) shift; exec "$TOOLKIT_DIR/cli/eval/query.sh" "$@" ;;
     validate) shift; cmd_validate "$@" ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
