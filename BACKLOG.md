@@ -19,13 +19,6 @@
 
 ---
 
-## P1 - High
-
-- **[HOOKS]** Improve lessons lifecycle — reduce noise, surface smarter (`improve-lessons-lifecycle`)
-    - **scope**: `hooks, scripts`
-    - **notes**: Lessons accumulate faster than they get pruned, hitting ~17 where ~10 is the practical ceiling. Two areas to address: (1) **Pruning** — lessons linger too long; consider auto-expiry after N sessions if not promoted/tagged recurring, or lower the bar for `/manage-lessons` runs. (2) **Surfacing hook** — currently dumps all lessons undifferentiated; explore relevance filtering (branch/task-aware), tiered display (Key always, Recent only when relevant), or capping displayed count. Analysis of surfacing effectiveness to come from claude-sessions side. When reworking the surfacing hook, evaluate folding it into `grouped-read-guard` (and/or a future `grouped-bash-guard` merge) — it currently averages 106ms with ~30-40ms of that being bash+jq startup. Constraints: async-injection contract, 5s timeout, Bash|Read|Write|Edit matcher (wider than grouped-read).
-    - **progress**: P1-a done in v2.63.5 — `git` tag keywords narrowed to hazard-scenario words. P0-a done in v2.63.6 — `surface-lessons.sh` dedupes by `session_id` so a lesson surfaces at most once per session. Remaining sub-pieces from `output/claude-toolkit/analysis/20260423_2309__analyze-idea__improve-lessons-lifecycle.md`: P0-b (2+ keyword-hit threshold), pruning work.
-
 ## P2 - Medium
 
 - **[TOOLKIT]** Satellite CLI docs convention — how workshop skills reference satellite contracts (`satellite-cli-docs-convention`)
@@ -37,6 +30,11 @@
     - **notes**: The deliberate split between file-saving skills and inline-findings skills isn't documented anywhere. Add one paragraph to `relevant-toolkit-context.md`: when to save vs present inline, with the half-life framing — security findings age poorly; saved artifacts should be reviewed later or by someone else; knowledge skills are inline by default. Emerges from code-quality and design-arch audit subsets.
 
 ## P3 - Low
+
+- **[HOOKS]** Fold `surface-lessons.sh` into `grouped-bash-guard.sh` (`surface-lessons-fold`)
+    - **scope**: `hooks`
+    - **notes**: `surface-lessons.sh` currently averages ~106ms with ~30-40ms of that being bash+jq startup overhead. Fold the Bash branch into `grouped-bash-guard.sh` to skip a second process spawn; keep Read/Write/Edit path separate or extend `grouped-read-guard.sh` to cover Write|Edit. Expected ~40ms avg savings. Constraints: async-injection contract (PreToolUse additionalContext), 5s timeout, current matcher is `Bash|Read|Write|Edit` (wider than grouped-read's `Read`). P2 in `output/claude-toolkit/analysis/20260423_2309__analyze-idea__improve-lessons-lifecycle.md`; deferred to P3 now that the relevance work (v2.63.5–v2.63.7) is shipped and the noise problem is handled — this is pure perf. Re-measure avg latency first; the 106ms baseline predates dedup + 2-hit threshold and may already be lower.
+    - **depends on**: none (v2.63.5–v2.63.7 shipped)
 
 - **[HOOKS]** Remove ecosystems opt-in session-start nudge (`remove-ecosystems-opt-in-nudge`)
     - **scope**: `hooks`
@@ -53,8 +51,7 @@
 
 - **[HOOKS]** `surface-docs.sh` hook — context-aware doc surfacing (`surface-docs-hook`)
     - **scope**: `hooks`
-    - **notes**: New hook matching tool context against `relevant-*` doc Quick References and injecting a one-liner suggestion when a relevant doc hasn't been loaded. Same deterministic algorithm as `surface-lessons.sh` (dedup window + minimum match specificity). **Gated on `improve-lessons-lifecycle` being validated first** — only build after the surface-lessons rework proves the algorithm works reliably. Coordinates with `.claude/hooks/` queue item 5.
-    - **depends on**: `improve-lessons-lifecycle`
+    - **notes**: New hook matching tool context against `relevant-*` doc Quick References and injecting a one-liner suggestion when a relevant doc hasn't been loaded. Same deterministic algorithm as `surface-lessons.sh` — intra-session dedup (v2.63.6) + 2+ keyword-hit threshold (v2.63.7). Validate by observing surface-lessons behavior for a few weeks before replicating the pattern. Coordinates with `.claude/hooks/` queue item 5.
 
 
 - **[SCRIPTS]** Move `backup-lessons-db.sh` to claude-sessions (`move-backup-lessons-to-claude-sessions`)
