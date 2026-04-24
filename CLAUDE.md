@@ -56,13 +56,14 @@ Summary and status of all resources:
 - Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
 - Resource changes (skills, agents, hooks, shipped docs in `.claude/docs/` or `docs/`): version bump + changelog entry under version
 - When adding a version entry, fold any existing `[Unreleased]` changes into it
-- **Raiz notification on version bump**: The publish-raiz workflow auto-detects raiz-relevant changes by trimming changelog entries against the MANIFEST — no manual flagging needed. CI picks up an override file at `dist/raiz/changelog/<version>.html` if it exists, otherwise auto-generates from the changelog
+- **Write the raiz sidecar on every version bump**: alongside the CHANGELOG entry and VERSION bump, create `dist/raiz/changelog/<new-version>.json` following the schema (`version`, `date`, `headline`, `skip`, `sections[]` with `kind` ∈ `{skills, agents, hooks, docs, scripts, templates, other}` and `bullets[]`). Include the changes a raiz consumer (downstream project receiving synced resources) would care about — new/renamed/removed skills, agents, hooks, and shipped docs. If the version only touches workshop-internal files (CLI, build scripts, non-shipped docs), set `skip: true` and leave `sections: []`. Commit the sidecar with the rest of the documentation changes.
+- **Raiz notification on version bump**: The publish-raiz workflow reads the sidecar JSON to build the Telegram message. CI picks up an override file at `dist/raiz/changelog/<version>.html` if it exists (manual full-message override, used for historical releases and occasional hand-crafted announcements); otherwise the sidecar drives the output.
 
 ## When You're Done
 
 - Run `make check` to run all tests and validations
 - Verify skill/agent changes work with real tests
-- **Raiz message check** (version bumps only): Run `.github/scripts/format-raiz-changelog.sh <version> [--from <prev>]` to preview the Telegram notification. If it needs refinement, generate an override with `--html --out dist/raiz/changelog/<version>.html`, edit by hand, and commit with the version bump
+- **Raiz message check** (version bumps only): Run `python .github/scripts/format-raiz-changelog.py <version> [--from <prev>]` to preview the Telegram notification. If the sidecar copy needs refinement, edit `dist/raiz/changelog/<version>.json` and re-preview; for an entirely hand-crafted message, write it to `dist/raiz/changelog/<version>.html` (that file takes precedence in `--html` mode)
 
 ## Suggestions Box
 

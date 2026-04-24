@@ -1,0 +1,15 @@
+{
+  "version": "2.63.3",
+  "date": "2026-04-23",
+  "headline": "Raiz changelog formatter: now Python + hand-authored JSON sidecars",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "other",
+      "bullets": [
+        "Each toolkit version now carries a `dist/raiz/changelog/<version>.json` sidecar — this is what you're reading.",
+        "Old bash formatter retired; new one is stdlib Python with a pytest suite."
+      ]
+    }
+  ]
+}

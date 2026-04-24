@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.63.3] - 2026-04-23 - rewrite raiz changelog formatter in Python with JSON sidecars
+
+### Changed
+- **ci**: `.github/scripts/format-raiz-changelog.sh` rewritten as `format-raiz-changelog.py` (stdlib only). The new formatter reads structured `dist/raiz/changelog/<version>.json` sidecars instead of parsing free-form CHANGELOG markdown and keyword-matching the MANIFEST. Same CLI surface (`<version|latest> [--raw|--html] [--out] [--from] [--override]`) and identical Telegram output shape; no workflow API change beyond the `.sh → .py` swap at the call site. Root cause for the swap: the bash script's ~30 nested `$(echo | …)` command substitutions flaked under scheduling pressure (~2% in isolated runs).
+- **tests**: `tests/test-raiz-changelog.sh` replaced with `tests/test_format_raiz_changelog.py` (pytest, 48 tests across 8 suites — sidecar loading, single/range rendering, HTML escaping, overrides, output modes, edge cases). Covers the assertion matrix of the bash suite.
+- **workflow**: `.github/workflows/publish-raiz.yml` call site updated to invoke the Python script.
+
+### Notes
+- On each version bump the raiz sidecar is now authored by hand (CLAUDE.md §Changelog documents the obligation). Workshop-internal bumps that genuinely have nothing to announce can set `skip: true` and get a minimal Telegram message. Pre-existing `.html` auto-overrides at `dist/raiz/changelog/<version>.html` still take precedence in `--html` mode.
+- This release's sidecar (`2.63.3.json`) is itself a dogfooding example — announces the formatter rewrite to the raiz channel.
+
 ## [2.63.2] - 2026-04-23 - reframe MANIFEST-mode project-local resource reports
 
 ### Changed
