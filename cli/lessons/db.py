@@ -820,7 +820,7 @@ def cmd_promote(args: argparse.Namespace) -> None:
 
     row = conn.execute("SELECT text FROM lessons WHERE id = ?", (args.id,)).fetchone()
     if not row:
-        print(f"Error: lesson {args.id} not found", file=sys.stderr)
+        print(f"Lesson not found: {args.id}", file=sys.stderr)
         sys.exit(1)
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -837,7 +837,7 @@ def cmd_deactivate(args: argparse.Namespace) -> None:
 
     row = conn.execute("SELECT text FROM lessons WHERE id = ?", (args.id,)).fetchone()
     if not row:
-        print(f"Error: lesson {args.id} not found", file=sys.stderr)
+        print(f"Lesson not found: {args.id}", file=sys.stderr)
         sys.exit(1)
 
     update_lesson(conn, args.id, active=0)
@@ -853,7 +853,7 @@ def cmd_absorb(args: argparse.Namespace) -> None:
 
     row = conn.execute("SELECT text, active FROM lessons WHERE id = ?", (args.id,)).fetchone()
     if not row:
-        print(f"Error: lesson {args.id} not found", file=sys.stderr)
+        print(f"Lesson not found: {args.id}", file=sys.stderr)
         sys.exit(1)
 
     update_lesson(conn, args.id, absorbed_into=args.into, active=0)

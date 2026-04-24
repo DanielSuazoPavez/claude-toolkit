@@ -10,6 +10,9 @@
 - **skills**: `manage-lessons` routes every lifecycle op through the CLI. Dropped `Bash(sqlite3:*)` from `allowed-tools` and the `compatibility: sqlite3` frontmatter key; removed inline `sqlite3 UPDATE/DELETE` snippets. Per-lesson decision menu is now `promote / absorb / deactivate / skip` — delete is intentionally not exposed (real deletions happen outside the skill surface).
 - **tests**: New `TestLifecycleCommands` class in `tests/test_lesson_db.py` (4 tests) covers both commands on success and missing-id paths; deactivate test observes the 2→1 tag-count decrement (not a spurious 1→0 edge).
 
+### Fixed
+- **lessons**: Deactivating a lesson via the skill now refreshes `tags.lesson_count`. The prior inline `sqlite3 UPDATE ... SET active=0` path silently skipped the count refresh; the new CLI route goes through `update_lesson()` which calls `_refresh_tag_counts` when `active` changes.
+
 ## [2.63.3] - 2026-04-23 - rewrite raiz changelog formatter in Python with JSON sidecars
 
 ### Changed

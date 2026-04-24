@@ -110,7 +110,7 @@ claude-toolkit lessons tag-hygiene
 ```
 
 Address reported issues:
-- Orphaned tags → delete or add lessons
+- Orphaned tags → remove or repurpose
 - Tags without keywords → add keywords so hooks can surface them
 - Deprecated tags still in use → migrate lessons to canonical tag
 
