@@ -33,9 +33,9 @@ test_session="test-dedup-$(date +%s%N)"
 payload="{\"session_id\":\"$test_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git rebase -i HEAD~3\"}}"
 
 # First invocation: should match the seeded lesson.
-echo "$payload" | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+echo "$payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 # Second invocation, same session, same matching context: should be deduped.
-echo "$payload" | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+echo "$payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 if [ ! -f "$TEST_HOOKS_DB" ]; then
     log_verbose "hooks.db not available — skipping dedup assertions"
@@ -72,7 +72,7 @@ fi
 # Cross-session sanity: a different session_id should NOT be deduped against the first.
 other_session="test-dedup-other-$(date +%s%N)"
 other_payload="{\"session_id\":\"$other_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git rebase -i HEAD~3\"}}"
-echo "$other_payload" | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
+echo "$other_payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 other_ids=$(sqlite3 "$TEST_HOOKS_DB" "SELECT matched_lesson_ids FROM surface_lessons_context WHERE session_id = '$other_session' ORDER BY timestamp ASC LIMIT 1;" 2>/dev/null)
 
 TESTS_RUN=$((TESTS_RUN + 1))
