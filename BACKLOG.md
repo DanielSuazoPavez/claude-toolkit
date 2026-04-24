@@ -21,10 +21,6 @@
 
 ## P1 - High
 
-- **[TESTS]** Investigate suspected `test-raiz-changelog.sh` flake under parallel `make check` (`test-raiz-changelog-flake-hunt`)
-    - **scope**: `tests`
-    - **notes**: Observed once during a parallel `make check` run: `FAIL: keeps section: ### Changed` at `tests/test-raiz-changelog.sh:235`, while the neighboring `### Added` assertion passed in the same run. Not reproduced across 13+ subsequent `make check` / `make test` runs in isolation or under load. The `trim_for_raiz` logic in `.github/scripts/format-raiz-changelog.sh` (lines 167-212) treats both sections identically, so a real bug would fail both. Likely a test-runner interleaving issue but unconfirmed. **Caveat:** the original failure report was captured from an output piped through `tail -80`, which means the failure might have been an artifact of my truncated buffer rather than a real test failure — re-verify before investing. Direction: (1) re-run `make check` bare several times in a row to see if it reappears, (2) if it does, add a debug dump inside `assert_contains` that writes the raw `$output` to `tests/.logs/raiz-flake-<pid>.txt` on failure, (3) if it doesn't reappear after ~50 runs, close this task as non-reproducible. Original trigger: commit reframing MANIFEST-mode warnings (2.63.2).
-
 - **[SKILLS]** `manage-lessons` — route all CLI lifecycle ops through `claude-toolkit lessons` (`manage-lessons-cli-routing`)
     - **scope**: `skills`
     - **notes**: Skill currently calls sqlite3 directly for promote/deactivate/delete (lines 94-106). Direction: route everything through `claude-toolkit lessons` CLI; drop `Bash(sqlite3:*)` from `allowed-tools`. Prerequisites: (1) check CLI for existing promote/deactivate/delete subcommands, (2) add any missing ones, (3) rewrite skill to use CLI only. Coordinates with hooks-audit queue item 2 (LESSONS_DB env var) — once CLI honors the env var, skill inherits behavior automatically.
