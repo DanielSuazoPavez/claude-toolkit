@@ -1,14 +1,7 @@
 {
   "version": "2.63.6",
   "date": "2026-04-24",
-  "headline": "surface-lessons dedupes within a session",
-  "skip": false,
-  "sections": [
-    {
-      "kind": "hooks",
-      "bullets": [
-        "surface-lessons.sh now caps each lesson at one surfacing per session — no more repeat-injecting the same lessons on every tool call."
-      ]
-    }
-  ]
+  "headline": "surface-lessons intra-session dedup (workshop-internal)",
+  "skip": true,
+  "sections": []
 }
