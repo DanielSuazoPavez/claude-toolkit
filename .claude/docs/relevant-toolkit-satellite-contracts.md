@@ -123,8 +123,9 @@ Reference snapshot for satellite maintainers; will drift — check the satellite
 
 | Satellite | Has `docs` command? | Duplicated contract in workshop? |
 |---|---|---|
+| claude-toolkit | Yes — `claude-toolkit docs satellite-contracts` emits this doc | n/a (workshop) |
 | schema-smith | No | Yes — `design-db` carried a copy; being migrated |
 | claude-sessions | No | No (preventative adoption) |
 | aws-toolkit | No | No (skill `/design-aws` not yet built) |
 
-The motivating case is schema-smith → `/design-db`. claude-sessions and aws-toolkit benefit from adopting early because the duplication hasn't happened yet.
+The motivating case is schema-smith → `/design-db`. claude-sessions and aws-toolkit benefit from adopting early because the duplication hasn't happened yet. The workshop dogfoods the convention by exposing this doc itself — `claude-toolkit docs satellite-contracts` is how a satellite maintainer (or their Claude instance) fetches the current version at runtime.

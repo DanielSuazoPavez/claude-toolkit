@@ -13,6 +13,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `run-hook-tests.sh` | Parallel runner for `hooks/test-*.sh`, with per-file summary | bash |
 | `test-cli.sh` | `bin/claude-toolkit` sync/send commands | bash |
 | `test-backlog-query.sh` | Backlog query script | bash |
+| `test-docs-query.sh` | Docs query script (`claude-toolkit docs`) | bash |
 | `test-evaluation-query.sh` | Evaluation query script | bash |
 | `test_format_raiz_changelog.py` | Raiz changelog formatter (`format-raiz-changelog.py`) | pytest |
 | `test-raiz-publish.sh` | Raiz distribution builder (`publish.py`) | bash |

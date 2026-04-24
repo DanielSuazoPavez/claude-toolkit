@@ -9,6 +9,8 @@ cli/
 ├── backlog/
 │   ├── query.sh       # claude-toolkit backlog — query BACKLOG.md
 │   └── validate.sh    # claude-toolkit backlog validate — format checks
+├── docs/
+│   └── query.sh       # claude-toolkit docs — emit workshop agent-facing contracts
 ├── eval/
 │   └── query.sh       # claude-toolkit eval — query evaluation scores
 └── lessons/
@@ -18,7 +20,7 @@ cli/
 
 ## How Subcommands Are Wired
 
-- **backlog, eval**: Shell scripts, exec'd directly from `bin/claude-toolkit`
+- **backlog, docs, eval**: Shell scripts, exec'd directly from `bin/claude-toolkit`
 - **lessons**: Python package, installed as `ct-lessons` via `[project.scripts]` in `pyproject.toml`, invoked from `bin/claude-toolkit` through the venv
 
 ## Conventions
