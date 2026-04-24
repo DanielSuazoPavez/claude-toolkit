@@ -30,47 +30,37 @@ NC = "\033[0m"
 # === MANIFEST parsing ===
 
 
-def resolve_source_file(target_path: str, claude_dir: Path, dist_dir: Path) -> Path:
+def resolve_source_file(target_path: str, toolkit_dir: Path, dist_dir: Path) -> Path:
     """Resolve a target path to its source file location.
 
-    docs/*       → .claude/docs/ if exists there, else repo root (outside .claude/)
-    templates/*  → dist-specific override if exists, else dist/base/templates/
-    everything else → claude_dir/{target_path}
+    Target paths are project-root-relative: where the file lives on disk in the
+    toolkit repo and where it ships in the consumer project. Only templates
+    differ — they live under dist/<profile>/templates/ in the source tree but
+    ship to .claude/templates/ in the consumer.
     """
-    if target_path.startswith("docs/"):
-        # Prefer .claude/docs/ (internal docs), fall back to repo root (external docs)
-        internal = claude_dir / target_path
-        if internal.is_file():
-            return internal
-        return claude_dir.parent / target_path
-    if target_path.startswith("templates/"):
-        basename = target_path.removeprefix("templates/")
+    if target_path.startswith(".claude/templates/"):
+        basename = target_path.removeprefix(".claude/templates/")
         override = dist_dir / "templates" / basename
         if override.is_file():
             return override
-        return claude_dir.parent / "dist" / "base" / "templates" / basename
-    return claude_dir / target_path
+        return toolkit_dir / "dist" / "base" / "templates" / basename
+    return toolkit_dir / target_path
 
 
-def resolve_source_dir(target_path: str, claude_dir: Path, dist_dir: Path) -> Path:
+def resolve_source_dir(target_path: str, toolkit_dir: Path, dist_dir: Path) -> Path:
     """Resolve a target directory path to its source directory.
 
-    docs/*       → .claude/docs/ if exists there, else repo root (outside .claude/)
-    templates/*  → always from dist/base/ (dist only has file-level overrides)
-    everything else → claude_dir/{target_path}
+    Target paths are project-root-relative. Templates live under dist/base/
+    in the source tree (dist only has file-level overrides).
     """
     clean = target_path.rstrip("/")
-    if clean.startswith("docs/"):
-        internal = claude_dir / clean
-        if internal.is_dir():
-            return internal
-        return claude_dir.parent / clean
-    if clean.startswith("templates/"):
-        return claude_dir.parent / "dist" / "base" / clean
-    return claude_dir / clean
+    if clean.startswith(".claude/templates/"):
+        basename = clean.removeprefix(".claude/templates/")
+        return toolkit_dir / "dist" / "base" / "templates" / basename
+    return toolkit_dir / clean
 
 
-def resolve_manifest(manifest_path: Path, claude_dir: Path, dist_dir: Path) -> list[str]:
+def resolve_manifest(manifest_path: Path, toolkit_dir: Path, dist_dir: Path) -> list[str]:
     """Parse MANIFEST and return expanded list of target paths."""
     targets: list[str] = []
     for raw_line in manifest_path.read_text().splitlines():
@@ -80,7 +70,7 @@ def resolve_manifest(manifest_path: Path, claude_dir: Path, dist_dir: Path) -> l
 
         if line.endswith("/"):
             # Directory entry — expand to individual files
-            source_dir = resolve_source_dir(line, claude_dir, dist_dir)
+            source_dir = resolve_source_dir(line, toolkit_dir, dist_dir)
             if source_dir.is_dir():
                 for f in sorted(source_dir.rglob("*")):
                     if f.is_file():
@@ -88,7 +78,7 @@ def resolve_manifest(manifest_path: Path, claude_dir: Path, dist_dir: Path) -> l
             else:
                 print(f"Warning: directory not found: {line} (source: {source_dir})", file=sys.stderr)
         else:
-            source_file = resolve_source_file(line, claude_dir, dist_dir)
+            source_file = resolve_source_file(line, toolkit_dir, dist_dir)
             if source_file.is_file():
                 targets.append(line)
             else:
@@ -112,20 +102,20 @@ def build_resource_lists(manifest_path: Path) -> dict[str, list[str]]:
         if not line or line.startswith("#"):
             continue
 
-        if line.startswith("skills/"):
-            # skills/brainstorm-idea/ → brainstorm-idea
-            name = line.removeprefix("skills/").rstrip("/")
+        if line.startswith(".claude/skills/"):
+            # .claude/skills/brainstorm-idea/ → brainstorm-idea
+            name = line.removeprefix(".claude/skills/").rstrip("/")
             resources["skills"].append(name)
-        elif line.startswith("agents/"):
-            # agents/code-debugger.md → code-debugger
-            name = line.removeprefix("agents/").removesuffix(".md")
+        elif line.startswith(".claude/agents/"):
+            # .claude/agents/code-debugger.md → code-debugger
+            name = line.removeprefix(".claude/agents/").removesuffix(".md")
             resources["agents"].append(name)
-        elif line.startswith("hooks/"):
-            # hooks/block-config-edits.sh → block-config-edits.sh (keep extension)
-            resources["hooks"].append(line.removeprefix("hooks/"))
-        elif line.startswith("docs/"):
-            # docs/essential-conventions-code_style.md → essential-conventions-code_style
-            name = line.removeprefix("docs/").removesuffix(".md")
+        elif line.startswith(".claude/hooks/"):
+            # .claude/hooks/block-config-edits.sh → block-config-edits.sh (keep extension)
+            resources["hooks"].append(line.removeprefix(".claude/hooks/"))
+        elif line.startswith(".claude/docs/"):
+            # .claude/docs/essential-conventions-code_style.md → essential-conventions-code_style
+            name = line.removeprefix(".claude/docs/").removesuffix(".md")
             resources["docs"].append(name)
     return resources
 
@@ -289,7 +279,6 @@ def main() -> None:
         sys.exit(1)
 
     output_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else TOOLKIT_DIR / "dist-output" / dist_name
-    claude_output = output_dir / ".claude"
 
     print(f"Building {dist_name} distribution...")
     print(f"  Source: {CLAUDE_DIR}")
@@ -299,7 +288,7 @@ def main() -> None:
     # Clean output
     if output_dir.exists():
         shutil.rmtree(output_dir)
-    claude_output.mkdir(parents=True)
+    (output_dir / ".claude").mkdir(parents=True)
 
     # Build resource lists for trimming
     resources = build_resource_lists(manifest_path)
@@ -312,18 +301,10 @@ def main() -> None:
     print()
 
     # Resolve and copy files
-    targets = resolve_manifest(manifest_path, CLAUDE_DIR, dist_dir)
+    targets = resolve_manifest(manifest_path, TOOLKIT_DIR, dist_dir)
     for target_path in targets:
-        source = resolve_source_file(target_path, CLAUDE_DIR, dist_dir)
-        # Internal docs (.claude/docs/) go inside .claude/, external docs go to output root
-        if target_path.startswith("docs/"):
-            internal = CLAUDE_DIR / target_path
-            if internal.is_file():
-                dest = claude_output / target_path
-            else:
-                dest = output_dir / target_path
-        else:
-            dest = claude_output / target_path
+        source = resolve_source_file(target_path, TOOLKIT_DIR, dist_dir)
+        dest = output_dir / target_path
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, dest)
 
@@ -337,7 +318,7 @@ def main() -> None:
         md_file.write_text(trimmed)
 
     # Trim settings template
-    settings_file = claude_output / "templates" / "settings.template.json"
+    settings_file = output_dir / ".claude" / "templates" / "settings.template.json"
     if settings_file.is_file():
         print("Trimming settings.template.json...")
         content = settings_file.read_text()
@@ -352,7 +333,7 @@ def main() -> None:
     while i < len(src_lines) and src_lines[i].strip() != "":
         i += 1
     body_lines = src_lines[i + 1:]  # skip the blank separator itself
-    (claude_output / "MANIFEST").write_text(
+    (output_dir / ".claude" / "MANIFEST").write_text(
         f"# profile: {dist_name}\n\n" + "\n".join(body_lines).rstrip() + "\n"
     )
 
@@ -362,11 +343,11 @@ def main() -> None:
 
     # Summary
     print("Contents:")
-    for category in ("skills", "agents", "hooks", "docs", "templates"):
-        cat_dir = claude_output / category
+    for category in ("skills", "agents", "hooks", "docs", "templates", "scripts"):
+        cat_dir = output_dir / ".claude" / category
         if cat_dir.is_dir():
             count = sum(1 for f in cat_dir.rglob("*") if f.is_file())
-            print(f"  {category}: {count} files")
+            print(f"  .claude/{category}: {count} files")
     # Root-level directories (docs/, etc.) — external docs like getting-started.md
     for category in ("docs",):
         cat_dir = output_dir / category

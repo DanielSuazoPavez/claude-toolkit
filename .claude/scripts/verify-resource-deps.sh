@@ -63,9 +63,10 @@ in_manifest() {
 should_scan() {
     local file="$1"
     $MANIFEST_MODE || return 0
-    # Get path relative to CLAUDE_DIR
-    local rel="${file#$CLAUDE_DIR/}"
-    in_manifest "$rel"
+    # MANIFEST entries are project-root-relative (e.g., .claude/skills/foo/).
+    # $file paths come from $CLAUDE_DIR walks, so are also project-root-relative
+    # when $CLAUDE_DIR=.claude.
+    in_manifest "$file"
 }
 
 # Report a broken reference — error in toolkit mode, may warn in MANIFEST mode
@@ -80,17 +81,17 @@ report_broken_ref() {
         # (the project might not have synced that resource)
         local manifest_path=""
         case "$ref_type" in
-            skill) manifest_path="skills/$ref_name/" ;;
-            agent) manifest_path="agents/$ref_name.md" ;;
+            skill) manifest_path=".claude/skills/$ref_name/" ;;
+            agent) manifest_path=".claude/agents/$ref_name.md" ;;
             doc)
-                # Check docs/ in MANIFEST
-                if in_manifest "docs/$ref_name.md"; then
+                # Check docs/ in MANIFEST (both internal and root-level docs)
+                if in_manifest ".claude/docs/$ref_name.md" || in_manifest "docs/$ref_name.md"; then
                     manifest_path=""  # found in MANIFEST, don't warn
                 else
-                    manifest_path="docs/$ref_name.md"  # will fail in_manifest check below
+                    manifest_path=".claude/docs/$ref_name.md"  # will fail in_manifest check below
                 fi
                 ;;
-            hook) manifest_path="hooks/$ref_name" ;;
+            hook) manifest_path=".claude/hooks/$ref_name" ;;
         esac
         if [ -n "$manifest_path" ] && ! in_manifest "$manifest_path"; then
             echo -e "${BLUE}$source references $ref_type '$ref_name' (not in MANIFEST, scope-skipped)${NC}"
@@ -176,7 +177,7 @@ if [ -d "$HOOKS_DIR" ]; then
         # In MANIFEST mode, skip hooks not in MANIFEST
         if $MANIFEST_MODE; then
             local_hook=$(basename "$file")
-            if ! in_manifest "hooks/$local_hook"; then
+            if ! in_manifest ".claude/hooks/$local_hook"; then
                 continue
             fi
         fi
@@ -213,7 +214,7 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$AGENTS_DIR" ]; then
         # In MANIFEST mode, skip skills not in MANIFEST
         if $MANIFEST_MODE; then
             skill_name=$(basename "$(dirname "$skillfile")")
-            if ! in_manifest "skills/$skill_name/"; then
+            if ! in_manifest ".claude/skills/$skill_name/"; then
                 continue
             fi
         fi
@@ -282,7 +283,7 @@ if [ -d "$SKILLS_DIR" ]; then
     while IFS= read -r skillfile; do
         if $MANIFEST_MODE; then
             skill_name=$(basename "$(dirname "$skillfile")")
-            if ! in_manifest "skills/$skill_name/"; then
+            if ! in_manifest ".claude/skills/$skill_name/"; then
                 continue
             fi
         fi
@@ -322,7 +323,7 @@ if [ -d "$SKILLS_DIR" ]; then
     while IFS= read -r skillfile; do
         if $MANIFEST_MODE; then
             skill_name=$(basename "$(dirname "$skillfile")")
-            if ! in_manifest "skills/$skill_name/"; then
+            if ! in_manifest ".claude/skills/$skill_name/"; then
                 continue
             fi
         fi
@@ -367,7 +368,7 @@ if [ -d "$DOCS_DIR" ]; then
         doc_name=$(basename "$docfile" .md)
 
         if $MANIFEST_MODE; then
-            if ! in_manifest "docs/$doc_name.md"; then
+            if ! in_manifest ".claude/docs/$doc_name.md"; then
                 continue
             fi
         fi
@@ -409,7 +410,7 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$DOCS_DIR" ]; then
         doc_name=$(basename "$docfile" .md)
 
         if $MANIFEST_MODE; then
-            if ! in_manifest "docs/$doc_name.md"; then
+            if ! in_manifest ".claude/docs/$doc_name.md"; then
                 continue
             fi
         fi
