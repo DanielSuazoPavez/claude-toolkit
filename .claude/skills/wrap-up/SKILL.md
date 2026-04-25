@@ -7,6 +7,8 @@ allowed-tools: Bash(git:*), Read, Write, Edit
 
 Use when finishing a feature branch.
 
+Claude prepares the branch (commits, version bump, changelog, backlog cleanup) and stops at the merge boundary. **Merging to main, pushing, and pushing tags are the user's responsibility** — wrap-up ends with an explicit handoff block listing the commands the user runs next.
+
 **See also:** `/write-handoff` (when pausing work instead of finishing), `/draft-pr` (optional: generate PR description after wrap-up)
 
 ## Why Code-Before-Docs Order Matters
@@ -69,11 +71,25 @@ Bump the version in the appropriate file (VERSION, pyproject.toml, package.json,
 ### 8. Commit documentation changes
 Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 
-### 9. Tag the version (after merge on main)
-Do NOT tag on the feature branch. After the merge commit lands on main, run `make tag` (if available) to tag the merge commit. Skip silently if no `make tag` target exists. Then remind the user to push the tag: `git push origin v<version>`
+### 9. Stop at the merge boundary
+Do NOT tag, merge, or push. Tagging happens post-merge by the user (see step 10). The feature branch ends here — ready to merge.
 
-### 10. Report summary
-Output what was updated.
+### 10. Hand off to the user
+Output a brief summary of what wrap-up changed (version bumped to X, changelog entry added, N backlog items removed) followed by an explicit handoff block:
+
+```markdown
+## Next steps for you
+
+```bash
+git checkout main
+git merge --no-ff <branch>
+git push
+make tag             # if a make tag target exists; otherwise: git tag v<version>
+git push origin v<version>
+```
+```
+
+Substitute `<branch>` and `<version>` with the actual values. Do not run these commands yourself — they are the user's to execute.
 
 ## Edge Cases
 
@@ -124,6 +140,7 @@ Output what was updated.
 | **Bump Everything** | Version bump for CI-only changes | Skip bump for non-user-facing changes |
 | **Scope Tunnel Vision** | Ignoring non-branch artifacts and issues | Check git status for loose ends; ask user about unrelated changes |
 | **Dismissing Test Failures** | Calling failures "pre-existing and unrelated" without proof | Either fix them or explicitly call them out as known issues with a backlog item |
+| **Self-Merge** | Claude runs `git merge`, `git push`, or `git push origin v<version>` as part of wrap-up | Stop at the handoff block in step 10; let the user merge, push, and push tags |
 
 ## Notes
 
