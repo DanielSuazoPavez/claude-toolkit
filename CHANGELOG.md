@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.68.1] - 2026-04-25 - setup-toolkit aligned with JSONL+DB split
+
+### Changed
+- **skills**: `/setup-toolkit` Phase 1.6 ("Analytics Paths") now captures three env vars instead of two: adds `CLAUDE_ANALYTICS_HOOKS_DIR` (write path for hook-logs JSONL, default `$HOME/claude-analytics/hook-logs`) and reframes `CLAUDE_ANALYTICS_HOOKS_DB` as read-only (owned by the claude-sessions indexer, used by `surface-lessons.sh` for intra-session dedup). Detection now triggers when any of the three keys is missing. Resolves the `setup-toolkit-hooks-jsonl-migration` follow-up flagged in 2.68.0's `Deferred` section.
+
+### Deleted
+- **backlog**: Removed `setup-toolkit-hooks-jsonl-migration` from P0 (completed).
+
 ## [2.68.0] - 2026-04-25 - hook-logs JSONL with stdin embed
 
 ### Changed

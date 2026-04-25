@@ -1,0 +1,14 @@
+{
+  "version": "2.68.1",
+  "date": "2026-04-25",
+  "headline": "setup-toolkit aligned with JSONL+DB split",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "skills",
+      "bullets": [
+        "`/setup-toolkit` Phase 1.6 (\"Analytics Paths\") now captures three env vars instead of two: adds `CLAUDE_ANALYTICS_HOOKS_DIR` (write path for hook-logs JSONL, default `$HOME/claude-analytics/hook-logs`) and reframes `CLAUDE_ANALYTICS_HOOKS_DB` as read-only (used by `surface-lessons.sh` for intra-session dedup, owned and populated by the claude-sessions indexer). Detection now triggers when any of the three keys is missing. Resolves the follow-up flagged in 2.68.0's `Deferred` section."
+      ]
+    }
+  ]
+}
