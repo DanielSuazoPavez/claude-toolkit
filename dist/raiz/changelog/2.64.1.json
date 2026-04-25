@@ -1,0 +1,16 @@
+{
+  "version": "2.64.1",
+  "date": "2026-04-25",
+  "headline": "secrets-guard in-flight credential reads",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "`secrets-guard.sh` now blocks **tokenised remote URL reads** when the resolved URL embeds `user:secret@host`: `git remote -v`, `git remote show/get-url`, `git config --list/-l/--get remote.*.url`, `cat`/`grep`/`Read` of `.git/config`. Clean repos pass through. Writes (`git remote add`, `git remote set-url`) always pass — they're how the user fixes the leak.",
+        "`secrets-guard.sh` now blocks **targeted credential-shaped env-var reads**: `echo $X`, `echo \"${X}\"`, `printenv X`, and `env|grep <token-keyword>` when `X` matches `*_TOKEN`/`*_SECRET`/`*_API_KEY`/`*_PASSWORD`/`*_PASS` or a well-known literal (`GH_TOKEN`, `GITHUB_TOKEN`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`). Single-quoted name tokens (`'$GITHUB_TOKEN'`) stay allowed — no interpolation, no leak.",
+        "Both extensions apply in all permission modes — credentials leaking into context is a problem regardless of mode. No new settings.json entries; existing `secrets-guard.sh` wiring covers the new surface."
+      ]
+    }
+  ]
+}
