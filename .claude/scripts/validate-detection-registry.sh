@@ -15,7 +15,8 @@
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-REGISTRY="$REPO_ROOT/.claude/hooks/lib/detection-registry.json"
+# CLAUDE_DETECTION_REGISTRY overrides the registry path (used by tests).
+REGISTRY="${CLAUDE_DETECTION_REGISTRY:-$REPO_ROOT/.claude/hooks/lib/detection-registry.json}"
 SCHEMA="$REPO_ROOT/.claude/schemas/hooks/detection-registry.schema.json"
 
 FAILURES=0
@@ -42,12 +43,16 @@ entries_count=$(jq '.entries | length // 0' "$REGISTRY")
 [ "$entries_count" -gt 0 ] || fail "entries[] must be non-empty"
 
 # Per-entry validation.
-# jq emits one TSV row per entry; bash loops and validates each.
+# jq emits one TSV row per entry. Pattern and message are base64-encoded so
+# backslashes survive the shell-pipe round-trip — @tsv mangles them.
 declare -A seen_ids
 i=0
-while IFS=$'\t' read -r id kind target pattern message; do
+while IFS=$'\t' read -r id kind target pattern_b64 message_b64; do
     i=$((i + 1))
     label="entry #$i (id=$id)"
+
+    pattern=$(printf '%s' "$pattern_b64" | base64 -d 2>/dev/null)
+    message=$(printf '%s' "$message_b64" | base64 -d 2>/dev/null)
 
     [ -n "$id" ]      || fail "$label: id is required"
     [ -n "$kind" ]    || fail "$label: kind is required"
@@ -81,12 +86,15 @@ while IFS=$'\t' read -r id kind target pattern message; do
         *) fail "$label: target must be one of raw|stripped (got '$target')" ;;
     esac
 
-    # Pattern compiles as bash ERE. Use a subshell so a syntax error doesn't
-    # abort the parent. The dummy input ensures =~ actually evaluates the regex.
-    if ! ( [[ "test" =~ $pattern ]] || true ) 2>/dev/null; then
+    # Pattern compiles as bash ERE. Bash =~ exits 2 on a malformed regex
+    # (vs 1 for "no match"). Run in a subshell so the parent isn't aborted,
+    # capture the exit code, and treat 2 as a hard failure.
+    ( [[ "test" =~ $pattern ]] ) 2>/dev/null
+    re_rc=$?
+    if [ "$re_rc" -eq 2 ]; then
         fail "$label: pattern does not compile as bash ERE: $pattern"
     fi
-done < <(jq -r '.entries[] | [.id, .kind, .target, .pattern, .message] | @tsv' "$REGISTRY")
+done < <(jq -r '.entries[] | [.id, .kind, .target, (.pattern | @base64), (.message | @base64)] | @tsv' "$REGISTRY")
 
 if [ "$FAILURES" -eq 0 ]; then
     echo "detection-registry: $entries_count entries valid."
