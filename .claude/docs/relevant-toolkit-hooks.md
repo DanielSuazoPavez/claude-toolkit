@@ -14,6 +14,8 @@ Hooks split into three parts:
 
 The grouped dispatcher sources hook files as libraries and iterates match → check across a `CHECKS` array. Hooks stay standalone-capable via the dual-mode trigger — same file, two entry paths, single source of truth.
 
+For credential / path / capability detection, **consume the shared registry** instead of inlining regexes — see §11.
+
 **See also:** `relevant-toolkit-hooks_config.md` for hook triggers and env vars, `/create-hook` skill.
 
 ---
@@ -267,3 +269,95 @@ The dispatcher tolerates absent guards: each `CHECK_SPECS` entry probes its sour
 | `main` inline top-level (no function) | Breaks sourcing — dispatcher re-executes the whole body |
 | Missing dual-mode trigger | Hook runs its own `main` when the dispatcher sources it |
 | `source "$(dirname "$0")/..."` in a hook meant to be sourceable | `$0` points to the dispatcher, not the hook — use `${BASH_SOURCE[0]}` |
+| Inline credential / path regex when a registry entry could carry it | Forces drift across hooks; new credential shapes need N edits instead of 1 — see §11 |
+| Wrong detection target (raw vs stripped) | False negatives when secrets sit inside quoted strings, or false positives from commit-message text — see §11 |
+
+---
+
+## 11. Detection Target — Raw vs Stripped
+
+When a guard matches user-controlled input against a credential / path / capability regex, it must pick **what** to match against:
+
+| Target | Source | Use when |
+|---|---|---|
+| **`raw`** | the full `$COMMAND` (or `$FILE_PATH`, etc.) including quoted strings and heredoc bodies | the secret IS the payload — a token literal lives inside a quoted string the model just typed |
+| **`stripped`** | `_strip_inert_content "$COMMAND"` — quoted strings and heredoc bodies blanked | the secret is the TARGET of a command — a path or a verb operating on a sensitive resource |
+
+The distinction matters because `_strip_inert_content` blanks quoted-string content. That blank-out is exactly what you want when scanning for `cat .env` inside a commit message that happens to mention `.env`, and exactly what you don't want when scanning for `Authorization: token ghp_...` whose payload is by definition inside a quoted string.
+
+### Decision matrix
+
+```
+Is the secret being EXFILTRATED out of context as a literal value?
+├── Yes (token in Authorization header, DB URI with embedded creds, AWS_SESSION_TOKEN being echoed)
+│   → target: raw   (kind: credential)
+│
+└── No — the command is REACHING TOWARDS a sensitive resource
+    │
+    ├── Targeting a file path? (.env, ~/.aws/credentials, ~/.ssh/id_rsa)
+    │   → target: stripped   (kind: path)
+    │
+    └── Performing a sensitive capability? (docker exec, terraform show, gh api)
+        → target: stripped   (kind: capability)
+```
+
+### Worked examples
+
+| Command | Target | Kind | Why |
+|---|---|---|---|
+| `curl -H "Authorization: token ghp_AAA..."` | raw | credential | Header value is inside a double-quoted string. Stripping blanks it; the regex must see the original payload. |
+| `cat .env.production` | stripped | path | The path is a bare argument. Stripping doesn't affect it; using `stripped` avoids matching `.env` literals inside an unrelated quoted commit message. |
+| `git commit -m "fix: remove .env from repo"` | (no match) | — | Stripped target sees `git commit -m "  "` — no `.env` in the skeleton, no false positive. |
+| `psql "postgres://user:pass@host/db"` | raw | credential | Embedded `user:pass@` lives inside the connection-string quoted argument. |
+| `curl https://api.github.com/...` | stripped | capability | Host is a bare argument; quoted-string blanking is irrelevant either way. |
+| `docker exec -it container sh` | stripped | capability | Command-shape match; payload inside `-it` flags doesn't matter. |
+
+### Registry-backed match_
+
+The `.claude/hooks/lib/detection-registry.json` file holds the catalog. Each entry declares its `kind` (`credential` / `path` / `capability`) and `target` (`raw` / `stripped`). Hooks consume the registry via `.claude/hooks/lib/detection-registry.sh`:
+
+```bash
+source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
+
+match_my_guard() {
+    detection_registry_match_kind credential "$COMMAND"
+}
+
+check_my_guard() {
+    if detection_registry_match_kind credential "$COMMAND"; then
+        _BLOCK_REASON="$_REGISTRY_MATCHED_MESSAGE (id=$_REGISTRY_MATCHED_ID)"
+        return 1
+    fi
+    return 0
+}
+```
+
+`detection_registry_match_kind` honors the cheapness contract: the loader builds pre-compiled alternation regexes per `(kind, target)` once at hook startup; the match call is pure-bash `=~` with no fork. The strip helper runs lazily, only when a stripped-target regex exists for the requested kind and the raw match missed.
+
+### Adding a new pattern
+
+Edit `.claude/hooks/lib/detection-registry.json`. Append an entry:
+
+```json
+{
+  "id": "my-new-token",
+  "kind": "credential",
+  "target": "raw",
+  "pattern": "MYTOK_[A-Za-z0-9]{32,}",
+  "message": "MyService token detected in command payload."
+}
+```
+
+`make validate` runs `validate-detection-registry.sh` which checks: id format (kebab-case), id uniqueness, valid `kind` / `target` enums, and that the `pattern` compiles as a bash ERE. Schema lives at `.claude/schemas/hooks/detection-registry.schema.json`.
+
+### When NOT to use the registry
+
+The registry is for **cross-hook-reusable detection patterns** — credential shapes, file paths, capability gates that more than one guard might want to reference. It is not for hook-specific business logic.
+
+Examples that stay inline:
+- `auto-mode-shared-steps` patterns like `gh pr create` or `git push` — auto-mode-specific capability gates, not generally reusable.
+- `secrets-guard` per-tool block reasons, allowlist for `.example` / `.template` suffixes, `.git/config` credential-remote check.
+- Hook-specific filtering on already-matched results (e.g. "block only when the path is outside `$HOME`").
+
+The split: **registry holds patterns, hook holds policy**. If a future guard would want the same regex you're about to write, registry. If only this hook will ever care, inline.
