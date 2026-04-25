@@ -172,4 +172,130 @@ expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"rg token ~/.c
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep key ~/.ssh/id_rsa"}}' \
     "blocks grep ~/.ssh/id_rsa"
 
+# ============================================================
+# Tokenized remote URL detection (in-flight credential reads)
+# ============================================================
+# Build two fixture repos: one with a tokenised URL, one clean.
+SECRETS_FIXTURE_ROOT=$(mktemp -d)
+trap 'rm -rf "$SECRETS_FIXTURE_ROOT"' EXIT
+TOKEN_REPO="$SECRETS_FIXTURE_ROOT/tokenized"
+CLEAN_REPO="$SECRETS_FIXTURE_ROOT/clean"
+git init -q "$TOKEN_REPO"
+git -C "$TOKEN_REPO" remote add origin "https://x-access-token:ghp_FAKE0000000000000000000000000000000000@github.com/foo/bar.git"
+git init -q "$CLEAN_REPO"
+git -C "$CLEAN_REPO" remote add origin "https://github.com/foo/bar.git"
+
+# Helper: run hook from a given cwd; assert block/allow.
+# HOOKS_DIR may be relative to the test-runner cwd, so resolve once before cd.
+HOOK_ABS="$(cd "$HOOKS_DIR" && pwd)/$hook"
+run_in_dir() {
+    local dir="$1" payload="$2"
+    (cd "$dir" && echo "$payload" | bash "$HOOK_ABS" 2>/dev/null) || true
+}
+
+assert_block_in_dir() {
+    local dir="$1" payload="$2" desc="$3" output
+    TESTS_RUN=$((TESTS_RUN + 1))
+    output=$(run_in_dir "$dir" "$payload")
+    if echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1)); report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1)); report_fail "$desc"
+        report_detail "Expected: block in $dir"; report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
+assert_allow_in_dir() {
+    local dir="$1" payload="$2" desc="$3" output
+    TESTS_RUN=$((TESTS_RUN + 1))
+    output=$(run_in_dir "$dir" "$payload")
+    if [ -z "$output" ] || echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"allow"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1)); report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1)); report_fail "$desc"
+        report_detail "Expected: allow in $dir"; report_detail "Got: $output"
+    fi
+}
+
+# Bash: git remote / config commands — block ONLY when URL embeds creds
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote -v"}}' \
+    "blocks git remote -v on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote show origin"}}' \
+    "blocks git remote show on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote get-url origin"}}' \
+    "blocks git remote get-url on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --get remote.origin.url"}}' \
+    "blocks git config --get remote.origin.url on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --list"}}' \
+    "blocks git config --list on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config -l"}}' \
+    "blocks git config -l on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"cat .git/config"}}' \
+    "blocks cat .git/config on tokenized repo"
+assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"grep url .git/config"}}' \
+    "blocks grep .git/config on tokenized repo"
+
+# Same surface, clean repo — should pass
+assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote -v"}}' \
+    "allows git remote -v on clean repo"
+assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --get remote.origin.url"}}' \
+    "allows git config --get on clean repo"
+assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --list"}}' \
+    "allows git config --list on clean repo"
+assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"cat .git/config"}}' \
+    "allows cat .git/config on clean repo"
+
+# Writes (set-url, add) must always pass — they're how the user fixes the leak
+assert_allow_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote set-url origin https://github.com/foo/bar.git"}}' \
+    "allows git remote set-url even on tokenized repo (write)"
+assert_allow_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote add upstream https://github.com/baz/qux.git"}}' \
+    "allows git remote add even on tokenized repo (write)"
+
+# Read tool: .git/config — block ONLY when URL embeds creds
+assert_block_in_dir "$TOKEN_REPO" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$TOKEN_REPO/.git/config\"}}" \
+    "blocks Read of tokenized .git/config"
+assert_allow_in_dir "$CLEAN_REPO" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$CLEAN_REPO/.git/config\"}}" \
+    "allows Read of clean .git/config"
+
+# ============================================================
+# Targeted env-var echoes (credential-shaped names)
+# ============================================================
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $GITHUB_TOKEN"}}' \
+    "blocks echo \$GITHUB_TOKEN"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo \"${ANTHROPIC_API_KEY}\""}}' \
+    "blocks echo \${ANTHROPIC_API_KEY}"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $MY_API_KEY"}}' \
+    "blocks echo of *_API_KEY shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $DB_PASSWORD"}}' \
+    "blocks echo of *_PASSWORD shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $SOME_TOKEN"}}' \
+    "blocks echo of *_TOKEN shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $APP_SECRET"}}' \
+    "blocks echo of *_SECRET shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $AWS_SECRET_ACCESS_KEY"}}' \
+    "blocks echo \$AWS_SECRET_ACCESS_KEY"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"printenv GITHUB_TOKEN"}}' \
+    "blocks printenv GITHUB_TOKEN"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep -i token"}}' \
+    "blocks env | grep -i token"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"printenv | grep -iE \"secret|key\""}}' \
+    "blocks printenv | grep -iE secret|key"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep API_KEY"}}' \
+    "blocks env | grep API_KEY"
+
+# Env-var echo allowlist: non-credential vars
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $PATH"}}' \
+    "allows echo \$PATH"
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $HOME"}}' \
+    "allows echo \$HOME"
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $USER"}}' \
+    "allows echo \$USER"
+# Token name in a single-quoted string (not interpolated) — handled by the inert-content stripper
+expect_allow "$hook" "$(jq -n --arg cmd "echo 'use \$GITHUB_TOKEN in CI'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    "allows token-shaped name inside single-quoted string"
+# env | grep is blocked by the pre-existing standalone-env rule (any pipe into env list);
+# this is intentional — the env list itself is the secret surface.
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep PATH"}}' \
+    "still blocks env | grep PATH (existing standalone-env rule)"
+
 print_summary
