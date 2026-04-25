@@ -32,6 +32,7 @@
 # hooks
 .claude/hooks/auto-mode-shared-steps.sh
 .claude/hooks/block-config-edits.sh
+.claude/hooks/block-credential-exfiltration.sh
 .claude/hooks/block-dangerous-commands.sh
 .claude/hooks/git-safety.sh
 .claude/hooks/grouped-bash-guard.sh
