@@ -127,6 +127,8 @@ Final steps (tiered by complexity):
 ├─ Always required:
 │   ├─ "Launch code-reviewer agent to review changes on this branch"
 │   └─ "Run /wrap-up to update changelog, bump version, and finalize the branch"
+│       (must say `/wrap-up` literally — paraphrasing or inlining the actions
+│       triggers the **Inlined Wrap-Up** anti-pattern below)
 │
 ├─ Medium+ complexity plans (multi-step features, refactors, integrations):
 │   └─ "Launch goal-verifier agent to confirm the feature works (L1→L2→L3 verification)"
@@ -170,6 +172,7 @@ Verification check:
 | **The Kitchen Sink** | Step combines 3+ distinct operations | Medium | Split into separate steps |
 | **The Wishful Step** | Assumes something works without verification | Medium | Add verification |
 | **Wishful Delegation** | Expects the implementing agent to figure out gaps | High | Make implicit knowledge explicit in the plan |
+| **Inlined Wrap-Up** | Plan's finalization step describes wrap-up actions inline ("update changelog, bump version, commit docs") instead of saying "Run `/wrap-up`" | Medium | Replace with a single step: "Run `/wrap-up`" |
 | **Scope Creep** | Steps not traceable to original request | Low | Remove or get explicit approval |
 | **Over-Engineering** | Abstractions for single use case | Medium | YAGNI - solve current problem only |
 | **Missing Rollback** | No recovery path for risky operations | High | Add rollback step |
