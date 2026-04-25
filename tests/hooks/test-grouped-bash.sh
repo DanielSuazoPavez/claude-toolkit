@@ -41,6 +41,14 @@ expect_contains "$hook" \
     "Credential-shaped string in command arguments" \
     "[base] credential_exfil wins precedence over git_safety on force-push with embedded token"
 
+# Base: same precedence holds for a plain (non-force) push embedding a token
+# in the remote URL — the token detection should fire regardless of git
+# subcommand specifics.
+expect_contains "$hook" \
+    '{"tool_name":"Bash","tool_input":{"command":"git push https://user:ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@github.com/foo/bar.git main"}}' \
+    "Credential-shaped string in command arguments" \
+    "[base] credential_exfil blocks plain push with embedded token in URL"
+
 # Raiz sim: copy hooks to a tempdir and remove make+uv guards.
 sim_dir=$(mktemp -d)
 cp -r "$HOOKS_DIR"/. "$sim_dir/"

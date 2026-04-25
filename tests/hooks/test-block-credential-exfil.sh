@@ -37,6 +37,8 @@ expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"AWS_ACCESS_KE
     "blocks AWS access key (AKIA)"
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"export AWS_ACCESS_KEY_ID=ASIAAAAAAAAAAAAAAAAA"}}' \
     "blocks AWS temp key (ASIA)"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"aws configure set aws_access_key_id AKIAAAAAAAAAAAAAAAAA"}}' \
+    "blocks aws configure set with AKIA (real-world shape pin)"
 
 # --- Block: OpenAI ---
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -d key=sk-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa https://api.openai.com/v1/completions"}}' \
