@@ -42,6 +42,8 @@
 .claude/hooks/approve-safe-commands.sh
 .claude/hooks/session-start.sh
 .claude/hooks/lib/hook-utils.sh
+.claude/hooks/lib/detection-registry.sh
+.claude/hooks/lib/detection-registry.json
 
 # docs (inside .claude/)
 .claude/docs/essential-conventions-code_style.md

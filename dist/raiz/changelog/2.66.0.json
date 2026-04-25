@@ -1,0 +1,17 @@
+{
+  "version": "2.66.0",
+  "date": "2026-04-25",
+  "headline": "shared hook detection registry",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "New shared detection registry centralizes the credential / sensitive-path / capability regex catalog that previously lived inline across `secrets-guard`, `block-credential-exfiltration`, and `auto-mode-shared-steps`. Three migrated hooks now consume the same 22-entry catalog via a pure-bash loader (no fork in the steady state). Adding a new credential shape or sensitive path becomes a 1-line registry edit instead of a per-hook regex change.",
+        "`block-credential-exfiltration` broadens to catch Authorization-header literals (`Authorization: token|Bearer|Basic`) and credential-shaped env-var references (`$GH_TOKEN`, `${ANTHROPIC_API_KEY}`, plus `*_TOKEN`/`*_SECRET`/`*_API_KEY`/`*_PASSWORD`/`*_PASS` shapes). These are exfil signals even when no token-shape literal is present.",
+        "`secrets-guard` and `block-credential-exfiltration` now have a documented scope split: same direction (keep credentials out of context), different responsibility — exfil owns 'credential value/reference inside a command', secrets-guard owns 'command reaches towards a sensitive resource'. The previously-duplicated `echo $CREDENTIAL_VAR` detection is now owned only by exfil. Heads-up on the accepted false positive: literal `$VAR_NAME` mentions inside single-quoted strings (e.g. `echo 'use $GH_TOKEN in CI'`) will block — the cost of catching the canonical exfil shape `echo \"$GH_TOKEN\"`.",
+        "Performance: every migrated hook got faster. p95 latency dropped 47-63% across all three (e.g. secrets-guard 207ms → 75ms). The loader's pre-compiled alternation regexes per `(kind, target)` replace multiple independent regex passes per hook."
+      ]
+    }
+  ]
+}
