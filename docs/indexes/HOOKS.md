@@ -9,13 +9,13 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | Env var | Gates |
 |---------|-------|
 | `CLAUDE_TOOLKIT_LESSONS` | `session-start.sh` lessons section + lesson count in ack; `surface-lessons.sh` injection (context logging still runs, gated by traceability) |
-| `CLAUDE_TOOLKIT_TRACEABILITY` | `_hook_log_db` writes (hooks.db rows for every hook invocation); `statusline-capture.sh` usage-snapshots JSONL append |
+| `CLAUDE_TOOLKIT_TRACEABILITY` | `_hook_log_jsonl` writes (rows in `~/claude-analytics/hook-logs/*.jsonl` for every hook invocation); `statusline-capture.sh` usage-snapshots JSONL append |
 
 ## Included Hooks
 
 | Hook | Status | Trigger | Opt-in | Description |
 |------|--------|---------|--------|-------------|
-| `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured `session_start_context` row (branch, main branch, cwd) into `hooks.db` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
+| `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured row (branch, main branch, cwd) into `session-start-context.jsonl` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks shared-state/publishing actions: `git push`, `gh` writes, `gh api`, `curl`/`wget` to `api.github.com`, `curl`/`wget` with `Authorization` header. No-op outside auto-mode |
 | `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Blocks commands carrying credential-shaped tokens in arguments (GitHub PAT, GitLab, Slack, AWS, OpenAI, Anthropic). Sibling to `secrets-guard` — that blocks credential reads at-rest; this blocks the in-flight payload (e.g. token already in context being pasted into `curl -H "Authorization: ..."`) |
@@ -38,11 +38,18 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 - Standardized initialization and stdin parsing
 - Outcome helpers (block, approve, inject)
-- Execution timing and logging to `~/.claude/hooks.db` (SQLite `hook_logs` table) — gated on `CLAUDE_TOOLKIT_TRACEABILITY=1`; no-op when disabled regardless of whether the db file exists
+- Execution timing and logging to `~/claude-analytics/hook-logs/invocations.jsonl` — gated on `CLAUDE_TOOLKIT_TRACEABILITY=1`; no-op when disabled
 - Section-level tracking for session-start
 - `hook_feature_enabled <feature>` helper — checks opt-in env vars (`lessons`, `traceability`); returns 0 when enabled, non-zero otherwise
 
-Columns: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. `call_id` is a bare Anthropic id (`toolu_...` for tool-scoped events, `agent_id` for SubagentStop) — tool-vs-agent is derived from `hook_event`, not a prefix. Joins to `claude-sessions.tool_calls.tool_use_id` on `(session_id, call_id)`. For human debugging, tail rows via `sqlite3 ~/.claude/hooks.db`.
+JSONL files written under `~/claude-analytics/hook-logs/` (override via `CLAUDE_ANALYTICS_HOOKS_DIR`):
+- `invocations.jsonl` — one `kind: invocation` row per hook firing (EXIT trap), plus per-`section`/`substep` rows for grouped hooks and session-start. The `invocation` row embeds the full hook stdin as `stdin` (parsed object) or `stdin_raw` (string fallback when stdin failed JSON parse).
+- `surface-lessons-context.jsonl` — one `kind: context` row per `surface-lessons` firing, with raw context, extracted keywords, match count, and matched lesson ids.
+- `session-start-context.jsonl` — one `kind: session_start_context` row per SessionStart firing (source, git_branch, main_branch, cwd).
+
+The toolkit only **writes** to these JSONL files. The claude-sessions indexer (~1min cadence) projects rows into `~/.claude/hooks.db`. `surface-lessons.sh` **reads** from `hooks.db.surface_lessons_context` for intra-session dedup — a lesson re-surfacing within one ingestion window is the accepted tradeoff for standardizing data ingestion downstream.
+
+Common fields across `invocations.jsonl` rows: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. `call_id` is a bare Anthropic id (`toolu_...` for tool-scoped events, `agent_id` for SubagentStop) — tool-vs-agent is derived from `hook_event`, not a prefix. Joins to `claude-sessions.tool_calls.tool_use_id` on `(session_id, call_id)`. For human debugging, tail rows via `tail -f ~/claude-analytics/hook-logs/invocations.jsonl | jq`.
 
 ---
 
@@ -61,7 +68,7 @@ Loads essential memories and git context at the start of each session.
 - Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
 - Outputs guidance text for memory usage
 - Logs each section's byte/token size to `.claude/logs/session-start-sizes.log` (SESSION_ID, timestamp, project, section, bytes, ~tokens)
-- Persists a structured row into `hooks.session_start_context` (source, git_branch, main_branch, cwd) per firing — consumed by the claude-sessions projector to seed `state_changes` baselines instead of emitting `from_value=NULL` on first-observation rows. Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1` via the same batched `_hook_log_db` path as `hook_logs`.
+- Persists a structured row into `session-start-context.jsonl` (source, git_branch, main_branch, cwd) per firing — consumed by the claude-sessions projector to seed `state_changes` baselines instead of emitting `from_value=NULL` on first-observation rows. Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1` via the same `_hook_log_jsonl` path as `invocations.jsonl`.
 
 ### git-safety.sh
 

@@ -27,7 +27,7 @@
 #   4. git checkout -          # back to working branch
 #   5. diff /tmp/baseline.txt /tmp/migrated.txt
 #
-# Both runs land in the same DB tagged differently — see CLAUDE_ANALYTICS_RUN_TAG.
+# Both runs land in the same JSONL file tagged differently — see CLAUDE_ANALYTICS_RUN_TAG.
 #
 # Usage:
 #   bash tests/perf-detection-registry.sh                 # 20 cmds × 5 iters per hook
@@ -40,7 +40,9 @@
 set -uo pipefail
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
-HOOKS_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
+HOOKS_LOG_DIR="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}"
+INVOCATIONS_JSONL="$HOOKS_LOG_DIR/invocations.jsonl"
+export CLAUDE_TOOLKIT_TRACEABILITY=1
 ITERATIONS=5
 VERBOSE=0
 RUN_TAG="run-$(date +%s)-$$"
@@ -126,16 +128,13 @@ for h in "${HOOKS[@]}"; do
     fi
 done
 
-if [ ! -f "$HOOKS_DB" ]; then
-    printf "${RED}ERROR${NC}: hooks.db not found at $HOOKS_DB\n" >&2
-    printf "  (hook-utils.sh writes durations there on EXIT — needed for this benchmark)\n" >&2
+if ! command -v jq >/dev/null 2>&1; then
+    printf "${RED}ERROR${NC}: jq not on PATH\n" >&2
     exit 1
 fi
 
-if ! command -v sqlite3 >/dev/null 2>&1; then
-    printf "${RED}ERROR${NC}: sqlite3 not on PATH\n" >&2
-    exit 1
-fi
+mkdir -p "$HOOKS_LOG_DIR"
+touch "$INVOCATIONS_JSONL"
 
 # ============================================================
 # Run benchmarks
@@ -145,10 +144,10 @@ printf "Run tag:    %s\n" "$RUN_TAG"
 printf "Hooks:      %s\n" "${HOOKS[*]}"
 printf "Samples:    %d commands\n" "${#SAMPLES[@]}"
 printf "Iterations: %d per (hook, command) pair\n" "$ITERATIONS"
-printf "DB:         %s\n\n" "$HOOKS_DB"
+printf "Log:        %s\n\n" "$INVOCATIONS_JSONL"
 
-# Capture starting row id so the post-run query picks up only this run
-START_ID=$(sqlite3 "$HOOKS_DB" "SELECT COALESCE(MAX(id), 0) FROM hook_logs;")
+# Capture starting line count so the post-run slice picks up only this run
+START_LINES=$(wc -l < "$INVOCATIONS_JSONL")
 
 total_invocations=$(( ${#HOOKS[@]} * ${#SAMPLES[@]} * ITERATIONS ))
 done_invocations=0
@@ -172,41 +171,49 @@ for hook in "${HOOKS[@]}"; do
     done
 done
 
-printf "\n${DIM}Querying %d new rows from hook_logs...${NC}\n\n" "$(( total_invocations ))"
+printf "\n${DIM}Querying new rows from %s...${NC}\n\n" "$INVOCATIONS_JSONL"
+
+# Slice this run's tail so the analysis filters can stay simple.
+RUN_TAIL=$(mktemp)
+trap 'rm -f "$RUN_TAIL"' EXIT
+tail -n +"$(( START_LINES + 1 ))" "$INVOCATIONS_JSONL" > "$RUN_TAIL"
 
 # ============================================================
 # Per-hook stats — p50, p95, max, count
 # ============================================================
-# All hooks log a TOTAL row on exit (section='', duration_ms=total).
-# Filter by id > START_ID so this run is isolated.
+# All hooks log a TOTAL row on exit (kind="invocation", section="").
+# Filter on the run-tail slice so this run is isolated.
 printf "${BOLD}%-32s %6s %6s %6s %5s${NC}\n" "hook" "p50" "p95" "max" "n"
 printf "%-32s %6s %6s %6s %5s\n" "----" "---" "---" "---" "-"
 
+# Pick a percentile from a sorted list of integers. Matches SQL's MAX(1, n*p)
+# row-pick behavior: index = max(1, ceil(n*p)).
+percentile() {
+    local p="$1" file="$2"
+    local n
+    n=$(wc -l < "$file")
+    [ "$n" -eq 0 ] && { echo ""; return; }
+    local idx
+    idx=$(awk -v n="$n" -v p="$p" 'BEGIN{i=int(n*p); if (i<1) i=1; print i}')
+    sed -n "${idx}p" "$file"
+}
+
 over_threshold=0
 for hook in "${HOOKS[@]}"; do
-    stats=$(sqlite3 -separator $'\t' "$HOOKS_DB" <<SQL
-WITH samples AS (
-    SELECT duration_ms,
-           ROW_NUMBER() OVER (ORDER BY duration_ms) AS rn,
-           COUNT(*) OVER () AS n
-    FROM hook_logs
-    WHERE id > $START_ID
-      AND hook_name = '$hook'
-      AND section = ''
-)
-SELECT
-    (SELECT duration_ms FROM samples WHERE rn = MAX(1, CAST(n * 0.50 AS INTEGER))),
-    (SELECT duration_ms FROM samples WHERE rn = MAX(1, CAST(n * 0.95 AS INTEGER))),
-    (SELECT MAX(duration_ms) FROM samples),
-    (SELECT n FROM samples LIMIT 1)
-FROM samples LIMIT 1;
-SQL
-)
-    if [ -z "$stats" ]; then
+    sorted=$(mktemp)
+    jq -r --arg h "$hook" \
+        'select(.kind == "invocation" and .hook_name == $h and .section == "") | .duration_ms' \
+        "$RUN_TAIL" 2>/dev/null | sort -n > "$sorted"
+    n=$(wc -l < "$sorted")
+    if [ "$n" -eq 0 ]; then
         printf "${RED}%-32s   no rows captured${NC}\n" "$hook"
+        rm -f "$sorted"
         continue
     fi
-    IFS=$'\t' read -r p50 p95 mx n <<< "$stats"
+    p50=$(percentile 0.50 "$sorted")
+    p95=$(percentile 0.95 "$sorted")
+    mx=$(tail -n1 "$sorted")
+    rm -f "$sorted"
     color="$GREEN"
     [ "${p95:-0}" -gt 50 ] && { color="$RED"; over_threshold=1; }
     printf "${color}%-32s %6s %6s %6s %5s${NC}\n" \
@@ -218,19 +225,15 @@ done
 # ============================================================
 echo ""
 printf "${BOLD}Slowest single invocations (top 5)${NC}\n"
-in_list=$(printf "'%s'," "${HOOKS[@]}")
-in_list="${in_list%,}"
-sqlite3 -column -header "$HOOKS_DB" <<SQL
-SELECT hook_name AS hook,
-       duration_ms AS ms,
-       outcome
-FROM hook_logs
-WHERE id > $START_ID
-  AND hook_name IN ($in_list)
-  AND section = ''
-ORDER BY duration_ms DESC
-LIMIT 5;
-SQL
+hooks_filter=$(printf '"%s",' "${HOOKS[@]}")
+hooks_filter="[${hooks_filter%,}]"
+printf "%-32s  %4s  %s\n" "hook" "ms" "outcome"
+jq -r --argjson hooks "$hooks_filter" \
+    'select(.kind == "invocation" and .section == "" and (.hook_name | IN($hooks[]))) | [.hook_name, .duration_ms, .outcome] | @tsv' \
+    "$RUN_TAIL" 2>/dev/null \
+    | sort -t$'\t' -k2 -n -r \
+    | head -n5 \
+    | awk -F'\t' '{printf "%-32s  %4s  %s\n", $1, $2, $3}'
 
 # ============================================================
 # Verdict

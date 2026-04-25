@@ -70,8 +70,11 @@ _hook_perf_probe "build_sql"
 [ "$WORD_COUNT" -lt 2 ] && exit 0
 
 # Intra-session dedup: exclude lesson IDs already surfaced earlier in this session.
-# Cross-DB via a pre-query (no ATTACH); empty on first invocation or if hooks.db
-# is absent, which degrades gracefully to "no dedup".
+# Cross-DB read against hooks.db.surface_lessons_context — populated by the
+# claude-sessions indexer (~1min lag from JSONL → DB). A lesson repeated within
+# the same ingestion window is the accepted tradeoff for standardizing data
+# ingestion downstream. Empty on first invocation or if hooks.db is absent,
+# which degrades gracefully to "no dedup".
 HOOKS_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
 NOT_IN_CLAUSE=""
 if [ -f "$HOOKS_DB" ] && [ -n "$SESSION_ID" ] && [ "$SESSION_ID" != "unknown" ]; then
@@ -118,7 +121,8 @@ _hook_perf_probe "sqlite_query"
 
 LESSONS=$(echo "$RESULTS" | cut -d'|' -f2-)
 MATCHED_IDS=$(echo "$RESULTS" | cut -d'|' -f1 | tr '\n' ',' | sed 's/,$//')
-MATCH_COUNT=$(echo "$RESULTS" | grep -c . 2>/dev/null || echo "0")
+MATCH_COUNT=$(printf '%s\n' "$RESULTS" | grep -c . 2>/dev/null)
+[ -z "$MATCH_COUNT" ] && MATCH_COUNT=0
 
 # Log context for observability (even when no matches)
 KEYWORD_LIST=$(echo "$WORDS" | tr '\n' ',' | sed 's/,$//')

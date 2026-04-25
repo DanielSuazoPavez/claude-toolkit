@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.68.0] - 2026-04-25 - hook-logs JSONL with stdin embed
+
+### Changed
+- **hooks**: hook execution telemetry now writes JSONL files under `~/claude-analytics/hook-logs/` instead of inserting rows into `~/.claude/hooks.db`. Three files: `invocations.jsonl` (one `kind: invocation` row per hook firing via the EXIT trap, plus `kind: section`/`substep` rows for grouped hooks and session-start), `surface-lessons-context.jsonl` (one `kind: context` row per surface-lessons firing), and `session-start-context.jsonl` (one `kind: session_start_context` row per SessionStart). The invocation row embeds the full hook stdin as a parsed `stdin` object (or `stdin_raw` string when stdin failed JSON parse) — the previous SQLite path persisted only extracted fields. Path overridable via the new `CLAUDE_ANALYTICS_HOOKS_DIR` env var; data lives outside `~/.claude/` to standardize on the `~/claude-analytics/` namespace shared with usage-snapshots.
+- **hooks**: `surface-lessons.sh` intra-session dedup still reads `hooks.db.surface_lessons_context`, now read-only — the claude-sessions indexer projects JSONL rows into the table on a ~1min cadence. Accepted tradeoff: a lesson re-surfacing within one ingestion window in exchange for standardizing how downstream consumers ingest hook telemetry. `CLAUDE_ANALYTICS_HOOKS_DB` retained as a read-only path env var.
+- **hooks**: `_hook_log_jsonl` replaces `_hook_log_db` / `_hook_flush_db` / `_sql_escape`. JSON rows are built via `jq -c -n --arg ...` (safer than the prior inline-SQL string interpolation — no escape footguns) and appended directly per call, no batching. Lazy `mkdir -p "$HOOK_LOG_DIR"` runs only when the first write fires.
+- **settings**: project + base/raiz dist templates rename `CLAUDE_ANALYTICS_HOOKS_DB` → `CLAUDE_ANALYTICS_HOOKS_DIR` for the write-side path (default `$HOME/claude-analytics/hook-logs`). The DB env var is restored as a read-only override for surface-lessons dedup. `CLAUDE_TOOLKIT_TRACEABILITY` description updated to mention JSONL writes.
+- **docs**: `relevant-toolkit-hooks_config.md`, `relevant-toolkit-lessons.md`, `docs/indexes/HOOKS.md`, `tests/CLAUDE.md` updated to describe the JSONL layout, per-file row schemas, sample tail command (`tail -f … | jq`), and the read+write asymmetry (toolkit writes JSONL → indexer projects to `hooks.db` → surface-lessons reads `hooks.db`).
+
+### Fixed
+- **hooks**: `surface-lessons.sh` `MATCH_COUNT` was `"0\n0"` (3 chars including embedded newline) when no lessons matched, because `grep -c . || echo "0"` ran the fallback *additionally* to grep's own `0` output. The migration's `--argjson match_count` rejected this, silently dropping the row. Switched to a clean `grep -c . | [ -z ] && 0` pattern.
+- **hooks**: `kind: context` and `kind: session_start_context` rows now include `hook_name` (was missing in initial JSONL emit, surfaced as `null` downstream).
+
+### Tests
+- `tests/lib/hook-test-setup.sh` allocates a temp directory per process (`CLAUDE_ANALYTICS_HOOKS_DIR`) instead of cloning the global hooks.db schema. Exports `TEST_INVOCATIONS_JSONL` / `TEST_SURFACE_LESSONS_JSONL` / `TEST_SESSION_START_JSONL` for assertions, plus a non-existent `CLAUDE_ANALYTICS_HOOKS_DB` so other tests can't read the user's real DB.
+- 6 hook tests rewritten to assert via `jq` over JSONL rather than `sqlite3` SELECTs against fixture DBs (`test-call-id`, `test-session-id`, `test-session-start-source`, `test-ecosystems-opt-in`, `test-surface-lessons-dedup`, `test-surface-lessons-two-hit`). `test-call-id` and `test-session-id` defensively `export CLAUDE_TOOLKIT_TRACEABILITY=1` so they don't depend on parent-shell env.
+- `test-surface-lessons-dedup.sh` exercises the full pipeline: hook writes JSONL → test stands in for indexer (jq @tsv → INSERT into fixture hooks.db) → hook re-runs and reads DB. Asserts dedup correctness across the boundary instead of stubbing one half.
+- `tests/perf-detection-registry.sh` and `tests/perf-surface-lessons.sh` (--replay mode) migrated from `sqlite3` aggregations to `jq` over the JSONL files. Per-hook p50/p95/max stats now built via sort + percentile-pick on the run-tail slice. Replay-case builder reads `surface-lessons-context.jsonl` instead of `hooks.db.surface_lessons_context`.
+
+### Deferred
+- `/setup-toolkit` skill still prompts for `CLAUDE_ANALYTICS_HOOKS_DB` and writes it into `settings.local.json`. Tracked as P0 backlog (`setup-toolkit-hooks-jsonl-migration`) — needs new `CLAUDE_ANALYTICS_HOOKS_DIR` capture, reframed `*_HOOKS_DB` prompt copy, and diagnose-script updates.
+
 ## [2.67.0] - 2026-04-25 - wrap-up hands off shared-state ops to user
 
 ### Changed

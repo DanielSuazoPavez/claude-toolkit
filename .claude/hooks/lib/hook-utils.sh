@@ -15,7 +15,8 @@ if [ -n "${_HOOK_UTILS_SOURCED:-}" ]; then
 fi
 _HOOK_UTILS_SOURCED=1
 #
-# Logs execution data to SQLite (hooks.db). Silently skipped if db doesn't exist.
+# Logs execution data as JSONL under $HOOK_LOG_DIR. Silently skipped when
+# traceability is disabled.
 #
 # Usage:
 #   source "$(dirname "$0")/lib/hook-utils.sh"
@@ -39,9 +40,9 @@ HOOK_START_MS=0
 OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
-HOOK_LOG_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
+HOOK_LOG_DIR="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}"
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
-_HOOK_SQL_BATCH=""  # accumulated SQL statements, flushed once in EXIT trap
+_HOOK_INPUT_VALID=true  # false when stdin failed jq empty in hook_init
 
 # ============================================================
 # _now_ms
@@ -178,6 +179,7 @@ hook_init() {
     if ! echo "$HOOK_INPUT" | jq empty 2>/dev/null; then
         OUTCOME="error"
         SESSION_ID="unknown"
+        _HOOK_INPUT_VALID=false
         case "$HOOK_EVENT" in
             PreToolUse)
                 # Safety hooks must fail-closed: block rather than silently pass
@@ -314,6 +316,22 @@ hook_inject() {
 }
 
 # ============================================================
+# _hook_log_jsonl FILENAME JSON_LINE  (internal — append one JSON line)
+# ============================================================
+# Gated on traceability. Lazy-creates HOOK_LOG_DIR on first write.
+# Each call appends one line; for typical row sizes (< PIPE_BUF / 4KB on
+# Linux) a single >> append is atomic. The EXIT-trap row may be larger
+# when stdin is embedded; concurrent writers are rare here (one hook
+# process per invocation), so interleaving risk is negligible in practice.
+_hook_log_jsonl() {
+    hook_feature_enabled traceability || return 0
+    local file="$1"
+    local line="$2"
+    mkdir -p "$HOOK_LOG_DIR" 2>/dev/null || return 0
+    printf '%s\n' "$line" >> "$HOOK_LOG_DIR/$file" 2>/dev/null || true
+}
+
+# ============================================================
 # hook_log_section SECTION_NAME CONTENT
 # ============================================================
 hook_log_section() {
@@ -321,8 +339,24 @@ hook_log_section() {
     local content="$2"
     local bytes=${#content}
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$section")', 0, 'pass', $bytes, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
+    hook_feature_enabled traceability || return 0
+    local line
+    line=$(jq -c -n \
+        --arg kind "section" \
+        --arg session_id "$SESSION_ID" \
+        --arg invocation_id "$INVOCATION_ID" \
+        --arg timestamp "$_HOOK_TIMESTAMP" \
+        --arg project "$PROJECT" \
+        --arg hook_event "$HOOK_EVENT" \
+        --arg hook_name "$HOOK_NAME" \
+        --arg tool_name "$TOOL_NAME" \
+        --arg section "$section" \
+        --argjson bytes_injected "$bytes" \
+        --arg source "$HOOK_SOURCE" \
+        --arg call_id "$CALL_ID" \
+        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:$section, duration_ms:0, outcome:"pass", bytes_injected:$bytes_injected, source:$source, call_id:$call_id}' \
+        2>/dev/null) || return 0
+    _hook_log_jsonl "invocations.jsonl" "$line"
 }
 
 # ============================================================
@@ -342,34 +376,26 @@ hook_log_substep() {
     if [ "$outcome" = "inject" ] 2>/dev/null; then
         TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     fi
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$name")', $duration_ms, '$(_sql_escape "$outcome")', $bytes, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
-}
-
-# ============================================================
-# _sql_escape VALUE  (internal — escape single quotes for SQL)
-# ============================================================
-_sql_escape() {
-    printf '%s' "${1//\'/\'\'}"
-}
-
-# ============================================================
-# _hook_log_db SQL  (internal — insert into claude-hook-logs.db)
-# ============================================================
-_hook_log_db() {
     hook_feature_enabled traceability || return 0
-    [ -f "$HOOK_LOG_DB" ] || return 0
-    _HOOK_SQL_BATCH="${_HOOK_SQL_BATCH}${1}
-"
-}
-
-# Flush all accumulated SQL in one sqlite3 call
-_hook_flush_db() {
-    hook_feature_enabled traceability || return 0
-    [ -f "$HOOK_LOG_DB" ] || return 0
-    [ -z "$_HOOK_SQL_BATCH" ] && return 0
-    printf '%s' "$_HOOK_SQL_BATCH" | sqlite3 "$HOOK_LOG_DB" 2>/dev/null || true
-    _HOOK_SQL_BATCH=""
+    local line
+    line=$(jq -c -n \
+        --arg kind "substep" \
+        --arg session_id "$SESSION_ID" \
+        --arg invocation_id "$INVOCATION_ID" \
+        --arg timestamp "$_HOOK_TIMESTAMP" \
+        --arg project "$PROJECT" \
+        --arg hook_event "$HOOK_EVENT" \
+        --arg hook_name "$HOOK_NAME" \
+        --arg tool_name "$TOOL_NAME" \
+        --arg section "$name" \
+        --argjson duration_ms "$duration_ms" \
+        --arg outcome "$outcome" \
+        --argjson bytes_injected "$bytes" \
+        --arg source "$HOOK_SOURCE" \
+        --arg call_id "$CALL_ID" \
+        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:$section, duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, source:$source, call_id:$call_id}' \
+        2>/dev/null) || return 0
+    _hook_log_jsonl "invocations.jsonl" "$line"
 }
 
 # ============================================================
@@ -380,8 +406,27 @@ hook_log_context() {
     local keywords="$2"
     local match_count="$3"
     local matched_ids="$4"
-    _hook_log_db "INSERT INTO surface_lessons_context (session_id, invocation_id, timestamp, project, tool_name, raw_context, keywords, match_count, matched_lesson_ids)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$TOOL_NAME")', '$(_sql_escape "$raw_context")', '$(_sql_escape "$keywords")', $match_count, '$matched_ids');"
+    hook_feature_enabled traceability || return 0
+    # Defensive: --argjson requires a clean integer; strip whitespace and
+    # default to 0 if upstream produced anything weird.
+    match_count="${match_count//[[:space:]]/}"
+    [[ "$match_count" =~ ^[0-9]+$ ]] || match_count=0
+    local line
+    line=$(jq -c -n \
+        --arg kind "context" \
+        --arg session_id "$SESSION_ID" \
+        --arg invocation_id "$INVOCATION_ID" \
+        --arg timestamp "$_HOOK_TIMESTAMP" \
+        --arg project "$PROJECT" \
+        --arg hook_name "$HOOK_NAME" \
+        --arg tool_name "$TOOL_NAME" \
+        --arg raw_context "$raw_context" \
+        --arg keywords "$keywords" \
+        --argjson match_count "$match_count" \
+        --arg matched_lesson_ids "$matched_ids" \
+        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_name:$hook_name, tool_name:$tool_name, raw_context:$raw_context, keywords:$keywords, match_count:$match_count, matched_lesson_ids:$matched_lesson_ids}' \
+        2>/dev/null) || return 0
+    _hook_log_jsonl "surface-lessons-context.jsonl" "$line"
 }
 
 # ============================================================
@@ -395,13 +440,31 @@ hook_log_session_start_context() {
     local git_branch="$1"
     local main_branch="$2"
     local cwd="$3"
-    _hook_log_db "INSERT INTO session_start_context (session_id, invocation_id, timestamp, project, source, git_branch, main_branch, cwd)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$_HOOK_TIMESTAMP', '$(_sql_escape "$PROJECT")', '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$git_branch")', '$(_sql_escape "$main_branch")', '$(_sql_escape "$cwd")');"
+    hook_feature_enabled traceability || return 0
+    local line
+    line=$(jq -c -n \
+        --arg kind "session_start_context" \
+        --arg session_id "$SESSION_ID" \
+        --arg invocation_id "$INVOCATION_ID" \
+        --arg timestamp "$_HOOK_TIMESTAMP" \
+        --arg project "$PROJECT" \
+        --arg hook_name "$HOOK_NAME" \
+        --arg source "$HOOK_SOURCE" \
+        --arg git_branch "$git_branch" \
+        --arg main_branch "$main_branch" \
+        --arg cwd "$cwd" \
+        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_name:$hook_name, source:$source, git_branch:$git_branch, main_branch:$main_branch, cwd:$cwd}' \
+        2>/dev/null) || return 0
+    _hook_log_jsonl "session-start-context.jsonl" "$line"
 }
 
 # ============================================================
 # _hook_log_timing  (internal — EXIT trap)
 # ============================================================
+# Emits one `kind: invocation` row per hook firing with the full stdin
+# payload attached. Stdin is embedded as a parsed object when valid JSON
+# (the common path) or as a raw string fallback when hook_init flagged
+# the input as unparseable.
 _hook_log_timing() {
     # Emit HOOK_PERF TOTAL before the _HOOK_ACTIVE guard — perf timing
     # is orthogonal to hook logging and should cover early exits too.
@@ -412,6 +475,7 @@ _hook_log_timing() {
     fi
     # Skip logging if hook never matched a tool (early exit from hook_require_tool)
     [ "$_HOOK_ACTIVE" = true ] || return 0
+    hook_feature_enabled traceability || return 0
     local end_ms ts
     end_ms=$(_now_ms)
     ts=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
@@ -420,7 +484,42 @@ _hook_log_timing() {
     if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then
         bytes=$TOTAL_BYTES_INJECTED
     fi
-    _hook_log_db "INSERT INTO hook_logs (session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id)
-    VALUES ('$SESSION_ID', '$INVOCATION_ID', '$ts', '$(_sql_escape "$PROJECT")', '$HOOK_EVENT', '$HOOK_NAME', '$(_sql_escape "$TOOL_NAME")', '', $duration_ms, '$OUTCOME', $bytes, '$(_sql_escape "$HOOK_SOURCE")', '$(_sql_escape "$CALL_ID")');"
-    _hook_flush_db
+    local line
+    if [ "$_HOOK_INPUT_VALID" = true ]; then
+        line=$(printf '%s' "$HOOK_INPUT" | jq -c \
+            --arg kind "invocation" \
+            --arg session_id "$SESSION_ID" \
+            --arg invocation_id "$INVOCATION_ID" \
+            --arg timestamp "$ts" \
+            --arg project "$PROJECT" \
+            --arg hook_event "$HOOK_EVENT" \
+            --arg hook_name "$HOOK_NAME" \
+            --arg tool_name "$TOOL_NAME" \
+            --argjson duration_ms "$duration_ms" \
+            --arg outcome "$OUTCOME" \
+            --argjson bytes_injected "$bytes" \
+            --arg source "$HOOK_SOURCE" \
+            --arg call_id "$CALL_ID" \
+            '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:"", duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, source:$source, call_id:$call_id, stdin:.}' \
+            2>/dev/null) || return 0
+    else
+        line=$(jq -c -n \
+            --arg kind "invocation" \
+            --arg session_id "$SESSION_ID" \
+            --arg invocation_id "$INVOCATION_ID" \
+            --arg timestamp "$ts" \
+            --arg project "$PROJECT" \
+            --arg hook_event "$HOOK_EVENT" \
+            --arg hook_name "$HOOK_NAME" \
+            --arg tool_name "$TOOL_NAME" \
+            --argjson duration_ms "$duration_ms" \
+            --arg outcome "$OUTCOME" \
+            --argjson bytes_injected "$bytes" \
+            --arg source "$HOOK_SOURCE" \
+            --arg call_id "$CALL_ID" \
+            --arg stdin_raw "$HOOK_INPUT" \
+            '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:"", duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, source:$source, call_id:$call_id, stdin_raw:$stdin_raw}' \
+            2>/dev/null) || return 0
+    fi
+    _hook_log_jsonl "invocations.jsonl" "$line"
 }

@@ -1,23 +1,18 @@
 #!/bin/bash
 # Verifies hook-utils.sh extracts .tool_use_id / .agent_id from stdin and
-# writes the bare id into hook_logs.call_id (tool-vs-agent is derived from hook_event).
+# writes the bare id into invocations.jsonl call_id (tool-vs-agent is
+# derived from hook_event).
 set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
 parse_test_args "$@"
 
-report_section "=== call_id capture ==="
-hooks_db="$TEST_HOOKS_DB"
-if [ ! -f "$hooks_db" ]; then
-    log_verbose "hooks.db not found — skipping call_id tests"
-    print_summary
-fi
+# Hook-utils JSONL writes are gated on traceability — make sure it's on
+# even if the parent shell hasn't exported it.
+export CLAUDE_TOOLKIT_TRACEABILITY=1
 
-if ! sqlite3 "$hooks_db" "SELECT call_id FROM hook_logs LIMIT 0" >/dev/null 2>&1; then
-    log_verbose "hook_logs.call_id column not present — skipping"
-    print_summary
-fi
+report_section "=== call_id capture ==="
 
 # Bash PreToolUse with tool_use_id → tool:<id>
 sid="test-callid-bash-$(date +%s%N)"
@@ -26,7 +21,9 @@ echo "{\"session_id\":\"$sid\",\"tool_use_id\":\"$tid\",\"tool_name\":\"Bash\",\
     | "$HOOKS_DIR/grouped-bash-guard.sh" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
-got=$(sqlite3 "$hooks_db" "SELECT call_id FROM hook_logs WHERE session_id = '$sid' LIMIT 1" 2>/dev/null)
+got=$(grep -F "$sid" "$TEST_INVOCATIONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$sid" 'select(.session_id == $sid) | .call_id' 2>/dev/null \
+    | head -n1)
 if [ "$got" = "$tid" ]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
     report_pass "Bash PreToolUse call_id captured as bare tool_use_id"
@@ -43,7 +40,9 @@ echo "{\"session_id\":\"$sid2\",\"source\":\"startup\"}" \
     | "$HOOKS_DIR/session-start.sh" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
-got=$(sqlite3 "$hooks_db" "SELECT call_id FROM hook_logs WHERE session_id = '$sid2' LIMIT 1" 2>/dev/null)
+got=$(grep -F "$sid2" "$TEST_INVOCATIONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$sid2" 'select(.session_id == $sid) | .call_id' 2>/dev/null \
+    | head -n1)
 if [ -z "$got" ]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
     report_pass "SessionStart call_id empty (no tool_use_id / agent_id)"

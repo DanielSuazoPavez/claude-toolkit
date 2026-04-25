@@ -35,7 +35,7 @@ INSERT INTO lesson_tags (lesson_id, tag_id) VALUES ('lesson_split', (SELECT id F
 INSERT INTO lesson_tags (lesson_id, tag_id) VALUES ('lesson_split', (SELECT id FROM tags WHERE name='beta'));
 SQL
 export CLAUDE_ANALYTICS_LESSONS_DB="$TEST_LESSONS_DB"
-trap 'rm -f "$TEST_LESSONS_DB" "$TEST_HOOKS_DB"' EXIT
+trap 'rm -f "$TEST_LESSONS_DB"; rm -rf "$TEST_HOOKS_DIR"' EXIT
 export CLAUDE_TOOLKIT_LESSONS=1
 export CLAUDE_TOOLKIT_TRACEABILITY=1
 
@@ -45,16 +45,12 @@ run_hook() {
     local payload
     payload="{\"session_id\":\"$session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"$cmd\"}}"
     echo "$payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
-    if [ -f "$TEST_HOOKS_DB" ]; then
-        sqlite3 "$TEST_HOOKS_DB" "SELECT matched_lesson_ids FROM surface_lessons_context WHERE session_id = '$session' ORDER BY timestamp ASC LIMIT 1;" 2>/dev/null
+    if [ -f "$TEST_SURFACE_LESSONS_JSONL" ]; then
+        grep -F "$session" "$TEST_SURFACE_LESSONS_JSONL" 2>/dev/null \
+            | jq -r --arg sid "$session" 'select(.session_id == $sid) | .matched_lesson_ids' 2>/dev/null \
+            | head -n1
     fi
 }
-
-if [ ! -f "$TEST_HOOKS_DB" ]; then
-    log_verbose "hooks.db not available — skipping two-hit assertions"
-    print_summary
-    exit 0
-fi
 
 # 1) Single-hit: only `rebase` matches alpha.keywords. Should NOT surface.
 ids=$(run_hook "git rebase shared")

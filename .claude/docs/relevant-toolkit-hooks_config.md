@@ -58,7 +58,8 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | `CLAUDE_DOCS_DIR` | `.claude/docs` | Docs directory |
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
 | `CLAUDE_ANALYTICS_LESSONS_DB` | `$HOME/.claude/lessons.db` | Global lessons SQLite DB. Set in shell/`.envrc` — Claude Code does not expand `$HOME` in `settings.json` values, so path-valued vars must come from the shell environment |
-| `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/.claude/hooks.db` | Global hook-logs SQLite DB. Same `$HOME`-expansion caveat as above |
+| `CLAUDE_ANALYTICS_HOOKS_DIR` | `$HOME/claude-analytics/hook-logs` | Directory for hook-logs JSONL files (`invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`). Same `$HOME`-expansion caveat as above. Write-only from the toolkit's perspective; the claude-sessions indexer projects rows into `hooks.db` |
+| `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/.claude/hooks.db` | Read-only by `surface-lessons.sh` for intra-session dedup (`surface_lessons_context` table). Owned and populated downstream by the claude-sessions indexer; the toolkit no longer writes here |
 
 ### Version Pins
 | Variable | Default | Purpose |
@@ -78,7 +79,7 @@ Set in the `env` block of `.claude/settings.json` (not shell) so Claude Code inj
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CLAUDE_TOOLKIT_LESSONS` | `"0"` | `"1"` enables: session-start lessons block, `surface-lessons` injection |
-| `CLAUDE_TOOLKIT_TRACEABILITY` | `"0"` | `"1"` enables: `hooks.db` logging (via `_hook_log_db`), `statusline-capture` usage-snapshots JSONL |
+| `CLAUDE_TOOLKIT_TRACEABILITY` | `"0"` | `"1"` enables: hook-logs JSONL writes (via `_hook_log_jsonl`), `statusline-capture` usage-snapshots JSONL |
 
 Pre-opt-in projects (neither key present) get a session-start nudge pointing at `/setup-toolkit`. The nudge self-extinguishes once either key is written — distinguishing "unset" from "explicitly 0" uses `[ -z "${VAR+x}" ]`. `/setup-toolkit` Phase 1.5 writes both keys on first run.
 
