@@ -28,6 +28,11 @@
 
 ## P1 - High
 
+- **[HOOKS]** SessionStart output exceeds inline threshold and gets persisted, defeating mandatory-load contract (`session-start-output-too-large`)
+    - **scope**: `hooks`
+    - **notes**: Observed 2026-04-25: `session-start.sh` produced 10.4KB of stdout (2 essential docs + git context + 7 key lessons + 5 recent + 5 branch lessons + mandatory acknowledgment line). The harness exceeded its inline cap, persisted full output to `tool-results/hook-*.txt`, and only surfaced a ~2KB preview to the model. Net effect: the "MANDATORY: read essential docs at session start" + "acknowledge N docs / N lessons" contract silently failed — model started the session without the conventions or lessons in context, and without realizing the acknowledgment instruction (at the tail) was even present. User had to ask "no essential docs read?" to surface it. Options: (a) shrink default payload — drop full doc bodies, inject only Quick Reference sections (§1) plus paths, let model Read on demand; (b) split into multiple smaller hook outputs (essentials in SessionStart, lessons via a separate UserPromptSubmit-time injection); (c) move lesson lists behind a one-line nudge ("15 lessons available — run `claude-toolkit lessons recent`") instead of inlining them; (d) detect the persisted-output case in the hook itself and emit a compact fallback. Lean: (a)+(c) — Quick References are the load-bearing part; full bodies and lesson text can be lazily fetched. Validate inline-cap threshold empirically (somewhere under 10KB; preview was ~2KB).
+    - **depends on**: none
+
 ## P2 - Medium
 
 
