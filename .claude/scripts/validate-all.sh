@@ -71,15 +71,17 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
-# --- Dist manifest existence ---
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Running: validate-dist-manifests.sh"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-bash "$SCRIPTS_DIR/validate-dist-manifests.sh"
-if [ $? -ne 0 ]; then
-    FAILURES=$((FAILURES + 1))
+# --- Dist manifest existence (workshop-only; absent in consumer syncs) ---
+if [ -f "$SCRIPTS_DIR/validate-dist-manifests.sh" ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Running: validate-dist-manifests.sh"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    bash "$SCRIPTS_DIR/validate-dist-manifests.sh"
+    if [ $? -ne 0 ]; then
+        FAILURES=$((FAILURES + 1))
+    fi
+    echo ""
 fi
-echo ""
 
 # --- Summary ---
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
