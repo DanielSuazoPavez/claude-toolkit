@@ -28,3 +28,4 @@
 
 # Toolkit maintenance scripts
 .claude/scripts/cron/
+.claude/scripts/validate-dist-manifests.sh

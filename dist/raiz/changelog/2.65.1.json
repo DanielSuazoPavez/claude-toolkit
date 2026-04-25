@@ -1,0 +1,7 @@
+{
+  "version": "2.65.1",
+  "date": "2026-04-25",
+  "headline": "validate-dist-manifests excluded from consumer syncs",
+  "skip": true,
+  "sections": []
+}

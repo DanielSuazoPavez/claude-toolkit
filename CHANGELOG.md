@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.65.1] - 2026-04-25 - validate-dist-manifests excluded from consumer syncs
+
+### Fixed
+- **scripts**: `validate-dist-manifests.sh` no longer ships to consumer projects. It validates `dist/raiz/MANIFEST` and `dist/base/EXCLUDE` against disk — both are workshop-source-tree artifacts absent in synced consumers, so the validator failed with `Missing: dist/raiz/MANIFEST` / `Missing: dist/base/EXCLUDE` even on healthy installs (reported by claude-sessions during `/setup-toolkit` Phase 3 against 2.64.1). Added to `dist/base/EXCLUDE` (already absent from `dist/raiz/MANIFEST`); `validate-all.sh` now guards the call with `[ -f ... ]` so the orchestrator silently skips when the validator is absent. `docs/indexes/SCRIPTS.md` moves the row to "Maintenance (workshop-only)" with `Ships: no`.
+
+### Deleted
+- **backlog**: Removed `validate-all-fails-in-consumers` from P0 (completed).
+
 ## [2.65.0] - 2026-04-25 - block-credential-exfiltration hook
 
 ### Added

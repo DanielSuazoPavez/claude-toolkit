@@ -22,7 +22,6 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | `verify-resource-deps.sh` | stable | base | Validates cross-references between resources |
 | `validate-safe-commands-sync.sh` | stable | base | Checks approve-safe-commands hook prefixes match settings.json |
 | `validate-hook-utils.sh` | stable | base | Checks all hooks source shared library lib/hook-utils.sh |
-| `validate-dist-manifests.sh` | stable | base | Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk |
 | `verify-external-deps.sh` | stable | base | Checks external tools declared in skill compatibility fields are installed |
 
 ## Statusline
@@ -39,8 +38,9 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 
 ## Maintenance (workshop-only)
 
-Excluded from sync via `dist/base/EXCLUDE` (`scripts/cron/`).
+Excluded from sync via `dist/base/EXCLUDE` (`scripts/cron/`, `validate-dist-manifests.sh`). `validate-all.sh` ships to consumers and skips the dist-manifest validator when the file is absent.
 
 | Path | Status | Ships | Description |
 |------|--------|-------|-------------|
 | `cron/backup-lessons-db.sh` | stable | no | Nightly backup of lessons.db; planned to move to claude-sessions |
+| `validate-dist-manifests.sh` | stable | no | Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only |
