@@ -7,7 +7,7 @@ allowed-tools: Bash(git:*), Read, Write, Edit
 
 Use when finishing a feature branch.
 
-Claude prepares the branch (commits, version bump, changelog, backlog cleanup) and stops at the merge boundary. **Merging to main, pushing, and pushing tags are the user's responsibility** — wrap-up ends with an explicit handoff block listing the commands the user runs next.
+Claude prepares the branch (commits, version bump, changelog, backlog cleanup) and stops at the merge boundary. **Merging to main, pushing, opening pull requests, and pushing tags are the user's responsibility** — wrap-up ends with an explicit handoff block listing the commands the user runs next. `/draft-pr` is also user-invoked: wrap-up does not call it.
 
 **See also:** `/write-handoff` (when pausing work instead of finishing), `/draft-pr` (optional: generate PR description after wrap-up)
 
@@ -75,7 +75,9 @@ Stage and commit CHANGELOG.md, BACKLOG.md, and version file together.
 Do NOT tag, merge, or push. Tagging happens post-merge by the user (see step 10). The feature branch ends here — ready to merge.
 
 ### 10. Hand off to the user
-Output a brief summary of what wrap-up changed (version bumped to X, changelog entry added, N backlog items removed) followed by an explicit handoff block:
+Output a brief summary of what wrap-up changed (version bumped to X, changelog entry added, N backlog items removed) followed by an explicit handoff block. Pick the path that matches the project:
+
+**Direct-merge projects** (personal projects, no PR review):
 
 ```markdown
 ## Next steps for you
@@ -89,7 +91,22 @@ git push origin v<version>
 ```
 ```
 
-Substitute `<branch>` and `<version>` with the actual values. Do not run these commands yourself — they are the user's to execute.
+**PR-flow projects** (team projects, PR review required):
+
+```markdown
+## Next steps for you
+
+```bash
+git push -u origin <branch>
+# then run /draft-pr to generate the PR description, and open the PR yourself
+# after the PR merges on main:
+git checkout main && git pull
+make tag             # if a make tag target exists; otherwise: git tag v<version>
+git push origin v<version>
+```
+```
+
+Substitute `<branch>` and `<version>` with the actual values. **Do not run any of these commands yourself, and do not invoke `/draft-pr`** — opening PRs and `/draft-pr` are user-invoked. If unsure which path applies, output both and let the user pick.
 
 ## Edge Cases
 
@@ -140,7 +157,7 @@ Substitute `<branch>` and `<version>` with the actual values. Do not run these c
 | **Bump Everything** | Version bump for CI-only changes | Skip bump for non-user-facing changes |
 | **Scope Tunnel Vision** | Ignoring non-branch artifacts and issues | Check git status for loose ends; ask user about unrelated changes |
 | **Dismissing Test Failures** | Calling failures "pre-existing and unrelated" without proof | Either fix them or explicitly call them out as known issues with a backlog item |
-| **Self-Merge** | Claude runs `git merge`, `git push`, or `git push origin v<version>` as part of wrap-up | Stop at the handoff block in step 10; let the user merge, push, and push tags |
+| **Self-Merge** | Claude runs `git merge`, `git push`, `git push origin v<version>`, `gh pr create`, or invokes `/draft-pr` as part of wrap-up | Stop at the handoff block in step 10; let the user merge, push, open PRs, and push tags |
 
 ## Notes
 
