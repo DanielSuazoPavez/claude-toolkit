@@ -22,6 +22,7 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | `verify-resource-deps.sh` | stable | base | Validates cross-references between resources |
 | `validate-safe-commands-sync.sh` | stable | base | Checks approve-safe-commands hook prefixes match settings.json |
 | `validate-hook-utils.sh` | stable | base | Checks all hooks source shared library lib/hook-utils.sh |
+| `validate-detection-registry.sh` | stable | base | Validates `.claude/hooks/lib/detection-registry.json` against schema (id format, enums, regex compilability) |
 | `verify-external-deps.sh` | stable | base | Checks external tools declared in skill compatibility fields are installed |
 
 ## Statusline
