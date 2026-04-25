@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.65.0] - 2026-04-25 - block-credential-exfiltration hook
+
+### Added
+- **hooks**: New `block-credential-exfiltration.sh` hook blocks commands whose arguments contain credential-shaped tokens. Sibling to `secrets-guard.sh` — that hook covers credential reads at-rest; this one covers the inverse vector (a token already in the model's context being re-used as a literal in a new outbound command, the canonical case being `curl -H "Authorization: token ghp_..."`). Detection runs against the raw command (not `_strip_inert_content`) so the token inside the quoted Authorization header matches; false positives on token-shaped fixture names in commit messages are accepted. Patterns: GitHub (`ghp_`, `github_pat_`, `gho_`/`ghu_`/`ghs_`/`ghr_`), GitLab (`glpat-`), Slack (`xox[baprs]-`), AWS (`AKIA`/`ASIA`), OpenAI (`sk-`, `sk-proj-`), Anthropic (`sk-ant-`), Stripe (`sk_live_`/`sk_test_`/`rk_live_`/`rk_test_`), Google (`AIza`). Bare-40-hex excluded (false positives on git SHAs and base64). Wired into `grouped-bash-guard.sh::CHECK_SPECS` between `auto_mode_shared_steps` and `git_safety` for informative-reason precedence. Standalone-capable via dual-mode trigger. Ships in both `base` (auto-synced via `dist/base/EXCLUDE`) and `raiz` (`dist/raiz/MANIFEST`).
+
+### Changed
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §9 "Current Hook Set" — added `auto-mode-shared-steps` (was missing since 2.64.0) and `block-credential-exfiltration`; replaced the stale "raiz uses split config" paragraph (which referenced a phantom backlog task) with the actual contract: dispatcher probes `[ -f "$src" ] || continue` before sourcing, and raiz ships the dispatcher plus 6 of 8 guards (no `enforce-make-commands`, no `enforce-uv-run`).
+
+### Deleted
+- **backlog**: Removed `block-credential-exfiltration` from P0 (completed).
+
 ## [2.64.1] - 2026-04-25 - secrets-guard in-flight credential reads
 
 ### Changed

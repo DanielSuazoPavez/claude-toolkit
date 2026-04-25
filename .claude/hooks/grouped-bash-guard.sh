@@ -14,14 +14,18 @@
 #                                permission_mode=auto, blocks git push, gh writes,
 #                                gh api, curl with auth/api.github.com. No-op
 #                                outside auto-mode.
-#   3. git_safety             — sourced from git-safety.sh; gates git push/commit
-#   4. secrets_guard          — sourced from secrets-guard.sh; gates reads of .env,
+#   3. credential_exfil       — sourced from block-credential-exfiltration.sh;
+#                                blocks commands carrying credential-shaped tokens
+#                                (GitHub/GitLab/Slack/AWS/OpenAI/Anthropic) — the
+#                                in-flight vector, sibling to secrets_guard.
+#   4. git_safety             — sourced from git-safety.sh; gates git push/commit
+#   5. secrets_guard          — sourced from secrets-guard.sh; gates reads of .env,
 #                                credential files, env/printenv, gpg --export-secret-keys
-#   5. config_edits           — sourced from block-config-edits.sh; gates Bash writes
+#   6. config_edits           — sourced from block-config-edits.sh; gates Bash writes
 #                                (>>, tee, sed -i, mv) to shell/SSH/git config files
-#   6. make                   — sourced from enforce-make-commands.sh; enforce make
+#   7. make                   — sourced from enforce-make-commands.sh; enforce make
 #                                targets over direct pytest/ruff/uv sync/docker
-#   7. uv                     — sourced from enforce-uv-run.sh; enforce `uv run python`
+#   8. uv                     — sourced from enforce-uv-run.sh; enforce `uv run python`
 #
 # Dispatcher contract — each check_* function returns:
 #   0 = pass
@@ -54,6 +58,7 @@ hook_require_tool "Bash"
 CHECK_SPECS=(
     "dangerous:block-dangerous-commands.sh"
     "auto_mode_shared_steps:auto-mode-shared-steps.sh"
+    "credential_exfil:block-credential-exfiltration.sh"
     "git_safety:git-safety.sh"
     "secrets_guard:secrets-guard.sh"
     "config_edits:block-config-edits.sh"

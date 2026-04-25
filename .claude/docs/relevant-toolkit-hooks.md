@@ -239,18 +239,20 @@ Don't remove or rearrange the guard — it's load-bearing for the dispatcher con
 
 ## 9. Current Hook Set
 
-Every Bash-touching hook is match/check + dual-mode. The base distribution's `settings.json` registers `grouped-bash-guard.sh` as the sole Bash PreToolUse hook — it sources the six guards below and dispatches them via `match_`/`check_`. Hooks with non-Bash branches keep their standalone registration for those branches.
+Every Bash-touching hook is match/check + dual-mode. The base distribution's `settings.json` registers `grouped-bash-guard.sh` as the sole Bash PreToolUse hook — it sources the eight guards below and dispatches them via `match_`/`check_`. Hooks with non-Bash branches keep their standalone registration for those branches.
 
 | Hook | Standalone matchers | In dispatcher? |
 |---|---|---|
 | `block-dangerous-commands` | — (dispatcher only) | `dangerous` |
+| `auto-mode-shared-steps` | — (dispatcher only) | `auto_mode_shared_steps` |
+| `block-credential-exfiltration` | — (dispatcher only) | `credential_exfil` |
 | `git-safety` | EnterPlanMode | `git_safety` |
 | `secrets-guard` | Read, Grep | `secrets_guard` |
 | `block-config-edits` | Write, Edit | `config_edits` |
 | `enforce-make-commands` | — (dispatcher only) | `make` |
 | `enforce-uv-run` | — (dispatcher only) | `uv` |
 
-Raiz distribution still uses the split config (each guard standalone on Bash) because `grouped-bash-guard.sh` requires all six sourced files to be present, and raiz only ships four of them. See backlog task `raiz-grouped-bash-guard`.
+The dispatcher tolerates absent guards: each `CHECK_SPECS` entry probes its source file before sourcing (`[ -f "$src" ] || continue`), so distributions that ship a subset still work — the missing entries are silently dropped from `CHECKS`. Raiz uses this: it ships `grouped-bash-guard.sh` plus 6 of the 8 guards (no `enforce-make-commands`, no `enforce-uv-run`), and the dispatcher just dispatches the 6 it finds.
 
 ---
 

@@ -1,0 +1,22 @@
+{
+  "version": "2.65.0",
+  "date": "2026-04-25",
+  "headline": "block-credential-exfiltration hook",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "New `block-credential-exfiltration.sh` hook blocks commands carrying credential-shaped tokens in their arguments — the inverse vector to `secrets-guard`. That hook covers credential reads at-rest (e.g. `cat .env`, `git remote -v` on a tokenised URL); this one covers the in-flight payload, where a token already in the model's context flows into a new outbound command. Canonical case: model reads a PAT from earlier output, then runs `curl -H \"Authorization: token ghp_...\"` — that follow-up curl now blocks.",
+        "Patterns: GitHub (`ghp_`, `github_pat_`, `gho_`/`ghu_`/`ghs_`/`ghr_`), GitLab (`glpat-`), Slack (`xox[baprs]-`), AWS (`AKIA`/`ASIA`), OpenAI (`sk-`, `sk-proj-`), Anthropic (`sk-ant-`), Stripe (`sk_live_`/`sk_test_`/`rk_live_`/`rk_test_`), Google (`AIza`). Detection runs against the raw command (not stripped) so tokens inside quoted Authorization headers match. Bare-40-hex deliberately excluded to avoid git SHA / base64 false positives. AWS canned example keys (`AKIAIOSFODNN7EXAMPLE`) will block — accepted false-positive, documented in the hook.",
+        "Wired into `grouped-bash-guard.sh::CHECK_SPECS` between `auto_mode_shared_steps` and `git_safety` for informative-reason precedence — a force-push to a remote URL embedding a token blocks under credential_exfil's reason rather than git_safety's."
+      ]
+    },
+    {
+      "kind": "docs",
+      "bullets": [
+        "`relevant-toolkit-hooks.md` §9 \"Current Hook Set\" refreshed: added the missing `auto-mode-shared-steps` row (shipped in 2.64.0 without an index update) plus the new `block-credential-exfiltration`, and replaced a stale paragraph about raiz \"using a split config\" with the actual dispatcher contract — `[ -f \"$src\" ] || continue` skips missing guards, so raiz uses the same `grouped-bash-guard.sh` and just ships 6 of 8 sourced guards."
+      ]
+    }
+  ]
+}
