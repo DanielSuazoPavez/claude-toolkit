@@ -1,0 +1,14 @@
+{
+  "version": "2.66.1",
+  "date": "2026-04-25",
+  "headline": "secrets-guard Read/Grep registry migration",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "`secrets-guard` Read and Grep handlers now consume the `path` kind from the shared detection registry (the Bash branch was already migrated in 2.66.0). Adding a new credential-file path becomes a 1-line edit in `detection-registry.json` that covers Read, Grep, and Bash uniformly — no per-handler regex change. Hook-side allowlists (`.example`/`.template`, `.pub`) and the runtime `.git/config` credential-remote check stay in the hook. No behavior change expected; same `tests/hooks/test-secrets-guard.sh` suite passes."
+      ]
+    }
+  ]
+}
