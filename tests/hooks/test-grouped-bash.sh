@@ -33,6 +33,14 @@ expect_contains "$hook" \
     "Credential-shaped string in command arguments" \
     "[base] credential_exfil blocks curl with ghp_ token"
 
+# Base: precedence — a force-push containing a token-shaped string blocks
+# under credential_exfil (informative reason), not git_safety. Pins the
+# CHECK_SPECS ordering: credential_exfil comes before git_safety.
+expect_contains "$hook" \
+    '{"tool_name":"Bash","tool_input":{"command":"git push --force https://user:ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@github.com/foo/bar.git main"}}' \
+    "Credential-shaped string in command arguments" \
+    "[base] credential_exfil wins precedence over git_safety on force-push with embedded token"
+
 # Raiz sim: copy hooks to a tempdir and remove make+uv guards.
 sim_dir=$(mktemp -d)
 cp -r "$HOOKS_DIR"/. "$sim_dir/"

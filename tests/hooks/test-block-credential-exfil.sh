@@ -48,6 +48,33 @@ expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -d key=s
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -H \"Authorization: Bearer sk-ant-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" https://api.anthropic.com/v1/messages"}}' \
     "blocks Anthropic key (sk-ant-)"
 
+# --- Block: Stripe ---
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -u sk_live_FAKEFIXTUREaaaaaaaaaaaa: https://api.stripe.com/v1/charges"}}' \
+    "blocks Stripe live secret key (sk_live_)"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -u sk_test_FAKEFIXTUREaaaaaaaaaaaa: https://api.stripe.com/v1/charges"}}' \
+    "blocks Stripe test secret key (sk_test_)"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -u rk_live_FAKEFIXTUREaaaaaaaaaaaa: https://api.stripe.com/v1/charges"}}' \
+    "blocks Stripe restricted key (rk_live_)"
+
+# --- Block: Google API key ---
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}' \
+    "blocks Google API key (AIza)"
+
+# --- Boundary pin: bare-`sk-` and `sk-(proj|ant)-` are intentionally separate ---
+# `sk-` followed by [_-] (e.g. internal `sk-proj-` shorter than 40 alnum-or-`_-`)
+# must NOT match the bare branch. Only the explicit sk-(proj|ant)- branch handles it.
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo sk-proj-internal-12345"}}' \
+    "allows short sk-proj-* internal ID (boundary between bare and proj branches)"
+
+# --- Documented FP: AWS canned example keys block ---
+# AKIA[0-9A-Z]{16} matches AWS's published example (AKIAIOSFODNN7EXAMPLE),
+# so docs-style fixture paths block. The behavior is intentional (false-positive
+# accepted) but pinned here so future authors see it as a documented surprise,
+# not a bug. To unblock: re-run from the user, or add a settings.local.json
+# allow rule.
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"aws s3 cp s3://example-bucket/AKIAIOSFODNN7EXAMPLE/data.json ./"}}' \
+    "blocks AWS docs example key in S3 path (documented FP)"
+
 # --- Note on quoted-string content ---
 # Detection runs against the raw command (not _strip_inert_content) because
 # the canonical exfil shape — curl -H "Authorization: token ghp_..." — keeps

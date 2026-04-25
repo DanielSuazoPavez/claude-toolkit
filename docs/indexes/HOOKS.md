@@ -119,9 +119,11 @@ Blocks commands that carry credential-shaped tokens in their arguments — the i
   - GitHub: `ghp_` (classic PAT), `github_pat_` (fine-grained), `gho_/ghu_/ghs_/ghr_` (OAuth/user-to-server/server-to-server/refresh)
   - GitLab: `glpat-`
   - Slack: `xox[baprs]-`
-  - AWS: `AKIA...` (access key), `ASIA...` (temp key)
+  - AWS: `AKIA...` (access key), `ASIA...` (temp key) — note: AWS's canned example `AKIAIOSFODNN7EXAMPLE` will block too
   - OpenAI: `sk-` (classic), `sk-proj-`
   - Anthropic: `sk-ant-`
+  - Stripe: `sk_live_`, `sk_test_`, `rk_live_`, `rk_test_`
+  - Google: `AIza` API keys
 - Bare-40-hex is intentionally excluded (false positives on git SHAs and base64 fragments)
 - Block reason instructs the model not to paste tokens between commands; the user can run it themselves or allowlist in `settings.local.json`
 - Position in dispatcher: after `auto_mode_shared_steps`, before `git_safety` — informative-reason precedence over downstream guards that wouldn't fire for this command anyway

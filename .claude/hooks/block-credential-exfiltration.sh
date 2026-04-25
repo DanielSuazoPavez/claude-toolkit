@@ -20,8 +20,15 @@
 #
 # Patterns covered: GitHub PAT (classic, fine-grained, OAuth/user/server/refresh),
 # GitLab PAT, Slack, AWS access/temp keys, OpenAI (classic + sk-proj-),
-# Anthropic. Bare-40-hex is intentionally excluded (false positives on git SHAs
-# and base64 fragments).
+# Anthropic, Stripe (live/test secret + restricted), Google API keys.
+# We deliberately don't try to match bare 40-hex strings — git SHAs and
+# base64 fragments collide.
+#
+# Known false positives (accepted): AWS canned example keys like
+# `AKIAIOSFODNN7EXAMPLE` in S3 docs-style paths will block. Same goes for
+# token-shaped fixture names in commit messages. The hook errs on the side
+# of false positives because the cost (re-run or allowlist) is small
+# compared to the cost of a real token leaking into an outbound command.
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).
 # See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern.
@@ -36,7 +43,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 # Combined alternation. OpenAI is split: bare `sk-` is alphanumeric-only per
 # the published shape; `sk-proj-` and `sk-ant-` allow `_-` per their formats.
 # Unifying them would broaden the bare branch and false-positive on internal IDs.
-_CRED_TOKEN_RE='ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,}|gh[ousr]_[A-Za-z0-9]{36,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{40,}|sk-(proj|ant)-[A-Za-z0-9_-]{40,}'
+# Stripe `sk_`/`rk_` use underscore (no dash) so they don't collide with OpenAI
+# `sk-`. Google `AIza` prefix is uniquely Google.
+_CRED_TOKEN_RE='ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,}|gh[ousr]_[A-Za-z0-9]{36,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{40,}|sk-(proj|ant)-[A-Za-z0-9_-]{40,}|(sk|rk)_(live|test)_[A-Za-z0-9]{20,}|AIza[A-Za-z0-9_-]{35}'
 
 _CRED_BLOCK_REASON='BLOCKED: Credential-shaped string in command arguments. Don'\''t paste tokens you read from another command into a new command. Read what you need; let the user paste secrets if needed. To allow a specific invocation, the user can run it themselves or add a one-off Bash(...:*) entry to settings.local.json.'
 
