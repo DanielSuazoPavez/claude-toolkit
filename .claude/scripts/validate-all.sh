@@ -61,6 +61,16 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- Detection registry ---
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Running: validate-detection-registry.sh"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+bash "$SCRIPTS_DIR/validate-detection-registry.sh"
+if [ $? -ne 0 ]; then
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
 # --- Safe commands sync ---
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Running: validate-safe-commands-sync.sh"

@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "github-pat",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,}|gh[ousr]_[A-Za-z0-9]{36,}",
+      "message": "GitHub PAT detected in command payload."
+    },
+    {
+      "id": "gitlab-pat",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "glpat-[A-Za-z0-9_-]{20,}",
+      "message": "GitLab PAT detected in command payload."
+    },
+    {
+      "id": "slack-token",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "xox[baprs]-[A-Za-z0-9-]{10,}",
+      "message": "Slack token detected in command payload."
+    },
+    {
+      "id": "aws-access-key",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}",
+      "message": "AWS access key detected in command payload.",
+      "notes": "Includes ASIA temp credentials. AWS canned example keys (e.g. AKIAIOSFODNN7EXAMPLE) will match — accepted FP."
+    },
+    {
+      "id": "openai-key",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "sk-[A-Za-z0-9]{40,}|sk-proj-[A-Za-z0-9_-]{40,}",
+      "message": "OpenAI API key detected in command payload.",
+      "notes": "Bare sk- branch is alphanumeric only; sk-proj- allows _- per published format."
+    },
+    {
+      "id": "anthropic-key",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "sk-ant-[A-Za-z0-9_-]{40,}",
+      "message": "Anthropic API key detected in command payload."
+    },
+    {
+      "id": "stripe-key",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "(sk|rk)_(live|test)_[A-Za-z0-9]{20,}",
+      "message": "Stripe key detected in command payload."
+    },
+    {
+      "id": "google-api-key",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "AIza[A-Za-z0-9_-]{35}",
+      "message": "Google API key detected in command payload."
+    },
+    {
+      "id": "authorization-header",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "[Aa]uthorization:[[:space:]]*(token|Bearer|Basic)",
+      "message": "Authorization header detected — credential payload inside command.",
+      "notes": "Target is raw because the header value lives inside a quoted string that strip blanks."
+    },
+    {
+      "id": "credential-env-var-name",
+      "kind": "credential",
+      "target": "raw",
+      "pattern": "\\$\\{?([A-Z][A-Z0-9_]*(_TOKEN|_SECRET|_API_KEY|_PASSWORD|_PASS)|GH_TOKEN|GITHUB_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)",
+      "message": "Credential-shaped env var reference detected.",
+      "notes": "target=raw is intentional: `echo \"$GH_TOKEN\"` is the most common exfil shape and the var ref lives inside a double-quoted string that strip would blank. Tradeoff: literal `$VAR_NAME` mentions inside single-quoted strings (e.g. echo 'use $GH_TOKEN in CI') will FP-block; accepted per the credential-exfil hook's stated FP stance."
+    },
+    {
+      "id": "env-file",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.env($|\\.|/)",
+      "message": ".env file path referenced.",
+      "notes": "Hook must additionally allowlist .example/.template suffixes — registry signals shape only."
+    },
+    {
+      "id": "ssh-private-key",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.ssh/id_",
+      "message": "SSH private key path referenced.",
+      "notes": "Hook must allow *.pub variants."
+    },
+    {
+      "id": "aws-credentials-file",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.aws/(credentials|config)",
+      "message": "AWS credentials/config file referenced."
+    },
+    {
+      "id": "kube-config",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.kube/config",
+      "message": "kubeconfig path referenced."
+    },
+    {
+      "id": "gh-cli-config",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.config/gh/hosts\\.yml",
+      "message": "GitHub CLI hosts.yml referenced."
+    },
+    {
+      "id": "docker-config",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.docker/config\\.json",
+      "message": "Docker registry auth config referenced."
+    },
+    {
+      "id": "npmrc",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.npmrc",
+      "message": ".npmrc may expose npm authentication tokens."
+    },
+    {
+      "id": "pypirc",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.pypirc",
+      "message": ".pypirc may expose PyPI authentication tokens."
+    },
+    {
+      "id": "gem-credentials",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.gem/credentials",
+      "message": "gem credentials file may expose RubyGems API keys."
+    },
+    {
+      "id": "gnupg-dir",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.gnupg(/|$)",
+      "message": "GPG directory may expose private keys and trust data."
+    },
+    {
+      "id": "git-config",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.git/config",
+      "message": ".git/config may embed credentials in remote URLs.",
+      "notes": "Hook must additionally check for embedded user:pass@ in remote URLs — registry signals shape only."
+    },
+    {
+      "id": "github-api-host",
+      "kind": "capability",
+      "target": "stripped",
+      "pattern": "(curl|wget)[[:space:]].*api\\.github\\.com",
+      "message": "Outbound call to api.github.com.",
+      "notes": "Used by auto-mode-shared-steps to gate authenticated GitHub API access."
+    }
+  ]
+}

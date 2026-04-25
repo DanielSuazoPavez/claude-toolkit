@@ -258,22 +258,11 @@ assert_allow_in_dir "$CLEAN_REPO" "{\"tool_name\":\"Read\",\"tool_input\":{\"fil
     "allows Read of clean .git/config"
 
 # ============================================================
-# Targeted env-var echoes (credential-shaped names)
+# Env-listing capabilities (credential-shaped names)
 # ============================================================
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $GITHUB_TOKEN"}}' \
-    "blocks echo \$GITHUB_TOKEN"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo \"${ANTHROPIC_API_KEY}\""}}' \
-    "blocks echo \${ANTHROPIC_API_KEY}"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $MY_API_KEY"}}' \
-    "blocks echo of *_API_KEY shape"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $DB_PASSWORD"}}' \
-    "blocks echo of *_PASSWORD shape"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $SOME_TOKEN"}}' \
-    "blocks echo of *_TOKEN shape"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $APP_SECRET"}}' \
-    "blocks echo of *_SECRET shape"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $AWS_SECRET_ACCESS_KEY"}}' \
-    "blocks echo \$AWS_SECRET_ACCESS_KEY"
+# `echo $VAR` cases moved to test-block-credential-exfil.sh after dedup —
+# block-credential-exfiltration owns credential-payload-in-command. What stays
+# here is env-listing capabilities not covered by that hook (no `$` ref).
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"printenv GITHUB_TOKEN"}}' \
     "blocks printenv GITHUB_TOKEN"
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep -i token"}}' \
@@ -282,17 +271,6 @@ expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"printenv | gr
     "blocks printenv | grep -iE secret|key"
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep API_KEY"}}' \
     "blocks env | grep API_KEY"
-
-# Env-var echo allowlist: non-credential vars
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $PATH"}}' \
-    "allows echo \$PATH"
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $HOME"}}' \
-    "allows echo \$HOME"
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $USER"}}' \
-    "allows echo \$USER"
-# Token name in a single-quoted string (not interpolated) — handled by the inert-content stripper
-expect_allow "$hook" "$(jq -n --arg cmd "echo 'use \$GITHUB_TOKEN in CI'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
-    "allows token-shaped name inside single-quoted string"
 # env | grep is blocked by the pre-existing standalone-env rule (any pipe into env list);
 # this is intentional — the env list itself is the secret surface.
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"env | grep PATH"}}' \

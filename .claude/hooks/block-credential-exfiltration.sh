@@ -3,14 +3,33 @@
 # Event: PreToolUse (Bash)
 # Purpose: Block commands whose arguments contain credential-shaped tokens.
 #
-# Sibling to secrets-guard.sh (which blocks credential reads). This one blocks
-# the inverse vector: a token already in the model's context being re-used as a
+# Sibling to secrets-guard.sh. Both hooks share a direction (keep credentials
+# out of the model's context) but split the responsibility field:
+#
+#   block-credential-exfiltration → "credential value/reference INSIDE a command"
+#                                   token literals, Authorization headers, $VAR
+#                                   refs to credential-shaped env vars.
+#                                   Detection: kind=credential, target=raw.
+#   secrets-guard                 → "command REACHES TOWARDS a sensitive resource"
+#                                   file paths, env-listing capabilities,
+#                                   printenv VAR.
+#                                   Detection: kind=path/stripped + inline policy.
+#
+# The two hooks compose: when both fire on the same command, the stricter block
+# wins — that's intentional defense-in-depth. The split is documented in §11 of
+# .claude/docs/relevant-toolkit-hooks.md.
+#
+# This hook owns: tokens already in the model's context being re-used as a
 # literal in a new outbound command — typically curl -H "Authorization: token
 # ghp_...". Once a token is in context (read from earlier tool output, pasted
 # from a prior turn, or visible in a tokenised git remote), nothing else stops
 # it from flowing into the next command.
 #
-# Detection: prefix-anchored token-shape regexes against the raw $COMMAND.
+# Detection: shared registry (kind=credential, target=raw). The pattern catalog
+# lives in .claude/hooks/lib/detection-registry.json — adding a new token shape
+# is a one-entry edit there, not in this file. See §11 of
+# .claude/docs/relevant-toolkit-hooks.md for the raw-vs-stripped convention.
+#
 # Quoted-string content is included on purpose — the canonical exfil shape is
 # `curl -H "Authorization: token ghp_..."` where the token IS inside a quoted
 # string. False positives on fixture names that happen to look like tokens
@@ -18,11 +37,15 @@
 # user can re-run themselves or allowlist the specific command in
 # settings.local.json.
 #
-# Patterns covered: GitHub PAT (classic, fine-grained, OAuth/user/server/refresh),
-# GitLab PAT, Slack, AWS access/temp keys, OpenAI (classic + sk-proj-),
-# Anthropic, Stripe (live/test secret + restricted), Google API keys.
-# We deliberately don't try to match bare 40-hex strings — git SHAs and
-# base64 fragments collide.
+# Coverage (driven by the registry): all credential-kind / raw-target entries —
+# GitHub PAT (classic, fine-grained, OAuth/user/server/refresh), GitLab PAT,
+# Slack, AWS access/temp keys, OpenAI (classic + sk-proj-), Anthropic,
+# Stripe, Google API keys, plus Authorization-header literals and credential-
+# shaped env var references. The hook intentionally consumes the full kind:
+# any "credential payload in raw command" is exfil-shaped, regardless of
+# whether the payload is a literal token or a header/env-var reference.
+# Bare 40-hex strings are deliberately not matched — git SHAs and base64
+# fragments collide.
 #
 # Known false positives (accepted): AWS canned example keys like
 # `AKIAIOSFODNN7EXAMPLE` in S3 docs-style paths will block. Same goes for
@@ -39,21 +62,23 @@
 # Test cases: tests/hooks/test-block-credential-exfil.sh
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
 
-# Combined alternation. OpenAI is split: bare `sk-` is alphanumeric-only per
-# the published shape; `sk-proj-` and `sk-ant-` allow `_-` per their formats.
-# Unifying them would broaden the bare branch and false-positive on internal IDs.
-# Stripe `sk_`/`rk_` use underscore (no dash) so they don't collide with OpenAI
-# `sk-`. Google `AIza` prefix is uniquely Google.
-_CRED_TOKEN_RE='ghp_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,}|gh[ousr]_[A-Za-z0-9]{36,}|glpat-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|sk-[A-Za-z0-9]{40,}|sk-(proj|ant)-[A-Za-z0-9_-]{40,}|(sk|rk)_(live|test)_[A-Za-z0-9]{20,}|AIza[A-Za-z0-9_-]{35}'
+# Token-shape regexes live in detection-registry.json under kind=credential,
+# target=raw (see .claude/docs/relevant-toolkit-hooks.md §11). Adding a new
+# token shape = one entry in the registry, no edit here.
+detection_registry_load
 
 _CRED_BLOCK_REASON='BLOCKED: Credential-shaped string in command arguments. Don'\''t paste tokens you read from another command into a new command. Read what you need; let the user paste secrets if needed. To allow a specific invocation, the user can run it themselves or add a one-off Bash(...:*) entry to settings.local.json.'
 
 # ============================================================
 # match_credential_exfil — cheap predicate
 # ============================================================
+# Pre-built credential/raw alternation regex from the registry; pure-bash =~,
+# no fork, satisfies the §4 cheapness contract.
 match_credential_exfil() {
-    [[ "$COMMAND" =~ $_CRED_TOKEN_RE ]]
+    [ -n "${_REGISTRY_RE__credential__raw:-}" ] || return 1
+    [[ "$COMMAND" =~ ${_REGISTRY_RE__credential__raw} ]]
 }
 
 # ============================================================

@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.66.0] - 2026-04-25 - shared hook detection registry
+
+### Added
+- **hooks**: New shared detection registry (`.claude/hooks/lib/detection-registry.json` + JSON Schema at `.claude/schemas/hooks/detection-registry.schema.json`) holds the credential / path / capability regex catalog that previously lived inline across `secrets-guard`, `block-credential-exfiltration`, and `auto-mode-shared-steps`. 22 entries across three kinds (`credential`, `path`, `capability`) and two targets (`raw`, `stripped`). Adding a new credential shape or sensitive path is now a 1-line registry edit instead of a per-hook regex change. Loader (`.claude/hooks/lib/detection-registry.sh`) builds pre-compiled bash alternation regexes per `(kind, target)` once at startup and exposes `detection_registry_match`, `detection_registry_match_kind`, plus the underlying `_REGISTRY_RE__<kind>__<target>` variables — pure-bash `=~` matches, no fork in the steady state. Validator (`validate-detection-registry.sh`) runs in `make validate` and pins id format (kebab-case), uniqueness, kind/target enums, required fields, and bash-ERE compilability for every pattern.
+- **docs**: New §11 "Detection Target — Raw vs Stripped" in `.claude/docs/relevant-toolkit-hooks.md`. Documents the previously-undocumented decision every hook author was making implicitly: when matching credential/path/capability regexes against `$COMMAND`, do you match raw input (catches tokens inside double-quoted Authorization headers) or `_strip_inert_content` output (avoids false positives from token-shaped names in commit messages)? Decision matrix, worked examples, registry-backed `match_` skeleton, "when NOT to use the registry" guidance, and a scope-boundary subsection covering the secrets-guard / block-credential-exfiltration split. Triggered by the `block-credential-exfiltration` implementation cycle where a wrong-default cost a full test cycle.
+- **tests**: `tests/hooks/test-detection-registry.sh` (23 assertions covering loader idempotency, bucket population, exact and kind-based match APIs, describe-on-hit side effects, re-source guard) and `tests/test-validate-detection-registry.sh` (10 assertions, synthesizes broken registries in temp dirs and asserts the validator rejects each violation type). `tests/perf-detection-registry.sh` benchmarks per-invocation `duration_ms` for the migrated hooks across a 20-command corpus, sourced from `~/.claude/hooks.db` — not part of `make test`.
+
+### Changed
+- **hooks**: `block-credential-exfiltration.sh` migrated to consume the `credential` kind (raw target) from the registry. Behavior broadened to cover Authorization-header literals (`Authorization: token|Bearer|Basic`) and credential-shaped env-var references (`$GH_TOKEN`, `${ANTHROPIC_API_KEY}`, `*_TOKEN`/`*_SECRET`/`*_API_KEY`/`*_PASSWORD`/`*_PASS` shapes) — both legitimate exfil signals even without a token-shape literal.
+- **hooks**: `auto-mode-shared-steps.sh` migrated to consume the `credential/raw` kind for Authorization-header detection and the `capability/stripped` kind for the `api.github.com` host gate. The `gh pr/issue/release/repo` writes and `git push` command-shapes stay inline as auto-mode-specific policy (per §11 "When NOT to use the registry").
+- **hooks**: `secrets-guard.sh` Bash branch migrated to consume the `path/stripped` kind. Read and Grep handlers consume the same registry-sourced regex via `_SECRETS_MATCH_RE`. Hook-specific policy stays inline: per-tool block reasons, `.example`/`.template` allowlist, `.git/config` credential-remote check, `normalize_path`, env-listing capabilities (`env`, `printenv`, `env|grep` on credential keywords, `printenv VAR` on credential-shaped names).
+- **hooks**: Deduplicated the `echo $CREDENTIAL_VAR` detection that previously fired in both `secrets-guard` and `block-credential-exfiltration`. The exfil hook owns it now (registry entry `credential-env-var-name`, target=raw). Documented scope boundary in §11: same direction (keep credentials out of context), different responsibility field — exfil owns "credential value/reference inside a command", secrets-guard owns "command reaches towards a sensitive resource". Accepted false positive: literal `$VAR_NAME` mentions inside single-quoted strings (e.g. `echo 'use $GH_TOKEN in CI'`) now block, since target=raw is required to catch the canonical exfil shape `echo "$GH_TOKEN"` (the strip helper would blank double-quoted content).
+- **scripts**: `validate-detection-registry.sh` now uses base64 transport for pattern/message extraction (jq's `@tsv` mangles backslashes, breaking patterns like `\$\{?...`). The pattern-compile check now correctly fails on malformed regexes — the previous `|| true` swallowed the failure unconditionally. Adds `CLAUDE_DETECTION_REGISTRY` env override matching the loader, used by tests to point the validator at fixture registries.
+
+### Performance
+- A/B benchmark via `tests/perf-detection-registry.sh` against `d70a8e4` (last commit pre-Phase-1) shows the migration is a pure performance win — every migrated hook got faster, not slower:
+    - `secrets-guard`: p95 207ms → 75ms (−132ms)
+    - `block-credential-exfiltration`: p95 152ms → 69ms (−83ms)
+    - `auto-mode-shared-steps`: p95 154ms → 82ms (−72ms)
+- The improvement comes from the loader's pre-compiled alternation regexes per `(kind, target)`: each `match_` becomes a single bash `=~` against a pre-built variable instead of multiple independent regex passes. Reproduce: `bash tests/perf-detection-registry.sh -t migrated > /tmp/migrated.txt`, `git checkout d70a8e4`, `bash /tmp/perf-detection-registry.sh -t baseline > /tmp/baseline.txt`, `git checkout -`, `diff /tmp/baseline.txt /tmp/migrated.txt` (full procedure documented in the script header).
+
+### Deleted
+- **backlog**: Removed `hooks-detection-target-convention` from P0 (completed — shipped as the registry foundation, §11 docs convention, and three hook migrations).
+
+### Notes
+- Two follow-ups remain in BACKLOG and are intentional: `hooks-secrets-guard-read-grep-registry` (P0 — secrets-guard Read/Grep handlers still hold inline `BLOCKED_PATHS` array; v1 only migrated the Bash branch) and `hooks-detection-registry-per-project` (P3 — layered project-local override file, deferred until v1 ships and we have signal on which downstream projects need custom patterns).
+
 ## [2.65.1] - 2026-04-25 - validate-dist-manifests excluded from consumer syncs
 
 ### Fixed

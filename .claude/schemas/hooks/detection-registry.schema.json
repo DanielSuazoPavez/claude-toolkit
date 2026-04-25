@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-toolkit/schemas/hooks/detection-registry.schema.json",
+  "title": "Detection Registry",
+  "description": "Catalog of credential / path / capability patterns consumed by hook guards. See .claude/docs/relevant-toolkit-hooks.md §11.",
+  "type": "object",
+  "required": ["version", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version. Bump only on breaking field changes."
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/entry" }
+    }
+  },
+  "definitions": {
+    "entry": {
+      "type": "object",
+      "required": ["id", "kind", "target", "pattern", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Kebab-case unique identifier."
+        },
+        "kind": {
+          "enum": ["credential", "path", "capability"],
+          "description": "credential = secret payload (token, header value, embedded URL creds). path = filesystem target (.env, ~/.aws/credentials). capability = sensitive command shape (docker exec, terraform show)."
+        },
+        "target": {
+          "enum": ["raw", "stripped"],
+          "description": "raw = match against full $COMMAND including quoted strings (use when the secret IS the payload). stripped = match against _strip_inert_content output (use when the secret is the target of a command)."
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Bash ERE regex. Must compile under [[ =~ ]]."
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable violation message. Hooks may prefix with verbs (e.g. 'BLOCKED:')."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional: known false-positives, accepted tradeoffs, or context that future maintainers need."
+        }
+      }
+    }
+  }
+}

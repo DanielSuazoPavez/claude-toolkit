@@ -1,44 +1,50 @@
 #!/bin/bash
-# PreToolUse hook: block reading secrets and credential files
+# PreToolUse hook: block REACHING TOWARDS sensitive resources.
+#
+# Scope (responsibility split with block-credential-exfiltration.sh):
+#   secrets-guard          → "command reaches a sensitive resource"
+#                            file paths (.env, ~/.aws/credentials, ~/.ssh/id_*),
+#                            env-listing capabilities (env, printenv, env|grep),
+#                            credential-shaped name targeted via printenv VAR.
+#                            Detection: kind=path/stripped (registry) +
+#                            inline command-shape policy.
+#   block-credential-exfil → "credential value/reference inside a command"
+#                            token literals, Authorization headers, $VAR refs to
+#                            credential-shaped env vars.
+#                            Detection: kind=credential/raw (registry).
+#
+# Direction is the same (keep secrets out of the model's context); responsibility
+# field differs. The two hooks compose: when both fire on the same command, the
+# stricter block wins — that's intentional defense-in-depth.
+#
+# Echo of credential-shaped $VAR (e.g. `echo $GITHUB_TOKEN`) is owned by
+# block-credential-exfiltration; this hook does NOT detect it. printenv VAR,
+# standalone env/printenv, and env|grep on credential keywords stay here —
+# they aren't credential-payload-in-command, they're env-listing capabilities.
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).
 # Only the Bash branch participates in the dispatcher — Read/Grep branches
 # stay in main (they'd need their own dispatcher — see grouped-read-guard).
-# See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern.
+# See .claude/docs/relevant-toolkit-hooks.md for the match/check pattern and
+# §11 for the scope-boundary convention.
 #
 # Settings.json:
 #   "PreToolUse": [{"matcher": "Read|Bash|Grep", "hooks": [{"type": "command", "command": "bash .claude/hooks/secrets-guard.sh"}]}]
 #
-# Blocks:
-#   Read tool:
-#     - Files matching .env, .env.*, *.env (except .example files)
-#     - SSH private keys (~/.ssh/id_* except *.pub), SSH config
-#     - GPG directory (~/.gnupg/)
-#     - Cloud credentials (~/.aws/credentials, ~/.aws/config)
-#     - CLI tokens (~/.config/gh/hosts.yml, ~/.docker/config.json, ~/.kube/config)
-#     - Package manager tokens (~/.npmrc, ~/.pypirc, ~/.gem/credentials)
-#   Bash tool:
-#     - cat .env, less .env, head .env, tail .env
-#     - grep/rg/awk/sed targeting .env files
-#     - source .env, . .env
-#     - export $(cat .env)
-#     - env, printenv (lists all env vars)
-#     - cat/less/head/tail/grep/rg/awk/sed of credential files
-#     - gpg --export-secret-keys
-#   Grep tool:
-#     - path targeting .env, .env.*, *.env files (except .example/.template)
-#     - path targeting credential files (same set as Read tool)
-#     - glob patterns: .env*, .env.*, *.env
+# Blocks (all tools): paths matching the registry's path/stripped catalog
+# (.env, ~/.ssh/id_*, ~/.aws/, ~/.kube/config, ~/.config/gh, ~/.docker/,
+# ~/.npmrc, ~/.pypirc, ~/.gem/credentials, ~/.gnupg/, .git/config-with-cred);
+# allowlist for *.example, *.template, *.pub.
 #
-# Allowlist:
-#   - Files ending in .example (e.g., .env.example, .env.api.example)
-#   - Files ending in .template (e.g., .env.template)
-#   - SSH public keys (*.pub), known_hosts, authorized_keys
-#   - Grep with .example/.template globs or paths
+# Bash-only extras: standalone env/printenv (lists all vars), env|printenv
+# piped into grep for credential keywords, printenv VAR on credential-shaped
+# names, gpg --export-secret-keys, .git/config remote with embedded credential.
 #
-# Test cases: see tests/test-hooks.sh test_secrets_guard
+# Test cases: tests/hooks/test-secrets-guard.sh
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
+detection_registry_load
 
 # --- Shared data and helpers (used by Read and Grep handlers in main) ---
 
@@ -124,8 +130,11 @@ check_credential_path() {
 # before calling match_; check_ returns 0=pass, 1=block (sets _BLOCK_REASON).
 #
 # Broad regex shared between match_*_read and match_*_grep — cheap predicate
-# covering every credential-path hint we block. Actual decision lives in check_.
-_SECRETS_MATCH_RE='\.env($|\.|/)|\.ssh/id_|\.gnupg|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/|\.git/config$'
+# covering every credential-path hint we block. Sourced from the detection
+# registry (kind=path, target=stripped); actual decision lives in check_.
+# `_REGISTRY_RE__path__stripped` is the pre-built alternation of all path-kind
+# patterns in .claude/hooks/lib/detection-registry.json.
+_SECRETS_MATCH_RE="${_REGISTRY_RE__path__stripped:-__never__}"
 
 # Credential-shape regex for embedded user:secret in remote URLs.
 # Matches `user:pass@host` style — short passwords are still secrets.
@@ -227,17 +236,17 @@ check_secrets_guard_grep() {
 # match_secrets_guard — cheap predicate for the Bash branch
 # ============================================================
 # Returns 0 when $COMMAND contains any token that could trigger a check:
-# a read-like verb, env/printenv, source/., gpg, or a credential-path hint.
+# a read-like verb, env/printenv, source/., gpg, or a credential-path hint
+# from the registry's path/stripped catalog.
 # Pure bash pattern matching — no forks, no jq, no git.
 # Deliberately broad to preserve false-positive semantics.
 match_secrets_guard() {
-    local stripped re raw_re
+    local stripped verb_re path_re
     stripped=$(_strip_inert_content "$COMMAND")
-    re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg|git)([[:space:]]|$)|\.env|\.ssh/id_|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/|\.git/config'
-    [[ "$stripped" =~ $re ]] && return 0
-    # Credential-shaped env var refs survive only in $_raw — strip blanks them.
-    raw_re='echo[[:space:]]+.*\$\{?[A-Z][A-Z0-9_]*'
-    [[ "$COMMAND" =~ $raw_re ]]
+    verb_re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg|git)([[:space:]]|$)'
+    [[ "$stripped" =~ $verb_re ]] && return 0
+    path_re="${_REGISTRY_RE__path__stripped:-__never__}"
+    [[ "$stripped" =~ $path_re ]]
 }
 
 # ============================================================
@@ -248,18 +257,12 @@ match_secrets_guard() {
 check_secrets_guard() {
     # Strip heredoc/quoted content once — all regexes below match the skeleton.
     # Capture the outer $COMMAND first, then shadow with the stripped version.
+    # `echo $CREDENTIAL_VAR` detection lives in block-credential-exfiltration —
+    # see the scope-boundary header at the top of this file.
     local _raw="$COMMAND"
     local COMMAND
     COMMAND=$(_strip_inert_content "$_raw")
 
-    # Targeted env-var echo via double-quoted interpolation:
-    # `_strip_inert_content` blanks "${VAR}" content, so we check raw first.
-    # Single-quoted '$VAR' is not interpolation — exclude.
-    local CRED_VAR_RE='([A-Z][A-Z0-9_]*(_TOKEN|_SECRET|_API_KEY|_PASSWORD|_PASS)|GH_TOKEN|GITHUB_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)'
-    if [[ "$_raw" =~ echo[[:space:]]+\"[^\"]*\$\{?${CRED_VAR_RE} ]]; then
-        _BLOCK_REASON="BLOCKED: Echoing a credential-shaped env var puts a secret in your context. Reference the var name in code instead of printing its value."
-        return 1
-    fi
     # Block commands that read .env files (.env, .env.local, .env.production, prod.env, etc.)
     # Allow: .env.example, .env.template
     local ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'
@@ -368,14 +371,11 @@ check_secrets_guard() {
         return 1
     fi
 
-    # Targeted env-var echo / printenv / piped grep — credential-shaped names.
-    # Match $VAR or ${VAR} where VAR ends in _TOKEN/_SECRET/_API_KEY/_PASSWORD/_PASS
-    # or is a well-known literal (GH_TOKEN, GITHUB_TOKEN, ANTHROPIC_API_KEY, etc.).
+    # printenv VAR and env|grep on credential keywords — env-listing capabilities
+    # not covered by block-credential-exfiltration (no `$` ref, no payload).
+    # Match VAR names ending in _TOKEN/_SECRET/_API_KEY/_PASSWORD/_PASS or a
+    # well-known literal (GH_TOKEN, GITHUB_TOKEN, ANTHROPIC_API_KEY, etc.).
     local CRED_VAR_RE='([A-Z][A-Z0-9_]*(_TOKEN|_SECRET|_API_KEY|_PASSWORD|_PASS)|GH_TOKEN|GITHUB_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)'
-    if [[ "$COMMAND" =~ echo[[:space:]]+.*\$\{?${CRED_VAR_RE} ]]; then
-        _BLOCK_REASON="BLOCKED: Echoing a credential-shaped env var puts a secret in your context. Reference the var name in code instead of printing its value."
-        return 1
-    fi
     if [[ "$COMMAND" =~ (^|[[:space:];&|])printenv[[:space:]]+${CRED_VAR_RE} ]]; then
         _BLOCK_REASON="BLOCKED: 'printenv VAR' on a credential-shaped env var puts a secret in your context."
         return 1

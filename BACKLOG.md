@@ -21,10 +21,10 @@
 
 ## P0 - Critical
 
-- **[HOOKS]** Standardize sensitive-data detection target convention: raw vs stripped (`hooks-detection-target-convention`)
+- **[HOOKS]** Migrate secrets-guard Read/Grep handlers to detection registry (`hooks-secrets-guard-read-grep-registry`)
     - **scope**: `hooks`
-    - **notes**: Hook authors face an undocumented decision every time they write a credential / shared-state / dangerous-command guard: should the regex match against the raw `$COMMAND`, or against `_strip_inert_content "$COMMAND"` (which blanks heredocs and quoted strings)? The choice changes the security posture: raw catches tokens inside double-quoted Authorization headers (the canonical exfil shape), stripped avoids false positives from token-shaped fixture names in commit messages. Existing hooks are inconsistent — `secrets-guard.sh` mostly uses stripped (commit-message false positives matter for `.env` references), `auto-mode-shared-steps.sh` uses raw for `Authorization:` detection but stripped for host/command checks (line 71 vs 78+), and the new `block-credential-exfiltration.sh` had to flip from stripped to raw mid-implementation when 7/14 token tests failed because the canonical shape `curl -H "Authorization: token ghp_..."` puts the token inside a double-quoted string that the strip helper blanks. Lesson surfaced via `surface-lessons.sh` reminded about MANIFEST enumeration; the same lesson channel should carry a "use raw when the secret is the payload, stripped when the secret is the target" rule. Action: (a) write a convention doc (likely `.claude/docs/relevant-toolkit-hooks.md` §"Detection target") with a decision matrix — what kind of regex matches what kind of input, plus 2-3 worked examples (`Authorization: token` → raw; `cat .env` → stripped; `curl https://hooks.slack.com` → stripped); (b) audit the three guards above and document each `match_/check_` function's chosen target inline (one comment line); (c) consider a helper like `_match_secret_payload` / `_match_command_target` to make the choice explicit at call sites instead of implicit. Trigger context: `block-credential-exfiltration` implementation 2026-04-25, where the wrong default cost a full test cycle.
-    - **depends on**: none
+    - **notes**: Follow-up to `hooks-detection-target-convention`. The v1 migration only covered the Bash branch of `secrets-guard.sh`; the Read and Grep handlers (and their `match_secrets_guard_read` / `match_secrets_guard_grep` siblings used by `grouped-read-guard`) still hold inline credential-path patterns (`BLOCKED_PATHS` array, `_SECRETS_MATCH_RE`). Migrate them to consume the same `kind=path` registry entries already used by the Bash branch so that adding a new credential file path is a 1-line registry edit covering all three tools. Hook-specific behavior (per-tool block reasons, `normalize_path`, `.git/config` credential-remote check, .example/.template allowlist) stays in the hook — only the regex catalog moves. Acceptance: same test suite (`tests/hooks/test-secrets-guard.sh`) passes; adding a new path entry to `detection-registry.json` is picked up by Read, Grep, and Bash handlers without further code changes.
+    - **depends on**: `hooks-detection-target-convention`
 
 ## P1 - High
 
@@ -37,6 +37,11 @@
 
 
 ## P3 - Low
+
+- **[HOOKS]** Per-project customization of detection registry (`hooks-detection-registry-per-project`)
+    - **scope**: `hooks`
+    - **notes**: Follow-up to `hooks-detection-target-convention`. Once the shared detection registry (`detection-registry.json` + JSON Schema + jq loader) is in place and its schema has stabilized, add a layered resolution path so downstream projects can extend or override the toolkit defaults without forking the synced file. Likely shape: project-local `detection-registry.local.json` (gitignored or committed per project preference) merged on top of the synced toolkit registry at hook-load time. Open questions to resolve at design time: (1) merge strategy — replace-by-id, append-only, or deep-merge per field; (2) whether projects can *disable* a toolkit-shipped entry (e.g. `{"id": "github-pat", "disabled": true}` override) or only add new ones; (3) whether the local file is project-private or syncs out via `claude-toolkit send` for cross-project sharing; (4) precedence rules when both files define the same `id` with different `kind`/`target`. Defer until v1 ships and we have real-world signal on which downstream projects need custom patterns (likely: aws-toolkit for AWS-specific shapes, schema-smith for DB-specific shapes). Design context: `output/claude-toolkit/brainstorm/20260425_1349__brainstorm-feature__hooks-detection-target-convention.md`.
+    - **depends on**: `hooks-detection-target-convention`
 
 - **[HOOKS]** Fold `surface-lessons.sh` into `grouped-bash-guard.sh` (`surface-lessons-fold`)
     - **scope**: `hooks`
