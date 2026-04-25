@@ -34,7 +34,7 @@ make test
 
 - Never commit directly to main (enforced by hook).
 - Branch naming: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/` prefixes.
-- Merge to main with `--no-ff` to preserve branch history.
+- **User owns shared-state ops.** Claude does not merge to main, push, open pull requests, or push tags — branch work ends at handoff. `/draft-pr` is user-invoked: it writes the description, you open the PR. When merging directly, use `--no-ff` to preserve branch history.
 
 ## Toolkit
 
