@@ -70,17 +70,16 @@ _hook_perf_probe "build_sql"
 [ "$WORD_COUNT" -lt 2 ] && exit 0
 
 # Intra-session dedup: exclude lesson IDs already surfaced earlier in this session.
-# Cross-DB via a pre-query (no ATTACH); empty on first invocation or if hooks.db
-# is absent, which degrades gracefully to "no dedup".
-HOOKS_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
+# Reads prior surface-lessons rows from JSONL; empty on first invocation or if
+# the file is absent, which degrades gracefully to "no dedup". `grep -F` filters
+# to the session's lines first (UUID session_ids make substring collisions
+# vanishingly unlikely) so jq only parses the relevant tail.
+SURFACE_JSONL="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}/surface-lessons.jsonl"
 NOT_IN_CLAUSE=""
-if [ -f "$HOOKS_DB" ] && [ -n "$SESSION_ID" ] && [ "$SESSION_ID" != "unknown" ]; then
-    SAFE_SESSION="${SESSION_ID//\'/\'\'}"
-    SEEN_IDS=$(sqlite3 "$HOOKS_DB" "
-        SELECT DISTINCT matched_lesson_ids
-        FROM surface_lessons_context
-        WHERE session_id = '${SAFE_SESSION}' AND match_count > 0;
-    " 2>/dev/null | tr ',' '\n' | awk 'NF' | sort -u)
+if [ -f "$SURFACE_JSONL" ] && [ -n "$SESSION_ID" ] && [ "$SESSION_ID" != "unknown" ]; then
+    SEEN_IDS=$(grep -F "$SESSION_ID" "$SURFACE_JSONL" 2>/dev/null \
+        | jq -r --arg sid "$SESSION_ID" 'select(.session_id == $sid and .match_count > 0) | .matched_lesson_ids' 2>/dev/null \
+        | tr ',' '\n' | awk 'NF' | sort -u)
     if [ -n "$SEEN_IDS" ]; then
         QUOTED=""
         for id in $SEEN_IDS; do
@@ -118,7 +117,8 @@ _hook_perf_probe "sqlite_query"
 
 LESSONS=$(echo "$RESULTS" | cut -d'|' -f2-)
 MATCHED_IDS=$(echo "$RESULTS" | cut -d'|' -f1 | tr '\n' ',' | sed 's/,$//')
-MATCH_COUNT=$(echo "$RESULTS" | grep -c . 2>/dev/null || echo "0")
+MATCH_COUNT=$(printf '%s\n' "$RESULTS" | grep -c . 2>/dev/null)
+[ -z "$MATCH_COUNT" ] && MATCH_COUNT=0
 
 # Log context for observability (even when no matches)
 KEYWORD_LIST=$(echo "$WORDS" | tr '\n' ',' | sed 's/,$//')

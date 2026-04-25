@@ -5,6 +5,8 @@ source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
 parse_test_args "$@"
 
+export CLAUDE_TOOLKIT_TRACEABILITY=1
+
 report_section "=== session_id from stdin JSON ==="
 hook="block-dangerous-commands.sh"
 
@@ -52,35 +54,34 @@ else
     report_detail "Got: ${perm_output:-<empty>}"
 fi
 
-# --- session_id propagates to hooks.db (SQLite) ---
-hooks_db="$TEST_HOOKS_DB"
-if [ -f "$hooks_db" ]; then
-    TESTS_RUN=$((TESTS_RUN + 1))
-    db_sid=$(sqlite3 "$hooks_db" "SELECT session_id FROM hook_logs WHERE session_id = '$uuid_session' LIMIT 1" 2>/dev/null)
-    if [ "$db_sid" = "$uuid_session" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "session_id propagates to hooks.db"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "session_id not found in hooks.db"
-        report_detail "Expected: $uuid_session"
-        report_detail "Got: ${db_sid:-<empty>}"
-    fi
-
-    # Verify test_session (unique per run) also reached DB
-    TESTS_RUN=$((TESTS_RUN + 1))
-    db_sid=$(sqlite3 "$hooks_db" "SELECT session_id FROM hook_logs WHERE session_id = '$test_session' LIMIT 1" 2>/dev/null)
-    if [ "$db_sid" = "$test_session" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "dynamic session_id also reaches hooks.db"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "dynamic session_id not found in hooks.db"
-        report_detail "Expected: $test_session"
-        report_detail "Got: ${db_sid:-<empty>}"
-    fi
+# --- session_id propagates to invocations.jsonl ---
+TESTS_RUN=$((TESTS_RUN + 1))
+got=$(grep -F "$uuid_session" "$TEST_INVOCATIONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$uuid_session" 'select(.session_id == $sid) | .session_id' 2>/dev/null \
+    | head -n1)
+if [ "$got" = "$uuid_session" ]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "session_id propagates to invocations.jsonl"
 else
-    log_verbose "hooks.db not found — skipping DB tests"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "session_id not found in invocations.jsonl"
+    report_detail "Expected: $uuid_session"
+    report_detail "Got: ${got:-<empty>}"
+fi
+
+# Verify test_session (unique per run) also reached JSONL
+TESTS_RUN=$((TESTS_RUN + 1))
+got=$(grep -F "$test_session" "$TEST_INVOCATIONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$test_session" 'select(.session_id == $sid) | .session_id' 2>/dev/null \
+    | head -n1)
+if [ "$got" = "$test_session" ]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "dynamic session_id also reaches invocations.jsonl"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "dynamic session_id not found in invocations.jsonl"
+    report_detail "Expected: $test_session"
+    report_detail "Got: ${got:-<empty>}"
 fi
 
 print_summary

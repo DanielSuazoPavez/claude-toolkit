@@ -1,7 +1,7 @@
 #!/bin/bash
 # Verifies the ecosystems opt-in gating:
 #   - hook_feature_enabled returns correct exit codes for all states
-#   - traceability=0 suppresses hooks.db writes in _hook_log_db
+#   - traceability=0 suppresses JSONL writes in _hook_log_jsonl
 #   - lessons=0 skips the session-start lessons block
 #   - session-start nudge fires only when both env keys are unset
 set -uo pipefail
@@ -40,50 +40,52 @@ check_helper "traceability=1 → enabled"   traceability 'CLAUDE_TOOLKIT_TRACEAB
 check_helper "traceability unset → off"   traceability ''                              1
 check_helper "unknown feature → disabled" unknown      'CLAUDE_TOOLKIT_LESSONS=1'      1
 
-report_section "=== Traceability gate: _hook_log_db suppressed when off ==="
+report_section "=== Traceability gate: _hook_log_jsonl suppressed when off ==="
 
-# Run a hook that would normally write to hooks.db; confirm no rows appear
-# when CLAUDE_TOOLKIT_TRACEABILITY is unset or "0".
-if [ -f "$TEST_HOOKS_DB" ] && sqlite3 "$TEST_HOOKS_DB" "SELECT 1 FROM hook_logs LIMIT 0" >/dev/null 2>&1; then
-    sid="test-trace-off-$(date +%s%N)"
-    # session-start writes one row on completion via EXIT trap.
-    # Gate should block it when traceability=0.
-    (
-        unset CLAUDE_TOOLKIT_LESSONS CLAUDE_TOOLKIT_TRACEABILITY
-        echo "{\"session_id\":\"$sid\",\"source\":\"startup\"}" \
-            | CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
-    ) || true
+# Run a hook that would normally write to invocations.jsonl; confirm no rows
+# appear when CLAUDE_TOOLKIT_TRACEABILITY is unset or "0".
+sid="test-trace-off-$(date +%s%N)"
+# session-start writes one row on completion via EXIT trap.
+# Gate should block it when traceability=0.
+(
+    unset CLAUDE_TOOLKIT_LESSONS CLAUDE_TOOLKIT_TRACEABILITY
+    echo "{\"session_id\":\"$sid\",\"source\":\"startup\"}" \
+        | CLAUDE_ANALYTICS_HOOKS_DIR="$TEST_HOOKS_DIR" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
+) || true
 
-    TESTS_RUN=$((TESTS_RUN + 1))
-    got=$(sqlite3 "$TEST_HOOKS_DB" "SELECT COUNT(*) FROM hook_logs WHERE session_id = '$sid'")
-    if [ "$got" = "0" ]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "traceability=off → no hooks.db rows written"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "traceability=off → hooks.db should be empty but has $got rows"
-    fi
-
-    # Inverse: traceability=1 → row should appear
-    sid="test-trace-on-$(date +%s%N)"
-    (
-        export CLAUDE_TOOLKIT_TRACEABILITY=1
-        unset CLAUDE_TOOLKIT_LESSONS
-        echo "{\"session_id\":\"$sid\",\"source\":\"startup\"}" \
-            | CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
-    ) || true
-
-    TESTS_RUN=$((TESTS_RUN + 1))
-    got=$(sqlite3 "$TEST_HOOKS_DB" "SELECT COUNT(*) FROM hook_logs WHERE session_id = '$sid'")
-    if [ "$got" -ge 1 ] 2>/dev/null; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "traceability=on → at least one hooks.db row written"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "traceability=on → expected ≥1 row, got $got"
-    fi
+TESTS_RUN=$((TESTS_RUN + 1))
+got=0
+if [ -f "$TEST_INVOCATIONS_JSONL" ]; then
+    got=$(grep -cF "$sid" "$TEST_INVOCATIONS_JSONL" 2>/dev/null || echo 0)
+fi
+if [ "$got" = "0" ]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "traceability=off → no invocations.jsonl rows written"
 else
-    log_verbose "hooks.db schema unavailable — skipping traceability write assertions"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "traceability=off → invocations.jsonl should be empty but has $got rows"
+fi
+
+# Inverse: traceability=1 → row should appear
+sid="test-trace-on-$(date +%s%N)"
+(
+    export CLAUDE_TOOLKIT_TRACEABILITY=1
+    unset CLAUDE_TOOLKIT_LESSONS
+    echo "{\"session_id\":\"$sid\",\"source\":\"startup\"}" \
+        | CLAUDE_ANALYTICS_HOOKS_DIR="$TEST_HOOKS_DIR" "$HOOKS_DIR/session-start.sh" >/dev/null 2>&1
+) || true
+
+TESTS_RUN=$((TESTS_RUN + 1))
+got=0
+if [ -f "$TEST_INVOCATIONS_JSONL" ]; then
+    got=$(grep -cF "$sid" "$TEST_INVOCATIONS_JSONL" 2>/dev/null || echo 0)
+fi
+if [ "$got" -ge 1 ] 2>/dev/null; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "traceability=on → at least one invocations.jsonl row written"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "traceability=on → expected ≥1 row, got $got"
 fi
 
 report_section "=== Session-start opt-in nudge ==="
@@ -92,7 +94,7 @@ run_session_start() {
     local envline="$1"
     local sid="nudge-$(date +%s%N)"
     # shellcheck disable=SC2086  # $envline is a space-separated KEY=val list
-    env -i PATH="$PATH" HOME="$HOME" CLAUDE_ANALYTICS_HOOKS_DB="$TEST_HOOKS_DB" $envline bash -c \
+    env -i PATH="$PATH" HOME="$HOME" CLAUDE_ANALYTICS_HOOKS_DIR="$TEST_HOOKS_DIR" $envline bash -c \
         "echo '{\"session_id\":\"$sid\",\"source\":\"startup\"}' | '$HOOKS_DIR/session-start.sh' 2>/dev/null"
 }
 

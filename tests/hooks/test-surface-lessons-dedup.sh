@@ -23,8 +23,8 @@ INSERT INTO lessons (id, text, tier, active, scope) VALUES ('test-dedup_001', 'd
 INSERT INTO lesson_tags (lesson_id, tag_id) VALUES ('test-dedup_001', (SELECT id FROM tags WHERE name='git-hazard'));
 SQL
 export CLAUDE_ANALYTICS_LESSONS_DB="$TEST_LESSONS_DB"
-# Compose with the trap set by hook-test-setup.sh (which rm's TEST_HOOKS_DB on EXIT).
-trap 'rm -f "$TEST_LESSONS_DB" "$TEST_HOOKS_DB"' EXIT
+# Compose with the trap set by hook-test-setup.sh (which rm's TEST_HOOKS_DIR on EXIT).
+trap 'rm -f "$TEST_LESSONS_DB"; rm -rf "$TEST_HOOKS_DIR"' EXIT
 # Ensure lessons injection is enabled so matched_lesson_ids actually logs.
 export CLAUDE_TOOLKIT_LESSONS=1
 export CLAUDE_TOOLKIT_TRACEABILITY=1
@@ -37,14 +37,15 @@ echo "$payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 # Second invocation, same session, same matching context: should be deduped.
 echo "$payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
-if [ ! -f "$TEST_HOOKS_DB" ]; then
-    log_verbose "hooks.db not available — skipping dedup assertions"
+if [ ! -f "$TEST_SURFACE_LESSONS_JSONL" ]; then
+    log_verbose "surface-lessons.jsonl not produced — skipping dedup assertions"
     print_summary
     exit 0
 fi
 
 # Collect both invocations' logs in order.
-rows=$(sqlite3 "$TEST_HOOKS_DB" "SELECT matched_lesson_ids FROM surface_lessons_context WHERE session_id = '$test_session' ORDER BY timestamp ASC;" 2>/dev/null)
+rows=$(grep -F "$test_session" "$TEST_SURFACE_LESSONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$test_session" 'select(.session_id == $sid) | .matched_lesson_ids' 2>/dev/null)
 first_ids=$(echo "$rows" | sed -n '1p')
 second_ids=$(echo "$rows" | sed -n '2p')
 
@@ -73,7 +74,9 @@ fi
 other_session="test-dedup-other-$(date +%s%N)"
 other_payload="{\"session_id\":\"$other_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git rebase -i HEAD~3\"}}"
 echo "$other_payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
-other_ids=$(sqlite3 "$TEST_HOOKS_DB" "SELECT matched_lesson_ids FROM surface_lessons_context WHERE session_id = '$other_session' ORDER BY timestamp ASC LIMIT 1;" 2>/dev/null)
+other_ids=$(grep -F "$other_session" "$TEST_SURFACE_LESSONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$other_session" 'select(.session_id == $sid) | .matched_lesson_ids' 2>/dev/null \
+    | head -n1)
 
 TESTS_RUN=$((TESTS_RUN + 1))
 if [ "$other_ids" = "test-dedup_001" ]; then
