@@ -21,10 +21,10 @@
 
 ## P0 - Critical
 
-- **[HOOKS]** Migrate secrets-guard Read/Grep handlers to detection registry (`hooks-secrets-guard-read-grep-registry`)
-    - **scope**: `hooks`
-    - **notes**: Follow-up to `hooks-detection-target-convention`. The v1 migration only covered the Bash branch of `secrets-guard.sh`; the Read and Grep handlers (and their `match_secrets_guard_read` / `match_secrets_guard_grep` siblings used by `grouped-read-guard`) still hold inline credential-path patterns (`BLOCKED_PATHS` array, `_SECRETS_MATCH_RE`). Migrate them to consume the same `kind=path` registry entries already used by the Bash branch so that adding a new credential file path is a 1-line registry edit covering all three tools. Hook-specific behavior (per-tool block reasons, `normalize_path`, `.git/config` credential-remote check, .example/.template allowlist) stays in the hook — only the regex catalog moves. Acceptance: same test suite (`tests/hooks/test-secrets-guard.sh`) passes; adding a new path entry to `detection-registry.json` is picked up by Read, Grep, and Bash handlers without further code changes.
-    - **depends on**: `hooks-detection-target-convention`
+- **[SKILLS]** Update `wrap-up` skill (`wrap-up-skill-update`)
+    - **scope**: `skills`
+    - **notes**: TBD.
+    - **depends on**: none
 
 ## P1 - High
 

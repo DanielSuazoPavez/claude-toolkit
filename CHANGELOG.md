@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.66.1] - 2026-04-25 - secrets-guard Read/Grep registry migration
+
+### Changed
+- **hooks**: `secrets-guard.sh` Read and Grep handlers (and their `match_secrets_guard_read` / `match_secrets_guard_grep` siblings used by `grouped-read-guard`) now consume the `path` kind from the detection registry instead of the inline `BLOCKED_PATHS` array. Adding a new credential-file path is now a 1-line edit in `detection-registry.json` that covers Read, Grep, and Bash uniformly. Folded the previously-separate `_env_file_block_reason` and `_credential_path_block_reason` into a single `_path_block_reason` that walks the registry's path-kind entries and applies hook-side allowlists per id (`.example`/`.template` for `env-file`, `.pub` for `ssh-private-key`, deferred `.git/config` for the runtime credential-remote check). Verb-aware block messages stay in the hook keyed by registry id. SSH config (`~/.ssh/config`) is not in the registry; the hook keeps the explicit equality check. Closes the `hooks-secrets-guard-read-grep-registry` follow-up flagged in 2.66.0.
+
+### Deleted
+- **backlog**: Removed `hooks-secrets-guard-read-grep-registry` from P0 (completed).
+
 ## [2.66.0] - 2026-04-25 - shared hook detection registry
 
 ### Added

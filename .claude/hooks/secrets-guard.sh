@@ -48,21 +48,6 @@ detection_registry_load
 
 # --- Shared data and helpers (used by Read and Grep handlers in main) ---
 
-# Blocked credential paths: "pattern:::description"
-# Description is verb-neutral; callers prefix with "Reading"/"Searching"
-BLOCKED_PATHS=(
-    "$HOME/.ssh/config:::SSH config may expose hostnames, key paths, and proxy settings"
-    "$HOME/.gnupg/:::GPG directory may expose private keys and trust data"
-    "$HOME/.aws/credentials:::AWS credentials may expose access keys and secrets"
-    "$HOME/.aws/config:::AWS config may expose access keys and secrets"
-    "$HOME/.config/gh/hosts.yml:::GitHub CLI config may expose authentication tokens"
-    "$HOME/.docker/config.json:::Docker config may expose registry authentication tokens"
-    "$HOME/.kube/config:::kubeconfig may expose cluster credentials and tokens"
-    "$HOME/.npmrc:::.npmrc may expose npm authentication tokens"
-    "$HOME/.pypirc:::.pypirc may expose PyPI authentication tokens"
-    "$HOME/.gem/credentials:::gem credentials may expose RubyGems API keys"
-)
-
 # Normalize a literal leading "~/" typed by the user to $HOME.
 normalize_path() {
     local p="$1"
@@ -73,53 +58,88 @@ normalize_path() {
     echo "$p"
 }
 
-# Return block reason (stdout) for a sensitive .env filename, or empty to pass.
-# Usage: reason=$(_env_file_block_reason <filename> <verb>)
-#   verb: "Reading" or "Searching"
-_env_file_block_reason() {
-    local filename="$1" verb="$2"
-    # Allow .example and .template files
-    if [[ "$filename" =~ \.(example|template)$ ]]; then
-        return 0
-    fi
-    # Block .env, .env.*, or *.env files
-    if [[ "$filename" = ".env" ]] || [[ "$filename" =~ ^\.env\. ]] || [[ "$filename" =~ \.env$ ]]; then
-        echo "BLOCKED: $verb .env file may expose secrets. Use the .example version as a reference instead."
-    fi
+# Per-registry-id verb-aware messages. Keeps the catalog (registry) separate
+# from how the hook frames blocks for Read/Grep tools. Registry ids without
+# an entry here fall back to the generic message at the bottom.
+# The .git/config id is intentionally absent — that path requires a runtime
+# credential-remote check before blocking, handled in the caller.
+_path_message() {
+    local id="$1" verb="$2"
+    case "$id" in
+        env-file)         echo "BLOCKED: $verb .env file may expose secrets. Use the .example version as a reference instead." ;;
+        ssh-private-key)  echo "BLOCKED: $verb SSH private key. Private keys should never be exposed to AI tools." ;;
+        aws-credentials-file) echo "BLOCKED: $verb AWS credentials/config may expose access keys and secrets." ;;
+        kube-config)      echo "BLOCKED: $verb kubeconfig may expose cluster credentials and tokens." ;;
+        gh-cli-config)    echo "BLOCKED: $verb GitHub CLI config may expose authentication tokens." ;;
+        docker-config)    echo "BLOCKED: $verb Docker config may expose registry authentication tokens." ;;
+        npmrc)            echo "BLOCKED: $verb .npmrc may expose npm authentication tokens." ;;
+        pypirc)           echo "BLOCKED: $verb .pypirc may expose PyPI authentication tokens." ;;
+        gem-credentials)  echo "BLOCKED: $verb gem credentials may expose RubyGems API keys." ;;
+        gnupg-dir)        echo "BLOCKED: $verb GPG directory may expose private keys and trust data." ;;
+        ssh-config)       echo "BLOCKED: $verb SSH config may expose hostnames, key paths, and proxy settings." ;;
+        *)                echo "BLOCKED: $verb credential file may expose secrets." ;;
+    esac
 }
 
-# Return block reason (stdout) for a credential-path match, or empty to pass.
-# Usage: reason=$(_credential_path_block_reason <normalized_path> <verb>)
-#   verb: "Reading" or "Searching"
-_credential_path_block_reason() {
-    local norm_path="$1" verb="$2"
-
-    for entry in "${BLOCKED_PATHS[@]}"; do
-        local pattern="${entry%%:::*}"
-        local message="${entry##*:::}"
-        if [[ "$norm_path" == "$pattern" ]] || [[ "$pattern" == */ && ( "$norm_path" == "$pattern"* || "$norm_path/" == "$pattern" ) ]]; then
-            echo "BLOCKED: $verb $message."
-            return 0
-        fi
+# Return registry id (stdout) of the first path-kind entry whose pattern
+# matches the input path, after applying hook-side allowlists. Empty = pass.
+# Defers .git/config — caller must run the credential-remote check.
+# Usage: id=$(_match_path_registry <normalized_path>)
+_match_path_registry() {
+    local input="$1" base
+    base=$(basename "$input")
+    local i n=${#_REGISTRY_IDS[@]}
+    for (( i=0; i<n; i++ )); do
+        [ "${_REGISTRY_KINDS[i]}" = "path" ] || continue
+        local id="${_REGISTRY_IDS[i]}" pat="${_REGISTRY_PATTERNS[i]}"
+        [[ "$input" =~ $pat ]] || continue
+        case "$id" in
+            env-file)
+                # Allow .example and .template suffixes
+                [[ "$base" =~ \.(example|template)$ ]] && continue
+                ;;
+            ssh-private-key)
+                # Hook only fires on $HOME/.ssh/id_* (not arbitrary paths matching pattern)
+                [[ "$input" == "$HOME/.ssh/id_"* ]] || continue
+                # Allow .pub variants
+                [[ "$input" == *".pub" ]] && continue
+                ;;
+            git-config)
+                # Defer — caller must check for embedded credentials in remote URLs
+                continue
+                ;;
+            *)
+                # Other path entries are home-rooted; only block when path is
+                # under $HOME to avoid false positives on look-alike project paths.
+                [[ "$input" == "$HOME/"* ]] || continue
+                ;;
+        esac
+        echo "$id"
+        return 0
     done
 
-    # SSH private keys (allow .pub files)
-    if [[ "$norm_path" == "$HOME/.ssh/id_"* ]] && [[ "$norm_path" != *".pub" ]]; then
-        echo "BLOCKED: $verb SSH private key. Private keys should never be exposed to AI tools."
+    # SSH config — not in the registry as its own entry; keep the explicit check.
+    if [[ "$input" == "$HOME/.ssh/config" ]]; then
+        echo "ssh-config"
+        return 0
     fi
+
+    return 1
+}
+
+# Return block reason (stdout) for a path, or empty to pass.
+# Usage: reason=$(_path_block_reason <normalized_path> <verb>)
+_path_block_reason() {
+    local norm_path="$1" verb="$2" id
+    id=$(_match_path_registry "$norm_path") || return 0
+    [ -n "$id" ] && _path_message "$id" "$verb"
 }
 
 # Thin wrappers preserving the pre-existing exit-on-block contract used by main().
 # WARNING: May call exit 0 or hook_block() — must run in main shell, not a subshell.
-check_env_file() {
+check_path() {
     local reason
-    reason=$(_env_file_block_reason "$1" "$2")
-    [ -n "$reason" ] && hook_block "$reason"
-}
-
-check_credential_path() {
-    local reason
-    reason=$(_credential_path_block_reason "$1" "$2")
+    reason=$(_path_block_reason "$1" "$2")
     [ -n "$reason" ] && hook_block "$reason"
 }
 
@@ -177,12 +197,7 @@ match_secrets_guard_read() {
 check_secrets_guard_read() {
     local reason norm
     norm=$(normalize_path "$FILE_PATH")
-    reason=$(_env_file_block_reason "$(basename "$FILE_PATH")" "Reading")
-    if [ -n "$reason" ]; then
-        _BLOCK_REASON="$reason"
-        return 1
-    fi
-    reason=$(_credential_path_block_reason "$norm" "Reading")
+    reason=$(_path_block_reason "$norm" "Reading")
     if [ -n "$reason" ]; then
         _BLOCK_REASON="$reason"
         return 1
@@ -205,12 +220,7 @@ match_secrets_guard_grep() {
 check_secrets_guard_grep() {
     local reason
     if [ -n "$GREP_PATH" ]; then
-        reason=$(_env_file_block_reason "$(basename "$GREP_PATH")" "Searching")
-        if [ -n "$reason" ]; then
-            _BLOCK_REASON="$reason"
-            return 1
-        fi
-        reason=$(_credential_path_block_reason "$(normalize_path "$GREP_PATH")" "Searching")
+        reason=$(_path_block_reason "$(normalize_path "$GREP_PATH")" "Searching")
         if [ -n "$reason" ]; then
             _BLOCK_REASON="$reason"
             return 1
@@ -416,10 +426,9 @@ main() {
         FILE_PATH=$(hook_get_input '.tool_input.file_path')
         [ -z "$FILE_PATH" ] && exit 0
 
-        check_env_file "$(basename "$FILE_PATH")" "Reading"
         local NORM
         NORM=$(normalize_path "$FILE_PATH")
-        check_credential_path "$NORM" "Reading"
+        check_path "$NORM" "Reading"
         # .git/config — block only when an embedded credential is present.
         if [[ "$NORM" =~ \.git/config$ ]] && _git_dir_has_credential_remote "$NORM"; then
             hook_block "BLOCKED: This repository's remote URL embeds a credential. Reading .git/config would put a token in your context. Use \`git branch --show-current\` for the branch, the push-output hint for PR URLs, or ask the user."
@@ -435,8 +444,7 @@ main() {
         GREP_GLOB=$(hook_get_input '.tool_input.glob')
 
         if [ -n "$GREP_PATH" ]; then
-            check_env_file "$(basename "$GREP_PATH")" "Searching"
-            check_credential_path "$(normalize_path "$GREP_PATH")" "Searching"
+            check_path "$(normalize_path "$GREP_PATH")" "Searching"
         fi
 
         # Check if glob pattern targets .env files
