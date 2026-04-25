@@ -18,6 +18,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured `session_start_context` row (branch, main branch, cwd) into `hooks.db` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks shared-state/publishing actions: `git push`, `gh` writes, `gh api`, `curl`/`wget` to `api.github.com`, `curl`/`wget` with `Authorization` header. No-op outside auto-mode |
+| `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Blocks commands carrying credential-shaped tokens in arguments (GitHub PAT, GitLab, Slack, AWS, OpenAI, Anthropic). Sibling to `secrets-guard` — that blocks credential reads at-rest; this blocks the in-flight payload (e.g. token already in context being pasted into `curl -H "Authorization: ..."`) |
 | `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | — | Blocks writes to shell config, SSH, and git config files |
@@ -26,7 +27,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | `lessons` (injection only) | Surfaces relevant active lessons as additionalContext based on tool context keywords. Context logging runs independently (gated by `traceability`). |
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
-| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `auto-mode-shared-steps`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 7 guards |
+| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 8 guards |
 | `grouped-read-guard.sh` | stable | PreToolUse (Read) | Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
@@ -107,6 +108,23 @@ Re-imposes a human checkpoint for shared-state/publishing actions when running u
 - No-op when `permission_mode` is `default`, `acceptEdits`, `plan`, or empty
 - Block reason instructs the model to stop and report; the user runs the command themselves or switches out of auto-mode
 - Pairs with `permissions.ask` entries in `settings.json` for the same surface — `ask` covers interactive modes, this hook covers auto-mode
+
+### block-credential-exfiltration.sh
+
+**Trigger**: PreToolUse (Bash via dispatcher)
+
+Blocks commands that carry credential-shaped tokens in their arguments — the inverse vector to `secrets-guard`. That hook blocks credential reads at-rest; this one blocks the in-flight payload (a token already in context being re-used as a literal in a new outbound command, e.g. `curl -H "Authorization: token ghp_..."`).
+
+- Detects (prefix-anchored, against the raw command — quoted-string content included so `Authorization: "token ghp_..."` matches):
+  - GitHub: `ghp_` (classic PAT), `github_pat_` (fine-grained), `gho_/ghu_/ghs_/ghr_` (OAuth/user-to-server/server-to-server/refresh)
+  - GitLab: `glpat-`
+  - Slack: `xox[baprs]-`
+  - AWS: `AKIA...` (access key), `ASIA...` (temp key)
+  - OpenAI: `sk-` (classic), `sk-proj-`
+  - Anthropic: `sk-ant-`
+- Bare-40-hex is intentionally excluded (false positives on git SHAs and base64 fragments)
+- Block reason instructs the model not to paste tokens between commands; the user can run it themselves or allowlist in `settings.local.json`
+- Position in dispatcher: after `auto_mode_shared_steps`, before `git_safety` — informative-reason precedence over downstream guards that wouldn't fire for this command anyway
 
 ### block-dangerous-commands.sh
 
