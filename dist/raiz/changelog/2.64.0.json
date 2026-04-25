@@ -1,0 +1,22 @@
+{
+  "version": "2.64.0",
+  "date": "2026-04-25",
+  "headline": "auto-mode shared-steps gate",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "New `auto-mode-shared-steps.sh` hook gates shared-state/publishing actions when `permission_mode == \"auto\"`. Auto-mode's classifier guards against destructive actions but not scope drift — `git push`, `gh pr create`, `gh api`, and authenticated `curl`/`wget` get auto-approved, and `permissions.ask` does not gate under auto-mode either. The hook re-imposes a human checkpoint by blocking these and instructing the model to stop and report. No-op outside auto-mode.",
+        "Surface: `git push` (any form), `gh pr/issue/release/repo` writes, `gh secret/variable/workflow/auth/ssh-key` writes, `gh api` (any), `curl`/`wget` to `api.github.com`, and `curl`/`wget` with `Authorization: (token|Bearer|Basic)` headers.",
+        "Wired into `grouped-bash-guard.sh::CHECK_SPECS` between `dangerous` and `git_safety`."
+      ]
+    },
+    {
+      "kind": "templates",
+      "bullets": [
+        "`settings.template.json` now ships a `permissions.ask` block covering the same surface so interactive modes (default/acceptEdits/plan) also checkpoint these actions. Together with the auto-mode hook, this forms a checkpoint across all permission modes."
+      ]
+    }
+  ]
+}
