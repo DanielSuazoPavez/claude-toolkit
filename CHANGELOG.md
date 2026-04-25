@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.64.0] - 2026-04-25 - auto-mode shared-steps gate
+
+### Added
+- **hooks**: New `auto-mode-shared-steps.sh` hook gates shared-state/publishing actions when `permission_mode == "auto"`. Auto-mode's classifier guards against destructive/malicious actions but not against scope drift — `git push`, `gh pr create`, `gh api`, and authenticated `curl`/`wget` get auto-approved, and `permissions.ask` does not gate under auto-mode either. The hook re-imposes a human checkpoint by blocking these actions and instructing the model to stop and report. No-op outside auto-mode (default / acceptEdits / plan). Wired into `grouped-bash-guard.sh::CHECK_SPECS` at position 2 (after `dangerous`, before `git_safety`); standalone-capable via dual-mode trigger. Surface: `git push` (any form), `gh pr/issue/release/repo` write subcommands, `gh secret/variable/workflow/auth/ssh-key` writes, `gh api` (any — even reads authenticate as the user), `curl`/`wget` to `api.github.com`, and `curl`/`wget` with `Authorization: (token|Bearer|Basic)` headers. Triggered by bm-sop session 2026-04-24 — auto-mode pushed unrequested branch, attempted PR creation, then probed PAT from `git remote -v` and curled api.github.com.
+- **settings.json**: `permissions.ask` block covering the same surface as the new hook. `ask` covers interactive modes (default/acceptEdits/plan); the hook covers auto-mode. Together they form a checkpoint across all modes for `git push`, `gh` writes, `gh api`, and `curl`/`wget`.
+
+### Changed
+- **hooks**: `grouped-bash-guard.sh` now sources 7 guards (was 6); the new `auto_mode_shared_steps` check sits between `dangerous` and `git_safety`. Dispatcher parses `permission_mode` once into a global so the new hook's `match_` predicate stays O(1) per the cheapness contract in `relevant-toolkit-hooks.md` §4.
+
+### Deleted
+- **backlog**: Removed `auto-mode-together-steps` from P0 (completed — shipped as `auto-mode-shared-steps.sh`).
+
+### Notes
+- Renamed task `secrets-guard-in-flight` (P0) to scope it tightly: tokenised remote URLs + targeted secret-env-var echoes only. The separate token-shape-in-command-arguments work was split into a new P0 task `block-credential-exfiltration`.
+- Added P3 task `official-docs-index` — curated index of official Anthropic/Claude Code documentation references to reduce reverse-engineering.
+
 ## [2.63.16] - 2026-04-24 - manifest paths from project root
 
 ### Changed

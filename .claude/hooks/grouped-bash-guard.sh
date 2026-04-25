@@ -8,16 +8,20 @@
 # for the full match/check contract.
 #
 # Current checks (in CHECKS order):
-#   1. dangerous     — sourced from block-dangerous-commands.sh; blocks
-#                      rm -rf /, fork bombs, mkfs, dd to disk, sudo, etc.
-#   2. git_safety    — sourced from git-safety.sh; gates git push/commit
-#   3. secrets_guard — sourced from secrets-guard.sh; gates reads of .env,
-#                      credential files, env/printenv, gpg --export-secret-keys
-#   4. config_edits  — sourced from block-config-edits.sh; gates Bash writes
-#                      (>>, tee, sed -i, mv) to shell/SSH/git config files
-#   5. make          — sourced from enforce-make-commands.sh; enforce make
-#                      targets over direct pytest/ruff/uv sync/docker
-#   6. uv            — sourced from enforce-uv-run.sh; enforce `uv run python`
+#   1. dangerous              — sourced from block-dangerous-commands.sh; blocks
+#                                rm -rf /, fork bombs, mkfs, dd to disk, sudo, etc.
+#   2. auto_mode_shared_steps — sourced from auto-mode-shared-steps.sh; under
+#                                permission_mode=auto, blocks git push, gh writes,
+#                                gh api, curl with auth/api.github.com. No-op
+#                                outside auto-mode.
+#   3. git_safety             — sourced from git-safety.sh; gates git push/commit
+#   4. secrets_guard          — sourced from secrets-guard.sh; gates reads of .env,
+#                                credential files, env/printenv, gpg --export-secret-keys
+#   5. config_edits           — sourced from block-config-edits.sh; gates Bash writes
+#                                (>>, tee, sed -i, mv) to shell/SSH/git config files
+#   6. make                   — sourced from enforce-make-commands.sh; enforce make
+#                                targets over direct pytest/ruff/uv sync/docker
+#   7. uv                     — sourced from enforce-uv-run.sh; enforce `uv run python`
 #
 # Dispatcher contract — each check_* function returns:
 #   0 = pass
@@ -49,6 +53,7 @@ hook_require_tool "Bash"
 # are silently skipped — the corresponding check just isn't in CHECKS.
 CHECK_SPECS=(
     "dangerous:block-dangerous-commands.sh"
+    "auto_mode_shared_steps:auto-mode-shared-steps.sh"
     "git_safety:git-safety.sh"
     "secrets_guard:secrets-guard.sh"
     "config_edits:block-config-edits.sh"
@@ -76,6 +81,12 @@ done
 
 COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
+
+# permission_mode is needed by auto_mode_shared_steps' match_ predicate.
+# Parsed once here so the predicate stays O(1) (no jq in match_, see §4
+# cheapness contract in relevant-toolkit-hooks.md).
+# shellcheck disable=SC2034  # consumed by sourced auto-mode-shared-steps.sh
+PERMISSION_MODE=$(hook_get_input '.permission_mode')
 
 _BLOCK_REASON=""
 

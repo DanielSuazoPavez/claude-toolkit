@@ -30,6 +30,7 @@
 .claude/agents/implementation-checker.md
 
 # hooks
+.claude/hooks/auto-mode-shared-steps.sh
 .claude/hooks/block-config-edits.sh
 .claude/hooks/block-dangerous-commands.sh
 .claude/hooks/git-safety.sh
