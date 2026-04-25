@@ -101,22 +101,28 @@ Confirm the write: re-run the detection jq expression; should now exit 0.
 
 Note: env vars take effect on the next Claude Code session, not mid-session. Let the user know if they want to verify immediately they'll need to restart.
 
-## Phase 1.6: Analytics DB Paths
+## Phase 1.6: Analytics Paths
 
-Runs after ecosystem opt-in. Captures per-user paths for the two global analytics SQLite databases (`lessons.db`, `hooks.db`) and writes them into `.claude/settings.local.json` `env`.
+Runs after ecosystem opt-in. Captures per-user paths for the global analytics surfaces and writes them into `.claude/settings.local.json` `env`.
+
+There are three paths, split across two storage models:
+
+- **`CLAUDE_ANALYTICS_LESSONS_DB`** — SQLite DB of learned corrections. Read+write by toolkit hooks/scripts.
+- **`CLAUDE_ANALYTICS_HOOKS_DIR`** — directory of JSONL hook-execution logs (`invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`). Write-only from the toolkit's perspective; the claude-sessions indexer projects these rows into `hooks.db`.
+- **`CLAUDE_ANALYTICS_HOOKS_DB`** — read-only path to `hooks.db`, used by `surface-lessons.sh` for intra-session dedup. Owned and populated by the claude-sessions indexer, not the toolkit.
 
 **Why here and not `.claude/settings.json`:** Claude Code passes JSON `env` values through literally — `"$HOME/..."` is not expanded. So the paths must be fully resolved. `settings.local.json` is per-user and gitignored, which is the right place for fully-resolved user-specific paths (avoids leaking `/home/alice/...` into shared repos).
 
-**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/.claude/lessons.db` and `$HOME/.claude/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
+**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/.claude/lessons.db`, `$HOME/claude-analytics/hook-logs`, and `$HOME/.claude/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
 
 ### Detection
 
 ```bash
-jq -e '.env.CLAUDE_ANALYTICS_LESSONS_DB // .env.CLAUDE_ANALYTICS_HOOKS_DB' .claude/settings.local.json >/dev/null 2>&1
+jq -e '.env.CLAUDE_ANALYTICS_LESSONS_DB // .env.CLAUDE_ANALYTICS_HOOKS_DIR // .env.CLAUDE_ANALYTICS_HOOKS_DB' .claude/settings.local.json >/dev/null 2>&1
 ```
 
-- Exit 0 (either key present) → skip (user already configured).
-- Exit non-zero (both absent or file absent) → run prompts below.
+- Exit 0 (any key present) → skip (user already configured).
+- Exit non-zero (all absent or file absent) → run prompts below.
 
 ### Prompts
 
@@ -126,33 +132,43 @@ Resolve `$HOME` to a real path first (`echo "$HOME"`). Offer it as the default i
 
 > Where should the lessons DB live? Stores learned corrections across all your projects (global, not per-project). [$HOME/.claude/lessons.db]
 
-**Hooks DB path:**
+**Hook-logs JSONL directory:**
 
-> Where should the hooks DB live? Stores hook execution logs for debugging/observability (global, not per-project). [$HOME/.claude/hooks.db]
+> Where should hook-execution logs (JSONL) live? The toolkit appends one line per hook invocation here; the claude-sessions indexer reads them downstream. Global, not per-project. [$HOME/claude-analytics/hook-logs]
+
+**Hooks DB path (read-only):**
+
+> Where does `hooks.db` live? Read-only — `surface-lessons.sh` queries it for intra-session dedup. Owned and populated by the claude-sessions indexer, not the toolkit. Leave the default if you don't run claude-sessions. [$HOME/.claude/hooks.db]
 
 Empty input → accept default. Any non-empty input → use verbatim (don't re-expand — the user is giving a resolved path).
 
 ### Confirm before writing
 
-`settings.local.json` is user-private config — never mutate silently. After the two prompts, show the exact JSON that will be merged into `.claude/settings.local.json` `env` and ask one final yes/no:
+`settings.local.json` is user-private config — never mutate silently. After the prompts, show the exact JSON that will be merged into `.claude/settings.local.json` `env` and ask one final yes/no:
 
 ```
 The following will be added to .claude/settings.local.json (env block):
   "CLAUDE_ANALYTICS_LESSONS_DB": "<resolved_lessons_path>"
-  "CLAUDE_ANALYTICS_HOOKS_DB": "<resolved_hooks_path>"
+  "CLAUDE_ANALYTICS_HOOKS_DIR": "<resolved_hooks_dir>"
+  "CLAUDE_ANALYTICS_HOOKS_DB": "<resolved_hooks_db_path>"
 
 Apply? [y/n]
 ```
 
-Only proceed on explicit "y". On "n" (or anything else), skip this phase — scripts fall back to `$HOME/.claude/*.db` defaults, which is correct for most users.
+Only proceed on explicit "y". On "n" (or anything else), skip this phase — scripts fall back to the defaults above, which is correct for most users.
 
 ### Apply
 
 If `.claude/settings.local.json` doesn't exist, create it as `{}`. Then merge:
 
 ```bash
-jq --arg lessons "<resolved_lessons_path>" --arg hooks "<resolved_hooks_path>" \
-   '.env = (.env // {}) | .env.CLAUDE_ANALYTICS_LESSONS_DB = $lessons | .env.CLAUDE_ANALYTICS_HOOKS_DB = $hooks' \
+jq --arg lessons "<resolved_lessons_path>" \
+   --arg hooks_dir "<resolved_hooks_dir>" \
+   --arg hooks_db "<resolved_hooks_db_path>" \
+   '.env = (.env // {})
+    | .env.CLAUDE_ANALYTICS_LESSONS_DB = $lessons
+    | .env.CLAUDE_ANALYTICS_HOOKS_DIR = $hooks_dir
+    | .env.CLAUDE_ANALYTICS_HOOKS_DB = $hooks_db' \
    .claude/settings.local.json > .claude/settings.local.json.tmp && mv .claude/settings.local.json.tmp .claude/settings.local.json
 ```
 
