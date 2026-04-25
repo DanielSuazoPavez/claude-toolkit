@@ -27,6 +27,14 @@
 # Test cases: tests/hooks/test-auto-mode-shared-steps.sh
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
+
+# Pre-build credential/raw + capability/stripped alternation regexes from
+# .claude/hooks/lib/detection-registry.json so check_ can match against them
+# without forking. The exfil hook also blocks credential/raw — kept here on
+# purpose for redundancy: if the dispatcher misorders or the exfil hook is
+# absent in a profile, the auto-mode gate still catches the canonical shape.
+detection_registry_load
 
 # PERMISSION_MODE is parsed once at main / dispatcher level into a global. The
 # match_ function below reads the global (no jq, no fork — see §4 cheapness
@@ -66,10 +74,14 @@ check_auto_mode_shared_steps() {
 
     # Authorization-header detection runs against the RAW command — the header
     # value is by definition inside a quoted string, which _strip_inert_content
-    # blanks. The host-based and command-based checks below run against the
-    # stripped skeleton to avoid false positives from echo/heredoc content.
-    if [[ "$_raw" =~ (^|[[:space:];&|])(curl|wget)[[:space:]].*[Aa]uthorization:[[:space:]]*(token|Bearer|Basic) ]]; then
-        trigger="curl/wget with Authorization header"
+    # blanks. We require the surrounding curl/wget verb (auto-mode-specific
+    # framing) and delegate the header-shape match to the registry's
+    # credential/raw alternation (which covers Authorization: token/Bearer/Basic
+    # via the authorization-header entry).
+    if [[ "$_raw" =~ (^|[[:space:];&|])(curl|wget)[[:space:]] ]] \
+       && [ -n "${_REGISTRY_RE__credential__raw:-}" ] \
+       && [[ "$_raw" =~ ${_REGISTRY_RE__credential__raw} ]]; then
+        trigger="curl/wget with credential payload (Authorization header / token / env-var ref)"
     fi
 
     # --- git push (any form) ---
@@ -106,9 +118,13 @@ check_auto_mode_shared_steps() {
     # can run it themselves or switch out of auto-mode.
     elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+api([[:space:]]|$) ]]; then
         trigger="gh api"
-    # --- curl/wget to api.github.com ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])(curl|wget)[[:space:]].*api\.github\.com ]]; then
-        trigger="curl/wget to api.github.com"
+    # --- Sensitive capability call (registry: capability/stripped kind) ---
+    # Currently this matches the github-api-host entry. Future capability
+    # entries (e.g. docker exec, terraform show) will be picked up here too
+    # — that broadening is intentional: auto-mode should gate any sensitive
+    # capability call, not just GitHub API access.
+    elif detection_registry_match capability stripped "$COMMAND"; then
+        trigger="sensitive capability call (${_REGISTRY_MATCHED_ID})"
     fi
 
     [[ -z "$trigger" ]] && return 0
