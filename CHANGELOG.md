@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.64.1] - 2026-04-25 - secrets-guard in-flight credential reads
+
+### Changed
+- **hooks**: `secrets-guard.sh` extended to cover two gaps surfaced by the 2026-04-24 incident, both in the same domain (credential source → context):
+  - **Tokenised remote URLs**: blocks `git remote -v`, `git remote show <name>`, `git remote get-url <name>`, `git config --list`, `git config -l`, `git config --get remote.*.url`, and `cat`/`grep`/`Read` of `.git/config` — but only when the resolved remote URL embeds `[A-Za-z0-9._-]+:[^@/[:space:]]+@` (i.e. `user:secret@host`). Clean repos pass through unchanged. Writes (`git remote add`, `git remote set-url`) always pass — they're how the user fixes the leak. Resolution uses `git config --get-regexp '^remote\..*\.url$'` from cwd (Bash) or `git config --file <path>` (Read of `.git/config`) — never spurious blocks on non-git directories.
+  - **Targeted env-var echoes**: blocks `echo $X`, `echo "${X}"`, `printenv X`, and `env|grep <token-keyword>` / `printenv|grep <token-keyword>` when `X` matches `*_TOKEN`/`*_SECRET`/`*_API_KEY`/`*_PASSWORD`/`*_PASS` shape or is a well-known literal (`GH_TOKEN`, `GITHUB_TOKEN`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`). Single-quoted token names (`'$GITHUB_TOKEN'` — no interpolation) stay allowed via `_strip_inert_content`. The double-quoted interpolation form is detected against the raw command, since the stripper would otherwise blank `"${VAR}"`.
+- Both extensions apply in **all permission modes** (not auto-only). Settings.json: no new entries — existing `secrets-guard.sh` wiring covers the new surface via the same `match_`/`check_` pair plus the standalone Read branch.
+
+### Deleted
+- **backlog**: Removed `secrets-guard-in-flight` from P0 (completed).
+
 ## [2.64.0] - 2026-04-25 - auto-mode shared-steps gate
 
 ### Added

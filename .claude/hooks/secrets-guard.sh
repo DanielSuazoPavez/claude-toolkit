@@ -125,7 +125,37 @@ check_credential_path() {
 #
 # Broad regex shared between match_*_read and match_*_grep — cheap predicate
 # covering every credential-path hint we block. Actual decision lives in check_.
-_SECRETS_MATCH_RE='\.env($|\.|/)|\.ssh/id_|\.gnupg|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/'
+_SECRETS_MATCH_RE='\.env($|\.|/)|\.ssh/id_|\.gnupg|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/|\.git/config$'
+
+# Credential-shape regex for embedded user:secret in remote URLs.
+# Matches `user:pass@host` style — short passwords are still secrets.
+_REMOTE_CRED_RE='[A-Za-z0-9._-]+:[^@/[:space:]]+@'
+
+# Resolve remote URL(s) for a git target and return 0 if any embeds a credential.
+# Usage: _git_dir_has_credential_remote <worktree|.git-dir|.git/config-path>
+# Treats anything we can't parse as "no credential" — never spurious blocks.
+_git_dir_has_credential_remote() {
+    local target="$1" url
+    local -a git_args config_args
+    [ -n "$target" ] || return 1
+    if [ -f "$target" ] && [[ "$target" == *"/.git/config" || "$target" == ".git/config" ]]; then
+        # Read the config file directly — works without a worktree.
+        git_args=()
+        config_args=(--file "$target")
+    elif [ -d "$target/.git" ] || [ -d "$target" ]; then
+        git_args=(-C "$target")
+        config_args=()
+    else
+        return 1
+    fi
+    while IFS= read -r url; do
+        [ -z "$url" ] && continue
+        if [[ "$url" =~ $_REMOTE_CRED_RE ]]; then
+            return 0
+        fi
+    done < <(git "${git_args[@]}" config "${config_args[@]}" --get-regexp '^remote\..*\.url$' 2>/dev/null | awk '{print $2}')
+    return 1
+}
 
 match_secrets_guard_read() {
     [ -n "$FILE_PATH" ] || return 1
@@ -136,15 +166,21 @@ match_secrets_guard_read() {
 }
 
 check_secrets_guard_read() {
-    local reason
+    local reason norm
+    norm=$(normalize_path "$FILE_PATH")
     reason=$(_env_file_block_reason "$(basename "$FILE_PATH")" "Reading")
     if [ -n "$reason" ]; then
         _BLOCK_REASON="$reason"
         return 1
     fi
-    reason=$(_credential_path_block_reason "$(normalize_path "$FILE_PATH")" "Reading")
+    reason=$(_credential_path_block_reason "$norm" "Reading")
     if [ -n "$reason" ]; then
         _BLOCK_REASON="$reason"
+        return 1
+    fi
+    # .git/config — block only when an embedded credential is present.
+    if [[ "$norm" =~ \.git/config$ ]] && _git_dir_has_credential_remote "$norm"; then
+        _BLOCK_REASON="BLOCKED: This repository's remote URL embeds a credential. Reading .git/config would put a token in your context. Use \`git branch --show-current\` for the branch, the push-output hint for PR URLs, or ask the user."
         return 1
     fi
     return 0
@@ -195,10 +231,13 @@ check_secrets_guard_grep() {
 # Pure bash pattern matching — no forks, no jq, no git.
 # Deliberately broad to preserve false-positive semantics.
 match_secrets_guard() {
-    local stripped re
+    local stripped re raw_re
     stripped=$(_strip_inert_content "$COMMAND")
-    re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg)([[:space:]]|$)|\.env|\.ssh/id_|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/'
-    [[ "$stripped" =~ $re ]]
+    re='(^|[[:space:];&|])(cat|less|head|tail|more|grep|rg|awk|sed|source|\.|env|printenv|export|gpg|git)([[:space:]]|$)|\.env|\.ssh/id_|\.aws/|\.kube/|\.config/gh|\.docker/|\.npmrc|\.pypirc|\.gem/|\.git/config'
+    [[ "$stripped" =~ $re ]] && return 0
+    # Credential-shaped env var refs survive only in $_raw — strip blanks them.
+    raw_re='echo[[:space:]]+.*\$\{?[A-Z][A-Z0-9_]*'
+    [[ "$COMMAND" =~ $raw_re ]]
 }
 
 # ============================================================
@@ -212,6 +251,15 @@ check_secrets_guard() {
     local _raw="$COMMAND"
     local COMMAND
     COMMAND=$(_strip_inert_content "$_raw")
+
+    # Targeted env-var echo via double-quoted interpolation:
+    # `_strip_inert_content` blanks "${VAR}" content, so we check raw first.
+    # Single-quoted '$VAR' is not interpolation — exclude.
+    local CRED_VAR_RE='([A-Z][A-Z0-9_]*(_TOKEN|_SECRET|_API_KEY|_PASSWORD|_PASS)|GH_TOKEN|GITHUB_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)'
+    if [[ "$_raw" =~ echo[[:space:]]+\"[^\"]*\$\{?${CRED_VAR_RE} ]]; then
+        _BLOCK_REASON="BLOCKED: Echoing a credential-shaped env var puts a secret in your context. Reference the var name in code instead of printing its value."
+        return 1
+    fi
     # Block commands that read .env files (.env, .env.local, .env.production, prod.env, etc.)
     # Allow: .env.example, .env.template
     local ENV_FILE_RE='\.env(\.[a-zA-Z0-9_]+)?'
@@ -320,6 +368,38 @@ check_secrets_guard() {
         return 1
     fi
 
+    # Targeted env-var echo / printenv / piped grep — credential-shaped names.
+    # Match $VAR or ${VAR} where VAR ends in _TOKEN/_SECRET/_API_KEY/_PASSWORD/_PASS
+    # or is a well-known literal (GH_TOKEN, GITHUB_TOKEN, ANTHROPIC_API_KEY, etc.).
+    local CRED_VAR_RE='([A-Z][A-Z0-9_]*(_TOKEN|_SECRET|_API_KEY|_PASSWORD|_PASS)|GH_TOKEN|GITHUB_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)'
+    if [[ "$COMMAND" =~ echo[[:space:]]+.*\$\{?${CRED_VAR_RE} ]]; then
+        _BLOCK_REASON="BLOCKED: Echoing a credential-shaped env var puts a secret in your context. Reference the var name in code instead of printing its value."
+        return 1
+    fi
+    if [[ "$COMMAND" =~ (^|[[:space:];&|])printenv[[:space:]]+${CRED_VAR_RE} ]]; then
+        _BLOCK_REASON="BLOCKED: 'printenv VAR' on a credential-shaped env var puts a secret in your context."
+        return 1
+    fi
+    # env|printenv piped to grep filtering for credential-ish keywords.
+    if [[ "$COMMAND" =~ (^|[[:space:];&|])(env|printenv)[[:space:]]*\|[[:space:]]*grep[[:space:]] ]]; then
+        if [[ "$COMMAND" =~ grep[[:space:]]+([^|]*[[:space:]])?[\'\"]?-?[iE]*[[:space:]]*[\'\"]?(token|secret|key|pass|api[_-]?key) ]]; then
+            _BLOCK_REASON="BLOCKED: Piping env/printenv into grep for credential keywords puts secrets in your context."
+            return 1
+        fi
+    fi
+
+    # Tokenized remote URL reads — block only when an embedded credential exists.
+    # Surface: git remote -v, git remote show, git config (--get|--list|-l) on remote.*.url
+    # or any remote.*.url access; cat/grep/etc on .git/config.
+    local REMOTE_SURFACE_RE='git[[:space:]]+remote[[:space:]]+(-v|show|get-url)|git[[:space:]]+config[[:space:]]+([^|;&]*[[:space:]])?(--get(-regexp)?[[:space:]]+remote\.|--list|-l\b|remote\.)|\.git/config'
+    if [[ "$COMMAND" =~ $REMOTE_SURFACE_RE ]]; then
+        # Resolve from cwd — the command runs there.
+        if _git_dir_has_credential_remote "$PWD"; then
+            _BLOCK_REASON="BLOCKED: This repository's remote URL embeds a credential. Reading it would put a token in your context. Use \`git branch --show-current\` for the branch, the push-output hint for PR URLs, or ask the user."
+            return 1
+        fi
+    fi
+
     return 0
 }
 
@@ -337,7 +417,13 @@ main() {
         [ -z "$FILE_PATH" ] && exit 0
 
         check_env_file "$(basename "$FILE_PATH")" "Reading"
-        check_credential_path "$(normalize_path "$FILE_PATH")" "Reading"
+        local NORM
+        NORM=$(normalize_path "$FILE_PATH")
+        check_credential_path "$NORM" "Reading"
+        # .git/config — block only when an embedded credential is present.
+        if [[ "$NORM" =~ \.git/config$ ]] && _git_dir_has_credential_remote "$NORM"; then
+            hook_block "BLOCKED: This repository's remote URL embeds a credential. Reading .git/config would put a token in your context. Use \`git branch --show-current\` for the branch, the push-output hint for PR URLs, or ask the user."
+        fi
 
         exit 0
     fi
