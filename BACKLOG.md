@@ -21,10 +21,7 @@
 
 ## P0 - Critical
 
-- **[SKILLS]** Update `wrap-up` skill (`wrap-up-skill-update`)
-    - **scope**: `skills`
-    - **notes**: TBD.
-    - **depends on**: none
+_None._
 
 ## P1 - High
 

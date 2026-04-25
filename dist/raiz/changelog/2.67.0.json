@@ -1,0 +1,21 @@
+{
+  "version": "2.67.0",
+  "date": "2026-04-25",
+  "headline": "wrap-up hands off shared-state ops to user",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "skills",
+      "bullets": [
+        "`/wrap-up` now stops at the merge boundary. Step 9 no longer runs `make tag`; step 10 outputs an explicit `## Next steps for you` handoff block with two paths — direct-merge (personal projects) or PR-flow (team projects). Both place tagging *after* the merge commit lands on main. New `Self-Merge` anti-pattern row covers `git merge`, `git push`, `git push origin v<version>`, `gh pr create`, and `/draft-pr` invocations from wrap-up.",
+        "`/review-plan` now flags inlined wrap-up steps. New `Inlined Wrap-Up` anti-pattern row (Medium severity) catches plans that paraphrase finalization actions (\"update changelog, bump version, commit docs\") instead of invoking `/wrap-up` literally. The always-required final-steps tier requires the literal string `/wrap-up`."
+      ]
+    },
+    {
+      "kind": "docs",
+      "bullets": [
+        "New \"User owns shared-state ops\" principle in the raiz `CLAUDE.md` template. Claude does not merge to main, push, open pull requests, push tags, or invoke `/draft-pr` — branch work ends at handoff. `/draft-pr` is also user-invoked: it writes the description, the user opens the PR. When merging directly, use `--no-ff` to preserve branch history."
+      ]
+    }
+  ]
+}

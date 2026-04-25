@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.67.0] - 2026-04-25 - wrap-up hands off shared-state ops to user
+
+### Changed
+- **skills**: `/wrap-up` now stops at the merge boundary. Step 9 no longer runs `make tag` itself; step 10 outputs an explicit `## Next steps for you` handoff block with two paths (direct-merge for personal projects, PR-flow for team projects). Both paths place tagging *after* the merge commit lands on main, matching the "tag the merge commit, not the version bump" lesson. New `Self-Merge` anti-pattern row covers `git merge`, `git push`, `git push origin v<version>`, `gh pr create`, and `/draft-pr` invocations from wrap-up.
+- **skills**: `/review-plan` now flags inlined wrap-up steps. New `Inlined Wrap-Up` anti-pattern row (Medium) catches plans that paraphrase finalization actions ("update changelog, bump version, commit docs") instead of invoking `/wrap-up` literally. The always-required final-steps tier now requires the literal string `/wrap-up`.
+- **docs**: New "User owns shared-state ops" principle in project `CLAUDE.md` and both distribution templates (`dist/base/templates/CLAUDE.md.template`, `dist/raiz/templates/CLAUDE.md.template`). Claude does not merge to main, push, open pull requests, push tags, or invoke `/draft-pr` — branch work ends at handoff. `/draft-pr` is also user-invoked: it writes the description, the user opens the PR.
+
+### Deleted
+- **backlog**: Removed `wrap-up-skill-update` from P0 (completed).
+
 ## [2.66.1] - 2026-04-25 - secrets-guard Read/Grep registry migration
 
 ### Changed

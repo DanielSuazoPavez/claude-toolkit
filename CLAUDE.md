@@ -16,7 +16,7 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 ## Key Principles
 
 - **Plan before building**: Use plan mode for non-trivial tasks, even when they look simple at first glance
-- **Merge with --no-ff**: Always use `git merge --no-ff` to preserve branch history
+- **User owns shared-state ops**: Claude does not merge to main, push, open pull requests, or push tags. `/draft-pr` is also user-invoked — it generates the description, the user opens the PR. Wrap-up ends at the handoff. When the user merges, they use `git merge --no-ff` to preserve branch history.
 - **Remove done tasks from backlog**: When a backlog task is completed, delete it entirely — don't strikethrough or leave it with a DONE marker
 - **Capture lessons aggressively**: When you notice a correction, gotcha, pattern, or convention worth preserving, use `/learn` without hesitation. Bias toward capturing — pruning and crystallization happen later via `/manage-lessons`
 - **No sudo access**: Don't run sudo commands — provide shell commands for the user to run manually when elevated privileges are needed
