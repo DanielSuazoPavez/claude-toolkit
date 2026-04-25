@@ -1,0 +1,16 @@
+{
+  "version": "2.68.0",
+  "date": "2026-04-25",
+  "headline": "hook-logs JSONL with stdin embed",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "Hook execution telemetry now writes JSONL files under `~/claude-analytics/hook-logs/` instead of `~/.claude/hooks.db`. Three files: `invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`. The invocation row embeds the full hook stdin as a parsed object (or string fallback when stdin failed JSON parse) — previously only extracted fields were persisted. Toolkit data moves out of `~/.claude/` and into the shared `~/claude-analytics/` namespace.",
+        "`surface-lessons.sh` intra-session dedup still reads `hooks.db.surface_lessons_context`, now read-only. The claude-sessions indexer projects JSONL rows into the table (~1min cadence). Accepted tradeoff: a lesson may re-surface within one ingestion window in exchange for standardizing how downstream consumers ingest hook telemetry.",
+        "Settings: new `CLAUDE_ANALYTICS_HOOKS_DIR` env var (default `$HOME/claude-analytics/hook-logs`) for the JSONL write path. `CLAUDE_ANALYTICS_HOOKS_DB` retained as a read-only override for surface-lessons dedup. `CLAUDE_TOOLKIT_TRACEABILITY` description updated to mention JSONL writes."
+      ]
+    }
+  ]
+}

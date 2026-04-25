@@ -21,7 +21,10 @@
 
 ## P0 - Critical
 
-_None._
+- **[SKILLS]** `/setup-toolkit` still prompts for `CLAUDE_ANALYTICS_HOOKS_DB` (`setup-toolkit-hooks-jsonl-migration`)
+    - **scope**: `skills`
+    - **notes**: Follow-up to v2.68.0 (hooks JSONL migration). The setup-toolkit skill's "global analytics paths" phase (lines ~89, 106, 110, 115, 131, 142, 155 in `.claude/skills/setup-toolkit/SKILL.md`) still describes the old SQLite-only model: prompts for `~/.claude/hooks.db`, writes `CLAUDE_ANALYTICS_HOOKS_DB` into `settings.local.json`. With v2.68.0 the toolkit writes to `~/claude-analytics/hook-logs/*.jsonl` (env var `CLAUDE_ANALYTICS_HOOKS_DIR`) and only *reads* `hooks.db` for surface-lessons dedup (env var still `CLAUDE_ANALYTICS_HOOKS_DB`, but ownership shifted to claude-sessions indexer). Update the setup-toolkit prompts to (a) capture `CLAUDE_ANALYTICS_HOOKS_DIR` for the JSONL write path with the new `~/claude-analytics/hook-logs` default, (b) keep the `CLAUDE_ANALYTICS_HOOKS_DB` capture but reframe as read-only (default still `~/.claude/hooks.db`), (c) update the user-facing prompt copy to describe the JSONL+DB split. Also update the diagnose script's check for env vars if it pins on `CLAUDE_ANALYTICS_HOOKS_DB` only.
+    - **depends on**: none
 
 ## P1 - High
 
