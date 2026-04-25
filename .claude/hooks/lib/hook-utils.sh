@@ -426,7 +426,7 @@ hook_log_context() {
         --arg matched_lesson_ids "$matched_ids" \
         '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_name:$hook_name, tool_name:$tool_name, raw_context:$raw_context, keywords:$keywords, match_count:$match_count, matched_lesson_ids:$matched_lesson_ids}' \
         2>/dev/null) || return 0
-    _hook_log_jsonl "surface-lessons.jsonl" "$line"
+    _hook_log_jsonl "surface-lessons-context.jsonl" "$line"
 }
 
 # ============================================================

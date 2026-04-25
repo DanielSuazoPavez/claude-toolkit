@@ -34,7 +34,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 - `print_summary` — final counts + exit code
 - `expect_block` / `expect_allow` / `expect_approve` / `expect_silent` / `expect_contains` — hook-expectation helpers (require `$HOOKS_DIR`)
 
-`lib/hook-test-setup.sh` — sourced by `hooks/test-*.sh`. Sets `HOOKS_DIR` and redirects `CLAUDE_ANALYTICS_HOOKS_DB` to a per-process temp SQLite file (schema cloned from `~/.claude/hooks.db`). Each sourcing process gets its own DB, so the parallel runner has no contention.
+`lib/hook-test-setup.sh` — sourced by `hooks/test-*.sh`. Sets `HOOKS_DIR` and redirects `CLAUDE_ANALYTICS_HOOKS_DIR` to a per-process temp directory so production hook-logs JSONL files are never touched. Exports `TEST_INVOCATIONS_JSONL`, `TEST_SURFACE_LESSONS_JSONL`, `TEST_SESSION_START_JSONL` for assertions. Each sourcing process gets its own dir, so the parallel runner has no contention.
 
 ## Hook tests layout
 

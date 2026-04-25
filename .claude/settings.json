@@ -183,6 +183,7 @@
     "CLAUDE_TOOLKIT_POWERLINE_VERSION": "Pinned @owloops/claude-powerline npm version used by the statusline wrapper (default: 1.25.1)",
     "CLAUDE_ANALYTICS_LESSONS_DB": "Path to global lessons SQLite DB (default: $HOME/.claude/lessons.db). Override in shell/.envrc — not settable from this file because Claude Code does not expand $HOME.",
     "CLAUDE_ANALYTICS_HOOKS_DIR": "Directory for hook-logs JSONL files (default: $HOME/claude-analytics/hook-logs). Override in shell/.envrc — not settable from this file because Claude Code does not expand $HOME.",
+    "CLAUDE_ANALYTICS_HOOKS_DB": "Read-only path to hooks.db, used by surface-lessons.sh for intra-session dedup (default: $HOME/.claude/hooks.db). Owned and populated by the claude-sessions indexer.",
     "CLAUDE_DOCS_DIR": "Directory for docs (default: .claude/docs)",
     "CLAUDE_MEMORIES_DIR": "Directory for memories (default: .claude/memories)",
     "HOOK_PERF": "Emit per-phase HOOK_PERF timing lines to stderr when set to 1 (default: unset)",

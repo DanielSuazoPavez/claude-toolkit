@@ -58,7 +58,8 @@ Set these in your shell or `.envrc` to customize hook behavior.
 | `CLAUDE_DOCS_DIR` | `.claude/docs` | Docs directory |
 | `CLAUDE_MEMORIES_DIR` | `.claude/memories` | Memories directory |
 | `CLAUDE_ANALYTICS_LESSONS_DB` | `$HOME/.claude/lessons.db` | Global lessons SQLite DB. Set in shell/`.envrc` — Claude Code does not expand `$HOME` in `settings.json` values, so path-valued vars must come from the shell environment |
-| `CLAUDE_ANALYTICS_HOOKS_DIR` | `$HOME/claude-analytics/hook-logs` | Directory for hook-logs JSONL files (`invocations.jsonl`, `surface-lessons.jsonl`, `session-start-context.jsonl`). Same `$HOME`-expansion caveat as above |
+| `CLAUDE_ANALYTICS_HOOKS_DIR` | `$HOME/claude-analytics/hook-logs` | Directory for hook-logs JSONL files (`invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`). Same `$HOME`-expansion caveat as above. Write-only from the toolkit's perspective; the claude-sessions indexer projects rows into `hooks.db` |
+| `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/.claude/hooks.db` | Read-only by `surface-lessons.sh` for intra-session dedup (`surface_lessons_context` table). Owned and populated downstream by the claude-sessions indexer; the toolkit no longer writes here |
 
 ### Version Pins
 | Variable | Default | Purpose |

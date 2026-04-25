@@ -6,7 +6,7 @@
 #
 # Usage:
 #   bash tests/perf-surface-lessons.sh              # Run synthetic cases
-#   bash tests/perf-surface-lessons.sh --replay      # Replay real inputs from hooks.db
+#   bash tests/perf-surface-lessons.sh --replay      # Replay real inputs from surface-lessons-context.jsonl
 #   bash tests/perf-surface-lessons.sh --replay -n 3 # Replay with 3 iterations
 #   bash tests/perf-surface-lessons.sh -n 10         # 10 iterations per case
 #   bash tests/perf-surface-lessons.sh -v            # Show per-iteration detail
@@ -15,7 +15,8 @@ set -uo pipefail
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
 LESSONS_DB="$HOME/.claude/lessons.db"
-HOOKS_DB="$HOME/.claude/hooks.db"
+HOOKS_LOG_DIR="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}"
+SURFACE_JSONL="$HOOKS_LOG_DIR/surface-lessons-context.jsonl"
 ITERATIONS=5
 REPLAY=0
 
@@ -49,16 +50,16 @@ SYNTHETIC_CASES=(
     'wrong tool (early exit)|{"tool_name":"Glob","tool_input":{"pattern":"**/*.sh"}}'
 )
 
-# --- Build replay cases from hooks.db ---
+# --- Build replay cases from surface-lessons-context.jsonl ---
 build_replay_cases() {
     local cases=()
-    if [ ! -f "$HOOKS_DB" ]; then
-        echo "WARNING: hooks.db not found at $HOOKS_DB — no replay cases available" >&2
+    if [ ! -f "$SURFACE_JSONL" ]; then
+        echo "WARNING: surface-lessons-context.jsonl not found at $SURFACE_JSONL — no replay cases available" >&2
         return
     fi
 
-    # Pull distinct (tool_name, raw_context) pairs from real sessions (non-test)
-    # Truncate long contexts for description, keep full context for JSON build
+    # Pull distinct (tool_name, raw_context) pairs from real sessions, ordered
+    # by keyword count desc, capped at 10. jq does the dedupe + ordering.
     while IFS=$'\t' read -r tool_name raw_context keyword_count match_count; do
         # Build JSON input matching what the hook expects
         local json_input desc
@@ -83,15 +84,17 @@ build_replay_cases() {
         esac
 
         cases+=("${desc}|${json_input}")
-    done < <(sqlite3 -separator $'\t' "$HOOKS_DB" "
-        SELECT tool_name, raw_context,
-               length(keywords) - length(replace(keywords, ',', '')) + 1 AS keyword_count,
-               match_count
-        FROM surface_lessons_context
-        GROUP BY tool_name, raw_context
-        ORDER BY keyword_count DESC
-        LIMIT 10;
-    " 2>/dev/null)
+    done < <(jq -r '
+        select(.kind == "context" and (.tool_name | IN("Bash","Read","Write","Edit")))
+        | { tool_name, raw_context,
+            keyword_count: ((.keywords | split(",") | length)),
+            match_count }
+        | [.tool_name, .raw_context, .keyword_count, .match_count]
+        | @tsv
+    ' "$SURFACE_JSONL" 2>/dev/null \
+        | sort -u \
+        | sort -t$'\t' -k3 -n -r \
+        | head -n10)
 
     printf '%s\n' "${cases[@]}"
 }
@@ -142,7 +145,7 @@ printf "Active lessons: %s | Active tags: %s\n\n" "$active_lessons" "$active_tag
 # Build test cases
 TEST_CASES=()
 if [ "$REPLAY" = 1 ]; then
-    printf "${BOLD}Mode: replay (real inputs from hooks.db)${NC}\n\n"
+    printf "${BOLD}Mode: replay (real inputs from surface-lessons-context.jsonl)${NC}\n\n"
     while IFS= read -r line; do
         [ -n "$line" ] && TEST_CASES+=("$line")
     done < <(build_replay_cases)

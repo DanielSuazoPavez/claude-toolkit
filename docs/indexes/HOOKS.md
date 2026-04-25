@@ -44,8 +44,10 @@ All hooks source `.claude/hooks/lib/hook-utils.sh` which provides:
 
 JSONL files written under `~/claude-analytics/hook-logs/` (override via `CLAUDE_ANALYTICS_HOOKS_DIR`):
 - `invocations.jsonl` — one `kind: invocation` row per hook firing (EXIT trap), plus per-`section`/`substep` rows for grouped hooks and session-start. The `invocation` row embeds the full hook stdin as `stdin` (parsed object) or `stdin_raw` (string fallback when stdin failed JSON parse).
-- `surface-lessons.jsonl` — one `kind: context` row per `surface-lessons` firing, with raw context, extracted keywords, match count, and matched lesson ids.
+- `surface-lessons-context.jsonl` — one `kind: context` row per `surface-lessons` firing, with raw context, extracted keywords, match count, and matched lesson ids.
 - `session-start-context.jsonl` — one `kind: session_start_context` row per SessionStart firing (source, git_branch, main_branch, cwd).
+
+The toolkit only **writes** to these JSONL files. The claude-sessions indexer (~1min cadence) projects rows into `~/.claude/hooks.db`. `surface-lessons.sh` **reads** from `hooks.db.surface_lessons_context` for intra-session dedup — a lesson re-surfacing within one ingestion window is the accepted tradeoff for standardizing data ingestion downstream.
 
 Common fields across `invocations.jsonl` rows: session_id, invocation_id, timestamp, project, hook_event, hook_name, tool_name, section, duration_ms, outcome, bytes_injected, source, call_id. `call_id` is a bare Anthropic id (`toolu_...` for tool-scoped events, `agent_id` for SubagentStop) — tool-vs-agent is derived from `hook_event`, not a prefix. Joins to `claude-sessions.tool_calls.tool_use_id` on `(session_id, call_id)`. For human debugging, tail rows via `tail -f ~/claude-analytics/hook-logs/invocations.jsonl | jq`.
 
