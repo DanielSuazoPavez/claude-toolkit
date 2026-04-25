@@ -361,3 +361,18 @@ Examples that stay inline:
 - Hook-specific filtering on already-matched results (e.g. "block only when the path is outside `$HOME`").
 
 The split: **registry holds patterns, hook holds policy**. If a future guard would want the same regex you're about to write, registry. If only this hook will ever care, inline.
+
+### Scope boundary between sibling secret-guarding hooks
+
+`secrets-guard.sh` and `block-credential-exfiltration.sh` share a **direction** (keep credentials out of the model's context) but split the **responsibility field**:
+
+| Hook | Responsibility field | Detection |
+|---|---|---|
+| `block-credential-exfiltration` | credential value/reference **inside a command** — token literals, Authorization headers, `$VAR` refs to credential-shaped env vars | `kind=credential`, `target=raw` (registry) |
+| `secrets-guard` | command **reaches towards a sensitive resource** — file paths, env-listing capabilities (`env`, `printenv`, `env\|grep`), `printenv VAR` on credential-shaped names | `kind=path`, `target=stripped` (registry) + inline policy |
+
+Both hooks run on every Bash command via the dispatcher. When both fire on the same command, the stricter block wins — that's intentional defense-in-depth. The split avoids duplicate detection logic but accepts one consequence:
+
+**Accepted FP**: `credential-env-var-name` uses `target=raw`, so a literal mention of `$GH_TOKEN` inside a single-quoted documentation string (e.g. `echo 'use $GH_TOKEN in CI'`) blocks. This is the price of catching the canonical exfil shape `echo "$GH_TOKEN"`, where the var ref lives inside a double-quoted string that strip would blank. The cost (re-run or one-off allowlist) is small compared to a real token leaking.
+
+**Adding a new credential pattern**: pick the responsibility field. Token-shape literal that the model just wrote? `kind=credential, target=raw` (exfil-owned). Path or capability the model is about to invoke? `kind=path/capability, target=stripped` (secrets-guard-owned). Don't add the same pattern under both kinds — the stricter block wins so the redundancy buys nothing and confuses future readers.

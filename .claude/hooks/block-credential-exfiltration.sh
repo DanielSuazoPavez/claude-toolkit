@@ -3,8 +3,23 @@
 # Event: PreToolUse (Bash)
 # Purpose: Block commands whose arguments contain credential-shaped tokens.
 #
-# Sibling to secrets-guard.sh (which blocks credential reads). This one blocks
-# the inverse vector: a token already in the model's context being re-used as a
+# Sibling to secrets-guard.sh. Both hooks share a direction (keep credentials
+# out of the model's context) but split the responsibility field:
+#
+#   block-credential-exfiltration → "credential value/reference INSIDE a command"
+#                                   token literals, Authorization headers, $VAR
+#                                   refs to credential-shaped env vars.
+#                                   Detection: kind=credential, target=raw.
+#   secrets-guard                 → "command REACHES TOWARDS a sensitive resource"
+#                                   file paths, env-listing capabilities,
+#                                   printenv VAR.
+#                                   Detection: kind=path/stripped + inline policy.
+#
+# The two hooks compose: when both fire on the same command, the stricter block
+# wins — that's intentional defense-in-depth. The split is documented in §11 of
+# .claude/docs/relevant-toolkit-hooks.md.
+#
+# This hook owns: tokens already in the model's context being re-used as a
 # literal in a new outbound command — typically curl -H "Authorization: token
 # ghp_...". Once a token is in context (read from earlier tool output, pasted
 # from a prior turn, or visible in a tokenised git remote), nothing else stops

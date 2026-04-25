@@ -113,6 +113,34 @@ expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -H \"Aut
 expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"curl -H \"Authorization: token $GH_TOKEN\" https://api.github.com/user"}}' \
     "blocks credential-shaped env var reference (registry: credential-env-var-name)"
 
+# --- Block: targeted env-var echoes (credential-shaped names) ---
+# Migrated from test-secrets-guard.sh after dedup. The credential-env-var-name
+# registry entry uses target=raw (see .claude/docs/relevant-toolkit-hooks.md §11
+# scope-boundary), so these block regardless of quoting style — that's the
+# accepted FP tradeoff for catching `echo "$GH_TOKEN"` inside double quotes.
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $GITHUB_TOKEN"}}' \
+    "blocks echo \$GITHUB_TOKEN"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo \"${ANTHROPIC_API_KEY}\""}}' \
+    "blocks echo \${ANTHROPIC_API_KEY}"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $MY_API_KEY"}}' \
+    "blocks echo of *_API_KEY shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $DB_PASSWORD"}}' \
+    "blocks echo of *_PASSWORD shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $SOME_TOKEN"}}' \
+    "blocks echo of *_TOKEN shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $APP_SECRET"}}' \
+    "blocks echo of *_SECRET shape"
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $AWS_SECRET_ACCESS_KEY"}}' \
+    "blocks echo \$AWS_SECRET_ACCESS_KEY"
+
+# --- Allow: non-credential env vars ---
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $PATH"}}' \
+    "allows echo \$PATH"
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $HOME"}}' \
+    "allows echo \$HOME"
+expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"echo $USER"}}' \
+    "allows echo \$USER"
+
 # --- Pass-through: non-Bash tools (hook only registers for Bash, but be defensive) ---
 expect_allow "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/README.md"}}' \
     "passes Read tool through (Bash-only hook)"

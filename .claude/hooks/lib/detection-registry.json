@@ -73,7 +73,7 @@
       "target": "raw",
       "pattern": "\\$\\{?([A-Z][A-Z0-9_]*(_TOKEN|_SECRET|_API_KEY|_PASSWORD|_PASS)|GH_TOKEN|GITHUB_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)",
       "message": "Credential-shaped env var reference detected.",
-      "notes": "Caller must additionally check the surrounding command (echo/printenv) — registry only signals the var-name shape."
+      "notes": "target=raw is intentional: `echo \"$GH_TOKEN\"` is the most common exfil shape and the var ref lives inside a double-quoted string that strip would blank. Tradeoff: literal `$VAR_NAME` mentions inside single-quoted strings (e.g. echo 'use $GH_TOKEN in CI') will FP-block; accepted per the credential-exfil hook's stated FP stance."
     },
     {
       "id": "env-file",
