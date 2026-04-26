@@ -101,6 +101,8 @@ claude-toolkit lessons add \
 
 > Would this help a future session avoid repeating the same mistake? If yes → save. If no → skip.
 
+**Note on tiers:** New lessons land in `recent`. Promotion to `key` is a deliberate `/manage-lessons` decision — Key is a crystallization holding state, not a "more important" tier. Don't promote during capture.
+
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
