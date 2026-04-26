@@ -69,6 +69,11 @@
 
 ## P3 - Low
 
+- **[TOOLKIT]** Tighten `Read` permission to project scope + explicit out-of-project allowances (`read-permission-tighten`)
+    - **scope**: `toolkit`
+    - **notes**: `.claude/settings.json` currently has `Read(/**)` in `permissions.allow`, which permits reading anything on the filesystem. `Glob(**)` and `Grep(**)` already use the relative form (project-scoped) — `Read` is the outlier. Goal: change `Read(/**)` → `Read(**)` (project-scoped) and add a curated allowlist for the legitimate out-of-project paths Claude actually needs. Survey work needed before flipping: enumerate all paths Claude reads outside the project — likely candidates include `~/.claude/lessons.db` (lessons CLI), `~/.claude/sessions.db` (project_id resolution in lessons hooks), `~/.claude/hooks.db` (surface-lessons dedup), `~/claude-analytics/hook-logs/**` (analytics JSONL), `/tmp/**` (diagnostics, fixture files in tests), `~/.claude/projects/**/memory/**` (auto-memory). Without the survey, flipping triggers a flood of permission prompts and the rules get added back reactively, which is worse than the current state. Output: a list of explicit allow rules to add alongside the tightened `Read(**)`. Surfaced 2026-04-26 during the wrap-up that added `Edit(/BACKLOG.md)` and `Edit(/CHANGELOG.md)` to the same allow array — same hardening pattern, but `Read` needs the survey. Connects to the broader `env-var-audit` (P2) theme of catalog-then-tighten work across the toolkit's surface.
+    - **depends on**: none
+
 - **[TESTS]** Boundary coverage for `test-suggest-json.sh` (`test-suggest-json-boundary`)
     - **scope**: `tests`
     - **notes**: 5 assertions for a 95-line hook (`suggest-read-json.sh`); missing size-threshold boundary tests (just-under, exactly-at, just-over). Correctness gap (off-by-one in size policy), not a security gap — separated from the P0 settings.json work because it's a different threat class. Add ~3 boundary assertions exercising the threshold value defined in the hook source. Surfaced 2026-04-26 in `output/claude-toolkit/analysis/20260426_1710__design-tests__expect-test-value-audit.md` (Finding 5).
