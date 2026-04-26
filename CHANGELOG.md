@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.68.3] - 2026-04-26 - session-start narrowed to branch lessons + nudge
+
+### Changed
+- **hooks**: `session-start.sh` no longer surfaces Key or Recent tier lessons. Branch-scoped lessons still surface but the SQL query is skipped entirely when `CURRENT_BRANCH` matches `PROTECTED_BRANCHES` — handoff signal lives only on feature branches, never on stabilization lines. The "N lessons noted" acknowledgment suffix is dropped (it nudged performative mentions without ever exposing the lessons themselves). `/manage-lessons` nudge and migration warning are unchanged. PreToolUse `surface-lessons.sh` is untouched. Key tier survives in the schema as a holding state for crystallization candidates — relevant-toolkit-lessons.md §4 reframes it as "promote → crystallize into `.claude/docs/essential-*.md`, fix the underlying problem, or demote." Skill prompt updates for `/learn` and `/manage-lessons` plus a one-time review pass over current Key lessons are deferred to branch 2 (`lessons-key-tier-crystallization`).
+- **settings**: `.claude/settings.json` env block sets `PROTECTED_BRANCHES="^(main|master)$|^release/"`. Both `git-safety.sh` (commit / EnterPlanMode block) and `session-start.sh` (branch-lesson gate) read this env var; setting it once treats `main`, `master`, and `release/*` as stabilization branches across both hooks. Hook fallback default stays `^(main|master)$` so unset environments behave the same as before.
+- **docs**: `.claude/docs/relevant-toolkit-lessons.md` rewritten in §2 (integration table), §4 (Tiers — Key reframed), §7 (`session-start.sh` section — protected-branch gate documented), and §10 (lifecycle ASCII). `docs/indexes/HOOKS.md` `CLAUDE_TOOLKIT_LESSONS` row drops the "lesson count in ack" mention.
+
+### Tests
+- New `tests/hooks/test-session-start.sh`: 16 cases covering Key/Recent suppression, branch-lesson surfacing on feature branches, protected-branch gating (default + custom regex), absence of "lessons noted" suffix, and full suppression when `CLAUDE_TOOLKIT_LESSONS=0`. Registered in `tests/CLAUDE.md`.
+
 ## [2.68.2] - 2026-04-26 - lessons projects schema aligned with TEXT-keyed dimension
 
 ### Changed

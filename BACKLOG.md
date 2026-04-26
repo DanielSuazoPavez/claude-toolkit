@@ -28,15 +28,10 @@
 
 ## P2 - Medium
 
-- **[HOOKS]** Stop surfacing Key/Recent lessons at session-start; gate branch lessons on protected branches (`session-start-stop-surfacing-lessons`)
-    - **scope**: `hooks`
-    - **notes**: Branch 1 of the "stop surfacing lessons at session-start" design. Drop Key + Recent lesson blocks from `.claude/hooks/session-start.sh`; keep branch lessons but skip when current branch matches `PROTECTED_BRANCHES` (existing convention from `git-safety.sh`). Drop the "N lessons noted" acknowledgment suffix. Keep `/manage-lessons` nudge and migration warning unchanged. Update `.claude/docs/relevant-toolkit-lessons.md` to reframe Key tier as a holding/staging state for crystallization (truly always-relevant rules belong in `.claude/docs/essential-*.md`, not a DB row). Update session-start hook tests. Patch version bump; raiz sidecar with `skip: true` (raiz consumers don't have lessons enabled). Quiet shift for satellite consumers (claude-sessions et al.) on next sync — no announcement. PreToolUse `surface-lessons.sh` is untouched. Adjacent to P1 `session-start-output-too-large` — this change reduces the payload meaningfully. Design: `output/claude-toolkit/design/20260426_0930__design__stop-surfacing-lessons-at-session-start.md`.
-    - **depends on**: none
-
 - **[SKILLS]** Reframe Key tier as crystallization candidates in `/learn` and `/manage-lessons` (`lessons-key-tier-crystallization`)
     - **scope**: `skills`
-    - **notes**: Branch 2 of the "stop surfacing lessons at session-start" design. Update `/learn` and `/manage-lessons` skill prompts so promotion to Key tier nudges: "Key is a holding state — consider crystallizing into `.claude/docs/essential-*.md` or fixing the underlying problem the lesson points at." Includes a one-time review pass: walk current Key lessons and decide doc / fix / demote for each. Schema unchanged (Key tier survives as a holding state). Design: `output/claude-toolkit/design/20260426_0930__design__stop-surfacing-lessons-at-session-start.md`.
-    - **depends on**: `session-start-stop-surfacing-lessons`
+    - **notes**: Branch 2 of the "stop surfacing lessons at session-start" design. Branch 1 shipped in v2.68.3 (session-start drops Key/Recent surfacing; reframes Key as a holding state in the docs). Now update `/learn` and `/manage-lessons` skill prompts so promotion to Key tier nudges: "Key is a holding state — consider crystallizing into `.claude/docs/essential-*.md` or fixing the underlying problem the lesson points at." Includes a one-time review pass: walk current Key lessons and decide doc / fix / demote for each. `manage-lessons/SKILL.md:86` ("promote → key — eligible for surfacing") still contradicts the new framing — fix as part of this work. Schema unchanged (Key tier survives as a holding state). Design: `output/claude-toolkit/design/20260426_0930__design__stop-surfacing-lessons-at-session-start.md`.
+    - **depends on**: none
 
 - **[TOOLKIT]** Evaluate independence of lessons ecosystem from analytics ecosystem (`lessons-analytics-independence`)
     - **scope**: `toolkit`
