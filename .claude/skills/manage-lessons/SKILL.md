@@ -83,7 +83,7 @@ For each recent lesson, present and ask:
 Lesson: <text>
   ID: <id> | Date: <date> | Tags: <tags> | Branch: <branch>
 
-  → promote (move to key — validated, eligible for surfacing)
+  → promote (move to key as a crystallization candidate — next action: crystallize into .claude/docs/essential-*.md, fix the underlying problem, or demote back to recent)
   → absorb (already in a resource — record and deactivate)
   → deactivate (no longer relevant — searchable only)
   → skip (leave as recent)
@@ -102,6 +102,16 @@ claude-toolkit lessons deactivate --id <ID>
 ```
 
 Wait for user decision on each one. Don't batch.
+
+### 4.5. Key Promotion Contract
+
+When promoting to Key, decide *with the user* which crystallization path applies:
+
+- **→ essential doc** — the rule is general and should always be loaded. Open `.claude/docs/essential-*.md` (or propose a new one) and write the rule. Then deactivate the source lesson.
+- **→ fix the problem** — the lesson points at a missing hook, skill, or code defect. Open a backlog entry to fix it. The lesson stays Key until the fix lands, then absorb.
+- **→ demote** — on second look, this isn't always-relevant. Set tier back to recent. (No `demote` CLI subcommand exists yet; use `sqlite3 ~/.claude/lessons.db "UPDATE lessons SET tier='recent' WHERE id='<ID>';"`.)
+
+Promoting to Key without picking one of these paths is the anti-pattern this skill exists to prevent. Key is a crystallization holding state — not session-start-surfaced, not "more important." See `relevant-toolkit-lessons` doc §4.
 
 ### 5. Tag Hygiene
 
@@ -140,12 +150,13 @@ raw lessons → crystallized lesson → absorbed into resource → deactivated
 | Lesson matches an existing hook/skill | Absorb — record and deactivate |
 | Lesson is specific to a closed branch | Deactivate unless pattern is general |
 | Lesson has been key for 30+ days | Check: still needed, or absorbed? |
+| Lesson promoted to Key 7+ days ago, no crystallization decision made | Force the choice: essential-doc / fix / demote (see §4.5) |
 
 ## Anti-Patterns
 
 | Pattern | Problem | Fix |
 |---------|---------|-----|
-| Promoting everything | Defeats the tier system | Only promote lessons that apply broadly |
+| Promoting without a crystallization plan | Key tier becomes a graveyard of "important" lessons that never get acted on | On every promotion, name the path: essential doc, fix, or demote (see §4.5) |
 | Skipping all | Accumulates noise | At minimum, address clusters |
 | Deleting without reading | Losing valuable signal | Read each lesson before deciding |
 | Ignoring tag hygiene | Tags lose surfacing value | Clean up keywords and orphans |
