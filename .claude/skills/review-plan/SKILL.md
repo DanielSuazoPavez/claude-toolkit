@@ -174,8 +174,7 @@ Verification check:
 | **The Kitchen Sink** | Step combines 3+ distinct operations | Medium | Split into separate steps |
 | **The Wishful Step** | Assumes something works without verification | Medium | Add verification |
 | **Wishful Delegation** | Expects the implementing agent to figure out gaps | High | Make implicit knowledge explicit in the plan |
-| **Inlined Wrap-Up** | Plan's finalization step describes wrap-up actions inline ("update changelog, bump version, commit docs") | Medium | Replace with a hand-off: "Hand off to user — wrap-up is a user-invoked action, not part of implementation" |
-| **Auto-Wrap-Up** | Plan instructs the implementing agent to run `/wrap-up`, `make tag`, `git merge`, or `git push` | High | Wrap-up, merge, tag, and push are user actions. Plan's last code-touching step should be code-reviewer; final step is "Hand off to user" — mention `/wrap-up` only as a post-implementation user action |
+| **Auto-Wrap-Up** | Plan instructs the implementing agent to run `/wrap-up`, `make tag`, `git merge`, `git push`, or describes wrap-up actions inline ("update changelog, bump version, commit docs") as a step the agent executes | High | Wrap-up, merge, tag, and push are user actions. Plan's last code-touching step should be code-reviewer; final step is "Hand off to user" — mention `/wrap-up` only as a post-implementation user action |
 | **Scope Creep** | Steps not traceable to original request | Low | Remove or get explicit approval |
 | **Over-Engineering** | Abstractions for single use case | Medium | YAGNI - solve current problem only |
 | **Missing Rollback** | No recovery path for risky operations | High | Add rollback step |

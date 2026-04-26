@@ -62,7 +62,7 @@ Loads essential memories and git context at the start of each session.
 - Outputs all `essential-*.md` memories
 - Lists other available memories (with category counts)
 - Shows current git branch and main branch
-- Loads lessons from `lessons.db` (sqlite3): key tier (all), recent (last 5), branch-specific (current branch)
+- Loads lessons from `lessons.db` (sqlite3): branch-scoped lessons only (current branch, when not on a `PROTECTED_BRANCHES`-matched branch). Key and Recent tiers are not surfaced here — Key is a crystallization holding state (see `relevant-toolkit-lessons` §4), Recent surfaces contextually via PreToolUse `surface-lessons.sh`.
 - Falls back to `learned.json` (jq) if lessons.db not found, with migration nudge
 - Nudges `/manage-lessons` based on days since last run (metadata-driven threshold, default 7d)
 - Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
