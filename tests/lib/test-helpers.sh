@@ -153,6 +153,28 @@ expect_approve() {
     fi
 }
 
+# Expects PreToolUse ask decision (permissionDecision: ask)
+expect_ask() {
+    local hook="$1"
+    local input="$2"
+    local description="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    local output
+    output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
+
+    if echo "$output" | grep -q '"permissionDecision"[[:space:]]*:[[:space:]]*"ask"'; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output: $output"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected: permissionDecision ask"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
 # Expects empty output (hook stayed silent — no approval)
 expect_silent() {
     local hook="$1"

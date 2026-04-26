@@ -47,7 +47,9 @@
       "Grep(**)",
       "Read(/**)",
       "Write(/output/claude-toolkit/**)",
-      "Edit(/output/claude-toolkit/**)"
+      "Edit(/output/claude-toolkit/**)",
+      "Edit(/BACKLOG.md)",
+      "Edit(/CHANGELOG.md)"
     ]
   },
   "hooks": {
