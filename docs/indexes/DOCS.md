@@ -9,6 +9,7 @@ Always loaded at session start:
 | Doc | Status | Purpose |
 |-----|--------|---------|
 | `essential-conventions-code_style` | stable | Coding conventions, formatting, style guide |
+| `essential-conventions-execution` | stable | Shell/git command hygiene: sudo, paths, `git -c`, hook bypasses, tag pushing, authorization scope |
 | `essential-preferences-communication_style` | stable | Communication style preferences |
 
 ## Relevant Docs
