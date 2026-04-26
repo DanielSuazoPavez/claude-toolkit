@@ -1,0 +1,16 @@
+{
+  "version": "2.69.0",
+  "date": "2026-04-26",
+  "headline": "block-config-edits now covers .claude/settings*.json — closes the disableAllHooks kill switch",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "block-config-edits.sh now covers .claude/settings.json and .claude/settings.local.json. Closes the documented one-line hook kill switch (disableAllHooks: true in settings.local.json silently disables every hook with no log noise) and the settings.local.json precedence override of permissions.ask. Mode-aware: hard-blocks under permission_mode=auto, asks (permissionDecision: ask) under default/acceptEdits/plan so legitimate user-driven edits stay friction-light. Bash branch always blocks writes to settings paths (>>, tee, sed -i, mv, single >); read-only commands (cat, jq, grep) remain free. Path detection runs on stripped command skeleton — settings basenames inside heredocs or single-quoted JSON args do not false-positive.",
+        "lib/hook-utils.sh: new hook_ask helper emits {hookSpecificOutput: {permissionDecision: ask, ...}}. Mirrors hook_approve's escaping; available to any future hook that needs to ask the user instead of blocking.",
+        "Documented gaps in the hook header (not bugs): symlink redirection (deferred until seen in the wild) and interpreter-bodied writes — python -c, node -e, perl -e, bash -c — bypass the verb regex (filed as P3 backlog follow-up)."
+      ]
+    }
+  ]
+}
