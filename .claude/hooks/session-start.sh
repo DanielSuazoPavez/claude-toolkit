@@ -100,49 +100,46 @@ Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sy
 fi
 _hook_perf_probe "toolkit_version"
 
-# === LESSONS ===
+# === BRANCH LESSONS / NUDGE ===
 LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
 LEARNED_FILE=".claude/learned.json"
+# Same regex convention as git-safety.sh — duplicated rather than sourced to
+# keep session-start.sh self-contained.
+PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-^(main|master)$}"
 
 if ! hook_feature_enabled lessons; then
     # Lessons ecosystem disabled — skip entire section (query, output, nudge).
-    # ACK_MSG below will also skip the "N lessons noted" suffix.
     :
 elif [ -f "$LESSONS_DB" ]; then
-    # SQLite path — CURRENT_BRANCH already set in git context section
-    # SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter flag,
-    # and inputs come from $PWD / git refs (local, user-owned) — not external input.
+    # SQLite path — CURRENT_BRANCH already set in git context section.
+    # SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter
+    # flag, and inputs come from $PWD / git refs (local, user-owned) — not
+    # external input.
     SAFE_BRANCH="${CURRENT_BRANCH//\'/\'\'}"
     SAFE_PROJECT="${PROJECT//\'/\'\'}"
 
-    # Single sqlite3 call for all lesson data — row prefix disambiguates result sets
-    KEY_LESSONS=""
-    RECENT_LESSONS=""
     BRANCH_LESSONS=""
     DAYS_SINCE=-1
     THRESHOLD_DAYS=7
     ACTIVE_COUNT=0
     _LAST_MANAGE_EXISTS=0
 
-    _DB_RESULT=$(sqlite3 -separator '|' "$LESSONS_DB" "
-SELECT 'K|' || '- [' || GROUP_CONCAT(t.name, ',') || '] ' || l.text
-  FROM lessons l
-  LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
-  LEFT JOIN tags t ON t.id = lt.tag_id
-  WHERE l.tier = 'key' AND l.active = 1
-    AND (l.scope = 'global' OR (l.scope = 'project' AND l.project_id = '${SAFE_PROJECT}'))
-  GROUP BY l.id ORDER BY l.date DESC;
-SELECT 'R|' || '- ' || l.text
-  FROM lessons l
-  WHERE l.tier = 'recent' AND l.active = 1
-    AND (l.scope = 'global' OR (l.scope = 'project' AND l.project_id = '${SAFE_PROJECT}'))
-  ORDER BY l.date DESC LIMIT 5;
+    # Branch-lessons query is gated in bash (not SQL) so the DB roundtrip is
+    # skipped entirely on protected branches — handoff signal lives only on
+    # feature branches, never on main/master.
+    _BRANCH_QUERY=""
+    if [[ ! "$CURRENT_BRANCH" =~ $PROTECTED_BRANCHES ]]; then
+        _BRANCH_QUERY="
 SELECT 'B|' || '- ' || l.text
   FROM lessons l
   WHERE l.tier = 'recent' AND l.active = 1
     AND l.branch = '${SAFE_BRANCH}'
     AND (l.scope = 'global' OR (l.scope = 'project' AND l.project_id = '${SAFE_PROJECT}'))
-  ORDER BY l.date DESC;
+  ORDER BY l.date DESC;"
+    fi
+
+    _DB_RESULT=$(sqlite3 -separator '|' "$LESSONS_DB" "
+${_BRANCH_QUERY}
 SELECT 'M|' || CAST(COALESCE(julianday('now') - julianday(value), -1) AS INTEGER)
   FROM metadata WHERE key = 'last_manage_run';
 SELECT 'T|' || COALESCE(value, '7')
@@ -157,8 +154,6 @@ SELECT 'C|' || COUNT(*) FROM lessons WHERE active = 1;
 
     while IFS='|' read -r _prefix _rest; do
         case "$_prefix" in
-            K) KEY_LESSONS+="${_rest}"$'\n' ;;
-            R) RECENT_LESSONS+="${_rest}"$'\n' ;;
             B) BRANCH_LESSONS+="${_rest}"$'\n' ;;
             M) DAYS_SINCE="${_rest}"; [ "$DAYS_SINCE" -ge 0 ] 2>/dev/null && _LAST_MANAGE_EXISTS=1 ;;
             T) THRESHOLD_DAYS="${_rest}" ;;
@@ -166,20 +161,11 @@ SELECT 'C|' || COUNT(*) FROM lessons WHERE active = 1;
         esac
     done <<< "$_DB_RESULT"
 
-    # Trim trailing newlines
-    KEY_LESSONS="${KEY_LESSONS%$'\n'}"
-    RECENT_LESSONS="${RECENT_LESSONS%$'\n'}"
+    # Trim trailing newline
     BRANCH_LESSONS="${BRANCH_LESSONS%$'\n'}"
 
-    if [ -n "$KEY_LESSONS" ] || [ -n "$RECENT_LESSONS" ]; then
-        LESSONS_OUT="=== LESSONS ==="
-        [ -n "$KEY_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
-Key:
-$KEY_LESSONS"
-        [ -n "$RECENT_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
-Recent:
-$RECENT_LESSONS"
-        [ -n "$BRANCH_LESSONS" ] && LESSONS_OUT="$LESSONS_OUT
+    if [ -n "$BRANCH_LESSONS" ]; then
+        LESSONS_OUT="=== LESSONS ===
 This branch:
 $BRANCH_LESSONS"
         hook_log_section "lessons" "$LESSONS_OUT"
@@ -206,18 +192,13 @@ $BRANCH_LESSONS"
     _hook_perf_probe "nudge"
 
 elif [ -f "$LEARNED_FILE" ]; then
-    # Fallback — learned.json still exists but no lessons.db
+    # Fallback — learned.json still exists but no lessons.db. Surface only the
+    # migration warning; the legacy Key/Recent jq rendering was removed when
+    # session-start stopped surfacing those tiers.
     echo ""
     echo "=== LESSONS ==="
     echo "⚠ MANDATORY: lessons.db not found but learned.json exists. Ask the user to run \`claude-toolkit lessons migrate\` to upgrade lessons to SQLite. Do NOT skip this — surface it immediately at session start."
     ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- lessons.db missing — run \`claude-toolkit lessons migrate\` to upgrade from learned.json"
-
-    # Legacy jq path
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')
-    KEY_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "key")] | .[] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
-    RECENT_LESSONS=$(jq -r '[.lessons[]? | select(.tier == "recent")] | .[-5:][] | "- [\(.category)] \(.text)"' "$LEARNED_FILE" 2>/dev/null)
-    [ -n "$KEY_LESSONS" ] && echo "Key:" && echo "$KEY_LESSONS"
-    [ -n "$RECENT_LESSONS" ] && echo "Recent:" && echo "$RECENT_LESSONS"
     echo ""
 fi
 
@@ -233,20 +214,13 @@ fi
 _hook_perf_probe "opt_in_nudge"
 
 # === ACKNOWLEDGMENT ===
-# ESSENTIAL_COUNT already set by the docs loop above
-LESSON_COUNT=0
-if hook_feature_enabled lessons; then
-    if [ -f "$LESSONS_DB" ]; then
-        # ACTIVE_COUNT already set by the combined query above
-        LESSON_COUNT="${ACTIVE_COUNT:-0}"
-    elif [ -f "$LEARNED_FILE" ]; then
-        LESSON_COUNT=$(jq '.lessons | length' "$LEARNED_FILE" 2>/dev/null || echo 0)
-    fi
-fi
+# ESSENTIAL_COUNT already set by the docs loop above. LESSON_COUNT was dropped
+# when session-start stopped surfacing Key/Recent lessons — the count nudged
+# performative "N lessons noted" mentions without ever exposing the lessons
+# themselves. ACTIVE_COUNT is still computed for the /manage-lessons nudge.
 echo ""
 echo "=== SESSION START ==="
 ACK_MSG="$ESSENTIAL_COUNT essential docs loaded"
-[ "$LESSON_COUNT" -gt 0 ] && ACK_MSG="$ACK_MSG, $LESSON_COUNT lessons noted"
 if [ -n "$ACTIONABLE_ITEMS" ]; then
     echo "MANDATORY: Your FIRST message to the user MUST acknowledge: $ACK_MSG. Then surface these actionable items — do NOT skip or bury them:"
     echo -e "$ACTIONABLE_ITEMS"
