@@ -1,0 +1,15 @@
+{
+  "version": "2.68.4",
+  "date": "2026-04-26",
+  "headline": "/review-plan: wrap-up is now a user action, not an implementing-agent step",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "skills",
+      "bullets": [
+        "/review-plan flips the always-required final step from \"Run /wrap-up\" to \"Hand off to user.\" Wrap-up, merge, tag, and push are user actions; the implementing agent stops at code-reviewer.",
+        "New Auto-Wrap-Up anti-pattern (High severity) catches plans that instruct the agent to run /wrap-up, make tag, git merge, git push, or describe wrap-up actions inline. The previous Inlined Wrap-Up (Medium) is folded in — same blast radius."
+      ]
+    }
+  ]
+}

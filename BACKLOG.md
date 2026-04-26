@@ -28,9 +28,9 @@
 
 ## P2 - Medium
 
-- **[SKILLS]** Reframe Key tier as crystallization candidates in `/learn` and `/manage-lessons` (`lessons-key-tier-crystallization`)
-    - **scope**: `skills`
-    - **notes**: Branch 2 of the "stop surfacing lessons at session-start" design. Branch 1 shipped in v2.68.3 (session-start drops Key/Recent surfacing; reframes Key as a holding state in the docs). Now update `/learn` and `/manage-lessons` skill prompts so promotion to Key tier nudges: "Key is a holding state — consider crystallizing into `.claude/docs/essential-*.md` or fixing the underlying problem the lesson points at." Includes a one-time review pass: walk current Key lessons and decide doc / fix / demote for each. `manage-lessons/SKILL.md:86` ("promote → key — eligible for surfacing") still contradicts the new framing — fix as part of this work. Schema unchanged (Key tier survives as a holding state). Design: `output/claude-toolkit/design/20260426_0930__design__stop-surfacing-lessons-at-session-start.md`.
+- **[DOCS]** Revisit "instructions to write the raiz sidecar" (`raiz-sidecar-instructions`)
+    - **scope**: `docs`
+    - **notes**: Surfaced 2026-04-26 during the v2.68.4 wrap-up. The raiz sidecar contract lives in `CLAUDE.md` ("write the raiz sidecar on every version bump") and in the dist/raiz tooling, but the decision rules are spread thin: (1) when does `skip:true` apply (raiz-irrelevant changes vs workshop-internal vs raiz has feature gated off) — currently a per-bump judgment call; (2) which `kind` belongs to which change (skills vs agents vs hooks vs docs vs scripts vs templates vs other) — clear for clean cases, fuzzy for cross-cutting changes; (3) the relationship between MANIFEST membership (what raiz ships) and sidecar coverage (what raiz consumers see) — currently has to be reasoned about per-change by grepping `dist/raiz/MANIFEST`; (4) the override path via `dist/raiz/changelog/<version>.html` (manual full-message override) and when to use it. Goal: consolidate into a single reference (likely `relevant-toolkit-raiz_sidecar.md` or extend an existing doc), with a decision table and worked examples. Inputs: recent sidecar JSONs (`dist/raiz/changelog/`), the "Raiz notification on version bump" section in `CLAUDE.md`, the publish-raiz workflow that consumes the sidecar. Output: a doc that makes "do I `skip:true` this one?" answerable in 30 seconds.
     - **depends on**: none
 
 - **[TOOLKIT]** Centralize / standardize / streamline env var usage across all resources (`env-var-audit`)
