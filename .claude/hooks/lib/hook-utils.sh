@@ -155,6 +155,35 @@ _strip_inert_content() {
 }
 
 # ============================================================
+# _resolve_project_id
+# ============================================================
+# Resolve canonical project_id for the current $PWD via sessions.db.project_paths.
+# When sessions.db is absent, fall back to basename (standalone deployment).
+# When sessions.db is present but the encoded dir isn't registered, emit one
+# stderr notice and return empty — soft failure so hooks don't crash sessions.
+# An empty PROJECT means project-scoped scope filters won't match (global
+# lessons still surface).
+_resolve_project_id() {
+    local sessions_db="${CLAUDE_ANALYTICS_SESSIONS_DB:-$HOME/.claude/sessions.db}"
+    if [ ! -f "$sessions_db" ]; then
+        basename "$PWD"
+        return
+    fi
+    local encoded="-${PWD#/}"
+    encoded="${encoded//\//-}"
+    local pid
+    pid=$(sqlite3 "file:${sessions_db}?mode=ro" \
+        "SELECT project_id FROM project_paths WHERE dir_name = '${encoded//\'/\'\'}';" \
+        2>/dev/null)
+    if [ -n "$pid" ]; then
+        printf '%s' "$pid"
+        return
+    fi
+    echo "hook: project not registered in sessions.db.project_paths (dir_name=${encoded}); project-scoped lessons won't match" >&2
+    printf ''
+}
+
+# ============================================================
 # hook_init HOOK_NAME HOOK_EVENT
 # ============================================================
 hook_init() {
@@ -164,7 +193,7 @@ hook_init() {
     # shellcheck disable=SC2034  # INPUT is read by sourcing hooks/scripts (statusline-capture.sh, tests)
     INPUT="$HOOK_INPUT"
     INVOCATION_ID="$$-${EPOCHSECONDS:-$(date +%s)}"
-    PROJECT="$(basename "$PWD")"
+    PROJECT="$(_resolve_project_id)"
     # Capture timestamp once, reuse in all logging.
     # Millisecond precision — multiple hook rows within a single turn land in
     # the same second, and ms lets us order them chronologically.

@@ -14,8 +14,8 @@ from cli.lessons.db import (
     cmd_deactivate,
     cmd_get,
     cmd_promote,
+    ensure_project,
     get_metadata,
-    get_or_create_project,
     get_or_create_tag,
     init_lessons_db,
     insert_lesson,
@@ -85,14 +85,19 @@ class TestInitDb:
 
 class TestProjects:
     def test_create_and_get(self, db: sqlite3.Connection) -> None:
-        pid = get_or_create_project(db, "my-project")
-        assert pid > 0
-        assert get_or_create_project(db, "my-project") == pid
+        pid = ensure_project(db, "my-project")
+        assert pid == "my-project"
+        assert ensure_project(db, "my-project") == "my-project"
+        # idempotent — only one row
+        assert db.execute(
+            "SELECT COUNT(*) FROM projects WHERE id = ?", ("my-project",)
+        ).fetchone()[0] == 1
 
-    def test_unique_names(self, db: sqlite3.Connection) -> None:
-        p1 = get_or_create_project(db, "alpha")
-        p2 = get_or_create_project(db, "beta")
+    def test_unique_ids(self, db: sqlite3.Connection) -> None:
+        p1 = ensure_project(db, "alpha")
+        p2 = ensure_project(db, "beta")
         assert p1 != p2
+        assert {row[0] for row in db.execute("SELECT id FROM projects")} == {"alpha", "beta"}
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +133,7 @@ class TestLessons:
         lid = insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="my-project",
+            project_id="my-project",
             date="2026-03-24",
             text="Always use absolute paths",
             tag_names=["pattern", "git"],
@@ -141,7 +146,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="my-project",
+            project_id="my-project",
             date="2026-03-24",
             text="Test lesson",
             tag_names=["alpha", "beta"],
@@ -159,7 +164,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Lesson one",
             tag_names=["shared"],
@@ -167,7 +172,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_002",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Lesson two",
             tag_names=["shared"],
@@ -181,7 +186,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Key lesson",
             tag_names=["pattern"],
@@ -195,7 +200,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Some lesson",
             tag_names=["gotcha"],
@@ -208,7 +213,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Active lesson",
             tag_names=["test-tag"],
@@ -223,7 +228,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Project-specific lesson",
             tag_names=["convention"],
@@ -239,7 +244,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Global lesson",
             tag_names=["pattern"],
@@ -254,7 +259,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Lesson to rescope",
             tag_names=["gotcha"],
@@ -267,7 +272,7 @@ class TestLessons:
         assert row[0] == "project"
 
     def test_scope_check_constraint(self, db: sqlite3.Connection) -> None:
-        get_or_create_project(db, "proj")
+        ensure_project(db, "proj")
         with pytest.raises(sqlite3.IntegrityError):
             db.execute(
                 """INSERT INTO lessons (id, project_id, date, tier, active, scope, text)
@@ -277,19 +282,18 @@ class TestLessons:
     def test_crystallize_scope_inherits_project(self, db: sqlite3.Connection) -> None:
         """All project-scoped sources from same project -> project scope."""
         insert_lesson(
-            db, lesson_id="p_001", project_name="proj", date="2026-03-24",
+            db, lesson_id="p_001", project_id="proj", date="2026-03-24",
             text="Source 1", tag_names=["a"], scope="project",
         )
         insert_lesson(
-            db, lesson_id="p_002", project_name="proj", date="2026-03-24",
+            db, lesson_id="p_002", project_id="proj", date="2026-03-24",
             text="Source 2", tag_names=["a"], scope="project",
         )
         source_ids = ["p_001", "p_002"]
         placeholders = ",".join("?" for _ in source_ids)
         rows = db.execute(
-            f"SELECT DISTINCT l.scope, p.name FROM lessons l "  # noqa: S608
-            f"JOIN projects p ON l.project_id = p.id "
-            f"WHERE l.id IN ({placeholders})",
+            f"SELECT DISTINCT scope, project_id FROM lessons "  # noqa: S608
+            f"WHERE id IN ({placeholders})",
             source_ids,
         ).fetchall()
         all_project = all(s == "project" for s, _ in rows)
@@ -299,19 +303,18 @@ class TestLessons:
     def test_crystallize_scope_global_when_mixed(self, db: sqlite3.Connection) -> None:
         """Mixed scopes -> global scope."""
         insert_lesson(
-            db, lesson_id="p_001", project_name="proj", date="2026-03-24",
+            db, lesson_id="p_001", project_id="proj", date="2026-03-24",
             text="Source 1", tag_names=["a"], scope="project",
         )
         insert_lesson(
-            db, lesson_id="p_002", project_name="proj", date="2026-03-24",
+            db, lesson_id="p_002", project_id="proj", date="2026-03-24",
             text="Source 2", tag_names=["a"], scope="global",
         )
         source_ids = ["p_001", "p_002"]
         placeholders = ",".join("?" for _ in source_ids)
         rows = db.execute(
-            f"SELECT DISTINCT l.scope, p.name FROM lessons l "  # noqa: S608
-            f"JOIN projects p ON l.project_id = p.id "
-            f"WHERE l.id IN ({placeholders})",
+            f"SELECT DISTINCT scope, project_id FROM lessons "  # noqa: S608
+            f"WHERE id IN ({placeholders})",
             source_ids,
         ).fetchall()
         all_project = all(s == "project" for s, _ in rows)
@@ -322,7 +325,7 @@ class TestLessons:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="First",
             tag_names=["a"],
@@ -331,7 +334,7 @@ class TestLessons:
             insert_lesson(
                 db,
                 lesson_id="proj_20260324T1200_001",
-                project_name="proj",
+                project_id="proj",
                 date="2026-03-24",
                 text="Duplicate",
                 tag_names=["b"],
@@ -348,7 +351,7 @@ class TestTagLesson:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Test",
             tag_names=["alpha"],
@@ -392,7 +395,7 @@ class TestFTS:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Always use absolute paths when running commands",
             tag_names=["pattern"],
@@ -410,7 +413,7 @@ class TestFTS:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Some unrelated lesson",
             tag_names=["gotcha"],
@@ -424,7 +427,7 @@ class TestFTS:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Original text about testing",
             tag_names=["pattern"],
@@ -449,7 +452,7 @@ class TestFTS:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Lesson to be deleted",
             tag_names=["gotcha"],
@@ -469,7 +472,7 @@ class TestFTS:
 
 class TestConstraints:
     def test_tier_check(self, db: sqlite3.Connection) -> None:
-        get_or_create_project(db, "proj")
+        ensure_project(db, "proj")
         with pytest.raises(sqlite3.IntegrityError):
             db.execute(
                 """INSERT INTO lessons (id, project_id, date, tier, active, text)
@@ -486,7 +489,7 @@ class TestConstraints:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Will be deleted",
             tag_names=["alpha", "beta"],
@@ -510,7 +513,7 @@ class TestCmdGet:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="my-project",
+            project_id="my-project",
             date="2026-03-24",
             text="Always use absolute paths",
             tag_names=["pattern", "git"],
@@ -542,7 +545,7 @@ class TestLifecycleCommands:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Recent lesson",
             tag_names=["pattern"],
@@ -574,7 +577,7 @@ class TestLifecycleCommands:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_001",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Lesson A",
             tag_names=["shared"],
@@ -582,7 +585,7 @@ class TestLifecycleCommands:
         insert_lesson(
             db,
             lesson_id="proj_20260324T1200_002",
-            project_name="proj",
+            project_id="proj",
             date="2026-03-24",
             text="Lesson B",
             tag_names=["shared"],

@@ -4,10 +4,11 @@
 Provides database initialization, CRUD helpers, and CLI for managing
 lessons captured across Claude Code sessions.
 
-Schema design: canonical yaml lives in claude-sessions/schemas/lessons.yaml
-(ownership moved in claude-sessions v0.19.0 / claude-toolkit v2.59.3; toolkit
-retains INIT_SQL for runtime bootstrap — it must stay byte-compatible with
-the yaml).
+Schema design: canonical yaml lives in claude-sessions/schemas/lessons.yaml.
+Ownership moved in claude-sessions v0.19.0 / claude-toolkit v2.59.3; the
+projects dimension was retyped to TEXT (kebab-case repo id, byte-aligned
+with sessions.db.projects.id) in claude-sessions v0.48.0. The toolkit retains
+INIT_SQL for runtime bootstrap — it must stay byte-compatible with the yaml.
 
 Usage:
     claude-toolkit lessons migrate [--json-path PATH]
@@ -37,6 +38,7 @@ from cli.lessons.formatting import _c
 # ---------------------------------------------------------------------------
 
 LESSONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_LESSONS_DB") or (Path.home() / ".claude" / "lessons.db"))
+SESSIONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_SESSIONS_DB") or (Path.home() / ".claude" / "sessions.db"))
 LEARNED_JSON_PATH = Path(".claude/learned.json")
 
 # ---------------------------------------------------------------------------
@@ -48,8 +50,7 @@ PRAGMA journal_mode=WAL;
 PRAGMA foreign_keys=ON;
 
 CREATE TABLE IF NOT EXISTS projects (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT NOT NULL UNIQUE
+    id  TEXT PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS tags (
@@ -67,7 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_tags_status ON tags(status);
 
 CREATE TABLE IF NOT EXISTS lessons (
     id                  TEXT PRIMARY KEY,
-    project_id          INTEGER NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+    project_id          TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
     date                TEXT NOT NULL,
     tier                TEXT NOT NULL DEFAULT 'recent'
                             CHECK(tier IN ('recent', 'key', 'historical')),
@@ -142,16 +143,13 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def get_or_create_project(conn: sqlite3.Connection, name: str) -> int:
-    """Return project id, creating if needed."""
-    row = conn.execute(
-        "SELECT id FROM projects WHERE name = ?", (name,)
-    ).fetchone()
-    if row:
-        return row[0]
-    cur = conn.execute("INSERT INTO projects (name) VALUES (?)", (name,))
+def ensure_project(conn: sqlite3.Connection, project_id: str) -> str:
+    """Ensure project row exists; return the id unchanged."""
+    conn.execute(
+        "INSERT OR IGNORE INTO projects (id) VALUES (?)", (project_id,)
+    )
     conn.commit()
-    return cur.lastrowid  # type: ignore[return-value]
+    return project_id
 
 
 def get_or_create_tag(
@@ -230,7 +228,7 @@ def insert_lesson(
     conn: sqlite3.Connection,
     *,
     lesson_id: str,
-    project_name: str,
+    project_id: str,
     date: str,
     text: str,
     tag_names: list[str],
@@ -243,7 +241,7 @@ def insert_lesson(
     scope: str = "global",
 ) -> str:
     """Insert a lesson with project and tags. Returns the lesson id."""
-    project_id = get_or_create_project(conn, project_name)
+    ensure_project(conn, project_id)
     conn.execute(
         """INSERT INTO lessons
            (id, project_id, date, tier, active, scope, text, branch,
@@ -416,7 +414,7 @@ def cmd_migrate(args: argparse.Namespace) -> None:
         insert_lesson(
             conn,
             lesson_id=lesson["id"],
-            project_name=lesson["project"],
+            project_id=lesson["project"],
             date=lesson["date"],
             text=lesson["text"],
             tag_names=tag_names,
@@ -472,7 +470,7 @@ def cmd_add(args: argparse.Namespace) -> None:
     insert_lesson(
         conn,
         lesson_id=lesson_id,
-        project_name=project,
+        project_id=project,
         date=date,
         text=args.text,
         tag_names=tag_names,
@@ -500,11 +498,10 @@ def cmd_search(args: argparse.Namespace) -> None:
     )
 
     sql = """
-        SELECT l.id, l.date, l.tier, l.active, p.name,
+        SELECT l.id, l.date, l.tier, l.active, l.project_id,
                highlight(lessons_fts, 0, '>>>', '<<<') AS snippet
         FROM lessons_fts
         JOIN lessons l ON l.rowid = lessons_fts.rowid
-        JOIN projects p ON p.id = l.project_id
         WHERE lessons_fts MATCH ?
         ORDER BY l.date DESC
         LIMIT ?
@@ -529,10 +526,9 @@ def cmd_get(args: argparse.Namespace) -> None:
     sql = """
         SELECT l.id, l.date, l.tier, l.active, l.scope, l.text, l.branch,
                l.crystallized_from, l.absorbed_into, l.promoted, l.archived,
-               l.created_at, p.name AS project,
+               l.created_at, l.project_id AS project,
                GROUP_CONCAT(t.name, ', ') AS tags
         FROM lessons l
-        JOIN projects p ON p.id = l.project_id
         LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
         LEFT JOIN tags t ON t.id = lt.tag_id
         WHERE l.id = ?
@@ -576,10 +572,9 @@ def cmd_list(args: argparse.Namespace) -> None:
     c = _c()
 
     sql = """
-        SELECT l.id, l.date, l.tier, l.active, l.text, p.name,
+        SELECT l.id, l.date, l.tier, l.active, l.text, l.project_id,
                GROUP_CONCAT(t.name, ', ') AS tags, l.scope
         FROM lessons l
-        JOIN projects p ON p.id = l.project_id
         LEFT JOIN lesson_tags lt ON lt.lesson_id = l.id
         LEFT JOIN tags t ON t.id = lt.tag_id
         WHERE 1=1
@@ -592,7 +587,7 @@ def cmd_list(args: argparse.Namespace) -> None:
     if args.active:
         sql += " AND l.active = 1"
     if args.project:
-        sql += " AND p.name LIKE ?"
+        sql += " AND l.project_id LIKE ?"
         params.append(f"%{args.project}%")
     if args.tags:
         filter_tags = [t.strip() for t in args.tags.split(",")]
@@ -757,16 +752,15 @@ def cmd_crystallize(args: argparse.Namespace) -> None:
             print(f"Warning: lesson {sid} is already inactive", file=sys.stderr)
 
     # Get project from first source
-    project_name = conn.execute(
-        "SELECT p.name FROM lessons l JOIN projects p ON l.project_id = p.id WHERE l.id = ?",
+    project_id = conn.execute(
+        "SELECT project_id FROM lessons WHERE id = ?",
         (source_ids[0],),
     ).fetchone()[0]
 
     # Determine scope: project only if ALL sources are project-scoped for the same project
     source_scopes = conn.execute(
-        f"SELECT DISTINCT l.scope, p.name FROM lessons l "  # noqa: S608
-        f"JOIN projects p ON l.project_id = p.id "
-        f"WHERE l.id IN ({','.join('?' for _ in source_ids)})",
+        f"SELECT DISTINCT scope, project_id FROM lessons "  # noqa: S608
+        f"WHERE id IN ({','.join('?' for _ in source_ids)})",
         source_ids,
     ).fetchall()
     if all(s == "project" for s, _ in source_scopes) and len({p for _, p in source_scopes}) == 1:
@@ -780,7 +774,7 @@ def cmd_crystallize(args: argparse.Namespace) -> None:
 
     # Generate ID
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M")
-    prefix = f"{project_name}_{timestamp}"
+    prefix = f"{project_id}_{timestamp}"
     existing = conn.execute(
         "SELECT COUNT(*) FROM lessons WHERE id LIKE ?", (f"{prefix}%",)
     ).fetchone()[0]
@@ -790,7 +784,7 @@ def cmd_crystallize(args: argparse.Namespace) -> None:
     insert_lesson(
         conn,
         lesson_id=new_id,
-        project_name=project_name,
+        project_id=project_id,
         date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         text=args.text,
         tag_names=tag_names,
@@ -1004,18 +998,55 @@ def cmd_health(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _encoded_dir(path: Path) -> str:
+    """Encode an absolute path the same way ~/.claude/projects/ does."""
+    return "-" + str(path).lstrip("/").replace("/", "-")
+
+
 def _detect_project() -> str:
-    """Detect project name from git root or cwd."""
+    """Resolve canonical project_id via sessions.db.project_paths.
+
+    When sessions.db is present, defer to it as source of truth — error if the
+    encoded dir isn't registered (claude-sessions hasn't indexed this project
+    yet). Falling back to basename here would create a divergent row.
+
+    Only when sessions.db is absent entirely do we fall back to basename
+    (standalone toolkit deployment with no claude-sessions).
+    """
     import subprocess
 
     try:
-        result = subprocess.run(
+        root = Path(subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
             capture_output=True, text=True, check=True,
-        )
-        return Path(result.stdout.strip()).name
+        ).stdout.strip())
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return Path.cwd().name
+        root = Path.cwd()
+
+    if not SESSIONS_DB_PATH.exists():
+        return root.name
+
+    encoded = _encoded_dir(root)
+    conn = sqlite3.connect(f"file:{SESSIONS_DB_PATH}?mode=ro", uri=True)
+    try:
+        row = conn.execute(
+            "SELECT project_id FROM project_paths WHERE dir_name = ?",
+            (encoded,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    if row:
+        return row[0]
+
+    print(
+        f"Error: project not registered in sessions.db.project_paths (dir_name={encoded}).\n"
+        "  claude-sessions hasn't indexed this project yet. Run the indexer\n"
+        "  (e.g. `claude-sessions index`) and retry, or unset CLAUDE_ANALYTICS_SESSIONS_DB\n"
+        "  to use basename resolution.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 
 def _detect_branch() -> str | None:

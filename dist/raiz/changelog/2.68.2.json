@@ -1,0 +1,14 @@
+{
+  "version": "2.68.2",
+  "date": "2026-04-26",
+  "headline": "lessons projects schema aligned with TEXT-keyed dimension",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "`lib/hook-utils.sh` gains a `_resolve_project_id` helper (called from `hook_init`) that replaces `PROJECT=\"$(basename \"$PWD\")\"`. It looks up the canonical project_id in `sessions.db.project_paths` (read-only) keyed on the encoded `$PWD`. When sessions.db is absent it falls back to basename. When sessions.db exists but the encoded dir isn't registered, it emits one stderr line and leaves `PROJECT` empty — project-scoped lesson scope filters won't match (global lessons still surface), but hooks don't crash sessions. Aligns hook resolution with claude-sessions v0.48.0's TEXT-keyed projects dimension."
+      ]
+    }
+  ]
+}
