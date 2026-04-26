@@ -100,7 +100,11 @@ Project: $PROJECT_VER → Toolkit: $TOOLKIT_VER — run \`make claude-toolkit-sy
 fi
 _hook_perf_probe "toolkit_version"
 
-# === BRANCH LESSONS / NUDGE ===
+# === LESSONS ===
+# Section narrowed: only branch-scoped lessons surface here, gated on
+# PROTECTED_BRANCHES. Key/Recent are intentionally not session-start-surfaced
+# (relevant-toolkit-lessons.md §4 + §7). Output label still reads "LESSONS"
+# because the /manage-lessons nudge belongs to the same surface.
 LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
 LEARNED_FILE=".claude/learned.json"
 # Same regex convention as git-safety.sh — duplicated rather than sourced to
