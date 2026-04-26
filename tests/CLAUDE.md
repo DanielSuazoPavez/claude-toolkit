@@ -51,6 +51,7 @@ tests/hooks/
 ├── test-grouped-read.sh            # grouped-read-guard.sh dispatcher
 ├── test-secrets-guard.sh           # secrets-guard.sh
 ├── test-session-id.sh              # session_id propagation (hook-utils.sh)
+├── test-session-start.sh           # session-start.sh lesson surfacing (Key/Recent dropped, branch-lesson protected-branch gate, ack suffix)
 ├── test-session-start-source.sh    # SessionStart .source capture
 └── test-suggest-json.sh            # suggest-read-json.sh
 ```
