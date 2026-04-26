@@ -111,9 +111,8 @@ RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
     FROM lessons l
     JOIN lesson_tags lt ON l.id = lt.lesson_id
     JOIN candidate_tags c ON lt.tag_id = c.tag_id
-    LEFT JOIN projects p ON p.id = l.project_id
     WHERE l.active = 1
-      AND (l.scope = 'global' OR (l.scope = 'project' AND p.name = '${SAFE_PROJECT}'))
+      AND (l.scope = 'global' OR (l.scope = 'project' AND l.project_id = '${SAFE_PROJECT}'))
       ${NOT_IN_CLAUSE}
     LIMIT 3;
 " 2>/dev/null)
