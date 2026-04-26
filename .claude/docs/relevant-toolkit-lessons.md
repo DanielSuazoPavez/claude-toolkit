@@ -24,7 +24,7 @@ Lessons are actionable rules captured during sessions and surfaced contextually 
 | `claude-toolkit lessons` CLI | CRUD operations on `lessons.db` |
 | `/learn` skill | Captures new lessons during sessions |
 | `/manage-lessons` skill | Curates lessons (promote, crystallize, absorb, deactivate) |
-| `session-start.sh` hook | Surfaces key + recent lessons at session start |
+| `session-start.sh` hook | Surfaces branch-scoped lessons (skipped on protected branches) and nudges `/manage-lessons` when curation is stale |
 | `surface-lessons.sh` hook | Injects relevant lessons just-in-time on tool use |
 
 ---
@@ -73,9 +73,11 @@ recent  →  key  →  historical (or absorbed/deactivated)
 
 | Tier | Meaning | Surfacing |
 |------|---------|-----------|
-| `recent` | Newly captured, unvalidated | Last 5 shown at session start |
-| `key` | Promoted, validated | All shown at session start (with tags) |
+| `recent` | Newly captured, unvalidated | Surface contextually via `surface-lessons.sh` (PreToolUse, tag-keyword match); branch-scoped recents also surface at session-start on non-protected branches |
+| `key` | Crystallization candidate | Not session-start-surfaced — see note below |
 | `historical` | Archived, searchable only | Not surfaced automatically |
+
+**Key tier is a holding state for crystallization candidates, not a session-start surfacing tier.** A lesson promoted to Key is signaling "this should always be in front of Claude" — at that point the right action is usually to (a) crystallize the rule into `.claude/docs/essential-*.md` so it's loaded with the other essential docs, or (b) fix the underlying problem the lesson points at. Demote back to recent if neither applies. Key lessons live in the DB as candidates pending crystallization, not as a permanent surfacing tier.
 
 ---
 
@@ -134,25 +136,25 @@ Runs periodically (nudged after 7 days). Steps:
 
 ### `session-start.sh` (SessionStart)
 
-Loads lessons at session start in a single SQL query with row-prefix disambiguation:
+Surfaces branch-scoped lessons (when the current branch is not protected) and the `/manage-lessons` curation nudge. Single SQL query with row-prefix disambiguation:
 
-- `K` — key-tier lessons (with tags)
-- `R` — recent-tier lessons (last 5)
-- `B` — branch-specific lessons
+- `B` — branch-specific lessons (only queried when `CURRENT_BRANCH` doesn't match `PROTECTED_BRANCHES`)
 - `M` — days since last `/manage-lessons` run
 - `T` — nudge threshold (default: 7 days)
-- `C` — active lesson count
+- `C` — active lesson count (consumed by the nudge line)
 
 **Output format:**
 ```
 === LESSONS ===
-Key:
-- [gotcha,git] Don't force-push to shared branches
-Recent:
-- Use pathlib over os.path
 This branch:
 - Branch-specific lesson text
 ```
+
+(Section is omitted entirely when no branch lessons match.)
+
+**Protected-branch gate:** `PROTECTED_BRANCHES` env var, regex (default `^(main|master)$`). On a protected branch the session is starting on a stabilization line (main, master, release/*) — there's no feature work to resume, so branch lessons would be noise. The query is skipped entirely; no DB roundtrip. The same env var governs `git-safety.sh` — set it once in `.claude/settings.json` env block and both hooks honor it.
+
+**Key/Recent surfacing:** *not* done at session-start. Recent-tier lessons surface contextually via `surface-lessons.sh` (PreToolUse, tag-keyword match). Key tier is a crystallization holding state, not a session-start surfacing tier — see §4.
 
 **Scope filtering:** Both hooks filter by `scope` — project-scoped lessons only surface when the current project name matches. Global lessons surface everywhere.
 
@@ -215,11 +217,11 @@ Script: `.claude/scripts/cron/backup-lessons-db.sh`
 ```
 capture (/learn)
     ↓
-recent tier (unvalidated, surfaced at start)
+recent tier (unvalidated; surfaces via PreToolUse, plus branch-scoped at session-start)
     ↓
 /manage-lessons
-    ├── promote → key tier (validated, always surfaced)
-    ├── crystallize → new key lesson (sources deactivated)
+    ├── promote → key tier (crystallization candidate; not session-start-surfaced — see §4)
+    ├── crystallize → new key lesson (sources deactivated) — OR into .claude/docs/essential-*.md
     ├── absorb → deactivated (enforced by resource)
     ├── deactivate → historical (searchable only)
     └── delete → removed

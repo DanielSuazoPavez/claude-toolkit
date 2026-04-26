@@ -8,7 +8,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 
 | Env var | Gates |
 |---------|-------|
-| `CLAUDE_TOOLKIT_LESSONS` | `session-start.sh` lessons section + lesson count in ack; `surface-lessons.sh` injection (context logging still runs, gated by traceability) |
+| `CLAUDE_TOOLKIT_LESSONS` | `session-start.sh` branch-lesson section + `/manage-lessons` nudge; `surface-lessons.sh` injection (context logging still runs, gated by traceability) |
 | `CLAUDE_TOOLKIT_TRACEABILITY` | `_hook_log_jsonl` writes (rows in `~/claude-analytics/hook-logs/*.jsonl` for every hook invocation); `statusline-capture.sh` usage-snapshots JSONL append |
 
 ## Included Hooks
