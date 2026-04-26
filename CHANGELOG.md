@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Notes
+- **backlog**: Filed two P0 tasks from the test-suite audit conversation: `block-settings-edits` (extend `block-config-edits.sh` to cover `.claude/settings*.json` — closes the documented `disableAllHooks: true` single-line hook kill switch and the `settings.local.json` precedence override of `permissions.ask`) and `hooks-anti-rampage-coverage-rationale` (codify the workaround-tree coverage requirement in `relevant-toolkit-hooks.md` before perf-review tempts trimming what looks like regex redundancy). Filed P3 `test-suggest-json-boundary` for size-threshold off-by-one coverage. Rescoped existing P3 `tests-perf-review` from broad investigation to its actual recommendation (pytest `db` fixture-scope tightening in `tests/test_lesson_db.py:28`, ~5–7s pytest wall savings). Triaged claude-sessions suggestions-box issue 20260426_091630 into P1 `consumer-validate-paths` (`make claude-toolkit-validate` fails in every consumer repo because two validators reference toolkit-source-only paths). Extended scope-definitions table with `docs` and `cli` (was warning on pre-existing tasks).
+
 ## [2.68.4] - 2026-04-26 - Key tier reframe lands in skills + new execution conventions doc
 
 ### Added
