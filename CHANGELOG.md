@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.68.2] - 2026-04-26 - lessons projects schema aligned with TEXT-keyed dimension
+
+### Changed
+- **cli**: `cli/lessons/db.py` `INIT_SQL` now declares `projects(id TEXT PRIMARY KEY)` (no surrogate `name` column) and `lessons.project_id TEXT`, matching claude-sessions v0.48.0 which retyped the canonical projects dimension to a kebab-case repo id and added the `project_paths` lookup table. Live `~/.claude/lessons.db` data was already TEXT — the change brings declarations into line with reality and with the upstream yaml. Display queries in `cmd_search` / `cmd_get` / `cmd_list` / `cmd_crystallize` drop their `JOIN projects` (the id IS the display name) and the scope-resolution and project-lookup SELECTs in `cmd_crystallize` read `lessons.project_id` directly. `get_or_create_project` renamed to `ensure_project`; `insert_lesson(project_name=)` renamed to `project_id=`.
+- **cli**: `_detect_project()` resolves the canonical project_id by querying `sessions.db.project_paths` (read-only URI mode) keyed on the encoded git-root dir name. When sessions.db is present but the encoded dir isn't registered, the CLI errors with a message pointing at the indexer — falling back to basename here would create a row that disagrees with claude-sessions and accumulate drift. Falls back to git-root basename only when sessions.db is absent entirely (standalone toolkit deployment with no claude-sessions). New `CLAUDE_ANALYTICS_SESSIONS_DB` env var overrides the default `~/.claude/sessions.db` path.
+- **hooks**: new `_resolve_project_id` helper in `lib/hook-utils.sh` (called from `hook_init`) replaces the previous `PROJECT="$(basename "$PWD")"`. Same sessions.db lookup as the CLI, but soft-warn semantics: when the row is missing the helper emits one stderr line and returns empty, leaving project-scoped lesson scope filters as no-match while global lessons still surface. Hooks must not crash sessions on a resolver miss. Ships to both base and raiz (hook-utils.sh and session-start.sh are in the raiz MANIFEST).
+- **hooks**: `session-start.sh` and `surface-lessons.sh` SQL drops the `LEFT JOIN projects p` and rewrites scope filters from `p.name = '${SAFE_PROJECT}'` to `l.project_id = '${SAFE_PROJECT}'`.
+
+### Tests
+- `tests/test_lesson_db.py` updated for the rename: `ensure_project` import + assertions (TEXT id round-trips, idempotent insert), `project_name=` → `project_id=` across 28 call sites, two `cmd_crystallize`-mirroring SQL queries reshaped to the new join-less form.
+
 ## [2.68.1] - 2026-04-25 - setup-toolkit aligned with JSONL+DB split
 
 ### Changed
