@@ -333,6 +333,22 @@ hook_approve() {
 }
 
 # ============================================================
+# hook_ask REASON
+# ============================================================
+# Emits a PreToolUse permission-decision asking Claude Code to prompt the user.
+# Use when a tool call should not be silently blocked (legitimate use exists)
+# but also should not run without explicit user confirmation. Distinct from
+# hook_block (no user prompt, hard refusal) and hook_approve (no prompt, allow).
+hook_ask() {
+    OUTCOME="asked"
+    local reason="$1"
+    reason="${reason//\\/\\\\}"
+    reason="${reason//\"/\\\"}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"$reason\"}}"
+    exit 0
+}
+
+# ============================================================
 # hook_inject CONTEXT_STRING
 # ============================================================
 # CONTEXT_STRING must already be JSON-escaped by the caller.
