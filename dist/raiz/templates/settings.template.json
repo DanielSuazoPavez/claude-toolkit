@@ -104,7 +104,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/session-start.sh"
+            "command": "bash .claude/hooks/session-start.sh"
           }
         ]
       }
@@ -124,7 +124,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/git-safety.sh"
+            "command": "bash .claude/hooks/git-safety.sh"
           }
         ]
       },
@@ -162,7 +162,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/approve-safe-commands.sh"
+            "command": "bash .claude/hooks/approve-safe-commands.sh"
           }
         ]
       }
