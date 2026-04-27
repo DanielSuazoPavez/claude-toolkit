@@ -1,0 +1,14 @@
+{
+  "version": "2.69.2",
+  "date": "2026-04-26",
+  "headline": "setup-toolkit-diagnose orphan check covers scripts/ and schemas/",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "setup-toolkit-diagnose.sh Check 8 (cleanup) now scans .claude/scripts/ and .claude/schemas/ recursively for files not listed in .claude/MANIFEST. Previous coverage was four categories (skills/agents/hooks/docs), so a script removed from MANIFEST after a previous sync stayed on disk forever without surfacing as ORPHAN. Honors .claude-toolkit-ignore. Recursive find handles nested trees (scripts/lib/, scripts/cron/, schemas/hooks/)."
+      ]
+    }
+  ]
+}

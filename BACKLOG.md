@@ -30,10 +30,7 @@
 
 ## P1 - High
 
-- **[CLI]** Consumer-side `validate-all.sh` fails on paths only present in toolkit source repo (`consumer-validate-paths`)
-    - **scope**: `cli`
-    - **notes**: Reported via suggestions-box from claude-sessions consumer (issue 20260426_091630, toolkit 2.68.2, pre-existing through 2.68.0 → 2.68.2 sync). `make claude-toolkit-validate` exits 1 in every consumer repo because `validate-all.sh` runs two validators that reference toolkit-source-only paths: (1) `validate-detection-registry.sh` fails with `schema file missing: .claude/schemas/hooks/detection-registry.schema.json` — the schema isn't shipped to consumers and isn't in MANIFEST. Options: ship the schema, gate the check on `dist/base/` presence (toolkit-only), or downgrade the missing-schema branch to a true informational warning instead of FAIL. (2) `validate-dist-manifests.sh` fails with `Missing: dist/raiz/MANIFEST` and `Missing: dist/base/EXCLUDE` — already flagged by `validate-resources-indexed.sh` as `Project-local (not toolkit-owned)` yet `validate-all.sh` runs it anyway. Fix: skip (or exclude from `validate-all.sh`) when `dist/base/` is absent — it's a workshop-internal validator that should never run in consumers. Repro: `cd <consumer> && claude-toolkit sync --force && make claude-toolkit-validate`. Connects to the broader `docs-consumer-experience` (P2) theme — a consumer's first interaction post-sync includes running validate, and it currently fails.
-    - **depends on**: none
+(none)
 
 ## P2 - Medium
 

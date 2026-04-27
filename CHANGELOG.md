@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.69.2] - 2026-04-26 - consumer `make claude-toolkit-validate` passes — schemas ship + orphan detection covers scripts/schemas
+
+### Fixed
+- **cli**: `bin/claude-toolkit sync` now ships `.claude/schemas/` to base consumers. The walker hardcoded five categories (`skills agents hooks docs scripts`) and silently skipped everything else, so the detection-registry schema never reached consumers regardless of `dist/base/EXCLUDE`. `validate-detection-registry.sh` ships in base (via the default-everything-not-excluded rule) but failed at runtime with `schema file missing: .claude/schemas/hooks/detection-registry.schema.json` — exiting `make claude-toolkit-validate` non-zero on every base consumer's first post-sync interaction. Adding `schemas` to the walker, to `categorize_file`, and to the category iteration arrays (display, dry-run, interactive selection, file-collection loop) makes the schema flow through the same pipeline as every other category. Closes P1 `consumer-validate-paths`. Repro: `cd <consumer> && claude-toolkit sync --force && make claude-toolkit-validate`.
+- **scripts**: `setup-toolkit-diagnose.sh` Check 8 (cleanup) now scans `.claude/scripts/` and `.claude/schemas/` recursively for files not listed in MANIFEST. Pre-fix coverage was four categories (skills/agents/hooks/docs), so a script removed from MANIFEST after a previous sync (e.g. `validate-dist-manifests.sh` once 25e1d8d added it to `dist/base/EXCLUDE`) lingered indefinitely on disk in already-synced consumers without ever surfacing as an `ORPHAN`. Honors `.claude-toolkit-ignore`. New `MANIFEST_SCRIPTS` and `MANIFEST_SCHEMAS` arrays loaded alongside the existing four; the cleanup logic mirrors the per-category pattern used for skills/agents/hooks/docs but uses recursive `find` since both trees have nested directories (`scripts/lib/`, `scripts/cron/`, `schemas/hooks/`).
+
+### Tests
+- New `tests/test-sync-then-validate.sh` end-to-end test (8 cases). Syncs the real toolkit into a fresh fixture (no mocks), bootstraps `settings.json` from the synced template, then runs `validate-all.sh`, the individual validators it dispatches, `setup-toolkit-diagnose.sh`, and a stale-script orphan-detection scenario. Catches the original `consumer-validate-paths` failure shape and any future drift between sync output and validator path assumptions pre-release. Auto-discovered by `tests/run-all.sh` (no runner edit needed). Indexed in `tests/CLAUDE.md`.
+- `tests/test-setup-toolkit-diagnose.sh` raiz fixture MANIFEST extended with `setup-toolkit-diagnose.sh` (raiz does ship it; the fixture was incomplete and surfaced once the new orphan check started covering `scripts/`).
+
+### Docs
+- `dist/raiz/MANIFEST` gains an inline comment next to the detection-registry `.json`/`.sh` entries documenting that the schema and `validate-detection-registry.sh` are intentionally omitted from raiz: registry edits are rare in raiz consumers, and `validate-all.sh` / `make claude-toolkit-validate` aren't part of the raiz Makefile template, so the validator would have no driver. Prevents a future "this looks asymmetric" reflex from reverting the decision without context.
+
 ## [2.69.1] - 2026-04-26 - SessionStart payload trimmed under the 10 KiB inline cap
 
 ### Fixed
