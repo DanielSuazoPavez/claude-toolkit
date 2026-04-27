@@ -37,7 +37,7 @@ while IFS= read -r skillfile; do
     frontmatter=$(sed -n '/^---$/,/^---$/p' "$skillfile" | sed '1d;$d')
 
     # Look for compatibility field
-    compat_line=$(echo "$frontmatter" | grep -oP '^compatibility:\s*\K.*')
+    compat_line=$(echo "$frontmatter" | sed -nE 's/^compatibility:[[:space:]]*(.*)$/\1/p')
     [ -z "$compat_line" ] && continue
 
     skill_name=$(basename "$(dirname "$skillfile")")
