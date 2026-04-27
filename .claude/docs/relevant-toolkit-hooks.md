@@ -271,6 +271,7 @@ The dispatcher tolerates absent guards: each `CHECK_SPECS` entry probes its sour
 | `source "$(dirname "$0")/..."` in a hook meant to be sourceable | `$0` points to the dispatcher, not the hook — use `${BASH_SOURCE[0]}` |
 | Inline credential / path regex when a registry entry could carry it | Forces drift across hooks; new credential shapes need N edits instead of 1 — see §11 |
 | Wrong detection target (raw vs stripped) | False negatives when secrets sit inside quoted strings, or false positives from commit-message text — see §11 |
+| "Simplifying" security-boundary tests by collapsing the {tool, target, verb} matrix into one assertion per resource | The regex may collapse them; the tests must not — see §12 |
 
 ---
 
@@ -376,3 +377,74 @@ Both hooks run on every Bash command via the dispatcher. When both fire on the s
 **Accepted FP**: `credential-env-var-name` uses `target=raw`, so a literal mention of `$GH_TOKEN` inside a single-quoted documentation string (e.g. `echo 'use $GH_TOKEN in CI'`) blocks. This is the price of catching the canonical exfil shape `echo "$GH_TOKEN"`, where the var ref lives inside a double-quoted string that strip would blank. The cost (re-run or one-off allowlist) is small compared to a real token leaking.
 
 **Adding a new credential pattern**: pick the responsibility field. Token-shape literal that the model just wrote? `kind=credential, target=raw` (exfil-owned). Path or capability the model is about to invoke? `kind=path/capability, target=stripped` (secrets-guard-owned). Don't add the same pattern under both kinds — the stricter block wins so the redundancy buys nothing and confuses future readers.
+
+---
+
+## 12. Anti-Rampage Coverage for Security-Boundary Tests
+
+The tests for security-boundary hooks (`secrets-guard`, `block-credential-exfiltration`, `auto-mode-shared-steps`) carry assertions that **look** redundant — the same resource asserted multiple times across different tools and verbs. They are not redundant. They are **anti-workaround coverage**, and the coverage requirement is load-bearing.
+
+### Coverage requirement
+
+For every sensitive resource a hook protects, **pin each `{tool, target, verb}` triplet that an agent could reach for as a workaround**. The detection regex may collapse them into one branch; the tests must not.
+
+The triplet axes:
+
+| Axis | Examples |
+|---|---|
+| **Tool** | `Read`, `Bash`, `Grep` (and `Glob` where it applies) |
+| **Target** | the path / payload / capability shape (`/project/.env`, `/project/.env.local`, `prod.env`, `staging.env`) |
+| **Verb** | the action variant within a tool (`cat`, `grep`, `rg`, `awk`, `sed`, `source`, `export`; `Grep path=...` vs `Grep glob=...`) |
+
+One assertion per cell of the resulting matrix. Allow-cases (`cat .env.example`, `Read .env.template`) get the same treatment — pinned per tool, not collapsed to "the allowlist works."
+
+### Why the redundancy is load-bearing
+
+Agents respond to a tool block by trying the next tool surface. The observed workaround tree on `.env`:
+
+```
+Read .env                       (blocked by secrets-guard Read branch)
+  → Bash cat .env               (blocked by Bash regex)
+    → Bash grep . .env          (blocked only after grep was added)
+      → Bash rg foo .env        (blocked only after rg/awk/sed were added)
+        → Grep path=.env        (blocked by Grep path branch)
+          → Grep glob=.env*     (blocked by Grep glob branch)
+```
+
+This is the literal commit history, not a hypothetical:
+
+| Commit | Gap closed |
+|---|---|
+| `09a886a` | `grep`/`rg`/`awk`/`sed` reading `.env` via Bash bypassed the cat-only regex |
+| `be97214` | Same workaround pattern across other credential files (SSH keys, cloud config, package-manager tokens) |
+| `4b0674d` | Suffix-named env files (`prod.env`, `staging.env`) bypassed `ENV_FILE_RE` |
+| `b924e8c` | Code-review surfaced missing credential shapes (Stripe, Google API key); added precedence + boundary tests pinning the split between regex branches |
+
+Every one of those was a fix-forward after an agent (typically in auto-mode wrap-up, where the cost of a successful exfil is highest) had already walked the workaround tree. The tests added in those commits are not "extra coverage of the same regex" — they are the **only signal** that prevents the next refactor from silently re-opening the same path.
+
+### What this means for test maintenance
+
+When a future audit (human or agent) looks at the security-boundary suite and sees:
+
+```bash
+expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/.env"}}' ...
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}' ...
+expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"grep SECRET .env"}}' ...
+expect_block "$hook" '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","path":"/project/.env"}}' ...
+expect_block "$hook" '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","glob":".env*"}}' ...
+```
+
+The reflex is: "these are all the same `.env` regex — collapse to one assertion." Resist it. **The regex is one branch; the workaround surface is N tools × M verbs, and the tests are the contract that all N×M cells stay closed.** A "test simplification" PR that collapses the matrix silently strips the anti-rampage coverage — the regex still passes its own narrow tests, but the next time an agent hits the wall, it walks the tree until something works.
+
+### When a new resource or new tool surface lands
+
+Adding a new sensitive resource (e.g., a new credential file shape) or a new tool that can reach existing resources requires extending the matrix, not just the regex:
+
+1. **Identify the cells.** For each existing resource the new tool could reach, add a cell. For the new resource, populate every applicable cell across existing tools.
+2. **Add `expect_block` per cell.** One assertion per `{tool, target, verb}` triplet. Don't collapse "Bash cat" and "Bash grep" into "Bash" — the verb matters.
+3. **Add `expect_allow` for the legitimate-use cells.** `Read .env.example` belongs in the suite for the same reason `Bash cat .env.example` does — it pins that the allowlist works on every tool surface.
+4. **Reference this section in the PR description** so reviewers understand why the test count is N×M and not N+M.
+
+### Relationship to §11 (registry)
+
+§11 concerns **what** to detect (kind, target, pattern). §12 concerns **how the tests prove it stays detected** as the workaround surface grows. A registry entry without matrix coverage is a regex that compiles — not a guarantee that every tool surface enforces it.

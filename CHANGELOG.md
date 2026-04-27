@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.69.3] - 2026-04-26 - anti-rampage coverage rationale documented in `relevant-toolkit-hooks.md`
+
+### Docs
+- **docs**: New §12 "Anti-Rampage Coverage for Security-Boundary Tests" in `.claude/docs/relevant-toolkit-hooks.md` codifies the workaround-tree coverage requirement that the Read/Bash/Grep cross-coverage in `tests/hooks/test-secrets-guard.sh`, `test-block-credential-exfil.sh`, and `test-auto-mode-shared-steps.sh` is enforcing. Pin each `{tool, target, verb}` triplet an agent could reach for as a workaround; the regex may collapse them, the tests must not. Worked example: the `.env` Read/Bash/Grep matrix. Cites `09a886a`/`be97214`/`4b0674d`/`b924e8c` as the development-history evidence — every "extend hook to cover X via Bash" commit was a fix-forward after an agent (typically auto-mode wrap-up) had walked the workaround tree successfully. Without this section, the next audit (human or agent) hits the "this looks redundant" reflex, repeats the git archaeology, reaches the same conclusion, and a future "test simplification" PR could silently strip the coverage. New row in §10 anti-patterns points at §12. Closes P0 `hooks-anti-rampage-coverage-rationale`. Unblocks P3 `tests-perf-review` (now safe to scope without re-deriving the rationale).
+
+### Notes
+- **backlog**: Triaged two claude-sessions suggestions-box issues into P1 tasks. `backlog-schema-surface` (CLI/docs) — backlog metadata vocabulary lives only as a bash variable in `backlog-validate.sh`; not surfaced via `claude-toolkit backlog --help` or `claude-toolkit docs`, and there is no positive-relationship field (`independent-of`, `supersedes`, `split-from`) so independence assertions get folded into `notes` prose where they are not queryable. Suggested deliverables: `claude-toolkit backlog schema` subcommand, relationship fields in the schema/validator/parser, doc reachable via `claude-toolkit docs`. `claudemd-template-cli-quickref` (docs) — synced `CLAUDE.md.template` mentions `claude-toolkit` only for paths and `sync --force`; new projects don't discover the day-to-day CLI surface (`backlog`, `lessons`, `send`, `docs`, `eval`) until they read `--help` by accident. Suggested: minimal "Toolkit CLI quick reference" subsection with one-liners + pointer to `--help`. Coordinates with P2 `docs-consumer-experience` (broader guided-introduction work). Both issue files deleted after triage.
+
 ## [2.69.2] - 2026-04-26 - consumer `make claude-toolkit-validate` passes — schemas ship + orphan detection covers scripts/schemas
 
 ### Fixed
