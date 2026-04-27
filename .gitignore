@@ -30,6 +30,5 @@ dist-output/
 
 # Logs
 logs/
-.claude/scripts/cron/cron.log
 .claude/logs/
 tests/.logs/

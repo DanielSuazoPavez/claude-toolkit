@@ -204,11 +204,11 @@ claude-toolkit lessons --db PATH ...                 # Override database path
 
 ## 9. Backup
 
-Script: `.claude/scripts/cron/backup-lessons-db.sh`
+Script: `cron/backup-lessons-db.sh` in the **claude-sessions** repo (schema owner).
 
 - Copies `lessons.db` to `~/backups/claude-lessons/lessons_YYYYMMDD_HHMMSS.db`
 - 30-day retention with auto-prune
-- Intended as hourly cron: `30 * * * * /path/to/backup-lessons-db.sh`
+- Intended as hourly cron: `30 * * * * /path/to/claude-sessions/cron/backup-lessons-db.sh`
 
 ---
 
