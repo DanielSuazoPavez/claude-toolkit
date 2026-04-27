@@ -97,6 +97,20 @@ run_query() {
 
 # === Test Assertions ===
 
+# Diagnostic helper: dump byte length + hex of the first ~200 bytes of a variable.
+# Called from assertion failure branches to diagnose WSL2 flaky grep misses.
+_dump_diag() {
+    local label="$1"
+    local data="$2"
+    local byte_len
+    byte_len=$(printf '%s' "$data" | wc -c)
+    report_detail "[diag] $label byte length: $byte_len"
+    report_detail "[diag] $label hex dump (first ~200 bytes):"
+    printf '%s' "$data" | xxd | head -20 | while IFS= read -r line; do
+        report_detail "  $line"
+    done
+}
+
 expect_success() {
     local description="$1"
     shift
@@ -160,6 +174,8 @@ expect_output() {
         report_fail "$description"
         report_detail "Expected output to contain: $expected"
         report_detail "Got: ${output:-<empty>}"
+        _dump_diag "output" "$output"
+        _dump_diag "expected" "$expected"
     fi
 }
 
@@ -182,6 +198,8 @@ expect_not_output() {
         report_fail "$description"
         report_detail "Expected output NOT to contain: $not_expected"
         report_detail "Got: ${output:-<empty>}"
+        _dump_diag "output" "$output"
+        _dump_diag "not_expected" "$not_expected"
     fi
 }
 
@@ -204,6 +222,7 @@ expect_count() {
         report_fail "$description"
         report_detail "Expected: Found $expected_count task(s)"
         report_detail "Got: ${output:-<empty>}"
+        _dump_diag "output" "$output"
     fi
 }
 
@@ -409,6 +428,8 @@ expect_validator_output() {
         report_fail "$description"
         report_detail "Expected output to contain: $expected"
         report_detail "Got: ${output:-<empty>}"
+        _dump_diag "output" "$output"
+        _dump_diag "expected" "$expected"
     fi
 }
 
@@ -431,6 +452,8 @@ expect_validator_silent() {
         report_fail "$description"
         report_detail "Expected output NOT to contain: $not_expected"
         report_detail "Got: ${output:-<empty>}"
+        _dump_diag "output" "$output"
+        _dump_diag "not_expected" "$not_expected"
     fi
 }
 
