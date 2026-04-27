@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.72.2] - 2026-04-27 - Read allowlist catalog + `Glob`/`Grep` syntax fix in settings templates
+
+### Changed
+- **settings template** (base + raiz): fixed `Glob(**)` → `Glob(/**)` and `Grep(**)` → `Grep(/**)`. Bare `**` is not a documented permission-rule shape; `/**` is the project-relative form used by `Read(/**)` and `Edit(/...)`. Likely silently mis-matched (cwd-relative rather than project-relative) when Claude ran from a subdirectory.
+- **settings template** (base + raiz): added explicit Read-tool allowlist for out-of-project paths Claude routinely opens — user-global Claude config (`~/.claude/CLAUDE.md`, `~/.claude/settings.json`), session transcripts (`~/.claude/projects/**/*.jsonl`), auto-memory entries (`~/.claude/projects/**/memory/**`), user-global agents/skills (`~/.claude/agents/**`, `~/.claude/skills/**`), and `/tmp/**` for test fixtures. Replaces the previous pattern of letting these accumulate ad-hoc in per-user `settings.local.json`.
+- **settings template** (base only): also adds `Read(~/claude-analytics/**)` for the hook-log JSONL stream. Raiz doesn't ship the analytics hooks, so the rule is omitted there.
+
+### Notes
+- **Tilde syntax verified empirically**: `Read(~/path)` rules are honored by the permission engine (positive + negative control 2026-04-27). See `output/claude-toolkit/analysis/20260427_0852__analyze-idea__read-permission-tighten.md` for the full survey, including the related finding that `env` block values do **not** expand `~` or `$HOME` (relevant to env-var-audit).
+- **Sqlite databases excluded**: `.db` files are accessed via `sqlite3` through Bash, not the Read tool — already covered by `Bash(sqlite3:*)`.
+- **Closes**: P3 `read-permission-tighten`.
+
 ## [2.72.1] - 2026-04-27 - CLI quick reference in base `CLAUDE.md.template`
 
 ### Added

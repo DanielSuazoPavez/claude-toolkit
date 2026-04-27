@@ -1,0 +1,15 @@
+{
+  "version": "2.72.2",
+  "date": "2026-04-27",
+  "headline": "settings template: fix Glob/Grep syntax + pre-allow common Claude config / transcript / fixture reads",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "templates",
+      "bullets": [
+        "Fewer permission prompts: `~/.claude/CLAUDE.md`, settings, session transcripts, auto-memory, agents, skills, and `/tmp/**` are now pre-allowed for the Read tool.",
+        "Hygiene: `Glob(**)` and `Grep(**)` corrected to `Glob(/**)` and `Grep(/**)` — the documented project-relative form."
+      ]
+    }
+  ]
+}
