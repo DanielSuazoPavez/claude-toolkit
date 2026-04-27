@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [2.70.0] - 2026-04-26 - centralized env-var registry doc + dead-var cleanup
+
+### Added
+- **docs**: New `.claude/docs/relevant-toolkit-env_vars.md` — single source of truth for every env var the toolkit reads. Grouped by namespace (`CLAUDE_TOOLKIT_*`, `CLAUDE_ANALYTICS_*`, bare names, toolkit internals, standard/external, CI-only, test harness) with default / scope / readers columns and a "where to set each var" rule (`settings.json` vs `settings.local.json` vs shell). Replaces the partial registry that lived in `relevant-toolkit-hooks_config.md` §3. Shipped to raiz consumers via `dist/raiz/MANIFEST`; also reaches base consumers via the default-include rule. Closes the env-var-audit half of backlog `env-var-audit` (P2); the rename half is split into a follow-up task `env-var-rename-bare-namespaces`.
+- **docs**: `docs/getting-started.md` "Customization" subsection expanded into a full "Environment variables" section covering the consumer-facing minimum: must-set analytics paths (Phase 1.6), ecosystem opt-ins (Phase 1.5), and tunable thresholds/regexes. Points at the registry for the full reference.
+- **skills**: `setup-toolkit` Phase 1.6 ("Analytics Paths") now captures four paths instead of three — adds `CLAUDE_ANALYTICS_SESSIONS_DB` (read by `session-start.sh:167` and `cli/lessons/db.py:41` for session-start context). Detection, prompts, confirm-before-writing block, and `jq` apply step all updated.
+
+### Changed
+- **docs**: `.claude/docs/relevant-toolkit-hooks_config.md` §3 collapsed to a one-paragraph pointer at the new env-vars registry. Hook trigger configuration (the actual hook-specific content) stays put.
+- **docs**: `docs/indexes/DOCS.md` adds the new env_vars row; `dist/CLAUDE.md` raiz doc count 4 → 5.
+
+### Removed
+- **settings**: `CLAUDE_MEMORIES_DIR` removed from `.claude/settings.json` `_env_config`, `dist/base/templates/settings.template.json`, and `dist/raiz/templates/settings.template.json`. Audit confirmed zero code readers across the toolkit and sibling repos (claude-sessions, claude-meta) — pure documentation ghost. Anyone who set it in their `settings.json` `env` block can drop the entry.
+
+### Fixed
+- **tests**: `tests/perf-detection-registry.sh` orphan comment referencing `CLAUDE_ANALYTICS_RUN_TAG` removed. The var was never implemented (toolkit nor claude-sessions); the comment described intended behavior that didn't ship.
+
 ### Notes
 - **docs**: New `dist/raiz/CLAUDE.md` consolidates raiz-sidecar authoring rules in one place — schema, two-step skip check (path filter via MANIFEST + behavioral judgment for feature-gated cases like lessons), `kind` selection table, HTML-override conditions, and two worked examples (skip-only 2.68.3, cross-cutting 2.65.0). Root `CLAUDE.md` replaces the two long sidecar bullets (and the `When You're Done` raiz-preview bullet) with pointers to the new doc. Doc is workshop-internal — not in `dist/raiz/MANIFEST`, doesn't sync to consumers. Backlog `raiz-sidecar-instructions` (P2) closed.
 - **ci**: `publish-raiz.yml` Telegram steps (`Build Telegram message`, `Notify Telegram`) now gate on `steps.sync.outputs.pushed == 'true'`. Previously they ran unconditionally, so any push that triggered the workflow (e.g. a `dist/**` change that didn't alter the built raiz output) sent a `<i>no raiz-relevant changes</i>` message even when the sync-to-target step correctly no-op'd. Symptom: the `dist/raiz/CLAUDE.md` doc commit (workshop-internal, not in MANIFEST) sent a Telegram notification with an empty body. If false-positive workflow runs continue after this gate, narrow `paths:` next.

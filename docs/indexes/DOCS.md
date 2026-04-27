@@ -18,7 +18,8 @@ Always loaded at session start:
 |-----|--------|---------|
 | `relevant-toolkit-context` | stable | Docs/memories boundary, naming conventions, categories |
 | `relevant-toolkit-hooks` | stable | Hook authoring: match/check pattern, dual-mode trigger, outcomes |
-| `relevant-toolkit-hooks_config` | stable | Hooks configuration and environment variables |
+| `relevant-toolkit-hooks_config` | stable | Hooks trigger configuration (env vars moved to `relevant-toolkit-env_vars`) |
+| `relevant-toolkit-env_vars` | stable | Full registry of every env var the toolkit reads (consumer + workshop-internal + test) |
 | `relevant-toolkit-permissions_config` | stable | Two-tier permissions convention: toolkit settings.json vs project settings.local.json |
 | `relevant-toolkit-resource_frontmatter` | stable | Supported frontmatter fields for skills and agents |
 | `relevant-workflow-backlog` | stable | BACKLOG.md schema: priority, categories, status values |

@@ -27,8 +27,6 @@
 #   4. git checkout -          # back to working branch
 #   5. diff /tmp/baseline.txt /tmp/migrated.txt
 #
-# Both runs land in the same JSONL file tagged differently — see CLAUDE_ANALYTICS_RUN_TAG.
-#
 # Usage:
 #   bash tests/perf-detection-registry.sh                 # 20 cmds × 5 iters per hook
 #   bash tests/perf-detection-registry.sh -n 10           # 10 iterations per command

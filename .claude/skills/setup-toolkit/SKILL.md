@@ -105,20 +105,23 @@ Note: env vars take effect on the next Claude Code session, not mid-session. Let
 
 Runs after ecosystem opt-in. Captures per-user paths for the global analytics surfaces and writes them into `.claude/settings.local.json` `env`.
 
-There are three paths, split across two storage models:
+There are four paths, split across two storage models:
 
 - **`CLAUDE_ANALYTICS_LESSONS_DB`** — SQLite DB of learned corrections. Read+write by toolkit hooks/scripts.
+- **`CLAUDE_ANALYTICS_SESSIONS_DB`** — SQLite DB of session history. Read by `session-start.sh` for context. Owned and populated by the claude-sessions indexer, not the toolkit.
 - **`CLAUDE_ANALYTICS_HOOKS_DIR`** — directory of JSONL hook-execution logs (`invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`). Write-only from the toolkit's perspective; the claude-sessions indexer projects these rows into `hooks.db`.
 - **`CLAUDE_ANALYTICS_HOOKS_DB`** — read-only path to `hooks.db`, used by `surface-lessons.sh` for intra-session dedup. Owned and populated by the claude-sessions indexer, not the toolkit.
 
 **Why here and not `.claude/settings.json`:** Claude Code passes JSON `env` values through literally — `"$HOME/..."` is not expanded. So the paths must be fully resolved. `settings.local.json` is per-user and gitignored, which is the right place for fully-resolved user-specific paths (avoids leaking `/home/alice/...` into shared repos).
 
-**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/.claude/lessons.db`, `$HOME/claude-analytics/hook-logs`, and `$HOME/.claude/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
+**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/.claude/lessons.db`, `$HOME/.claude/sessions.db`, `$HOME/claude-analytics/hook-logs`, and `$HOME/.claude/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
+
+For the full env-var registry (every var the toolkit reads, including non-analytics ones), see `.claude/docs/relevant-toolkit-env_vars.md`.
 
 ### Detection
 
 ```bash
-jq -e '.env.CLAUDE_ANALYTICS_LESSONS_DB // .env.CLAUDE_ANALYTICS_HOOKS_DIR // .env.CLAUDE_ANALYTICS_HOOKS_DB' .claude/settings.local.json >/dev/null 2>&1
+jq -e '.env.CLAUDE_ANALYTICS_LESSONS_DB // .env.CLAUDE_ANALYTICS_SESSIONS_DB // .env.CLAUDE_ANALYTICS_HOOKS_DIR // .env.CLAUDE_ANALYTICS_HOOKS_DB' .claude/settings.local.json >/dev/null 2>&1
 ```
 
 - Exit 0 (any key present) → skip (user already configured).
@@ -131,6 +134,10 @@ Resolve `$HOME` to a real path first (`echo "$HOME"`). Offer it as the default i
 **Lessons DB path:**
 
 > Where should the lessons DB live? Stores learned corrections across all your projects (global, not per-project). [$HOME/.claude/lessons.db]
+
+**Sessions DB path (read-only):**
+
+> Where does the sessions DB live? Read-only — `session-start.sh` queries it for context. Owned and populated by the claude-sessions indexer, not the toolkit. Leave the default if you don't run claude-sessions. [$HOME/.claude/sessions.db]
 
 **Hook-logs JSONL directory:**
 
@@ -149,6 +156,7 @@ Empty input → accept default. Any non-empty input → use verbatim (don't re-e
 ```
 The following will be added to .claude/settings.local.json (env block):
   "CLAUDE_ANALYTICS_LESSONS_DB": "<resolved_lessons_path>"
+  "CLAUDE_ANALYTICS_SESSIONS_DB": "<resolved_sessions_path>"
   "CLAUDE_ANALYTICS_HOOKS_DIR": "<resolved_hooks_dir>"
   "CLAUDE_ANALYTICS_HOOKS_DB": "<resolved_hooks_db_path>"
 
@@ -163,10 +171,12 @@ If `.claude/settings.local.json` doesn't exist, create it as `{}`. Then merge:
 
 ```bash
 jq --arg lessons "<resolved_lessons_path>" \
+   --arg sessions "<resolved_sessions_path>" \
    --arg hooks_dir "<resolved_hooks_dir>" \
    --arg hooks_db "<resolved_hooks_db_path>" \
    '.env = (.env // {})
     | .env.CLAUDE_ANALYTICS_LESSONS_DB = $lessons
+    | .env.CLAUDE_ANALYTICS_SESSIONS_DB = $sessions
     | .env.CLAUDE_ANALYTICS_HOOKS_DIR = $hooks_dir
     | .env.CLAUDE_ANALYTICS_HOOKS_DB = $hooks_db' \
    .claude/settings.local.json > .claude/settings.local.json.tmp && mv .claude/settings.local.json.tmp .claude/settings.local.json
