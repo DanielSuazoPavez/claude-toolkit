@@ -1,0 +1,16 @@
+{
+  "version": "2.72.6",
+  "date": "2026-04-27",
+  "headline": "template alignment — fewer false positives in setup-toolkit diagnostic",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "templates",
+      "bullets": [
+        "`settings.template.json`: added `bash` prefix to `session-start.sh`, `git-safety.sh`, and `approve-safe-commands.sh` hook commands. Consumer projects already invoked these with `bash`, so the diagnostic was reporting 3 MISSING + 3 EXTRA on every run. After re-syncing templates, Check 1 should be clean.",
+        "`gitignore.claude-toolkit`: removed `lessons.db`, `session-index.db`, `hooks.db` entries. These global databases live in `~/.claude/` and don't belong in project-level `.gitignore` — their presence caused false MISSING reports in Check 5.",
+        "`claude-toolkit-ignore.template` now ships in raiz. Raiz consumers get a smaller resource subset, so extra resources show up as orphans in Check 8 — the template gives a starting point for suppressing those warnings."
+      ]
+    }
+  ]
+}

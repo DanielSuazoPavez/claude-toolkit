@@ -72,4 +72,5 @@ docs/getting-started.md
 .claude/templates/Makefile.claude-toolkit
 .claude/templates/mcp.template.json
 .claude/templates/PULL_REQUEST_TEMPLATE.md
+.claude/templates/claude-toolkit-ignore.template
 .claude/templates/settings.template.json
