@@ -102,9 +102,32 @@ The template includes wiring for all hooks in this distribution, ready to go.
 
 **Existing settings:** Merge the `hooks` block from `.claude/templates/settings.template.json` into your existing `.claude/settings.json`. Each hook entry has a `matcher` (which Claude Code tool triggers it) and a `command` (the script to run).
 
-### Customization
+### Environment variables
 
-The template's `_env_config` section documents environment variables that hooks read. For example, `PROTECTED_BRANCHES` controls which branches `git-safety.sh` protects (default: `main` and `master`). Set these in your shell or `.envrc` — you don't need to modify the hook scripts.
+The toolkit reads a small set of env vars to control behavior. The full registry (with defaults, scopes, and readers) lives in `.claude/docs/relevant-toolkit-env_vars.md` — what follows is the consumer-facing minimum.
+
+**Must set** (paths — written by `/setup-toolkit` Phase 1.6 to `.claude/settings.local.json`):
+
+- `CLAUDE_ANALYTICS_LESSONS_DB` — global lessons SQLite DB (default: `$HOME/.claude/lessons.db`)
+- `CLAUDE_ANALYTICS_SESSIONS_DB` — global sessions SQLite DB (default: `$HOME/.claude/sessions.db`)
+- `CLAUDE_ANALYTICS_HOOKS_DB` — read-only `hooks.db` for surface-lessons dedup (default: `$HOME/.claude/hooks.db`)
+- `CLAUDE_ANALYTICS_HOOKS_DIR` — directory for hook-logs JSONL (default: `$HOME/claude-analytics/hook-logs`)
+
+These can't live in `settings.json` because Claude Code doesn't expand `$HOME` in that file's values; `settings.local.json` is gitignored, so per-machine paths don't leak.
+
+**Ecosystem opt-ins** (set in `.claude/settings.json` `env` block — `0` or `1`):
+
+- `CLAUDE_TOOLKIT_LESSONS` — enable session-start lessons block, `surface-lessons`, `/learn`, `/manage-lessons`
+- `CLAUDE_TOOLKIT_TRACEABILITY` — enable hook-logs JSONL writes and statusline usage-snapshots
+
+`/setup-toolkit` Phase 1.5 writes both keys on first run. Until either is written, the session-start hook surfaces a one-time nudge pointing at `/setup-toolkit`.
+
+**Can tune** (set in shell, `.envrc`, or `settings.json`):
+
+- `PROTECTED_BRANCHES` — regex for branches `git-safety.sh` protects (default: `^(main|master)$`)
+- `JSON_SIZE_THRESHOLD_KB` — size threshold for `suggest-read-json.sh` (default: `50`)
+- `HOOK_PERF=1` — emit per-phase timing lines to stderr (debugging)
+- `CLAUDE_TOOLKIT_POWERLINE_VERSION` — pinned `@owloops/claude-powerline` version (default: `1.25.1`)
 
 ### Committing settings
 

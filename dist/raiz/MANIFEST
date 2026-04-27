@@ -57,6 +57,7 @@
 .claude/docs/relevant-toolkit-context.md
 .claude/docs/relevant-toolkit-permissions_config.md
 .claude/docs/relevant-toolkit-artifacts.md
+.claude/docs/relevant-toolkit-env_vars.md
 
 # docs (copied to project root, outside .claude/)
 docs/getting-started.md
