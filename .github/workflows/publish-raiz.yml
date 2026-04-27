@@ -75,6 +75,7 @@ jobs:
 
       - name: Build Telegram message
         id: msg
+        if: steps.sync.outputs.pushed == 'true'
         run: |
           VERSION=$(cat VERSION)
           PREV_VERSION="${{ steps.prev.outputs.version }}"
@@ -91,6 +92,7 @@ jobs:
           echo "$MSG" > /tmp/telegram-msg.html
 
       - name: Notify Telegram
+        if: steps.sync.outputs.pushed == 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
