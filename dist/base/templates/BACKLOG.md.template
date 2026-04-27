@@ -18,11 +18,13 @@
 
 - **[SCOPE]** Short description of the task (`task-id`)
     - **status**: `idea`
-    - **scope**: `Scope`
+    - **scope**: `ScopeA`, `ScopeB`
     - **branch**: `feat/branch-name`
-    - **depends-on**: `other-task-id`
+    - **relates-to**: `other-task-id:depends-on`
     - **plan**: `output/claude-toolkit/plans/plan-file.md`
-    - **notes**: Additional context
+    - **source**: `suggestions-box/<project>/<file>`
+    - **references**: `path/to/code.sh`, `output/claude-toolkit/analysis/<file>.md`
+    - **notes**: Prose context
 
 ## P2 - Medium
 

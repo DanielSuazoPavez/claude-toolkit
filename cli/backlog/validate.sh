@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Validate a BACKLOG.md against the standardized format
+# Validate a BACKLOG.md against the schema at .claude/schemas/backlog/task.schema.json
 #
 # Usage:
 #     backlog-validate.sh [FILE]         # Validate (default: BACKLOG.md in cwd)
@@ -8,16 +8,26 @@
 #
 # Checks:
 #   - Required headings present and in order
-#   - All task items have an id
-#   - Status values are valid
-#   - Metadata fields are recognized
+#   - All task items have an [CATEGORY] tag and an id
+#   - Status values are in the schema enum
+#   - Metadata field names are in the schema vocabulary
+#   - Typo detection: `depends on` (space) → "did you mean depends-on?" (error)
+#   - relates-to tokens match `<id>:<kind>` with kind in the schema enum
+#   - depends-on field name is rejected with migration hint
+#   - Legacy single-pair backticks on multi-value fields → warn (transition)
 #   - No orphaned metadata (metadata outside a task)
-#   - Detects format: minimal, standard, or mixed
 
 set -euo pipefail
 
-VALID_STATUSES="idea planned in-progress ready-for-pr pr-open blocked"
-VALID_METADATA="status scope branch depends-on plan notes"
+# Load shared schema accessor.
+# shellcheck disable=SC1091
+. "$(dirname "${BASH_SOURCE[0]}")/lib/schema.sh"
+bsl_load_schema
+
+# Cache schema lookups (one jq call each; loop body should not hit jq per-line).
+_VALID_FIELDS=$(bsl_field_names | paste -sd' ' -)
+_VALID_STATUSES=$(bsl_status_values | paste -sd' ' -)
+_VALID_KINDS=$(bsl_relates_to_kinds | paste -sd'|' -)
 
 REQUIRED_HEADINGS=(
     "# Project Backlog"
@@ -66,9 +76,6 @@ validate() {
     local ids_seen=()
     local defined_scopes=()
     local has_scope_table=false
-    local has_category_tag=false
-    local has_plain_item=false
-    local has_metadata=false
     local task_count=0
 
     while IFS= read -r line; do
@@ -115,10 +122,9 @@ validate() {
         # Skip content outside priority sections
         [[ "$in_priority" != true ]] && continue
 
-        # Task item with category tag: - **[TAG]** text (`id`)
+        # Task item: - **[TAG]** text (`id`)
         if [[ "$line" =~ ^-\ \*\*\[([^\]]+)\]\*\*\ (.+)$ ]]; then
             in_task=true
-            has_category_tag=true
             ((task_count++)) || true
 
             local rest="${BASH_REMATCH[2]}"
@@ -137,71 +143,98 @@ validate() {
             continue
         fi
 
-        # Task item without category tag: - text (`id`)
+        # Task item without a category tag: no longer supported.
         if [[ "$line" =~ ^-\ ([^*].+)$ ]] && [[ "$in_priority" == true ]]; then
-            in_task=true
-            has_plain_item=true
-            ((task_count++)) || true
-
-            local rest="${BASH_REMATCH[1]}"
-            if [[ "$rest" =~ \(\`([^\`]+)\`\)$ ]]; then
-                local tid="${BASH_REMATCH[1]}"
-                for seen in "${ids_seen[@]+"${ids_seen[@]}"}"; do
-                    if [[ "$seen" == "$tid" ]]; then
-                        err "$lineno" "duplicate id: $tid"
-                    fi
-                done
-                ids_seen+=("$tid")
-            else
-                err "$lineno" "task missing id: $line"
-            fi
+            err "$lineno" "task missing required [CATEGORY] tag: $line"
             continue
         fi
 
-        # Metadata line: indented - **field**: value
-        if [[ "$line" =~ ^[[:space:]]+-\ \*\*([a-z-]+)\*\*:\ (.*)$ ]]; then
-            local field="${BASH_REMATCH[1]}"
+        # Metadata line: indented - **field**: value.
+        # Loose match here ([a-z][a-z -]+) so typos like `depends on` (space) are
+        # *seen* — the canonical regex would silently drop them.
+        if [[ "$line" =~ ^[[:space:]]+-\ \*\*([a-z][a-z\ -]*)\*\*:\ ?(.*)$ ]]; then
+            local raw_field="${BASH_REMATCH[1]}"
             local value="${BASH_REMATCH[2]}"
-            has_metadata=true
+            # Canonical form: spaces normalized to hyphens.
+            local field="${raw_field// /-}"
 
             if [[ "$in_task" != true ]]; then
-                err "$lineno" "orphaned metadata (not under a task): $field"
+                err "$lineno" "orphaned metadata (not under a task): $raw_field"
                 continue
             fi
 
-            # Check field name
+            # Typo detection: if the raw field had a space, normalize and check
+            # whether the normalized form is either (a) a recognized field or
+            # (b) a known-removed field. Either way, it's a typo (data was
+            # being silently dropped by the old parser).
+            if [[ "$raw_field" != "$field" ]]; then
+                local normalized_known=false
+                for vf in $_VALID_FIELDS; do
+                    [[ "$field" == "$vf" ]] && normalized_known=true
+                done
+                if [[ "$field" == "depends-on" ]]; then
+                    err "$lineno" "unrecognized field '$raw_field' — did you mean 'depends-on'? note: 'depends-on' was removed; use 'relates-to: \`<id>:depends-on\`'"
+                elif [[ "$normalized_known" == true ]]; then
+                    err "$lineno" "unrecognized field '$raw_field' — did you mean '$field'?"
+                else
+                    warn "$lineno" "unrecognized field: $raw_field"
+                fi
+                continue
+            fi
+
+            # depends-on field is removed; emit migration hint and skip parsing.
+            if [[ "$field" == "depends-on" ]]; then
+                warn "$lineno" "field 'depends-on' removed; use 'relates-to: \`<id>:depends-on\`'"
+                continue
+            fi
+
+            # Field name must be in the schema vocabulary.
             local field_valid=false
-            for vf in $VALID_METADATA; do
+            for vf in $_VALID_FIELDS; do
                 [[ "$field" == "$vf" ]] && field_valid=true
             done
             if [[ "$field_valid" != true ]]; then
-                warn "$lineno" "unknown metadata field: $field"
+                warn "$lineno" "unrecognized field: $field"
+                continue
             fi
 
-            # Validate status values
+            # Validate status values against schema enum.
             if [[ "$field" == "status" ]]; then
-                # Strip backticks
                 local status="${value#\`}"
                 status="${status%\`}"
                 local status_valid=false
-                for vs in $VALID_STATUSES; do
+                for vs in $_VALID_STATUSES; do
                     [[ "$status" == "$vs" ]] && status_valid=true
                 done
                 if [[ "$status_valid" != true ]]; then
-                    err "$lineno" "invalid status: $status (valid: $VALID_STATUSES)"
+                    err "$lineno" "invalid status: $status (valid: $_VALID_STATUSES)"
                 fi
             fi
 
-            # Validate scope values against Scope Definitions table
+            # Multi-value fields: tokenize, warn on legacy single-pair backticks.
+            if [[ "$field" == "scope" || "$field" == "relates-to" || "$field" == "references" ]]; then
+                # Detect legacy single-pair-with-commas form: `a, b`
+                if [[ "$value" =~ ^\`[^\`]*,[^\`]*\`$ ]]; then
+                    warn "$lineno" "legacy '\`a, b\`' form on $field; use per-value backticks: '\`a\`, \`b\`'"
+                fi
+            fi
+
+            # relates-to: each token must match <id>:<kind> with kind in the enum.
+            if [[ "$field" == "relates-to" && -n "$value" ]]; then
+                local token
+                while IFS= read -r token; do
+                    [[ -z "$token" ]] && continue
+                    if [[ ! "$token" =~ ^[a-z0-9-]+:($_VALID_KINDS)$ ]]; then
+                        err "$lineno" "malformed relates-to token '$token' (expected '<id>:<kind>'; kinds: ${_VALID_KINDS//|/, })"
+                    fi
+                done < <(bsl_split_multivalue "$value")
+            fi
+
+            # Validate scope values against Scope Definitions table.
             if [[ "$field" == "scope" && "$has_scope_table" == true && ${#defined_scopes[@]} -gt 0 ]]; then
-                local scope_val="${value#\`}"
-                scope_val="${scope_val%\`}"
-                # Scope can be comma-separated (e.g. "DE, DS")
-                IFS=',' read -ra scope_parts <<< "$scope_val"
-                for part in "${scope_parts[@]}"; do
-                    # Trim whitespace
-                    part="${part#"${part%%[![:space:]]*}"}"
-                    part="${part%"${part##*[![:space:]]}"}"
+                local part
+                while IFS= read -r part; do
+                    [[ -z "$part" ]] && continue
                     local scope_found=false
                     for ds in "${defined_scopes[@]}"; do
                         [[ "$part" == "$ds" ]] && scope_found=true
@@ -209,7 +242,7 @@ validate() {
                     if [[ "$scope_found" != true ]]; then
                         warn "$lineno" "scope '$part' not in Scope Definitions table"
                     fi
-                done
+                done < <(bsl_split_multivalue "$value")
             fi
             continue
         fi
@@ -253,23 +286,9 @@ validate() {
         done
     done
 
-    # Detect format
-    local format="minimal"
-    if [[ "$has_category_tag" == true && "$has_metadata" == true && "$has_plain_item" != true ]]; then
-        format="standard"
-    elif [[ "$has_category_tag" == true || "$has_metadata" == true ]]; then
-        if [[ "$has_category_tag" == true && "$has_plain_item" == true ]]; then
-            format="mixed"
-        elif [[ "$has_plain_item" == true && "$has_metadata" == true ]]; then
-            format="minimal+metadata"
-        elif [[ "$has_category_tag" == true ]]; then
-            format="standard"
-        fi
-    fi
-
     # Output results
     printf "${BOLD}%s${RESET}\n" "$file"
-    printf "  format: %s  |  tasks: %d  |  ids: %d\n" "$format" "$task_count" "${#ids_seen[@]}"
+    printf "  tasks: %d  |  ids: %d\n" "$task_count" "${#ids_seen[@]}"
 
     if [[ ${#errors[@]} -gt 0 ]]; then
         echo ""

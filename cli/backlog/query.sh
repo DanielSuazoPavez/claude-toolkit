@@ -1,23 +1,41 @@
 #!/usr/bin/env bash
 #
-# Simple CLI to query BACKLOG.md (bash-only, no dependencies)
+# Simple CLI to query BACKLOG.md (bash-only, jq required for schema lookups)
 #
 # Usage:
 #     backlog-query.sh                # List all tasks
 #     backlog-query.sh id <task-id>   # Find task by id
 #     backlog-query.sh status planned # Filter by status
-#     backlog-query.sh unblocked      # Planned/idea + no dependencies
-#     backlog-query.sh blocked        # Has dependencies or status blocked
+#     backlog-query.sh unblocked      # Planned/idea + no :depends-on relations
+#     backlog-query.sh blocked        # Has :depends-on relation or status blocked
 #     backlog-query.sh priority P1    # Filter by priority
 #     backlog-query.sh scope DS       # Filter by scope
 #     backlog-query.sh branch         # Tasks with branches
+#     backlog-query.sh relates-to <kind>  # Filter by relates-to kind
+#     backlog-query.sh source <pat>   # Filter by source pattern
+#     backlog-query.sh schema         # Show metadata schema
 #     backlog-query.sh summary        # Counts by priority and status
 #     backlog-query.sh validate       # Validate backlog format
 #     backlog-query.sh -v ...         # Verbose output (shows all fields)
 #     backlog-query.sh --path FILE    # Use specific backlog file
 #     backlog-query.sh --exclude-priority P99,P3  # Hide listed priorities
+#
+# For the full vocabulary, run `claude-toolkit backlog schema`.
 
 set -euo pipefail
+
+# Load the shared schema accessor.
+# shellcheck disable=SC1091
+. "$(dirname "${BASH_SOURCE[0]}")/lib/schema.sh"
+bsl_load_schema
+
+# Tab-separated parse_backlog emit columns:
+#   1=priority   2=id        3=status     4=category   5=title
+#   6=scope      7=branch    8=relates-to 9=plan       10=notes
+#   11=source    12=references
+#
+# scope, relates-to, references are comma-separated lists (post-tokenization).
+# relates-to tokens are <task-id>:<kind>; filters scan for ":<kind>" substrings.
 
 # Find BACKLOG.md in the current directory (where the user invoked the tool).
 # Override with --path FILE.
@@ -30,8 +48,7 @@ find_backlog() {
     fi
 }
 
-# Parse backlog and output tab-separated fields:
-# priority|id|status|category|title|scope|branch|depends_on|plan|notes
+# Parse backlog and emit one tab-separated row per task (12 columns).
 parse_backlog() {
     local backlog="$1"
     local priority=""
@@ -39,10 +56,10 @@ parse_backlog() {
 
     emit_task() {
         if [[ "$has_task" == true ]]; then
-            printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+            printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
                 "$task_priority" "$task_id" "$task_status" "$task_category" \
-                "$task_title" "$task_scope" "$task_branch" "$task_depends" \
-                "$task_plan" "$task_notes"
+                "$task_title" "$task_scope" "$task_branch" "$task_relates" \
+                "$task_plan" "$task_notes" "$task_source" "$task_references"
         fi
     }
 
@@ -62,7 +79,7 @@ parse_backlog() {
         # Skip lines outside priority sections
         [[ -z "$priority" ]] && continue
 
-        # Task line with category tag: - **[CATEGORY]** Description (`id`)
+        # Task line: - **[CATEGORY]** Description (`id`)
         if [[ "$line" =~ ^-\ \*\*\[([^\]]+)\]\*\*\ (.+)$ ]]; then
             emit_task
 
@@ -82,52 +99,41 @@ parse_backlog() {
             task_status=""
             task_scope=""
             task_branch=""
-            task_depends=""
+            task_relates=""
             task_plan=""
             task_notes=""
-            has_task=true
-            continue
-        fi
-
-        # Task line without category tag: - Description (`id`)
-        if [[ "$line" =~ ^-\ ([^*].+)$ ]] && [[ -n "$priority" ]]; then
-            emit_task
-
-            task_priority="$priority"
-            task_category=""
-            local rest="${BASH_REMATCH[1]}"
-
-            # Extract id from (`id`) at end of title
-            if [[ "$rest" =~ ^(.*)[[:space:]]\(\`([^\`]+)\`\)$ ]]; then
-                task_title="${BASH_REMATCH[1]}"
-                task_id="${BASH_REMATCH[2]}"
-            else
-                task_title="$rest"
-                task_id=""
-            fi
-
-            task_status=""
-            task_scope=""
-            task_branch=""
-            task_depends=""
-            task_plan=""
-            task_notes=""
+            task_source=""
+            task_references=""
             has_task=true
             continue
         fi
 
         # Metadata lines (indented under a task)
         if [[ "$has_task" == true ]]; then
-            if [[ "$line" =~ ^[[:space:]]+-\ \*\*status\*\*:\ \`?([^\`]+)\`? ]]; then
-                task_status="${BASH_REMATCH[1]}"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*scope\*\*:\ \`?([^\`]+)\`?$ ]]; then
-                task_scope="${BASH_REMATCH[1]}"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*branch\*\*:\ \`?([^\`]+)\`? ]]; then
-                task_branch="${BASH_REMATCH[1]}"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*depends-on\*\*:\ \`?([^\`]+)\`? ]]; then
-                task_depends="${BASH_REMATCH[1]}"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*plan\*\*:\ \`?([^\`]+)\`? ]]; then
-                task_plan="${BASH_REMATCH[1]}"
+            if [[ "$line" =~ ^[[:space:]]+-\ \*\*status\*\*:\ (.*)$ ]]; then
+                local v="${BASH_REMATCH[1]}"
+                v="${v#\`}"; v="${v%\`}"
+                task_status="$v"
+            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*scope\*\*:\ (.*)$ ]]; then
+                # Multi-value, comma-separated, per-value backticks (or legacy single-pair).
+                task_scope=$(bsl_split_multivalue "${BASH_REMATCH[1]}" | paste -sd, -)
+            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*branch\*\*:\ (.*)$ ]]; then
+                local v="${BASH_REMATCH[1]}"
+                v="${v#\`}"; v="${v%\`}"
+                task_branch="$v"
+            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*relates-to\*\*:\ (.*)$ ]]; then
+                # Multi-value: each token is `<id>:<kind>`. Tokenize, comma-join.
+                task_relates=$(bsl_split_multivalue "${BASH_REMATCH[1]}" | paste -sd, -)
+            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*plan\*\*:\ (.*)$ ]]; then
+                local v="${BASH_REMATCH[1]}"
+                v="${v#\`}"; v="${v%\`}"
+                task_plan="$v"
+            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*source\*\*:\ (.*)$ ]]; then
+                local v="${BASH_REMATCH[1]}"
+                v="${v#\`}"; v="${v%\`}"
+                task_source="$v"
+            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*references\*\*:\ (.*)$ ]]; then
+                task_references=$(bsl_split_multivalue "${BASH_REMATCH[1]}" | paste -sd, -)
             elif [[ "$line" =~ ^[[:space:]]+-\ \*\*notes\*\*:\ (.+)$ ]]; then
                 task_notes="${BASH_REMATCH[1]}"
             fi
@@ -146,7 +152,8 @@ display_tasks() {
     {
         count++
         priority=$1; id=$2; status=$3; category=$4; title=$5
-        scope=$6; branch=$7; depends=$8; plan=$9; notes=$10
+        scope=$6; branch=$7; relates=$8; plan=$9; notes=$10
+        source_=$11; references=$12
 
         id_display = (id != "") ? " ("id")" : ""
         cat_display = (category != "") ? "["category"] " : ""
@@ -157,8 +164,10 @@ display_tasks() {
         if (verbose == "1") {
             if (scope != "") printf "    scope: %s\n", scope
             if (branch != "") printf "    branch: %s\n", branch
-            if (depends != "") printf "    depends-on: %s\n", depends
+            if (relates != "") printf "    relates-to: %s\n", relates
             if (plan != "") printf "    plan: %s\n", plan
+            if (source_ != "") printf "    source: %s\n", source_
+            if (references != "") printf "    references: %s\n", references
             if (notes != "") printf "    notes: %s\n", notes
         }
     }
@@ -188,6 +197,42 @@ display_summary() {
     }'
 }
 
+# Display schema (renders from .claude/schemas/backlog/task.schema.json).
+display_schema() {
+    local bold="" reset=""
+    if [[ -t 1 ]]; then
+        bold=$'\033[1m'
+        reset=$'\033[0m'
+    fi
+
+    printf "%sclaude-toolkit backlog — task metadata fields%s\n\n" "$bold" "$reset"
+
+    while IFS= read -r field; do
+        [[ -z "$field" ]] && continue
+        local desc
+        desc=$(bsl_field_description "$field")
+        printf "  %s%-12s%s %s\n" "$bold" "$field" "$reset" "$desc"
+
+        case "$field" in
+            status)
+                local values
+                values=$(bsl_status_values | paste -sd, - | sed 's/,/, /g')
+                printf "                values: %s\n" "$values"
+                ;;
+            scope|references)
+                printf "                format: \`a\`, \`b\`\n"
+                ;;
+            relates-to)
+                printf "                format: \`<task-id>:<kind>\`\n"
+                local kinds
+                kinds=$(bsl_relates_to_kinds | paste -sd, - | sed 's/,/, /g')
+                printf "                kinds:  %s\n" "$kinds"
+                ;;
+        esac
+        echo ""
+    done < <(bsl_field_names)
+}
+
 # Main
 main() {
     local verbose=0
@@ -200,7 +245,7 @@ main() {
         case "$1" in
             -v|--verbose) verbose=1 ;;
             -h|--help|help)
-                head -19 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
+                head -25 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
                 exit 0
                 ;;
             --path)
@@ -227,6 +272,12 @@ main() {
         esac
         shift
     done
+
+    # `schema` subcommand does not need a backlog file — handle before find_backlog.
+    if [[ "${args[0]:-}" == "schema" ]]; then
+        display_schema
+        return
+    fi
 
     local backlog
     if [[ -n "$backlog_path" ]]; then
@@ -284,12 +335,12 @@ main() {
             filter_cmd="awk -F'\t' '\$3 == \"$status\"'"
             ;;
         unblocked)
-            # planned or idea, no depends-on
-            filter_cmd="awk -F'\t' '(\$3 == \"planned\" || \$3 == \"idea\") && \$8 == \"\"'"
+            # planned or idea, no :depends-on relation in column 8
+            filter_cmd="awk -F'\t' '(\$3 == \"planned\" || \$3 == \"idea\") && \$8 !~ /:depends-on(,|$)/'"
             ;;
         blocked)
-            # has depends-on or status is blocked
-            filter_cmd="awk -F'\t' '\$8 != \"\" || \$3 == \"blocked\"'"
+            # has :depends-on relation in column 8, or status is blocked
+            filter_cmd="awk -F'\t' '\$8 ~ /:depends-on(,|$)/ || \$3 == \"blocked\"'"
             ;;
         priority)
             local prio="${args[1]:-}"
@@ -310,6 +361,27 @@ main() {
             ;;
         branch)
             filter_cmd="awk -F'\t' '\$7 != \"\"'"
+            ;;
+        relates-to)
+            local kind="${args[1]:-}"
+            if [[ -z "$kind" ]]; then
+                echo "Usage: $0 relates-to <kind>" >&2
+                exit 1
+            fi
+            filter_cmd="awk -F'\t' '\$8 ~ /:$kind(,|$)/'"
+            ;;
+        source)
+            local src_pattern="${args[1]:-}"
+            if [[ -z "$src_pattern" ]]; then
+                echo "Usage: $0 source <pattern>" >&2
+                exit 1
+            fi
+            # Escape forward slashes for the awk regex literal (paths often
+            # contain '/'). awk regex doesn't support \/ inside /.../, so use
+            # the index() approach for fixed-string matching.
+            local awk_pattern_escaped="${src_pattern//\\/\\\\}"
+            awk_pattern_escaped="${awk_pattern_escaped//\"/\\\"}"
+            filter_cmd="awk -F'\t' 'index(\$11, \"$awk_pattern_escaped\") > 0'"
             ;;
         summary)
             parse_backlog "$backlog" | eval "$exclude_cmd" | display_summary

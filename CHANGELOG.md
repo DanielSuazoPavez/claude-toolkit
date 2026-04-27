@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## [2.72.0] - 2026-04-27 - backlog schema surface: JSON schema, `relates-to`, schema subcommand
+
+### Added
+- **schema**: `.claude/schemas/backlog/task.schema.json` — JSON Schema (draft-07) becomes the canonical source of truth for BACKLOG.md task metadata. Field names, status enum, `relates-to` kinds, and descriptions all live here. Validator and parser load from it via `cli/backlog/lib/schema.sh` (jq-backed).
+- **cli**: `claude-toolkit backlog schema` — new subcommand renders the metadata vocabulary from the schema (fields, descriptions, status values, `relates-to` kinds). Surfaces what was previously hidden inside bash variables.
+- **cli**: `claude-toolkit backlog relates-to <kind>` — filter by relationship kind. Kinds: `depends-on`, `independent-of`, `supersedes`, `split-from`, `relates-to`.
+- **cli**: `claude-toolkit backlog source <pattern>` — filter by `source` field (substring match).
+- **cli**: `claude-toolkit docs backlog-schema` — registers the workflow doc as a contract so agents can fetch it via the standard `docs` surface.
+- **schema**: New fields `relates-to` (multi-value, replaces `depends-on`), `source` (provenance), `references` (pointers to read while working).
+
+### Changed
+- **schema (breaking)**: `depends-on` field removed in favor of `relates-to: \`<id>:<kind>\``. Validator emits a migration warning if it sees the old field name; downstream BACKLOG.md files must migrate.
+- **schema (breaking)**: minimal-format BACKLOG entries (no `[CATEGORY]` tag) are no longer valid. Standard format with `[CATEGORY]` tags is now the only supported format.
+- **format**: multi-value fields (`scope`, `relates-to`, `references`) use **per-value** backticks: `` `a`, `b` `` (canonical), not `` `a, b` `` (legacy). Legacy form still parses with a transition warning.
+- **template**: `dist/base/templates/BACKLOG-standard.md` renamed to `dist/base/templates/BACKLOG.md.template`. `dist/base/templates/BACKLOG-minimal.md` deleted.
+- **parser**: `parse_backlog` tab-separated emit grew from 10 to 12 columns. Column 8 changed semantics (now `relates-to`, was `depends-on`); columns 11–12 added (`source`, `references`). Filters and display updated in lockstep.
+- **doc**: `.claude/docs/relevant-workflow-backlog.md` rewritten — minimal-format section dropped; per-value backticks rule documented; `relates-to` kinds and `source` conventions explained.
+
+### Fixed
+- **validator**: typo'd field names (e.g. `**depends on**:` with a space, which the old `[a-z-]+` regex silently dropped) now produce errors with a "did you mean" hint. The original BACKLOG.md had **14** silently-dropped lines that broke `claude-toolkit backlog blocked`/`unblocked` filters; this branch makes such drift loud.
+- **filter**: `claude-toolkit backlog source <pattern>` switched from regex to fixed-string matching — the old form broke when patterns contained `/` (the awk regex delimiter).
+- **schema-loader**: `bsl_split_multivalue` no longer expands glob metacharacters — paths in `references` like `output/*.md` are kept as literal tokens. (Latent today; would have surfaced the first time anyone wrote a glob in `references`.)
+
+### Notes
+- **Migration**: this repo's own `BACKLOG.md` was migrated as part of the branch (commit `c2656a2`). 14 typo'd `**depends on**: none` entries removed; 3 valid `**depends on**: \`<id>\`` entries rewritten to `**relates-to**: \`<id>:depends-on\``; 2 legacy single-pair `scope` lines converted to per-value backticks.
+- **Closes**: P1 `backlog-schema-surface`. New P3 `backlog-query-eval-refactor` filed for a follow-up (refactor `cli/backlog/query.sh` filters off `eval`).
+- **Test coverage**: 86 tests (was 43). New sections cover schema subcommand, `relates-to` filter + edge cases (single value, trailing comma, invalid kind, missing kind/id), `source` filter, legacy `depends-on` warning, typo detection, legacy vs canonical scope formatting.
+- **Raiz consumers**: not affected (no raiz-shipped resources were touched). Sidecar marks this version `skip: true`.
+
 ## [2.71.0] - 2026-04-27 - bare env vars renamed under `CLAUDE_TOOLKIT_*` namespace
 
 ### Changed
