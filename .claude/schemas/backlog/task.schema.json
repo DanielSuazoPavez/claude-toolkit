@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-toolkit/schemas/backlog/task.schema.json",
+  "title": "Backlog Task Metadata",
+  "description": "Vocabulary for indented metadata fields under a BACKLOG.md task. See .claude/docs/relevant-workflow-backlog.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["idea", "planned", "in-progress", "ready-for-pr", "pr-open", "blocked"],
+      "description": "Lifecycle state."
+    },
+    "scope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Technical areas. Multi-value, comma-separated, each backticked."
+    },
+    "branch": {
+      "type": "string",
+      "description": "Git branch name."
+    },
+    "relates-to": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+:(depends-on|independent-of|supersedes|split-from|relates-to)$"
+      },
+      "description": "Task relationships. Form: `<task-id>:<kind>`. Kinds: depends-on, independent-of, supersedes, split-from, relates-to."
+    },
+    "plan": {
+      "type": "string",
+      "description": "Path to plan file."
+    },
+    "source": {
+      "type": "string",
+      "description": "Provenance pointer. Conventional forms: suggestions-box/<project>/<file>, session/<id>, issue/<num>, or external URL."
+    },
+    "references": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Pointers to read while working: code paths, prior PRs, design docs. Multi-value, comma-separated, each backticked."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free prose. Reserve for context that isn't a pointer."
+    }
+  }
+}

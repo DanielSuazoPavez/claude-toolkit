@@ -20,6 +20,7 @@ DOCS_DIR="$PROJECT_ROOT/.claude/docs"
 # name|file|description (one per line)
 CONTRACTS=$(cat <<'EOF'
 satellite-contracts|relevant-toolkit-satellite-contracts.md|Convention for satellite CLIs paired with workshop skills — how to expose agent-facing contracts via `<satellite> docs <name>`
+backlog-schema|relevant-workflow-backlog.md|Backlog metadata vocabulary — fields, status values, relationship kinds
 EOF
 )
 
