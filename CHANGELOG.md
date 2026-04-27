@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [2.72.4] - 2026-04-27 - relocate `backup-lessons-db.sh` to claude-sessions
+
+### Removed
+- **scripts**: `.claude/scripts/cron/backup-lessons-db.sh` deleted from the toolkit. The script now lives at `cron/backup-lessons-db.sh` in the **claude-sessions** repo, which owns the `lessons.db` schema. With it gone, `.claude/scripts/cron/` is empty and removed entirely.
+- **dist/base/EXCLUDE**: dropped the `.claude/scripts/cron/` exclusion (the directory no longer exists, so nothing to exclude).
+- **.gitignore**: dropped `.claude/scripts/cron/cron.log` (directory gone).
+- **Makefile** (`lint-bash`): dropped `.claude/scripts/cron/*.sh` from the shellcheck glob.
+
+### Changed
+- **docs/indexes/SCRIPTS.md**: removed the `cron/backup-lessons-db.sh` row from the Maintenance section and updated the section preamble to reflect that only `validate-dist-manifests.sh` remains.
+- **.claude/docs/relevant-toolkit-lessons.md** (§9 Backup): repointed the script reference to claude-sessions' `cron/backup-lessons-db.sh`.
+
+### Notes
+- **Crontab heads-up**: anyone with a crontab pointing at the old path (`.../claude-toolkit/.claude/scripts/cron/backup-lessons-db.sh`) needs to repoint at the claude-sessions location.
+- **Closes**: P1 `move-backup-lessons-to-claude-sessions` (was deferred from 2.62.0).
+
 ## [2.72.3] - 2026-04-27 - block interpreter-bodied writes to `.claude/settings*.json`
 
 ### Fixed
