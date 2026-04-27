@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.72.8] - 2026-04-27 - dedicated test for verify-resource-deps.sh
+
+### Added
+- **tests**: `tests/test-verify-resource-deps.sh` — 57 fixture-driven tests covering all 7 validator sections (settings→hooks, hooks→skills, skills→agents, skills→skills, skills→scripts, docs→docs, docs→skills) plus MANIFEST mode, scope-skip behavior, and integration against the real toolkit. Mirrors `test-verify-external-deps.sh` structure. Wired into `Makefile` (`test-verify-res-deps`) and auto-discovered by `run-all.sh`. Closes `test-verify-resource-deps`.
+
 ### Notes
 - **tests**: Added diagnostic instrumentation (byte length + hex dump) in failure branches of `test-backlog-query.sh` (all 5 assertion functions) and `test-setup-toolkit-diagnose.sh` (orphan-detection assertion). If the transient WSL2 grep flake recurs under parallel `make check`, the output now distinguishes NUL/encoding corruption from a genuine grep miss. Closes `backlog-query-scope-flake`, `diag-orphan-flake-instrumentation`.
 
