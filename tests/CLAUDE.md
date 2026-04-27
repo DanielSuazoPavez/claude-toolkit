@@ -22,7 +22,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `test-validate-hook-utils.sh` | `lib/hook-utils.sh` shared library | bash |
 | `test-verify-external-deps.sh` | External tool dependency checker | bash |
 | `test-validate-resources-indexed.sh` | Resource index completeness | bash |
-| `test_lesson_db.py` | Lessons database (Python, 28 tests) | pytest |
+| `test_lesson_db.py` | Lessons database (Python, 40 tests) | pytest |
 | `perf-session-start.sh` | Session-start hook performance benchmark | bash |
 | `perf-surface-lessons.sh` | Surface-lessons hook performance benchmark | bash |
 
@@ -75,9 +75,20 @@ HOOK_TEST_JOBS=1 bash tests/run-hook-tests.sh   # hook tests sequential
 bash tests/hooks/test-secrets-guard.sh # run one file directly
 ```
 
-`run-all.sh` treats `run-hook-tests.sh` and `pytest` as single aggregate units in its summary — if pytest fails, re-run `make test-pytest` (or `uv run pytest`) standalone to drill into the 36 Python tests.
+`run-all.sh` treats `run-hook-tests.sh` and `pytest` as single aggregate units in its summary — if pytest fails, re-run `make test-pytest` (or `uv run pytest`) standalone to drill into the Python tests.
 
 Runner aggregation relies on per-file exit codes only. Each failing file's full log is dumped under its own header after the summary. Per-file logs land in `tests/.logs/` (gitignored).
+
+## Perf Baseline
+
+`make test` wall is bounded by **the slowest single hook test file** — parallel runner saturates a 4-core box, so wall ≈ max(per-file). Baseline as of 2026-04-27 (post `tests-perf-review`):
+
+- `make test` wall: ~65–75s
+- Pytest standalone (`uv run pytest`): ~7s wall (88 tests)
+- `test_lesson_db.py` standalone: ~3s pytest / ~4s wall (40 tests, was ~7s before fixture-scope tightening)
+- Hook-test ceiling: slowest file ~40s wall under parallel load
+
+Drift signals to watch: pytest standalone > 12s, slowest hook file > 50s, total wall > 90s. See `output/claude-toolkit/analysis/20260426_1702__analyze-idea__tests-perf-review.md` for the full breakdown.
 
 ## Perf Benchmarks
 
