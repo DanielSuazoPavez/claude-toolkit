@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.72.10] - 2026-04-27 - replace GNU mktemp --suffix with portable alternative
+
+### Fixed
+- **tests**: Replaced 3 GNU `mktemp --suffix=.json` calls in `tests/hooks/test-grouped-read.sh` with `mktemp` + `mv` rename. BSD `mktemp` (macOS) has no `--suffix` flag; the old calls failed, leaving test variables unset and breaking the grouped-read hook test suite. Partially closes `macos-mktemp-md5sum` (`md5sum` portion deferred — eval core not yet shipped).
+
 ## [2.72.9] - 2026-04-27 - replace GNU find -printf with portable alternatives
 
 ### Fixed
