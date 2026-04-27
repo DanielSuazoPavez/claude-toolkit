@@ -1,0 +1,14 @@
+{
+  "version": "2.72.9",
+  "date": "2026-04-27",
+  "headline": "fix GNU find -printf for macOS compatibility",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "Replaced 6 GNU `find -printf` calls with POSIX-portable equivalents in `setup-toolkit-diagnose.sh` and `validate-resources-indexed.sh` — macOS orphan detection and index validation now work correctly"
+      ]
+    }
+  ]
+}

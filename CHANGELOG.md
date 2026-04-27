@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.72.9] - 2026-04-27 - replace GNU find -printf with portable alternatives
+
+### Fixed
+- **scripts**: Replaced all 6 GNU `find -printf` calls in `validate-resources-indexed.sh` (4 hits) and `setup-toolkit-diagnose.sh` (2 hits) with POSIX-portable equivalents. BSD `find` (macOS) has no `-printf`; the old calls produced empty output silently, causing index validation to never see disk files and orphan detection to miss scripts/schemas. Closes `macos-find-printf`.
+
 ## [2.72.8] - 2026-04-27 - dedicated test for verify-resource-deps.sh
 
 ### Added
