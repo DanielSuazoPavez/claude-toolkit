@@ -1,0 +1,7 @@
+{
+  "version": "2.72.10",
+  "date": "2026-04-27",
+  "headline": "fix GNU mktemp --suffix in test suite (workshop-internal)",
+  "skip": true,
+  "sections": []
+}
