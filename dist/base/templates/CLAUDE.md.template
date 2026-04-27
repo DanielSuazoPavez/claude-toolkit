@@ -45,3 +45,15 @@ This project uses [claude-toolkit](https://github.com/hata/claude-toolkit) for C
 - **Docs**: `.claude/docs/` — prescriptive rules and reference documentation loaded by session-start hook
 - **Validation**: `make claude-toolkit-validate` — check configuration health
 - **Sync**: `make claude-toolkit-sync` — pull latest toolkit updates
+
+### CLI Quick Reference
+
+`claude-toolkit` exposes day-to-day commands beyond sync. Run `claude-toolkit <cmd> --help` for details.
+
+- `claude-toolkit backlog <cmd>` — query backlog (e.g. `backlog summary`, `backlog id <task-id>`)
+- `claude-toolkit lessons <cmd>` — manage lessons (e.g. `lessons search <query>`, `lessons list`)
+- `claude-toolkit send <path>` — send a resource or issue to another project's suggestions-box (e.g. `send --issue <text>`)
+- `claude-toolkit docs [name]` — list or emit workshop agent-facing contracts
+- `claude-toolkit eval <cmd>` — query evaluation status (stale, unevaluated, ...)
+- `claude-toolkit sync` — pull latest toolkit updates
+- `claude-toolkit validate` — check toolkit configuration

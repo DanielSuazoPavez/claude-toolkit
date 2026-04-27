@@ -13,6 +13,18 @@ make backlog                                   # Show backlog (prefer over readi
 claude-toolkit backlog id <task-id>             # Query specific backlog task by id
 ```
 
+### CLI Quick Reference
+
+`claude-toolkit` is the toolkit's own CLI — used here for backlog/lessons/docs queries. Run `claude-toolkit <cmd> --help` for details.
+
+- `claude-toolkit backlog <cmd>` — query backlog (e.g. `backlog summary`, `backlog id <task-id>`, `backlog status`, `backlog priority`, `backlog scope`)
+- `claude-toolkit lessons <cmd>` — manage lessons (e.g. `lessons search <query>`, `lessons list`, `lessons health`)
+- `claude-toolkit docs [name]` — list or emit workshop agent-facing contracts
+- `claude-toolkit eval <cmd>` — query evaluation status (`stale`, `unevaluated`, `above`, `type`)
+- `claude-toolkit send <path>` — send a resource or issue to another project's suggestions-box
+- `claude-toolkit sync` — sync workshop resources to a downstream project
+- `claude-toolkit validate` — check toolkit configuration in current project
+
 ## Key Principles
 
 - **Plan before building**: Use plan mode for non-trivial tasks, even when they look simple at first glance
