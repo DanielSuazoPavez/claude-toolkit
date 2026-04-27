@@ -146,8 +146,10 @@
     "CLAUDE_ANALYTICS_HOOKS_DIR": "Directory for hook-logs JSONL files (default: $HOME/claude-analytics/hook-logs). Override in shell/.envrc — not settable from this file because Claude Code does not expand $HOME.",
     "CLAUDE_ANALYTICS_HOOKS_DB": "Read-only path to hooks.db, used by surface-lessons.sh for intra-session dedup (default: $HOME/.claude/hooks.db). Owned and populated by the claude-sessions indexer.",
     "CLAUDE_DOCS_DIR": "Directory for docs (default: .claude/docs)",
-    "HOOK_PERF": "Emit per-phase HOOK_PERF timing lines to stderr when set to 1 (default: unset)",
-    "JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
-    "PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"
+    "CLAUDE_TOOLKIT_CLAUDE_DIR": "Override the .claude directory location used by toolkit-internal scripts (default: .claude)",
+    "CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY": "Override path to the secrets-detection registry JSON (default: .claude/hooks/lib/detection-registry.json). Used by validator + tests.",
+    "CLAUDE_TOOLKIT_HOOK_PERF": "Emit per-phase HOOK_PERF timing lines to stderr when set to 1 (default: unset)",
+    "CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB": "Size threshold in KB for JSON blocking (default: 50)",
+    "CLAUDE_TOOLKIT_PROTECTED_BRANCHES": "Regex for protected branches (default: ^(main|master)$)"
   }
 }

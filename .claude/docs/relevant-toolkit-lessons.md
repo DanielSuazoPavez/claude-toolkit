@@ -138,7 +138,7 @@ Runs periodically (nudged after 7 days). Steps:
 
 Surfaces branch-scoped lessons (when the current branch is not protected) and the `/manage-lessons` curation nudge. Single SQL query with row-prefix disambiguation:
 
-- `B` — branch-specific lessons (only queried when `CURRENT_BRANCH` doesn't match `PROTECTED_BRANCHES`)
+- `B` — branch-specific lessons (only queried when `CURRENT_BRANCH` doesn't match `CLAUDE_TOOLKIT_PROTECTED_BRANCHES`)
 - `M` — days since last `/manage-lessons` run
 - `T` — nudge threshold (default: 7 days)
 - `C` — active lesson count (consumed by the nudge line)
@@ -152,7 +152,7 @@ This branch:
 
 (Section is omitted entirely when no branch lessons match.)
 
-**Protected-branch gate:** `PROTECTED_BRANCHES` env var, regex (default `^(main|master)$`). On a protected branch the session is starting on a stabilization line (main, master, release/*) — there's no feature work to resume, so branch lessons would be noise. The query is skipped entirely; no DB roundtrip. The same env var governs `git-safety.sh` — set it once in `.claude/settings.json` env block and both hooks honor it.
+**Protected-branch gate:** `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` env var, regex (default `^(main|master)$`). On a protected branch the session is starting on a stabilization line (main, master, release/*) — there's no feature work to resume, so branch lessons would be noise. The query is skipped entirely; no DB roundtrip. The same env var governs `git-safety.sh` — set it once in `.claude/settings.json` env block and both hooks honor it.
 
 **Key/Recent surfacing:** *not* done at session-start. Recent-tier lessons surface contextually via `surface-lessons.sh` (PreToolUse, tag-keyword match). Key tier is a crystallization holding state, not a session-start surfacing tier — see §4.
 

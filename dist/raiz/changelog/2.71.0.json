@@ -1,0 +1,20 @@
+{
+  "version": "2.71.0",
+  "date": "2026-04-27",
+  "headline": "bare env vars renamed under `CLAUDE_TOOLKIT_*` (breaking — hard cutover)",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "templates",
+      "bullets": [
+        "Five env vars in `_env_config` renamed: `PROTECTED_BRANCHES` → `CLAUDE_TOOLKIT_PROTECTED_BRANCHES`, `HOOK_PERF` → `CLAUDE_TOOLKIT_HOOK_PERF`, `JSON_SIZE_THRESHOLD_KB` → `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB`, `CLAUDE_DETECTION_REGISTRY` → `CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY`, `CLAUDE_DIR` → `CLAUDE_TOOLKIT_CLAUDE_DIR`. **No back-compat alias** — if you set any of these in your `.claude/settings.json` `env` block (or in shell / `.envrc`), rename them on sync. Hooks reading the old name fall back to defaults silently (e.g. `git-safety.sh` reverts to `^(main|master)$`)."
+      ]
+    },
+    {
+      "kind": "hooks",
+      "bullets": [
+        "`git-safety.sh`, `session-start.sh`, `suggest-read-json.sh`, and the shared `hook-utils.sh` perf probe now read the new `CLAUDE_TOOLKIT_*` env names. The stderr wire-format marker emitted by `HOOK_PERF=...` lines is unchanged — it's still the literal `HOOK_PERF` so existing log parsers keep working."
+      ]
+    }
+  ]
+}

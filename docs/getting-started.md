@@ -124,9 +124,9 @@ These can't live in `settings.json` because Claude Code doesn't expand `$HOME` i
 
 **Can tune** (set in shell, `.envrc`, or `settings.json`):
 
-- `PROTECTED_BRANCHES` — regex for branches `git-safety.sh` protects (default: `^(main|master)$`)
-- `JSON_SIZE_THRESHOLD_KB` — size threshold for `suggest-read-json.sh` (default: `50`)
-- `HOOK_PERF=1` — emit per-phase timing lines to stderr (debugging)
+- `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` — regex for branches `git-safety.sh` protects (default: `^(main|master)$`)
+- `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB` — size threshold for `suggest-read-json.sh` (default: `50`)
+- `CLAUDE_TOOLKIT_HOOK_PERF=1` — emit per-phase timing lines to stderr (debugging)
 - `CLAUDE_TOOLKIT_POWERLINE_VERSION` — pinned `@owloops/claude-powerline` version (default: `1.25.1`)
 
 ### Committing settings

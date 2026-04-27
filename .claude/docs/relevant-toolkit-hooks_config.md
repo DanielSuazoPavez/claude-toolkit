@@ -61,7 +61,7 @@ Hooks read ecosystem opt-in flags via `hook_feature_enabled <feature>` from `lib
 **Hook blocking unexpectedly?**
 1. Check the hook's matcher in `.claude/settings.json`
 2. Review the hook script comments for expected behavior
-3. Some hooks support threshold configuration (e.g., `JSON_SIZE_THRESHOLD_KB`)
+3. Some hooks support threshold configuration (e.g., `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB`)
 
 **Hook not firing?**
 1. Verify `.claude/settings.json` has the hook configured

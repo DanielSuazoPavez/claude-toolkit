@@ -10,7 +10,7 @@
 # Settings.json:
 #   "PreToolUse": [{"matcher": "EnterPlanMode|Bash", "hooks": [{"type": "command", "command": ".claude/hooks/git-safety.sh"}]}]
 #
-# Config: PROTECTED_BRANCHES="^(main|master)$" (regex, customizable)
+# Config: CLAUDE_TOOLKIT_PROTECTED_BRANCHES="^(main|master)$" (regex, customizable)
 #
 # Protections:
 #   Protected branch enforcement:
@@ -30,7 +30,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 
 # Configurable protected branches (regex pattern)
-PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-^(main|master)$}"
+PROTECTED_BRANCHES="${CLAUDE_TOOLKIT_PROTECTED_BRANCHES:-^(main|master)$}"
 
 # ============================================================
 # match_git_safety — cheap predicate for the Bash branch

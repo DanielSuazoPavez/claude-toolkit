@@ -252,7 +252,7 @@ resolve_syncable_files() {
 
 # === cmd_validate: Validate toolkit configuration ===
 cmd_validate() {
-    local claude_dir="${CLAUDE_DIR:-.claude}"
+    local claude_dir="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
     local diag_script="$claude_dir/scripts/setup-toolkit-diagnose.sh"
 
     if [ ! -f "$diag_script" ]; then

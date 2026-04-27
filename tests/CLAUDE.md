@@ -81,4 +81,4 @@ Runner aggregation relies on per-file exit codes only. Each failing file's full 
 
 ## Perf Benchmarks
 
-`perf-*.sh` files measure hook execution time. Not included in `make test` — run manually. Set `HOOK_PERF=1` to enable per-phase timing probes in hooks.
+`perf-*.sh` files measure hook execution time. Not included in `make test` — run manually. Set `CLAUDE_TOOLKIT_HOOK_PERF=1` to enable per-phase timing probes in hooks.

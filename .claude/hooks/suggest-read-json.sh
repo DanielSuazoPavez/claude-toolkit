@@ -5,7 +5,7 @@
 #   "PreToolUse": [{"matcher": "Read", "hooks": [{"type": "command", "command": "bash .claude/hooks/suggest-read-json.sh"}]}]
 #
 # Environment:
-#   JSON_SIZE_THRESHOLD_KB - size threshold in KB (default: 50). Files smaller than this are allowed.
+#   CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB - size threshold in KB (default: 50). Files smaller than this are allowed.
 #
 # Blocks:
 #   - Large .json files (> threshold)
@@ -61,7 +61,7 @@ check_suggest_read_json() {
     fi
 
     # Check file size if file exists
-    local size_threshold_kb="${JSON_SIZE_THRESHOLD_KB:-50}"
+    local size_threshold_kb="${CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB:-50}"
     if [ -f "$FILE_PATH" ]; then
         local file_size_kb
         file_size_kb=$(( $(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))

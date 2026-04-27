@@ -23,7 +23,7 @@
 #   0 - All checks passed
 #   1 - Issues found
 
-CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
+CLAUDE_DIR="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
 PROJECT_ROOT="$(cd "$CLAUDE_DIR/.." && pwd)"
 SETTINGS="$CLAUDE_DIR/settings.json"
 TEMPLATE_DIR="$CLAUDE_DIR/templates"

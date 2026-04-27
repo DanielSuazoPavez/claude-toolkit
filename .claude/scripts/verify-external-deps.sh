@@ -10,7 +10,7 @@
 # Exit codes:
 #   0 - Always (warnings only)
 
-CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
+CLAUDE_DIR="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
 SKILLS_DIR="$CLAUDE_DIR/skills"
 
 # Colors for output

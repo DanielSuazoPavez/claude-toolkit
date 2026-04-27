@@ -54,11 +54,11 @@ EOF
 
 # Helper: run script in temp dir
 run_verify() {
-    (cd "$TEMP_DIR" && CLAUDE_DIR=.claude bash .claude/scripts/verify-external-deps.sh 2>&1)
+    (cd "$TEMP_DIR" && CLAUDE_TOOLKIT_CLAUDE_DIR=.claude bash .claude/scripts/verify-external-deps.sh 2>&1)
 }
 
 run_verify_exit_code() {
-    (cd "$TEMP_DIR" && CLAUDE_DIR=.claude bash .claude/scripts/verify-external-deps.sh >/dev/null 2>&1)
+    (cd "$TEMP_DIR" && CLAUDE_TOOLKIT_CLAUDE_DIR=.claude bash .claude/scripts/verify-external-deps.sh >/dev/null 2>&1)
     echo $?
 }
 

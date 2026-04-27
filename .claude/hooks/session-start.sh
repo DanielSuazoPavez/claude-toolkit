@@ -123,14 +123,14 @@ _hook_perf_probe "toolkit_version"
 
 # === LESSONS ===
 # Section narrowed: only branch-scoped lessons surface here, gated on
-# PROTECTED_BRANCHES. Key/Recent are intentionally not session-start-surfaced
+# CLAUDE_TOOLKIT_PROTECTED_BRANCHES. Key/Recent are intentionally not session-start-surfaced
 # (relevant-toolkit-lessons.md §4 + §7). Output label still reads "LESSONS"
 # because the /manage-lessons nudge belongs to the same surface.
 LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
 LEARNED_FILE=".claude/learned.json"
 # Same regex convention as git-safety.sh — duplicated rather than sourced to
 # keep session-start.sh self-contained.
-PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-^(main|master)$}"
+PROTECTED_BRANCHES="${CLAUDE_TOOLKIT_PROTECTED_BRANCHES:-^(main|master)$}"
 
 if ! hook_feature_enabled lessons; then
     # Lessons ecosystem disabled — skip entire section (query, output, nudge).
