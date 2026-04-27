@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2.72.1] - 2026-04-27 - CLI quick reference in base `CLAUDE.md.template`
+
+### Added
+- **template**: `dist/base/templates/CLAUDE.md.template` — new "CLI Quick Reference" subsection under `## Toolkit` lists `claude-toolkit` subcommands (`backlog`, `lessons`, `send`, `docs`, `eval`, `sync`, `validate`) with one-line descriptions and a pointer to `claude-toolkit <cmd> --help`. Closes P1 `claudemd-template-cli-quickref` — new projects now learn the day-to-day CLI surface from the synced template instead of stumbling onto `--help`.
+
+### Notes
+- **Raiz**: not affected. Raiz consumers don't ship the `claude-toolkit` CLI (no `cli/` or `bin/` entries in `dist/raiz/MANIFEST`), so the raiz template is unchanged. Sidecar marks this version `skip: true`.
+- **Coordinates with**: P2 `docs-consumer-experience` (guided introduction). This is the minimal stopgap.
+
 ## [2.72.0] - 2026-04-27 - backlog schema surface: JSON schema, `relates-to`, schema subcommand
 
 ### Added
