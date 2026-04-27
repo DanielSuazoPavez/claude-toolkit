@@ -126,7 +126,7 @@ SKILLS_DIR="$CLAUDE_DIR/skills"
 
 if $MANIFEST_MODE && [ -d "$SKILLS_DIR" ]; then
     # MANIFEST mode (target project): report disk files not in MANIFEST as project-local info.
-    DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -printf '%h\n' | xargs -n1 basename | sort)
+    DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -exec dirname {} \; | while IFS= read -r d; do basename "$d"; done | sort)
 
     while IFS= read -r disk_skill; do
         [ -z "$disk_skill" ] && continue
@@ -141,7 +141,7 @@ if $MANIFEST_MODE && [ -d "$SKILLS_DIR" ]; then
     echo -e "${GREEN}✓ $manifest_count skills from MANIFEST validated${NC}"
 elif [ -f "$SKILLS_INDEX" ] && [ -d "$SKILLS_DIR" ]; then
     # Toolkit mode: check all disk vs index.
-    DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -printf '%h\n' | xargs -n1 basename | sort)
+    DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -exec dirname {} \; | while IFS= read -r d; do basename "$d"; done | sort)
     INDEX_SKILLS=$(sed -nE 's/^.*\| `([^`]+)` \|.*$/\1/p' "$SKILLS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_SKILLS") <(echo "$INDEX_SKILLS"))
@@ -316,7 +316,7 @@ SCRIPTS_INDEX="$PROJECT_ROOT/docs/indexes/SCRIPTS.md"
 SCRIPTS_DIR="$CLAUDE_DIR/scripts"
 
 if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
-    DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f -printf '%P\n' | sort)
+    DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f | sed 's|^\./||' | sort)
     while IFS= read -r disk_script; do
         [ -z "$disk_script" ] && continue
         if ! in_array "$disk_script" "${MANIFEST_SCRIPTS[@]}"; then
@@ -329,7 +329,7 @@ if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
     manifest_count=${#MANIFEST_SCRIPTS[@]}
     echo -e "${GREEN}✓ $manifest_count scripts from MANIFEST validated${NC}"
 elif [ -f "$SCRIPTS_INDEX" ] && [ -d "$SCRIPTS_DIR" ]; then
-    DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f -printf '%P\n' | sort)
+    DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f | sed 's|^\./||' | sort)
     INDEX_SCRIPTS=$(sed -nE 's/^.*\| `([^`]+\.sh)` \|.*$/\1/p' "$SCRIPTS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_SCRIPTS") <(echo "$INDEX_SCRIPTS"))
