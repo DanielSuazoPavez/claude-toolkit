@@ -156,7 +156,7 @@ if [ -f "$SETTINGS" ]; then
         else
             count=$((count + 1))
         fi
-    done < <(sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS")
+    done < <(jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$SETTINGS")
 
     if [ $section_errors -eq 0 ]; then
         echo -e "${GREEN}✓ All $count hook commands resolve to existing files${NC}"

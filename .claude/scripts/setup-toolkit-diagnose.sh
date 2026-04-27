@@ -227,8 +227,8 @@ check_hooks() {
         return
     fi
 
-    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS" 2>/dev/null | sort > "$DIAG_TMP/hooks-current.txt"
-    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$template" 2>/dev/null | sort > "$DIAG_TMP/hooks-template.txt"
+    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$SETTINGS" 2>/dev/null > "$DIAG_TMP/hooks-current.txt"
+    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$template" 2>/dev/null > "$DIAG_TMP/hooks-template.txt"
 
     local missing extra
     missing=$(comm -23 "$DIAG_TMP/hooks-template.txt" "$DIAG_TMP/hooks-current.txt")

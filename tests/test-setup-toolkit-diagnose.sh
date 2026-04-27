@@ -239,6 +239,50 @@ else
 fi
 teardown_test_env
 
+# statusLine command must not leak into hook comparison
+setup_test_env
+create_settings_template
+create_matching_settings
+# Add a statusLine block (top-level, not inside hooks) to both files
+jq '. + {"statusLine": {"type": "command", "command": ".claude/scripts/statusline-capture.sh"}}' \
+    "$TEMP_DIR/.claude/settings.json" > "$TEMP_DIR/.claude/settings.tmp" && \
+    mv "$TEMP_DIR/.claude/settings.tmp" "$TEMP_DIR/.claude/settings.json"
+jq '. + {"statusLine": {"type": "command", "command": ".claude/scripts/statusline-capture.sh"}}' \
+    "$TEMP_DIR/.claude/templates/settings.template.json" > "$TEMP_DIR/.claude/templates/settings.tmp" && \
+    mv "$TEMP_DIR/.claude/templates/settings.tmp" "$TEMP_DIR/.claude/templates/settings.template.json"
+OUTPUT=$(run_diag)
+CHECK1=$(get_check_output 1 "$OUTPUT")
+TESTS_RUN=$((TESTS_RUN + 1))
+if echo "$CHECK1" | grep -q "PASS"; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "statusLine command not counted as hook → PASS"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "statusLine should not appear in hook comparison"
+    report_detail "Check 1 output: $CHECK1"
+fi
+teardown_test_env
+
+# statusLine in settings but not in template must not produce EXTRA
+setup_test_env
+create_settings_template
+create_matching_settings
+jq '. + {"statusLine": {"type": "command", "command": ".claude/scripts/statusline-capture.sh"}}' \
+    "$TEMP_DIR/.claude/settings.json" > "$TEMP_DIR/.claude/settings.tmp" && \
+    mv "$TEMP_DIR/.claude/settings.tmp" "$TEMP_DIR/.claude/settings.json"
+OUTPUT=$(run_diag)
+CHECK1=$(get_check_output 1 "$OUTPUT")
+TESTS_RUN=$((TESTS_RUN + 1))
+if echo "$CHECK1" | grep -q "PASS"; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "statusLine only in settings (not template) → still PASS"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "statusLine-only-in-settings should not cause EXTRA"
+    report_detail "Check 1 output: $CHECK1"
+fi
+teardown_test_env
+
 # --- Check 2: permissions ---
 
 report_section "=== Check 2: permissions ==="

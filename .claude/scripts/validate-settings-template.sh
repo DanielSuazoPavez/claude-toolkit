@@ -41,10 +41,9 @@ if [ ! -f "$TEMPLATE" ]; then
     exit 1
 fi
 
-# Extract hook command paths from a settings JSON file
-# Looks for "command": "..." values within hooks sections
+# Extract hook command paths from a settings JSON file (scoped to .hooks only)
 extract_hook_commands() {
-    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$1" | sort
+    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$1"
 }
 
 # === Hook commands ===
