@@ -18,6 +18,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `test_format_raiz_changelog.py` | Raiz changelog formatter (`format-raiz-changelog.py`) | pytest |
 | `test-raiz-publish.sh` | Raiz distribution builder (`publish.py`) | bash |
 | `test-setup-toolkit-diagnose.sh` | Diagnostic script (40 tests, base + raiz) | bash |
+| `test-sync-then-validate.sh` | End-to-end: real `sync` into fixture, then `validate-all.sh` + diagnose + orphan detection | bash |
 | `test-validate-hook-utils.sh` | `lib/hook-utils.sh` shared library | bash |
 | `test-verify-external-deps.sh` | External tool dependency checker | bash |
 | `test-validate-resources-indexed.sh` | Resource index completeness | bash |

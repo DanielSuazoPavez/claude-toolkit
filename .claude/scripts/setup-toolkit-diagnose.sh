@@ -127,6 +127,8 @@ declare -a MANIFEST_SKILLS=()
 declare -a MANIFEST_AGENTS=()
 declare -a MANIFEST_HOOKS=()
 declare -a MANIFEST_DOCS=()
+declare -a MANIFEST_SCRIPTS=()
+declare -a MANIFEST_SCHEMAS=()
 
 if [ -f "$MANIFEST_FILE" ]; then
     MANIFEST_MODE=true
@@ -156,6 +158,12 @@ if [ -f "$MANIFEST_FILE" ]; then
                 name="${line#.claude/docs/}"
                 name="${name%.md}"
                 MANIFEST_DOCS+=("$name")
+                ;;
+            .claude/scripts/*)
+                MANIFEST_SCRIPTS+=("${line#.claude/scripts/}")
+                ;;
+            .claude/schemas/*)
+                MANIFEST_SCHEMAS+=("${line#.claude/schemas/}")
                 ;;
         esac
     done < "$MANIFEST_FILE"
@@ -496,6 +504,30 @@ check_cleanup() {
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
                 fi
             done
+        fi
+
+        # Scripts: scan for files on disk not in MANIFEST (recursive — includes lib/, cron/)
+        if [ -d "$CLAUDE_DIR/scripts" ]; then
+            while IFS= read -r script_rel; do
+                [ -z "$script_rel" ] && continue
+                is_ignored ".claude/scripts/$script_rel" && continue
+                if ! in_array "$script_rel" "${MANIFEST_SCRIPTS[@]+"${MANIFEST_SCRIPTS[@]}"}"; then
+                    output+="ORPHAN: scripts/$script_rel (not in MANIFEST)"$'\n'
+                    CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
+                fi
+            done < <(cd "$CLAUDE_DIR/scripts" && find . -type f -printf '%P\n' 2>/dev/null)
+        fi
+
+        # Schemas: scan for files on disk not in MANIFEST (recursive)
+        if [ -d "$CLAUDE_DIR/schemas" ]; then
+            while IFS= read -r schema_rel; do
+                [ -z "$schema_rel" ] && continue
+                is_ignored ".claude/schemas/$schema_rel" && continue
+                if ! in_array "$schema_rel" "${MANIFEST_SCHEMAS[@]+"${MANIFEST_SCHEMAS[@]}"}"; then
+                    output+="ORPHAN: schemas/$schema_rel (not in MANIFEST)"$'\n'
+                    CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
+                fi
+            done < <(cd "$CLAUDE_DIR/schemas" && find . -type f -printf '%P\n' 2>/dev/null)
         fi
     fi
 

@@ -764,6 +764,7 @@ cat > "$TEMP_DIR/.claude/MANIFEST" << 'EOF'
 .claude/skills/setup-toolkit/
 .claude/hooks/git-safety.sh
 .claude/hooks/session-start.sh
+.claude/scripts/setup-toolkit-diagnose.sh
 EOF
 mkdir -p "$TEMP_DIR/.claude/skills/setup-toolkit"
 echo "# Setup" > "$TEMP_DIR/.claude/skills/setup-toolkit/SKILL.md"
