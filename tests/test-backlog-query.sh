@@ -27,9 +27,14 @@ setup_test_env() {
     TEMP_DIR=$(mktemp -d)
     log_verbose "Created temp dir: $TEMP_DIR"
 
-    # Create mock cli/backlog structure
-    mkdir -p "$TEMP_DIR/cli/backlog"
+    # Mirror the cli/backlog/ + .claude/schemas/backlog/ layout so the script's
+    # relative path resolution works inside the temp dir.
+    mkdir -p "$TEMP_DIR/cli/backlog/lib" "$TEMP_DIR/.claude/schemas/backlog"
     cp "$QUERY_SCRIPT" "$TEMP_DIR/cli/backlog/"
+    cp "$TOOLKIT_DIR/cli/backlog/validate.sh" "$TEMP_DIR/cli/backlog/"
+    cp "$TOOLKIT_DIR/cli/backlog/lib/schema.sh" "$TEMP_DIR/cli/backlog/lib/"
+    cp "$TOOLKIT_DIR/.claude/schemas/backlog/task.schema.json" \
+        "$TEMP_DIR/.claude/schemas/backlog/"
 }
 
 teardown_test_env() {
@@ -62,7 +67,7 @@ create_test_backlog() {
 - **[AGENTS]** Blocked agent task
     - **status**: `blocked`
     - **scope**: `agents`
-    - **depends-on**: Critical test task
+    - **relates-to**: `critical-test-task:depends-on`
 
 ---
 
@@ -72,6 +77,8 @@ create_test_backlog() {
     - **status**: `in-progress`
     - **scope**: `toolkit`
     - **branch**: `feature/toolkit-task`
+    - **source**: `suggestions-box/test-project/issue.txt`
+    - **references**: `path/to/code.sh`, `output/file.md`
 
 ---
 
