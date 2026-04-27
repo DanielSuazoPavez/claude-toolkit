@@ -1,0 +1,15 @@
+{
+  "version": "2.69.1",
+  "date": "2026-04-26",
+  "headline": "SessionStart payload trimmed under the 10 KiB inline cap — mandatory acknowledgment reaches the model again",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "session-start.sh: payload trimmed below the ~10 KiB inline cap that Claude Code 2.1.119+ enforces on hook stdout. When the cap fires, the harness persists the full hook output to a sidecar file and substitutes a <persisted-output> envelope showing only the first ~2KB — the mandatory acknowledgment line at the tail silently never reached the model. New ESSENTIAL_FULL_INJECT array (default: essential-preferences-communication_style — tone/voice must inject verbatim) lists the essentials that stay full. All other essential-*.md docs now surface as their ## 1. Quick Reference block plus a 'Full doc: …' path nudge for Read-on-demand. Section names in hook_logs unchanged (essential:<name>); §1-only entries get a (Quick Reference) suffix in the rendered header. Total payload drops from ~11.1KB to ~5.6KB on a typical session, leaving headroom for branch lessons and the manage-lessons nudge.",
+        "lib/hook-utils.sh: new hook_extract_quick_reference FILE_PATH primitive emits the ## 1. Quick Reference block (heading included) up to the next --- rule or top-level ## <digit> heading. Empty output (no stderr noise) when missing — caller decides fallback. Available for the deferred surface-docs hook to reuse on relevant-* docs."
+      ]
+    }
+  ]
+}

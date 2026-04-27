@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.69.1] - 2026-04-26 - SessionStart payload trimmed under the 10 KiB inline cap
+
+### Fixed
+- **hooks**: `session-start.sh` payload trimmed below the ~10 KiB inline cap introduced in Claude Code 2.1.119. When the cap fires, the harness persists full hook stdout to a sidecar file and replaces it with a `<persisted-output>` envelope showing only the first ~2KB — the mandatory acknowledgment line at the tail silently never reaches the model. New `ESSENTIAL_FULL_INJECT` array (default: `essential-preferences-communication_style`) lists essentials that must inject verbatim (tone/voice — Quick Reference loses the prose). All other `essential-*.md` docs now surface as their `## 1. Quick Reference` block + a "Full doc: …" path nudge for Read-on-demand. Section names in `hook_logs` unchanged (`essential:<name>`); §1-only entries get a `(Quick Reference)` suffix in the rendered header to make the distinction visible in transcripts. `ESSENTIAL_COUNT` semantics preserved. Total payload drops from ~11.1KB to ~5.6KB on a typical session (claude-toolkit, no branch lessons), leaving headroom for branch lessons and the manage-lessons nudge.
+
+### Added
+- **hooks**: New `hook_extract_quick_reference FILE_PATH` primitive in `lib/hook-utils.sh`. Emits the `## 1. Quick Reference` block (heading included) up to the next `---` rule or top-level `## <digit>` heading. Empty output (no stderr noise) when the file is missing or the block is absent — caller decides fallback. Awk over sed for clearer range semantics and to match the `surface-lessons.sh` convention. Will be reused by the deferred `surface-docs-hook` (P2) for the same §1-surfacing pattern on `relevant-*` docs.
+
+### Notes
+- **backlog**: Closed `session-start-output-too-large` (P1) — fixed in this release. Filed P3 `suggestions-box-satellite-convention` to re-evaluate `suggestions-box/` as a satellite-project convention plus a `claude-toolkit send --to <project>` flag, after the cap-fix wrap-up exposed that satellites don't have an inbox today (had to `mkdir -p` the destination ad-hoc when sending observations to claude-sessions).
+
 ## [2.69.0] - 2026-04-26 - block .claude/settings*.json writes — close the disableAllHooks kill switch
 
 ### Added
