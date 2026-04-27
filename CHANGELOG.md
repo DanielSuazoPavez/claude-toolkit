@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2.72.3] - 2026-04-27 - block interpreter-bodied writes to `.claude/settings*.json`
+
+### Fixed
+- **hooks** (`block-config-edits.sh`): close the bypass where `python -c`, `python3 -c`, `bash -c`, `sh -c`, and `python <<EOF` could write to `.claude/settings.json` / `.claude/settings.local.json`. Quoted/heredoc bodies were blanked by `_strip_inert_content` before the existing verb-shaped rules saw them; the new arm runs against the raw command and is gated by an interpreter token (`(python[0-9.]*|bash|sh)\s+(-c|<<)`) AND a registry hit pinned to the new `claude-settings` entry. Out-of-scope per current toolchain: ruby/perl/node interpreter bodies (one-line regex extension when needed). Symlink redirection remains a documented gap.
+
+### Added
+- **detection-registry.json**: `claude-settings` entry (`kind=path, target=raw`, pattern `\.claude/settings(\.local)?\.json`) — first `path/raw` entry. Single source of truth for the settings-path shape, reusable by future settings-aware hooks.
+
 ### Changed
 - **tests** (`test_lesson_db.py`): converted the `db` fixture to class-scoped (`db_shared`) for the data-only test classes (`TestProjects`, `TestTags`, `TestLessons`, `TestTagLesson`, `TestMetadata`, `TestFTS`, `TestConstraints`), with a per-test `_wipe_db` cleanup that clears `lessons`/`tags`/`projects`/`metadata` (FTS + `lesson_tags` follow via triggers/cascade). `TestInitDb`, `TestCmdGet`, and `TestLifecycleCommands` keep the function-scoped `db` because they exercise fresh init / re-open by path. Pytest standalone wall ~7s → ~3s (40 tests). Closes `tests-perf-review`.
 - **tests/CLAUDE.md**: added a "Perf Baseline" section with current numbers and drift signals; corrected stale test counts (`test_lesson_db.py` 28 → 40; aggregate "36 Python tests" → "Python tests").
