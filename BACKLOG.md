@@ -23,10 +23,7 @@
 
 ## P0 - Critical
 
-- **[TOOLKIT]** Rename bare-namespace env vars to `CLAUDE_TOOLKIT_*` (`env-var-rename-bare-namespaces`)
-    - **scope**: `toolkit`
-    - **notes**: Surfaced 2026-04-26 from `env-var-audit` (closed in v2.70.0). The audit catalogued 17 toolkit-readable env vars and identified five bare-name violators that should move under the `CLAUDE_TOOLKIT_*` namespace to avoid colliding with consumer-project namespaces: `PROTECTED_BRANCHES`, `HOOK_PERF`, `JSON_SIZE_THRESHOLD_KB`, `CLAUDE_DETECTION_REGISTRY`, and `CLAUDE_DIR`. The first four are unambiguously toolkit-side (no platform usage found); `CLAUDE_DIR` is also toolkit-side based on the search but warrants a final cross-check against authoritative Claude Code env-var documentation before renaming — there's a small chance the platform reads it. **Blocked by** `official-docs-index` for that cross-check. Per-var current readers and defaults are documented in `.claude/docs/relevant-toolkit-env_vars.md` §3.3 and §3.4. Implementation needs to handle: (a) read both old and new names with the new name winning, for one minor-version cycle as a back-compat shim; (b) update settings.json + both dist templates + the registry doc; (c) deprecation note in CHANGELOG with a one-version removal target; (d) raiz sidecar entry since `PROTECTED_BRANCHES` and `HOOK_PERF` ship in the raiz settings template. Out of scope: `CLAUDE_ANALYTICS_*` (intentionally a cross-project namespace shared with claude-sessions), `CLAUDE_DOCS_DIR` (workshop-internal escape hatch, not consumer-facing). Inputs: `.claude/docs/relevant-toolkit-env_vars.md` for the full registry, the v2.70.0 changelog for the audit's conclusions.
-    - **depends on**: official-docs-index
+(none)
 
 ## P1 - High
 
