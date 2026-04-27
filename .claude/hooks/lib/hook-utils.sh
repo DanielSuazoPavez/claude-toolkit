@@ -264,6 +264,23 @@ _hook_perf_probe() {
 }
 
 # ============================================================
+# hook_extract_quick_reference FILE_PATH
+# ============================================================
+# Emits the "## 1. Quick Reference" block (heading included) up to the next
+# top-level "## " heading or "---" rule. Empty output if file missing or block
+# absent. No stderr noise — caller decides fallback.
+hook_extract_quick_reference() {
+    local file="$1"
+    [ -f "$file" ] || return 0
+    awk '
+        /^## 1\. Quick Reference/ { in_qr=1; print; next }
+        in_qr && /^---[[:space:]]*$/ { exit }
+        in_qr && /^## [0-9]/ { exit }
+        in_qr { print }
+    ' "$file"
+}
+
+# ============================================================
 # hook_feature_enabled FEATURE
 # ============================================================
 # Ecosystems are opt-in per project via env vars set in settings.json:
