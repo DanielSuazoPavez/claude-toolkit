@@ -43,11 +43,13 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 ```markdown
 - **[CATEGORY]** Task description (`kebab-case-id`)
     - **status**: `status-value`
-    - **scope**: `Area1, Area2`
+    - **scope**: `Area1`, `Area2`
     - **branch**: `feat/branch-name`
-    - **depends-on**: `other-task-id`
+    - **relates-to**: `other-task-id:depends-on`, `another-task-id:supersedes`
     - **plan**: `output/claude-toolkit/plans/plan-file.md`
-    - **notes**: Additional context
+    - **source**: `suggestions-box/<project>/<file>`
+    - **references**: `path/to/code.sh`, `output/claude-toolkit/analysis/<file>.md`
+    - **notes**: Free prose context
 ```
 
 **Rules:**
@@ -56,20 +58,45 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 - No Completed section — done items are removed from the backlog
 - Abandoned/dropped items are simply removed (no graveyard — if it doesn't earn its place, it goes)
 - All metadata fields are optional
+- All values are backticked except `notes` (free prose)
+- Multi-value fields (`scope`, `relates-to`, `references`) use comma-separated **per-value** backticks: `` `a`, `b` ``, not `` `a, b` ``
 - `scope` values should match entries in Scope Definitions table (when present)
 
 ---
 
 ## 4. Metadata Fields
 
-| Field | Purpose |
-|-------|---------|
-| `status` | Current state (see status values below) |
-| `scope` | Technical areas involved (comma-separated) |
-| `branch` | Git branch name |
-| `depends-on` | Task id(s) that must complete first |
-| `plan` | Path to plan file |
-| `notes` | Free text context |
+| Field | Multi | Purpose |
+|-------|-------|---------|
+| `status` | no | Lifecycle state (see §5) |
+| `scope` | yes | Technical areas involved |
+| `branch` | no | Git branch name |
+| `relates-to` | yes | Task relationships, form `<task-id>:<kind>` (see §4.1) |
+| `plan` | no | Path to plan file |
+| `source` | no | Provenance pointer (where this task came from) |
+| `references` | yes | Pointers to read while working — code paths, prior PRs, design docs |
+| `notes` | no | Free prose context (anything that isn't a pointer) |
+
+The schema lives at `.claude/schemas/backlog/task.schema.json` and is the canonical source of truth — `claude-toolkit backlog schema` renders a human-readable view from it.
+
+### 4.1 `relates-to` kinds
+
+| Kind | Meaning |
+|------|---------|
+| `depends-on` | This task is blocked until the referenced task completes |
+| `independent-of` | Explicitly *not* a dependency, even if the proximity might suggest one |
+| `supersedes` | This task replaces the referenced task |
+| `split-from` | This task was split out of the referenced task |
+| `relates-to` | Generic "see also" — no stronger semantic |
+
+### 4.2 `source` conventions
+
+`source` is a free-form pointer. Conventional forms (the `source` filter is more useful when these are followed):
+
+- `suggestions-box/<project>/<file>` — surfaced via `claude-toolkit send`
+- `session/<id>` — captured during a working session
+- `issue/<num>` — external issue tracker reference
+- `<URL>` — anything else
 
 ---
 

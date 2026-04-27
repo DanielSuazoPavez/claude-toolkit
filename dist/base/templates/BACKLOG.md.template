@@ -18,7 +18,7 @@
 
 - **[SCOPE]** Short description of the task (`task-id`)
     - **status**: `idea`
-    - **scope**: `Scope`
+    - **scope**: `ScopeA`, `ScopeB`
     - **branch**: `feat/branch-name`
     - **relates-to**: `other-task-id:depends-on`
     - **plan**: `output/claude-toolkit/plans/plan-file.md`
