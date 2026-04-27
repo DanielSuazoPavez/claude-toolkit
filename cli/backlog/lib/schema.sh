@@ -78,9 +78,10 @@ bsl_split_multivalue() {
         raw="${raw#\`}"
         raw="${raw%\`}"
     fi
-    local IFS=','
-    # shellcheck disable=SC2206
-    local parts=($raw)
+    # Use read -ra to split on commas without globbing. (Naked
+    # `local parts=($raw)` would expand glob metas like `*.md` against cwd.)
+    local parts=()
+    IFS=',' read -ra parts <<< "$raw"
     for part in "${parts[@]}"; do
         # ltrim
         part="${part#"${part%%[![:space:]]*}"}"
