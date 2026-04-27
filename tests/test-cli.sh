@@ -430,7 +430,7 @@ test_validate_indexed_manifest_mode() {
     # Run validation in target project — should pass (exit 0) even with extra file
     TESTS_RUN=$((TESTS_RUN + 1))
     local output exit_code
-    output=$(cd "$TEMP_DIR/project" && CLAUDE_DIR=.claude bash .claude/scripts/validate-resources-indexed.sh 2>&1) && exit_code=0 || exit_code=$?
+    output=$(cd "$TEMP_DIR/project" && CLAUDE_TOOLKIT_CLAUDE_DIR=.claude bash .claude/scripts/validate-resources-indexed.sh 2>&1) && exit_code=0 || exit_code=$?
 
     if [ $exit_code -eq 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -491,7 +491,7 @@ EOF
     # Run deps validation — should pass (warnings, not errors) for non-MANIFEST refs
     TESTS_RUN=$((TESTS_RUN + 1))
     local output exit_code
-    output=$(cd "$TEMP_DIR/project" && CLAUDE_DIR=.claude bash .claude/scripts/verify-resource-deps.sh 2>&1) && exit_code=0 || exit_code=$?
+    output=$(cd "$TEMP_DIR/project" && CLAUDE_TOOLKIT_CLAUDE_DIR=.claude bash .claude/scripts/verify-resource-deps.sh 2>&1) && exit_code=0 || exit_code=$?
 
     if [ $exit_code -eq 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))

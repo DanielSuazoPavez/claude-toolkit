@@ -45,7 +45,7 @@ _REGISTRY_PATTERNS=()
 _REGISTRY_MESSAGES=()
 
 _REGISTRY_LOADED=0
-_REGISTRY_PATH="${CLAUDE_DETECTION_REGISTRY:-$(dirname "${BASH_SOURCE[0]}")/detection-registry.json}"
+_REGISTRY_PATH="${CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY:-$(dirname "${BASH_SOURCE[0]}")/detection-registry.json}"
 
 # ============================================================
 # detection_registry_load — one-shot init from JSON

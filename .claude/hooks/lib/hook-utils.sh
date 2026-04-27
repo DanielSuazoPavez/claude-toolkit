@@ -248,12 +248,12 @@ hook_init() {
 # ============================================================
 # _hook_perf_probe PHASE_NAME
 # ============================================================
-# Emits "HOOK_PERF\t<phase>\t<delta_ms>" to stderr when HOOK_PERF=1.
+# Emits "HOOK_PERF\t<phase>\t<delta_ms>" to stderr when CLAUDE_TOOLKIT_HOOK_PERF=1.
 # Delta = time since last probe (or since HOOK_START_MS for first call).
 # No-op when unset — zero overhead (short-circuit on first test).
 _HOOK_PERF_LAST_MS=0
 _hook_perf_probe() {
-    [ "${HOOK_PERF:-}" = "1" ] || return 0
+    [ "${CLAUDE_TOOLKIT_HOOK_PERF:-}" = "1" ] || return 0
     local now_ms
     now_ms=$(_now_ms)
     local prev="${_HOOK_PERF_LAST_MS:-$HOOK_START_MS}"
@@ -530,7 +530,7 @@ hook_log_session_start_context() {
 _hook_log_timing() {
     # Emit HOOK_PERF TOTAL before the _HOOK_ACTIVE guard — perf timing
     # is orthogonal to hook logging and should cover early exits too.
-    if [ "${HOOK_PERF:-}" = "1" ]; then
+    if [ "${CLAUDE_TOOLKIT_HOOK_PERF:-}" = "1" ]; then
         local _perf_end_ms
         _perf_end_ms=$(_now_ms)
         printf 'HOOK_PERF\tTOTAL\t%d\n' "$(( _perf_end_ms - HOOK_START_MS ))" >&2

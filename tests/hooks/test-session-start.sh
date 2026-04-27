@@ -2,7 +2,7 @@
 # Verifies session-start.sh lesson surfacing behavior:
 #   - Key and Recent tier lessons are NOT surfaced (dropped).
 #   - Branch lessons surface only when CURRENT_BRANCH is not protected.
-#   - PROTECTED_BRANCHES env override is honored.
+#   - CLAUDE_TOOLKIT_PROTECTED_BRANCHES env override is honored.
 #   - Acknowledgment line carries no "lessons noted" suffix.
 #   - CLAUDE_TOOLKIT_LESSONS=0 fully suppresses the lessons block.
 set -uo pipefail
@@ -71,7 +71,7 @@ INSERT INTO lessons (id, project_id, date, tier, active, text, branch, scope)
 VALUES ('test_branch_001', '$(basename "$temp_repo")', '2026-04-03', 'recent', 1,
         'BRANCH_LESSON_MARKER_TEXT', 'feat/test-branch', 'global');
 
--- Branch lesson scoped to release/x.y — for the custom PROTECTED_BRANCHES test.
+-- Branch lesson scoped to release/x.y — for the custom CLAUDE_TOOLKIT_PROTECTED_BRANCHES test.
 INSERT INTO lessons (id, project_id, date, tier, active, text, branch, scope)
 VALUES ('test_branch_release', '$(basename "$temp_repo")', '2026-04-04', 'recent', 1,
         'RELEASE_BRANCH_MARKER_TEXT', 'release/x.y', 'global');
@@ -143,7 +143,7 @@ trap 'rm -rf "$temp_repo"; rm -f "$TEST_LESSONS_DB" "$counters_file"; rm -rf "$T
     # — that exercise also covers Case 2 in one invocation.
     git checkout -q -b feat/test-branch
     export CLAUDE_TOOLKIT_LESSONS=1
-    unset PROTECTED_BRANCHES
+    unset CLAUDE_TOOLKIT_PROTECTED_BRANCHES
     out=$(invoke_hook)
 
     assert_not_contains "Case 1a: Key tier lesson text not surfaced" \
@@ -169,10 +169,10 @@ trap 'rm -rf "$temp_repo"; rm -f "$TEST_LESSONS_DB" "$counters_file"; rm -rf "$T
     assert_not_contains "Case 3b: main-tagged branch lesson text not surfaced on main" \
         "MAIN_BRANCH_MARKER_TEXT" "$out"
 
-    # === Case 4: custom PROTECTED_BRANCHES honored ===
+    # === Case 4: custom CLAUDE_TOOLKIT_PROTECTED_BRANCHES honored ===
     # 4a: release/* now protected — release branch lesson must NOT surface
     git checkout -q -b release/x.y
-    export PROTECTED_BRANCHES='^release/'
+    export CLAUDE_TOOLKIT_PROTECTED_BRANCHES='^release/'
     out=$(invoke_hook)
     assert_not_contains "Case 4a: 'This branch:' absent on release/x.y under custom regex" \
         "This branch:" "$out"
@@ -187,7 +187,7 @@ trap 'rm -rf "$temp_repo"; rm -f "$TEST_LESSONS_DB" "$counters_file"; rm -rf "$T
         "This branch:" "$out"
     assert_contains "Case 4b: main-tagged branch lesson surfaces under '^release/' override" \
         "MAIN_BRANCH_MARKER_TEXT" "$out"
-    unset PROTECTED_BRANCHES
+    unset CLAUDE_TOOLKIT_PROTECTED_BRANCHES
 
     # === Case 6: lessons disabled — no lessons / branch output at all ===
     git checkout -q feat/test-branch

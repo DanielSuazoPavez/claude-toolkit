@@ -29,7 +29,7 @@ run_validator() {
     printf '%s' "$json" > "$fixture"
 
     local output rc
-    output=$(CLAUDE_DETECTION_REGISTRY="$fixture" bash "$VALIDATOR" 2>&1)
+    output=$(CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY="$fixture" bash "$VALIDATOR" 2>&1)
     rc=$?
 
     TESTS_RUN=$((TESTS_RUN + 1))

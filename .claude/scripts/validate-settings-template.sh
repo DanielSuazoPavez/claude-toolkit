@@ -12,7 +12,7 @@
 #   0 - Template is in sync
 #   1 - Drift detected
 
-CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
+CLAUDE_DIR="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 # Check dist/ at project root first (toolkit), then templates/ under .claude/ (target projects)
 if [ -f "dist/base/templates/settings.template.json" ]; then

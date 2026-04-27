@@ -62,7 +62,7 @@ Loads essential memories and git context at the start of each session.
 - Outputs all `essential-*.md` memories
 - Lists other available memories (with category counts)
 - Shows current git branch and main branch
-- Loads lessons from `lessons.db` (sqlite3): branch-scoped lessons only (current branch, when not on a `PROTECTED_BRANCHES`-matched branch). Key and Recent tiers are not surfaced here — Key is a crystallization holding state (see `relevant-toolkit-lessons` §4), Recent surfaces contextually via PreToolUse `surface-lessons.sh`.
+- Loads lessons from `lessons.db` (sqlite3): branch-scoped lessons only (current branch, when not on a `CLAUDE_TOOLKIT_PROTECTED_BRANCHES`-matched branch). Key and Recent tiers are not surfaced here — Key is a crystallization holding state (see `relevant-toolkit-lessons` §4), Recent surfaces contextually via PreToolUse `surface-lessons.sh`.
 - Falls back to `learned.json` (jq) if lessons.db not found, with migration nudge
 - Nudges `/manage-lessons` based on days since last run (metadata-driven threshold, default 7d)
 - Checks `.claude-toolkit-version` against `claude-toolkit version`; nudges `make claude-toolkit-sync` + `/setup-toolkit` on drift
@@ -91,7 +91,7 @@ Blocks unsafe git operations — protected branch enforcement and remote-destruc
 - Blocks: Deleting any remote branch
 - Blocks: Cross-branch push (`HEAD:other-branch`)
 
-- Config: `PROTECTED_BRANCHES` env var (regex, default: `^(main|master)$`)
+- Config: `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` env var (regex, default: `^(main|master)$`)
 - All blocks suggest running the command manually outside Claude
 
 ### auto-mode-shared-steps.sh
@@ -176,7 +176,7 @@ Blocks Read on large JSON files and points at the `read-json` jq reference.
 
 - Blocks: `.json` files larger than size threshold
 - Allows: Common config files (package.json, tsconfig.json, etc.) and `*.config.json`
-- Config: `JSON_SIZE_THRESHOLD_KB` env var (default: 50)
+- Config: `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB` env var (default: 50)
 - Reason: Large JSON files are better queried with jq via Bash — the `read-json` skill (`.claude/skills/read-json/SKILL.md`) holds the shell-quoting and malformed-JSON recipes
 
 ### enforce-uv-run.sh
@@ -253,5 +253,5 @@ Hooks are configured in `.claude/settings.json`. See that file for the current h
 Hooks receive tool context as **JSON on stdin**, parsed by `hook_init()` in `lib/hook-utils.sh`. The JSON includes tool name, tool input, and session metadata.
 
 Some hooks also read **environment variables** for configuration:
-- `PROTECTED_BRANCHES` — regex for protected branches (default: `^(main|master)$`)
-- `JSON_SIZE_THRESHOLD_KB` — size threshold for JSON blocking (default: 50)
+- `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` — regex for protected branches (default: `^(main|master)$`)
+- `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB` — size threshold for JSON blocking (default: 50)

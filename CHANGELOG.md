@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [2.71.0] - 2026-04-27 - bare env vars renamed under `CLAUDE_TOOLKIT_*` namespace
+
+### Changed
+- **settings**: Five bare-name env vars moved under the `CLAUDE_TOOLKIT_*` namespace to avoid collisions with consumer-project namespaces. Hard cutover, no back-compat alias — consumers must update `.claude/settings.json` `env` block (and any shell / `.envrc` overrides) on sync.
+  - `PROTECTED_BRANCHES` → `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` (read by `git-safety.sh`, `session-start.sh`)
+  - `HOOK_PERF` → `CLAUDE_TOOLKIT_HOOK_PERF` (read by `hook-utils.sh`; the stderr wire-format marker is still the literal `HOOK_PERF` — only the env var name changed)
+  - `JSON_SIZE_THRESHOLD_KB` → `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB` (read by `suggest-read-json.sh`)
+  - `CLAUDE_DETECTION_REGISTRY` → `CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY` (read by `detection-registry.sh`, `validate-detection-registry.sh`)
+  - `CLAUDE_DIR` → `CLAUDE_TOOLKIT_CLAUDE_DIR` (read by `bin/claude-toolkit` and 7 toolkit-internal scripts)
+- **docs**: `.claude/docs/relevant-toolkit-env_vars.md` §3 collapsed — former §3.3 (bare-name vars) and rename candidates from former §3.4 folded into §3.1 under the unified `CLAUDE_TOOLKIT_*` table. Sections 3.5–3.7 renumbered to 3.4–3.6. §4 "Removed" gains a v2.71.0 rename entry. §5 naming-conventions table updated — bare names are now categorically discouraged with no historical exceptions.
+- **docs**: `docs/getting-started.md` "Customization" tunables, `docs/indexes/HOOKS.md` config sections, `.claude/docs/relevant-toolkit-hooks_config.md` troubleshooting tip, `.claude/docs/relevant-toolkit-lessons.md` protected-branch gate, and `tests/CLAUDE.md` perf instructions all updated to the new names.
+- **settings**: Both `dist/base/templates/settings.template.json` and `dist/raiz/templates/settings.template.json` `_env_config` blocks updated to declare all five renamed vars (plus existing `CLAUDE_DOCS_DIR`).
+
+### Notes
+- **Migration**: Consumers running `claude-toolkit sync` after upgrading must rename any `PROTECTED_BRANCHES` (or other four) entries in their `.claude/settings.json` `env` block. Hooks reading the old name will fall back to defaults silently — `git-safety.sh` reverts to `^(main|master)$`, `suggest-read-json.sh` to 50 KB, etc. No errors, just default behavior.
+- **Closes**: P0 `env-var-rename-bare-namespaces`. The `official-docs-index` cross-check on `CLAUDE_DIR` was deemed unnecessary — the toolkit-side audit found zero platform usage, and a hard cutover with the new name as the only reader makes any platform-side override a no-op even if one exists (the platform would set `CLAUDE_DIR`, not `CLAUDE_TOOLKIT_CLAUDE_DIR`).
+
 ## [2.70.0] - 2026-04-26 - centralized env-var registry doc + dead-var cleanup
 
 ### Added

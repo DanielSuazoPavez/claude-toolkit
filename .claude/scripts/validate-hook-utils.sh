@@ -12,7 +12,7 @@
 #   0 - All hooks source the shared library
 #   1 - Validation errors found
 
-CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
+CLAUDE_DIR="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ERRORS=0

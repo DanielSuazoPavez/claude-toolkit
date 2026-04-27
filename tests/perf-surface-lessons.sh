@@ -1,7 +1,7 @@
 #!/bin/bash
 # Performance harness for surface-lessons hook
 #
-# Runs the actual hook with HOOK_PERF=1 to get per-phase timing.
+# Runs the actual hook with CLAUDE_TOOLKIT_HOOK_PERF=1 to get per-phase timing.
 # No reimplemented logic — single source of truth.
 #
 # Usage:
@@ -100,7 +100,7 @@ build_replay_cases() {
 }
 
 # ============================================================
-# Run hook with HOOK_PERF=1, parse phase timings from stderr
+# Run hook with CLAUDE_TOOLKIT_HOOK_PERF=1, parse phase timings from stderr
 # ============================================================
 # Returns phase timings AND a WALL_CLOCK line measured from outside the hook.
 run_hook_with_perf() {
@@ -113,7 +113,7 @@ run_hook_with_perf() {
         wall_start=$(date +%s%3N)
     fi
     # Capture all output (stderr has perf lines), filter by HOOK_PERF prefix
-    perf_output=$(echo "$input" | HOOK_PERF=1 bash "$HOOKS_DIR/surface-lessons.sh" 2>&1 >/dev/null)
+    perf_output=$(echo "$input" | CLAUDE_TOOLKIT_HOOK_PERF=1 bash "$HOOKS_DIR/surface-lessons.sh" 2>&1 >/dev/null)
     if [ -n "${EPOCHREALTIME:-}" ]; then
         local _no_dot="${EPOCHREALTIME/./}"
         wall_end="${_no_dot:0:13}"

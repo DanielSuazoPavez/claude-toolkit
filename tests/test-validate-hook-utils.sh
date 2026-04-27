@@ -63,11 +63,11 @@ HOOK
 
 # Helper: run validation in temp dir
 run_validate() {
-    (cd "$TEMP_DIR" && CLAUDE_DIR=.claude bash .claude/scripts/validate-hook-utils.sh 2>&1)
+    (cd "$TEMP_DIR" && CLAUDE_TOOLKIT_CLAUDE_DIR=.claude bash .claude/scripts/validate-hook-utils.sh 2>&1)
 }
 
 run_validate_exit_code() {
-    (cd "$TEMP_DIR" && CLAUDE_DIR=.claude bash .claude/scripts/validate-hook-utils.sh >/dev/null 2>&1)
+    (cd "$TEMP_DIR" && CLAUDE_TOOLKIT_CLAUDE_DIR=.claude bash .claude/scripts/validate-hook-utils.sh >/dev/null 2>&1)
     echo $?
 }
 

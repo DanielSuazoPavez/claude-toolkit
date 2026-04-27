@@ -34,19 +34,24 @@ Columns:
 - **Scope** — `consumer` (set by users), `workshop-internal` (toolkit-only, no consumer surface), `test-only` (set by test harness)
 - **Readers** — files that read the var (`file:line`)
 
-### 3.1 Ecosystem Opt-Ins (`CLAUDE_TOOLKIT_*`)
+### 3.1 Toolkit-Specific Config (`CLAUDE_TOOLKIT_*`)
 
-Set in `.claude/settings.json` `env` block. Hooks read via `hook_feature_enabled <feature>` (exit 0 when `"1"`, non-zero otherwise — any value other than `"1"` is disabled).
+Set in `.claude/settings.json` `env` block. Opt-ins are read by hooks via `hook_feature_enabled <feature>` (exit 0 when `"1"`, non-zero otherwise — any value other than `"1"` is disabled).
 
 | Var | Default | Scope | Readers | Purpose |
 |---|---|---|---|---|
 | `CLAUDE_TOOLKIT_LESSONS` | `"0"` | consumer | `hooks/lib/hook-utils.sh:292`, `hooks/session-start.sh:236` | `"1"` enables: session-start lessons block, `surface-lessons` injection, `/learn`, `/manage-lessons` |
 | `CLAUDE_TOOLKIT_TRACEABILITY` | `"0"` | consumer | `hooks/lib/hook-utils.sh:293`, `hooks/session-start.sh:236`, `scripts/statusline-capture.sh:24` | `"1"` enables: hook-logs JSONL writes (via `_hook_log_jsonl`), `statusline-capture` usage-snapshots JSONL |
 | `CLAUDE_TOOLKIT_POWERLINE_VERSION` | `1.25.1` | consumer | `scripts/statusline-capture.sh:15` | Pinned `@owloops/claude-powerline` npm version used by the statusline wrapper |
+| `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` | `^(main\|master)$` | consumer | `hooks/git-safety.sh:33`, `hooks/session-start.sh:133` | Regex for protected branches — `git-safety.sh` blocks commit / EnterPlanMode on these; `session-start.sh` skips branch-lessons surfacing |
+| `CLAUDE_TOOLKIT_HOOK_PERF` | unset | consumer | `hooks/lib/hook-utils.sh:256, 533` | Set to `1` to emit per-phase `HOOK_PERF` timing lines to stderr |
+| `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB` | `50` | consumer | `hooks/suggest-read-json.sh:64` | Size threshold (KB) for `suggest-read-json.sh` blocking |
+| `CLAUDE_TOOLKIT_CLAUDE_DIR` | `.claude` | workshop-internal | `bin/claude-toolkit:255`, `scripts/setup-toolkit-diagnose.sh:26`, `scripts/validate-hook-utils.sh:15`, plus other validate scripts | Override the `.claude` directory location. Used by toolkit-internal scripts |
+| `CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY` | `<lib>/detection-registry.json` | workshop-internal | `hooks/lib/detection-registry.sh:48`, `scripts/validate-detection-registry.sh:19` | Path to the secrets-detection registry JSON. Used by the validator and tests |
 
 Pre-opt-in projects (neither lessons nor traceability key present) get a session-start nudge pointing at `/setup-toolkit`. The nudge self-extinguishes once either key is written — distinguishing "unset" from "explicitly 0" uses `[ -z "${VAR+x}" ]`. `/setup-toolkit` Phase 1.5 writes both keys on first run.
 
-Template shape:
+Template shape (opt-ins only — tunables are added on demand):
 ```json
 "env": {
   "CLAUDE_TOOLKIT_LESSONS": "0",
@@ -66,28 +71,16 @@ Cross-project surface — these are settings the toolkit shares with claude-sess
 | `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/.claude/hooks.db` | consumer | `hooks/surface-lessons.sh:78` | Read-only path to `hooks.db`, used by `surface-lessons.sh` for intra-session dedup. Owned and populated by the claude-sessions indexer |
 | `CLAUDE_ANALYTICS_HOOKS_DIR` | `$HOME/claude-analytics/hook-logs` | consumer | `hooks/lib/hook-utils.sh:43`, `tests/perf-detection-registry.sh:43`, `tests/perf-surface-lessons.sh:18`, `tests/lib/hook-test-setup.sh:13` | Directory for hook-logs JSONL files (`invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`). Write-only from the toolkit's perspective; the claude-sessions indexer projects rows into `hooks.db` |
 
-### 3.3 Bare-name vars (toolkit-side)
-
-These vars are toolkit-defined but use a bare name (no `CLAUDE_TOOLKIT_*` prefix) for historical reasons. **Rename candidates** — see `env-var-rename-bare-namespaces` backlog task.
-
-| Var | Default | Scope | Readers | Purpose |
-|---|---|---|---|---|
-| `PROTECTED_BRANCHES` | `^(main\|master)$` | consumer | `hooks/git-safety.sh:33`, `hooks/session-start.sh:133` | Regex for protected branches — `git-safety.sh` blocks commit / EnterPlanMode on these; `session-start.sh` skips branch-lessons surfacing |
-| `HOOK_PERF` | unset | consumer | `hooks/lib/hook-utils.sh:256, 533` | Set to `1` to emit per-phase `HOOK_PERF` timing lines to stderr |
-| `JSON_SIZE_THRESHOLD_KB` | `50` | consumer | `hooks/suggest-read-json.sh:64` | Size threshold (KB) for `suggest-read-json.sh` blocking |
-
-### 3.4 Toolkit internals (`CLAUDE_*` other / bare)
+### 3.3 Toolkit internals (other / bare)
 
 Workshop-internal overrides — exposed for tests and edge cases, not part of the consumer surface.
 
 | Var | Default | Scope | Readers | Purpose |
 |---|---|---|---|---|
 | `CLAUDE_DOCS_DIR` | `.claude/docs` | workshop-internal | `hooks/session-start.sh:30`, `tests/perf-session-start.sh:15` | Override docs directory used by `session-start.sh` for the docs scan. Used by tests and as an escape hatch |
-| `CLAUDE_DIR` | `.claude` | workshop-internal | `scripts/setup-toolkit-diagnose.sh:26`, `scripts/validate-hook-utils.sh:15`, plus other validate scripts | Override the `.claude` directory location. Used by toolkit-internal scripts; rename candidate (see §3.3) |
-| `CLAUDE_DETECTION_REGISTRY` | `<lib>/detection-registry.json` | workshop-internal | `hooks/lib/detection-registry.sh:48`, `scripts/validate-detection-registry.sh:19` | Path to the secrets-detection registry JSON. Used by the validator and tests; rename candidate |
 | `PROJECT_ROOT` | `$(pwd)` | workshop-internal | `scripts/lib/profile.sh:25` | Override the project root used by `detect_profile`. Falls back to `$(pwd)` when unset |
 
-### 3.5 Standard / external
+### 3.4 Standard / external
 
 These follow external conventions — do not rename.
 
@@ -95,7 +88,7 @@ These follow external conventions — do not rename.
 |---|---|---|
 | `NO_COLOR` | `cli/lessons/formatting.py:22` | Standard convention (no-color.org) — disables ANSI color in CLI output |
 
-### 3.6 CI-only
+### 3.5 CI-only
 
 Read by `.github/` workflows; not part of the toolkit runtime surface.
 
@@ -104,7 +97,7 @@ Read by `.github/` workflows; not part of the toolkit runtime surface.
 | `FORMAT_RAIZ_PROJECT_ROOT` | `.github/scripts/format-raiz-changelog.py:23` | Test-only override for CI script |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | `.github/workflows/publish-raiz.yml:97-98` | Repo secrets injected into the publish-raiz workflow |
 
-### 3.7 Test harness
+### 3.6 Test harness
 
 Set by `tests/lib/hook-test-setup.sh` and per-test setup. Not user-overridable.
 
@@ -123,8 +116,9 @@ Set by `tests/lib/hook-test-setup.sh` and per-test setup. Not user-overridable.
 
 ## 4. Removed
 
-- **`CLAUDE_MEMORIES_DIR`** (removed in v2.x.0) — was declared in `settings.json` and dist templates but had no code reader. Pure documentation ghost.
+- **`CLAUDE_MEMORIES_DIR`** (removed in v2.70.0) — was declared in `settings.json` and dist templates but had no code reader. Pure documentation ghost.
 - **`HOOK_LOG_DB`** (renamed in v2.62.0) — became `CLAUDE_ANALYTICS_HOOKS_DB`. No back-compat alias.
+- **`PROTECTED_BRANCHES`, `HOOK_PERF`, `JSON_SIZE_THRESHOLD_KB`, `CLAUDE_DETECTION_REGISTRY`, `CLAUDE_DIR`** (renamed in v2.71.0) — became `CLAUDE_TOOLKIT_PROTECTED_BRANCHES`, `CLAUDE_TOOLKIT_HOOK_PERF`, `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB`, `CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY`, `CLAUDE_TOOLKIT_CLAUDE_DIR`. No back-compat alias — consumers must update `settings.json` and any shell/`.envrc` overrides on sync.
 
 ---
 
@@ -134,7 +128,7 @@ Set by `tests/lib/hook-test-setup.sh` and per-test setup. Not user-overridable.
 |---|---|
 | `CLAUDE_TOOLKIT_*` | Consumer-facing toolkit-specific config (opt-ins, version pins, thresholds, regexes) |
 | `CLAUDE_ANALYTICS_*` | Cross-project analytics surface shared with claude-sessions (DB paths, log dirs) |
-| Bare names | **Avoid** for new vars — collide with consumer-project namespaces. The bare-name vars in §3.3 are historical and pending rename |
+| Bare names | **Avoid** — they collide with consumer-project namespaces. All formerly-bare toolkit vars now live under `CLAUDE_TOOLKIT_*` (see §4 for the v2.71.0 rename) |
 | `TEST_*` | Test harness internals — never read by production code |
 
 When adding a new env var, prefer `CLAUDE_TOOLKIT_*`. Use `CLAUDE_ANALYTICS_*` only when claude-sessions also reads or writes the same surface. Justify any bare-name choice in the PR description.

@@ -15,8 +15,8 @@
 set -u
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-# CLAUDE_DETECTION_REGISTRY overrides the registry path (used by tests).
-REGISTRY="${CLAUDE_DETECTION_REGISTRY:-$REPO_ROOT/.claude/hooks/lib/detection-registry.json}"
+# CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY overrides the registry path (used by tests).
+REGISTRY="${CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY:-$REPO_ROOT/.claude/hooks/lib/detection-registry.json}"
 SCHEMA="$REPO_ROOT/.claude/schemas/hooks/detection-registry.schema.json"
 
 FAILURES=0

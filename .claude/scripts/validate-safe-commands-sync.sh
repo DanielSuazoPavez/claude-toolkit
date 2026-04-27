@@ -11,7 +11,7 @@
 #   0 - In sync
 #   1 - Drift detected
 
-CLAUDE_DIR="${CLAUDE_DIR:-.claude}"
+CLAUDE_DIR="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 HOOK="$CLAUDE_DIR/hooks/approve-safe-commands.sh"
 ERRORS=0
