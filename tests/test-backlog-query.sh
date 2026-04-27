@@ -370,6 +370,289 @@ test_unknown_command() {
     teardown_test_env
 }
 
+# === Phase 7.2 — Schema, relates-to, source, drift detection ===
+
+# Helper: write a custom BACKLOG.md (one task per call, append mode after first).
+write_test_backlog() {
+    local body="$1"
+    cat > "$TEMP_DIR/BACKLOG.md" <<EOF
+# Project Backlog
+
+## P1 - High
+
+$body
+EOF
+}
+
+# Helper: run validate.sh, capture stdout+stderr.
+run_validate() {
+    (cd "$TEMP_DIR" && bash cli/backlog/validate.sh BACKLOG.md 2>&1) || true
+}
+
+# Helper: check that validator output contains a substring.
+expect_validator_output() {
+    local description="$1"
+    local expected="$2"
+    local body="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    write_test_backlog "$body"
+    local output
+    output=$(run_validate)
+
+    if echo "$output" | grep -qF -- "$expected"; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+        log_verbose "    Output contains: $expected"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected output to contain: $expected"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
+# Helper: check validator output does NOT contain a substring.
+expect_validator_silent() {
+    local description="$1"
+    local not_expected="$2"
+    local body="$3"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    write_test_backlog "$body"
+    local output
+    output=$(run_validate)
+
+    if ! echo "$output" | grep -qF -- "$not_expected"; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$description"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$description"
+        report_detail "Expected output NOT to contain: $not_expected"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+}
+
+test_schema_subcommand() {
+    report_section "=== schema subcommand ==="
+    setup_test_env
+    # No BACKLOG.md needed — schema runs without one.
+
+    expect_success "schema subcommand exits 0" schema
+    # Every schema field appears
+    for f in status scope branch relates-to plan source references notes; do
+        expect_output "schema lists $f" "$f" schema
+    done
+    # Every status value appears
+    for s in idea planned in-progress ready-for-pr pr-open blocked; do
+        expect_output "schema lists status '$s'" "$s" schema
+    done
+    # Every relates-to kind appears
+    for k in depends-on independent-of supersedes split-from; do
+        expect_output "schema lists kind '$k'" "$k" schema
+    done
+
+    teardown_test_env
+}
+
+test_relates_to_filter() {
+    report_section "=== relates-to filter ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
+# Project Backlog
+
+## P1 - High
+
+- **[A]** Task A (`task-a`)
+    - **status**: `planned`
+    - **relates-to**: `task-b:depends-on`
+
+- **[B]** Task B (`task-b`)
+    - **status**: `planned`
+
+- **[C]** Task C (`task-c`)
+    - **status**: `idea`
+    - **relates-to**: `task-a:supersedes`
+
+- **[D]** Task D (`task-d`)
+    - **status**: `idea`
+    - **relates-to**: `task-a:independent-of`, `task-b:depends-on`
+EOF
+
+    expect_count "depends-on kind finds 2" "2" relates-to depends-on
+    expect_count "supersedes finds 1" "1" relates-to supersedes
+    expect_count "independent-of finds 1" "1" relates-to independent-of
+    expect_failure "errors without kind" relates-to
+
+    # blocked/unblocked use the new column 8 with :depends-on suffix
+    expect_count "blocked finds 2 (depends-on relations)" "2" blocked
+    expect_count "unblocked finds 2 (idea/planned without :depends-on)" "2" unblocked
+
+    teardown_test_env
+}
+
+test_source_filter() {
+    report_section "=== source filter ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
+# Project Backlog
+
+## P1 - High
+
+- **[A]** From session (`task-a`)
+    - **status**: `idea`
+    - **source**: `session/abc123`
+
+- **[B]** From suggestions (`task-b`)
+    - **status**: `idea`
+    - **source**: `suggestions-box/claude-sessions/file.txt`
+
+- **[C]** No source (`task-c`)
+    - **status**: `idea`
+EOF
+
+    # Pattern is a substring/regex via awk — 'session' would also match
+    # 'claude-sessions', so use the discriminating prefix 'session/abc'.
+    expect_count "source 'session/abc' finds 1" "1" source 'session/abc'
+    expect_count "source 'claude-sessions' finds 1" "1" source claude-sessions
+    expect_count "source 'suggestions-box' finds 1" "1" source suggestions-box
+    expect_failure "errors without pattern" source
+
+    # Verbose 'id' lookup shows source line
+    expect_output "id lookup shows source" "source: session/abc123" id task-a
+
+    teardown_test_env
+}
+
+test_references_field() {
+    report_section "=== references field ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
+# Project Backlog
+
+## P1 - High
+
+- **[A]** With references (`task-a`)
+    - **status**: `idea`
+    - **references**: `path/code.sh`, `output/file.md`
+EOF
+
+    expect_output "id lookup shows references" "references: path/code.sh,output/file.md" id task-a
+
+    teardown_test_env
+}
+
+test_relates_to_edge_cases() {
+    report_section "=== relates-to edge cases (validator) ==="
+    setup_test_env
+
+    # Single value, no comma — accepted.
+    expect_validator_silent "single value parses cleanly" "malformed" \
+        "- **[A]** A (\`a\`)
+    - **relates-to**: \`b:supersedes\`"
+
+    # Trailing comma — accepted (empty token dropped).
+    expect_validator_silent "trailing comma silently dropped" "malformed" \
+        "- **[A]** A (\`a\`)
+    - **relates-to**: \`b:supersedes\`, \`c:depends-on\`,"
+
+    # Invalid kind — error.
+    expect_validator_output "invalid kind errors" "malformed relates-to token" \
+        "- **[A]** A (\`a\`)
+    - **relates-to**: \`b:bogus-kind\`"
+
+    # Missing kind (no colon) — error.
+    expect_validator_output "missing :kind errors" "malformed relates-to token" \
+        "- **[A]** A (\`a\`)
+    - **relates-to**: \`bare-id\`"
+
+    # Missing id (colon at start) — error.
+    expect_validator_output "missing id errors" "malformed relates-to token" \
+        "- **[A]** A (\`a\`)
+    - **relates-to**: \`:depends-on\`"
+
+    teardown_test_env
+}
+
+test_legacy_depends_on_warning() {
+    report_section "=== legacy depends-on field (validator) ==="
+    setup_test_env
+
+    # Field with the old name (correctly hyphenated) → warn with migration hint.
+    expect_validator_output "depends-on field warns with migration hint" \
+        "field 'depends-on' removed" \
+        "- **[A]** A (\`a\`)
+    - **depends-on**: \`other-task\`"
+
+    teardown_test_env
+}
+
+test_typo_detection() {
+    report_section "=== typo detection (validator) ==="
+    setup_test_env
+
+    # 'depends on' (space) → error pointing at depends-on AND the migration.
+    expect_validator_output "depends on (space) errors with did-you-mean" \
+        "did you mean 'depends-on'" \
+        "- **[A]** A (\`a\`)
+    - **depends on**: \`other\`"
+
+    # Typo of a still-valid field — error: did you mean.
+    expect_validator_output "typo of valid field errors" \
+        "did you mean 'relates-to'" \
+        "- **[A]** A (\`a\`)
+    - **relates to**: \`b:depends-on\`"
+
+    # Pure unknown field (no space typo) — warn, not error.
+    expect_validator_output "unknown field warns" \
+        "warn" \
+        "- **[A]** A (\`a\`)
+    - **bogus-field**: \`x\`"
+
+    teardown_test_env
+}
+
+test_legacy_scope_format() {
+    report_section "=== legacy single-pair scope format (validator + parser) ==="
+    setup_test_env
+
+    # Validator warns on legacy form.
+    expect_validator_output "legacy scope warns" "legacy" \
+        "- **[A]** A (\`a\`)
+    - **scope**: \`x, y\`"
+
+    # Parser still tokenizes both forms identically.
+    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
+# Project Backlog
+
+## P1 - High
+
+- **[A]** Legacy form (`task-a`)
+    - **status**: `idea`
+    - **scope**: `x, y`
+
+- **[B]** Canonical form (`task-b`)
+    - **status**: `idea`
+    - **scope**: `x`, `y`
+EOF
+    # `scope x` should match both
+    expect_count "scope filter matches both legacy and canonical" "2" scope x
+
+    teardown_test_env
+}
+
+test_canonical_scope_format() {
+    report_section "=== canonical per-value scope format (validator) ==="
+    setup_test_env
+
+    expect_validator_silent "canonical scope is silent" "legacy" \
+        "- **[A]** A (\`a\`)
+    - **scope**: \`x\`, \`y\`"
+
+    teardown_test_env
+}
+
 # === RUN TESTS ===
 echo "Running backlog-query tests..."
 echo "Script: $QUERY_SCRIPT"
@@ -385,5 +668,16 @@ test_branch
 test_verbose
 test_exclude_priority
 test_unknown_command
+
+# Phase 7.2 — schema-driven additions
+test_schema_subcommand
+test_relates_to_filter
+test_source_filter
+test_references_field
+test_relates_to_edge_cases
+test_legacy_depends_on_warning
+test_typo_detection
+test_legacy_scope_format
+test_canonical_scope_format
 
 print_summary

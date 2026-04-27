@@ -376,7 +376,12 @@ main() {
                 echo "Usage: $0 source <pattern>" >&2
                 exit 1
             fi
-            filter_cmd="awk -F'\t' '\$11 ~ /$src_pattern/'"
+            # Escape forward slashes for the awk regex literal (paths often
+            # contain '/'). awk regex doesn't support \/ inside /.../, so use
+            # the index() approach for fixed-string matching.
+            local awk_pattern_escaped="${src_pattern//\\/\\\\}"
+            awk_pattern_escaped="${awk_pattern_escaped//\"/\\\"}"
+            filter_cmd="awk -F'\t' 'index(\$11, \"$awk_pattern_escaped\") > 0'"
             ;;
         summary)
             parse_backlog "$backlog" | eval "$exclude_cmd" | display_summary
