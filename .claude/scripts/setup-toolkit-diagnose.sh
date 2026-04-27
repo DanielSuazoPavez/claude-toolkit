@@ -515,7 +515,7 @@ check_cleanup() {
                     output+="ORPHAN: scripts/$script_rel (not in MANIFEST)"$'\n'
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
                 fi
-            done < <(cd "$CLAUDE_DIR/scripts" && find . -type f -printf '%P\n' 2>/dev/null)
+            done < <(cd "$CLAUDE_DIR/scripts" && find . -type f 2>/dev/null | sed 's|^\./||')
         fi
 
         # Schemas: scan for files on disk not in MANIFEST (recursive)
@@ -527,7 +527,7 @@ check_cleanup() {
                     output+="ORPHAN: schemas/$schema_rel (not in MANIFEST)"$'\n'
                     CURRENT_CHECK_ORPHANS=$((CURRENT_CHECK_ORPHANS + 1))
                 fi
-            done < <(cd "$CLAUDE_DIR/schemas" && find . -type f -printf '%P\n' 2>/dev/null)
+            done < <(cd "$CLAUDE_DIR/schemas" && find . -type f 2>/dev/null | sed 's|^\./||')
         fi
     fi
 
