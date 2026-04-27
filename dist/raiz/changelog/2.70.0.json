@@ -1,0 +1,27 @@
+{
+  "version": "2.70.0",
+  "date": "2026-04-26",
+  "headline": "centralized env-var registry + dead-var cleanup",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "docs",
+      "bullets": [
+        "New `.claude/docs/relevant-toolkit-env_vars.md` — single source of truth for every env var the toolkit reads. Grouped by namespace with default/scope/readers columns and the rule for which surface (`settings.json` / `settings.local.json` / shell) each var belongs to.",
+        "`docs/getting-started.md` gains an Environment variables section: must-set analytics paths, ecosystem opt-ins, and tunable thresholds — points at the new registry for the full reference."
+      ]
+    },
+    {
+      "kind": "skills",
+      "bullets": [
+        "`/setup-toolkit` Phase 1.6 now captures four analytics paths instead of three — adds `CLAUDE_ANALYTICS_SESSIONS_DB` (read by `session-start.sh` for context). Fresh setups will be prompted for it; existing setups can re-run the phase or set it manually."
+      ]
+    },
+    {
+      "kind": "templates",
+      "bullets": [
+        "`CLAUDE_MEMORIES_DIR` removed from `settings.template.json` — audit confirmed zero code readers across the toolkit and sibling repos. If you set this in your `settings.json` `env` block, you can drop the entry."
+      ]
+    }
+  ]
+}
