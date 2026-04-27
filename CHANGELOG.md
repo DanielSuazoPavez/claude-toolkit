@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.72.5] - 2026-04-27 - portable regex extraction (PCRE → POSIX) for macOS
+
+### Fixed
+- **scripts**: replaced all 22 `grep -oP` (PCRE) call sites across 6 scripts with portable `sed -nE` / `grep -oE` / `awk` equivalents. BSD `grep` on macOS does not support `-P` and was emitting `grep: invalid option -- P` while letting downstream comparisons run vacuously over empty data — a silent-correctness bug, not just noise. Affected scripts: `verify-resource-deps.sh` (9 sites), `setup-toolkit-diagnose.sh` (6), `validate-resources-indexed.sh` (5), `validate-settings-template.sh` (1), `validate-safe-commands-sync.sh` (1), `verify-external-deps.sh` (1). End-to-end output of `verify-resource-deps.sh` is byte-identical to pre-change on real toolkit data; counts unchanged (9 / 0 / 17 / 124 / 3 / 28 / 37). Closes P1 `macos-grep-pcre`.
+
+### Added
+- **tests**: `tests/test-validate-settings-template.sh` and `tests/test-validate-safe-commands-sync.sh` — dedicated coverage for the two scripts that previously had only one `grep -oP` site each and no test file. Both wired into `Makefile` (`test-validate-settings-template`, `test-validate-safe-commands-sync`) and auto-discovered by `tests/run-all.sh`.
+
+### Notes
+- Pattern 3 (multi-match-per-line in prose) used `awk` loops; Pattern 1/2 (one-match-per-line in JSON / markdown tables) used `sed -nE`; Pattern 4 (literals) used `grep -oE`. Translation was per-site, not a one-size helper.
+- One pre-flight gotcha worth flagging: POSIX awk silently treats `\b` as literal `b`. The first multi-match audit on line 250 of `verify-resource-deps.sh` (``\`name\` agent``) used `\b` and returned a false negative; the byte-diff verification step caught it (3 missed references on `review-plan/SKILL.md:9`). Replacement uses `[^[:alnum:]_]` for the boundary. Captured as a global lesson.
+- Linux behavior unchanged. Awaiting macOS consumer re-run of `setup-toolkit-diagnose.sh` to confirm the visible `grep: invalid option -- P` errors are gone.
+
 ## [2.72.4] - 2026-04-27 - relocate `backup-lessons-db.sh` to claude-sessions
 
 ### Removed
