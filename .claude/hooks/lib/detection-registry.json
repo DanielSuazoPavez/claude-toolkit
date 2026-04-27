@@ -156,6 +156,14 @@
       "notes": "Hook must additionally check for embedded user:pass@ in remote URLs — registry signals shape only."
     },
     {
+      "id": "claude-settings",
+      "kind": "path",
+      "target": "raw",
+      "pattern": "\\.claude/settings(\\.local)?\\.json",
+      "message": "Claude Code settings file (.claude/settings.json or .claude/settings.local.json) referenced.",
+      "notes": "target=raw is intentional: interpreter-body writes (python -c, bash -c, sh -c, python heredoc) place the path inside quoted/heredoc content that _strip_inert_content blanks. Verb-shaped writes are caught by inline strip-based rules in block-config-edits.sh; this entry covers the interpreter-body surface."
+    },
+    {
       "id": "github-api-host",
       "kind": "capability",
       "target": "stripped",

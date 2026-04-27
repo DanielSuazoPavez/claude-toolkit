@@ -74,9 +74,11 @@ assert "_REGISTRY_RE__credential__raw is non-empty" \
 assert "_REGISTRY_RE__capability__stripped is non-empty" \
     "[ -n \"\${_REGISTRY_RE__capability__stripped:-}\" ]"
 
-# Buckets that don't exist in the catalog stay empty — no spurious matches.
-assert "_REGISTRY_RE__path__raw is empty (no path/raw entries shipped)" \
-    "[ -z \"\${_REGISTRY_RE__path__raw:-}\" ]"
+# path/raw bucket is populated by claude-settings (interpreter-body coverage
+# in block-config-edits.sh). Pinned specifically so a future drop of that
+# entry surfaces here instead of silently regressing.
+assert "_REGISTRY_RE__path__raw is non-empty (claude-settings ships)" \
+    "[ -n \"\${_REGISTRY_RE__path__raw:-}\" ]"
 
 # ============================================================
 # detection_registry_match — exact (kind, target)

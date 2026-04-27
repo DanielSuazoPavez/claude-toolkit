@@ -1,0 +1,16 @@
+{
+  "version": "2.72.3",
+  "date": "2026-04-27",
+  "headline": "block-config-edits: close interpreter-body bypass on .claude/settings*.json",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "Closes a hook bypass: `python -c`, `python3 -c`, `bash -c`, `sh -c`, and `python <<EOF` writing to `.claude/settings.json` / `.claude/settings.local.json` are now blocked. Quoted/heredoc bodies were previously stripped before the existing rules could see the path.",
+        "New `claude-settings` entry in `detection-registry.json` is the single source of truth for the settings-path shape — reusable by future settings-aware hooks.",
+        "Out of scope (deferred until seen): ruby/perl/node interpreter bodies. Symlink redirection remains a documented gap."
+      ]
+    }
+  ]
+}
