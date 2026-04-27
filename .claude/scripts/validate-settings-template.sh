@@ -44,7 +44,7 @@ fi
 # Extract hook command paths from a settings JSON file
 # Looks for "command": "..." values within hooks sections
 extract_hook_commands() {
-    grep -oP '"command"\s*:\s*"\K[^"]+' "$1" | sort
+    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$1" | sort
 }
 
 # === Hook commands ===
