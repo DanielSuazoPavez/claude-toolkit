@@ -89,33 +89,6 @@ parse_backlog() {
             continue
         fi
 
-        # Task line without category tag: - Description (`id`)
-        if [[ "$line" =~ ^-\ ([^*].+)$ ]] && [[ -n "$priority" ]]; then
-            emit_task
-
-            task_priority="$priority"
-            task_category=""
-            local rest="${BASH_REMATCH[1]}"
-
-            # Extract id from (`id`) at end of title
-            if [[ "$rest" =~ ^(.*)[[:space:]]\(\`([^\`]+)\`\)$ ]]; then
-                task_title="${BASH_REMATCH[1]}"
-                task_id="${BASH_REMATCH[2]}"
-            else
-                task_title="$rest"
-                task_id=""
-            fi
-
-            task_status=""
-            task_scope=""
-            task_branch=""
-            task_depends=""
-            task_plan=""
-            task_notes=""
-            has_task=true
-            continue
-        fi
-
         # Metadata lines (indented under a task)
         if [[ "$has_task" == true ]]; then
             if [[ "$line" =~ ^[[:space:]]+-\ \*\*status\*\*:\ \`?([^\`]+)\`? ]]; then

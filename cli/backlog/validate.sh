@@ -66,9 +66,6 @@ validate() {
     local ids_seen=()
     local defined_scopes=()
     local has_scope_table=false
-    local has_category_tag=false
-    local has_plain_item=false
-    local has_metadata=false
     local task_count=0
 
     while IFS= read -r line; do
@@ -115,10 +112,9 @@ validate() {
         # Skip content outside priority sections
         [[ "$in_priority" != true ]] && continue
 
-        # Task item with category tag: - **[TAG]** text (`id`)
+        # Task item: - **[TAG]** text (`id`)
         if [[ "$line" =~ ^-\ \*\*\[([^\]]+)\]\*\*\ (.+)$ ]]; then
             in_task=true
-            has_category_tag=true
             ((task_count++)) || true
 
             local rest="${BASH_REMATCH[2]}"
@@ -137,24 +133,9 @@ validate() {
             continue
         fi
 
-        # Task item without category tag: - text (`id`)
+        # Task item without a category tag: no longer supported.
         if [[ "$line" =~ ^-\ ([^*].+)$ ]] && [[ "$in_priority" == true ]]; then
-            in_task=true
-            has_plain_item=true
-            ((task_count++)) || true
-
-            local rest="${BASH_REMATCH[1]}"
-            if [[ "$rest" =~ \(\`([^\`]+)\`\)$ ]]; then
-                local tid="${BASH_REMATCH[1]}"
-                for seen in "${ids_seen[@]+"${ids_seen[@]}"}"; do
-                    if [[ "$seen" == "$tid" ]]; then
-                        err "$lineno" "duplicate id: $tid"
-                    fi
-                done
-                ids_seen+=("$tid")
-            else
-                err "$lineno" "task missing id: $line"
-            fi
+            err "$lineno" "task missing required [CATEGORY] tag: $line"
             continue
         fi
 
@@ -162,7 +143,6 @@ validate() {
         if [[ "$line" =~ ^[[:space:]]+-\ \*\*([a-z-]+)\*\*:\ (.*)$ ]]; then
             local field="${BASH_REMATCH[1]}"
             local value="${BASH_REMATCH[2]}"
-            has_metadata=true
 
             if [[ "$in_task" != true ]]; then
                 err "$lineno" "orphaned metadata (not under a task): $field"
@@ -253,23 +233,9 @@ validate() {
         done
     done
 
-    # Detect format
-    local format="minimal"
-    if [[ "$has_category_tag" == true && "$has_metadata" == true && "$has_plain_item" != true ]]; then
-        format="standard"
-    elif [[ "$has_category_tag" == true || "$has_metadata" == true ]]; then
-        if [[ "$has_category_tag" == true && "$has_plain_item" == true ]]; then
-            format="mixed"
-        elif [[ "$has_plain_item" == true && "$has_metadata" == true ]]; then
-            format="minimal+metadata"
-        elif [[ "$has_category_tag" == true ]]; then
-            format="standard"
-        fi
-    fi
-
     # Output results
     printf "${BOLD}%s${RESET}\n" "$file"
-    printf "  format: %s  |  tasks: %d  |  ids: %d\n" "$format" "$task_count" "${#ids_seen[@]}"
+    printf "  tasks: %d  |  ids: %d\n" "$task_count" "${#ids_seen[@]}"
 
     if [[ ${#errors[@]} -gt 0 ]]; then
         echo ""

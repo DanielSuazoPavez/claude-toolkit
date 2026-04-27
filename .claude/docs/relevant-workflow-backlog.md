@@ -40,14 +40,6 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 
 ## 3. Entry Format
 
-**Two formats supported:**
-
-### Minimal format
-```markdown
-- Task description (`kebab-case-id`)
-```
-
-### Standard format
 ```markdown
 - **[CATEGORY]** Task description (`kebab-case-id`)
     - **status**: `status-value`
@@ -59,7 +51,7 @@ Defines the schema for BACKLOG.md: priority sections, entry format, ids, metadat
 ```
 
 **Rules:**
-- Every item **must** have a kebab-case id in backtick-parens at end of title
+- Every item **must** have a `[CATEGORY]` tag and a kebab-case id in backtick-parens at end of title
 - Ids are manual, short, descriptive (e.g., `cli-validation`, `type-registry`)
 - No Completed section — done items are removed from the backlog
 - Abandoned/dropped items are simply removed (no graveyard — if it doesn't earn its place, it goes)
