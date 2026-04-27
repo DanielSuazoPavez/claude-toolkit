@@ -109,6 +109,34 @@ expect_block "$hook" "$(mk_bash 'mv /tmp/x .claude/settings.json')" \
 expect_block "$hook" "$(mk_bash 'cat /tmp/x > .claude/settings.local.json')" \
     "blocks Bash single-redirect > .claude/settings.local.json"
 
+# --- Interpreter-bodied settings writes (in scope: python, bash, sh) ---
+expect_block "$hook" "$(mk_bash 'python -c "open('"'"'.claude/settings.local.json'"'"','"'"'w'"'"').write(x)"')" \
+    "blocks Bash python -c writing .claude/settings.local.json (double-quoted body)"
+expect_block "$hook" "$(mk_bash 'python -c '"'"'open(".claude/settings.json","w").write(x)'"'"'')" \
+    "blocks Bash python -c writing .claude/settings.json (single-quoted body)"
+expect_block "$hook" "$(mk_bash 'bash -c '"'"'echo {} > .claude/settings.local.json'"'"'')" \
+    "blocks Bash bash -c redirecting to .claude/settings.local.json"
+expect_block "$hook" "$(mk_bash 'sh -c "echo {} > .claude/settings.json"')" \
+    "blocks Bash sh -c redirecting to .claude/settings.json"
+expect_block "$hook" "$(mk_bash $'python <<PYEOF\nopen(".claude/settings.local.json","w").write(x)\nPYEOF')" \
+    "blocks Bash python heredoc writing .claude/settings.local.json"
+expect_block "$hook" "$(mk_bash 'python3 -c "open('"'"'.claude/settings.json'"'"','"'"'w'"'"').write(x)"')" \
+    "blocks Bash python3 -c writing .claude/settings.json (versioned binary)"
+
+# --- Negatives: out-of-scope interpreters NOT blocked (deferred per scope) ---
+expect_allow "$hook" "$(mk_bash 'ruby -e "File.write('"'"'.claude/settings.json'"'"', x)"')" \
+    "allows ruby -e (out of scope, deferred)"
+expect_allow "$hook" "$(mk_bash 'node -e "fs.writeFileSync('"'"'.claude/settings.json'"'"', x)"')" \
+    "allows node -e (out of scope, deferred)"
+
+# --- Negatives: legitimate read-only / no-interpreter ---
+expect_allow "$hook" "$(mk_bash 'echo see .claude/settings.json for config')" \
+    "allows echo mentioning .claude/settings.json (no interpreter -c/<<)"
+
+# --- Block-reason verb sanity ---
+expect_contains "$hook" "$(mk_bash 'python -c "open('"'"'.claude/settings.local.json'"'"','"'"'w'"'"').write(x)"')" \
+    "Editing via interpreter" "block reason names interpreter verb"
+
 # --- Negatives: legitimate non-settings paths ---
 expect_allow "$hook" "$(mk_write default 'output/x.json')" \
     "allows Write output/x.json"

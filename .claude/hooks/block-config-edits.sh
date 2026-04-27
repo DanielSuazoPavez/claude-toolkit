@@ -29,11 +29,13 @@
 #   - Symlink redirection (e.g. ln -s .claude/settings.json /tmp/x; write /tmp/x).
 #     The Bash regex matches typed paths, not realpath-resolved targets. Adding
 #     realpath() costs a fork per Write call; deferred until seen in the wild.
-#   - Shell/python script edits (python -c "open('.claude/settings.local.json','w')...",
-#     node -e ..., perl -e ...). The Bash regex hints don't introspect interpreter
-#     bodies. Tracked as a follow-up backlog task.
+#   - ruby/perl/node interpreter bodies (-e flags). Out of scope per current
+#     toolchain (no ruby/perl/node use in repo). One-line extension to the
+#     INTERP_RE in match_/check_config_edits when needed.
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
+detection_registry_load
 
 # List of blocked config files (basenames and paths relative to home)
 # Used for Write/Edit tool path matching
@@ -89,7 +91,8 @@ is_blocked_settings() {
 match_config_edits() {
     local CONFIG_HINT='(bashrc|bash_profile|bash_login|profile|zshrc|zprofile|zshenv|zlogin|gitconfig|authorized_keys|\.ssh/config|\.claude/settings(\.local)?\.json)'
     local VERB_HINT='(>>|[^>]>[^>]|tee[[:space:]]|sed[[:space:]]+-i|mv[[:space:]])'
-    [[ "$COMMAND" =~ $CONFIG_HINT ]] && [[ "$COMMAND" =~ $VERB_HINT ]]
+    local INTERP_HINT='(python[0-9.]*|bash|sh)[[:space:]]+(-c|<<)'
+    [[ "$COMMAND" =~ $CONFIG_HINT ]] && { [[ "$COMMAND" =~ $VERB_HINT ]] || [[ "$COMMAND" =~ $INTERP_HINT ]]; }
 }
 
 # ============================================================
@@ -173,6 +176,19 @@ check_config_edits() {
     local SINGLE_REDIR_RE_SETTINGS='([^>]|^)>[[:space:]]+'"$SETTINGS_BARE"
     if [[ "$COMMAND" =~ $SINGLE_REDIR_RE_SETTINGS ]]; then
         _BLOCK_REASON="$(_settings_reason 'Redirecting output to')"
+        return 1
+    fi
+
+    # Interpreter-body settings writes: python -c, bash -c, sh -c, python heredoc.
+    # Runs against the RAW command via the detection registry — _strip_inert_content
+    # blanks quoted/heredoc bodies, which is exactly where interpreter payloads
+    # live. Conjunction (interpreter token AND registered settings path) keeps the
+    # false-positive surface small. Out of scope per current toolchain: ruby/perl/node.
+    local INTERP_RE='(python[0-9.]*|bash|sh)[[:space:]]+(-c|<<)'
+    if [[ "$_raw" =~ $INTERP_RE ]] \
+       && detection_registry_match path raw "$_raw" \
+       && [ "$_REGISTRY_MATCHED_ID" = "claude-settings" ]; then
+        _BLOCK_REASON="$(_settings_reason 'Editing via interpreter')"
         return 1
     fi
 
