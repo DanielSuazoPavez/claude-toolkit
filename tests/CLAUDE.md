@@ -21,6 +21,7 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `test-sync-then-validate.sh` | End-to-end: real `sync` into fixture, then `validate-all.sh` + diagnose + orphan detection | bash |
 | `test-validate-hook-utils.sh` | `lib/hook-utils.sh` shared library | bash |
 | `test-verify-external-deps.sh` | External tool dependency checker | bash |
+| `test-verify-resource-deps.sh` | Resource cross-reference dependency checker (57 tests, 7 sections + MANIFEST mode) | bash |
 | `test-validate-resources-indexed.sh` | Resource index completeness | bash |
 | `test_lesson_db.py` | Lessons database (Python, 40 tests) | pytest |
 | `perf-session-start.sh` | Session-start hook performance benchmark | bash |
