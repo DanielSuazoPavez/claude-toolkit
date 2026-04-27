@@ -28,11 +28,11 @@ expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/da
     "[base] blocks unknown .json (non-existent file treated as large)"
 
 # Size-based: small real file should pass, large real file should block.
-small_json=$(mktemp --suffix=.json)
+_tmp=$(mktemp); small_json="${_tmp}.json"; mv "$_tmp" "$small_json"
 echo '{"a":1}' > "$small_json"
 expect_allow "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$small_json\"}}" \
     "[base] allows small .json (under threshold)"
-large_json=$(mktemp --suffix=.json)
+_tmp=$(mktemp); large_json="${_tmp}.json"; mv "$_tmp" "$large_json"
 head -c 102400 /dev/zero | tr '\0' 'a' > "$large_json"
 expect_block "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$large_json\"}}" \
     "[base] blocks large .json (over threshold)"
@@ -53,7 +53,7 @@ HOOKS_DIR="$sim_dir"
 
 expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/tmp/.env"}}' \
     "[sim] secrets_guard_read still blocks .env"
-large_json=$(mktemp --suffix=.json)
+_tmp=$(mktemp); large_json="${_tmp}.json"; mv "$_tmp" "$large_json"
 head -c 102400 /dev/zero | tr '\0' 'a' > "$large_json"
 expect_allow "$hook" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$large_json\"}}" \
     "[sim] large .json passes (suggest-read-json absent)"
