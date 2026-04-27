@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.72.7] - 2026-04-27 - scope hook extraction to exclude statusLine
+
+### Fixed
+- **scripts**: `setup-toolkit-diagnose.sh`, `validate-settings-template.sh`, and `verify-resource-deps.sh` now extract hook commands from `.hooks` only (via `jq` recursive descent) instead of matching all `"command"` values globally with `sed`. The old regex included the `statusLine` block's command, causing a false `EXTRA: .claude/scripts/statusline-capture.sh` in Check 1 when the synced template predated the `statusLine` addition. Hook count corrected from 9 to 8. Closes `diag-statusline-scope`.
+
+### Added
+- **tests**: 4 new assertions in `test-setup-toolkit-diagnose.sh` and `test-validate-settings-template.sh` covering statusLine exclusion from hook comparison — both "statusLine in both files" and "statusLine only in settings" cases.
+
 ## [2.72.6] - 2026-04-27 - template alignment for macOS consumers
 
 ### Fixed
