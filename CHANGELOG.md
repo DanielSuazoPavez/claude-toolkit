@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **docs**: `docs/official-references.md` — curated index of Anthropic's official Claude Code documentation (17 pages + bonus env-vars and commands references). Covers canonical URLs (domain moved from `docs.anthropic.com` to `code.claude.com`), key platform env vars for resource authoring, gaps the toolkit fills (topic-scoped docs, tiered loading, design guidance), and terminology collisions (memories, rules vs docs, "custom commands" vs skills). Closes P1 `official-docs-index`.
+
 ## [2.72.5] - 2026-04-27 - portable regex extraction (PCRE → POSIX) for macOS
 
 ### Fixed
