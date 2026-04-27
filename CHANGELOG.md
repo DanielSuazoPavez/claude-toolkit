@@ -4,6 +4,7 @@
 
 ### Notes
 - **docs**: New `dist/raiz/CLAUDE.md` consolidates raiz-sidecar authoring rules in one place — schema, two-step skip check (path filter via MANIFEST + behavioral judgment for feature-gated cases like lessons), `kind` selection table, HTML-override conditions, and two worked examples (skip-only 2.68.3, cross-cutting 2.65.0). Root `CLAUDE.md` replaces the two long sidecar bullets (and the `When You're Done` raiz-preview bullet) with pointers to the new doc. Doc is workshop-internal — not in `dist/raiz/MANIFEST`, doesn't sync to consumers. Backlog `raiz-sidecar-instructions` (P2) closed.
+- **ci**: `publish-raiz.yml` Telegram steps (`Build Telegram message`, `Notify Telegram`) now gate on `steps.sync.outputs.pushed == 'true'`. Previously they ran unconditionally, so any push that triggered the workflow (e.g. a `dist/**` change that didn't alter the built raiz output) sent a `<i>no raiz-relevant changes</i>` message even when the sync-to-target step correctly no-op'd. Symptom: the `dist/raiz/CLAUDE.md` doc commit (workshop-internal, not in MANIFEST) sent a Telegram notification with an empty body. If false-positive workflow runs continue after this gate, narrow `paths:` next.
 
 ## [2.69.3] - 2026-04-26 - anti-rampage coverage rationale documented in `relevant-toolkit-hooks.md`
 
