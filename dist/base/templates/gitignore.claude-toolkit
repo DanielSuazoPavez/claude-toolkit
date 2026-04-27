@@ -12,10 +12,5 @@ output/claude-toolkit/
 !.claude/mcp.json
 !.claude/memories/*-project-*
 
-# Global databases — should live in ~/.claude/, not in project
-lessons.db
-session-index.db
-hooks.db
-
 # Toolkit sync infrastructure
 .claude-toolkit-version

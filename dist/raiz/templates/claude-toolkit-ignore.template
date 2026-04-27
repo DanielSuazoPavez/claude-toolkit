@@ -1,0 +1,19 @@
+# Claude Toolkit - Default .claude-toolkit-ignore patterns
+# Copy this to your project root as .claude-toolkit-ignore
+#
+# Paths are project-root-relative (e.g., .claude/skills/foo/, docs/bar.md).
+# Lines ending with / match any file under that directory (prefix match).
+# Other lines match exactly.
+
+# Skip Python-specific hooks if not using Python
+# .claude/hooks/enforce-uv-run.sh
+
+# Skip memories you've customized locally
+# .claude/memories/essential-conventions-code_style.md
+# .claude/memories/essential-preferences-communication_style.md
+
+# Skip specific skills you don't need
+# .claude/skills/design-docker/
+
+# Skip templates after initial setup
+# .claude/templates/

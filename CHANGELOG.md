@@ -1,8 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [2.72.6] - 2026-04-27 - template alignment for macOS consumers
+
+### Fixed
+- **templates**: added `bash` prefix to `session-start.sh`, `git-safety.sh`, and `approve-safe-commands.sh` hook commands in both base and raiz `settings.template.json`. Consumer projects already invoked these with `bash`, causing the diagnostic to report 3 MISSING + 3 EXTRA on every run. Toolkit's own `.claude/settings.json` updated to match.
+- **templates**: removed `lessons.db`, `session-index.db`, `hooks.db` entries from `gitignore.claude-toolkit`. These global databases live in `~/.claude/` and don't belong in project-level `.gitignore` — their presence caused false MISSING reports in Check 5 for projects that (correctly) don't track them.
 
 ### Added
+- **templates**: `claude-toolkit-ignore.template` now ships in the raiz distribution. Raiz consumers get a smaller resource subset, so extra resources from base (or project-local additions) show up as orphans in Check 8 — the template gives them a starting point for suppressing those warnings.
 - **docs**: `docs/official-references.md` — curated index of Anthropic's official Claude Code documentation (17 pages + bonus env-vars and commands references). Covers canonical URLs (domain moved from `docs.anthropic.com` to `code.claude.com`), key platform env vars for resource authoring, gaps the toolkit fills (topic-scoped docs, tiered loading, design guidance), and terminology collisions (memories, rules vs docs, "custom commands" vs skills). Closes P1 `official-docs-index`.
 
 ## [2.72.5] - 2026-04-27 - portable regex extraction (PCRE → POSIX) for macOS
