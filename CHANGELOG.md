@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- **tests** (`test_lesson_db.py`): converted the `db` fixture to class-scoped (`db_shared`) for the data-only test classes (`TestProjects`, `TestTags`, `TestLessons`, `TestTagLesson`, `TestMetadata`, `TestFTS`, `TestConstraints`), with a per-test `_wipe_db` cleanup that clears `lessons`/`tags`/`projects`/`metadata` (FTS + `lesson_tags` follow via triggers/cascade). `TestInitDb`, `TestCmdGet`, and `TestLifecycleCommands` keep the function-scoped `db` because they exercise fresh init / re-open by path. Pytest standalone wall ~7s → ~3s (40 tests). Closes `tests-perf-review`.
+- **tests/CLAUDE.md**: added a "Perf Baseline" section with current numbers and drift signals; corrected stale test counts (`test_lesson_db.py` 28 → 40; aggregate "36 Python tests" → "Python tests").
+
 ## [2.72.2] - 2026-04-27 - Read allowlist catalog + `Glob`/`Grep` syntax fix in settings templates
 
 ### Changed
