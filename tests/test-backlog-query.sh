@@ -78,7 +78,7 @@ create_test_backlog() {
 ## P99 - Nice to Have
 
 - **[ICEBOX]** Nice-to-have idea task
-    - **status**: `deferred`
+    - **status**: `idea`
     - **scope**: `icebox`
 
 EOF
@@ -247,7 +247,7 @@ test_filter_status() {
     expect_count "finds 1 planned task" "1" status planned
 
     expect_output "filters by status=idea" "High priority skill" status idea
-    expect_count "finds 1 idea task" "1" status idea
+    expect_count "finds 2 idea tasks" "2" status idea
 
     expect_failure "errors without status value" status
 
@@ -296,7 +296,7 @@ test_blocked_unblocked() {
     expect_count "finds 1 blocked task" "1" blocked
 
     expect_output "unblocked shows planned without depends" "Critical test task" unblocked
-    expect_count "finds 2 unblocked tasks" "2" unblocked
+    expect_count "finds 3 unblocked tasks" "3" unblocked
 
     teardown_test_env
 }
