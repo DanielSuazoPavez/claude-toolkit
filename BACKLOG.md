@@ -27,9 +27,7 @@
 
 ## P1 - High
 
-- **[DOCS]** Add toolkit CLI quick reference to `CLAUDE.md.template` (`claudemd-template-cli-quickref`)
-    - **scope**: `docs`
-    - **notes**: Surfaced 2026-04-26 by claude-sessions via `claude-toolkit send`. The synced `CLAUDE.md` template currently mentions `claude-toolkit` only in the Toolkit section (paths to `.claude/hooks`, `.claude/skills`, `.claude/docs`, `.claude/memories`) plus `make claude-toolkit-validate` and the manual `claude-toolkit sync --force` note. New projects do not learn about the day-to-day CLI surface (`backlog`, `lessons`, `send`, `docs`, `eval`) until someone reads `--help` by accident. Suggestion: add a short "Toolkit CLI quick reference" subsection to `CLAUDE.md.template` with one-line descriptions of each subcommand and a pointer to `claude-toolkit <cmd> --help` for details. Examples worth surfacing: `claude-toolkit backlog id <task-id>`, `claude-toolkit backlog summary`, `claude-toolkit lessons search <query>`, `claude-toolkit send --issue <text>`, `claude-toolkit docs`. Keep it minimal — table or bulleted list, not a full reference. The goal is discoverability, not documentation. Source: `suggestions-box/claude-sessions/20260426_193024_issue.txt` (now triaged + deleted). Coordinates with `docs-consumer-experience` (P2) — that task plans a guided introduction; this one is the minimal stopgap that lands first.
+(none)
 
 ## P2 - Medium
 
