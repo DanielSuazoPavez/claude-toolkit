@@ -44,6 +44,13 @@
 .claude/hooks/lib/hook-utils.sh
 .claude/hooks/lib/detection-registry.sh
 .claude/hooks/lib/detection-registry.json
+# detection-registry schema + validator intentionally omitted from raiz —
+# raiz consumers rarely edit the registry, and validate-all.sh / make
+# claude-toolkit-validate aren't part of the raiz Makefile template, so the
+# validator would have no driver. The .json above is the runtime input;
+# .sh above is the loader. If a raiz project starts editing the registry
+# regularly, ship .claude/schemas/hooks/detection-registry.schema.json
+# (and consider validate-detection-registry.sh) at that point.
 
 # docs (inside .claude/)
 .claude/docs/essential-conventions-code_style.md

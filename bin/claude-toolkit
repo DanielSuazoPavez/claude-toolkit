@@ -180,6 +180,7 @@ categorize_file() {
         .claude/docs/*) echo "docs" ;;
         .claude/templates/*) echo "templates" ;;
         .claude/scripts/*) echo "scripts" ;;
+        .claude/schemas/*) echo "schemas" ;;
         docs/*) echo "docs" ;;
         *) echo "other" ;;
     esac
@@ -231,7 +232,7 @@ resolve_syncable_files() {
     }
 
     # Walk .claude/ resource directories — emit project-root-relative paths
-    for category in skills agents hooks docs scripts; do
+    for category in skills agents hooks docs scripts schemas; do
         local dir="$TOOLKIT_DIR/.claude/$category"
         [[ -d "$dir" ]] || continue
         while IFS= read -r -d '' f; do
@@ -451,7 +452,7 @@ declare -A CATEGORY_UPDATED_FILES
 declare -a IGNORED_FILES=()
 
 # Initialize category arrays
-for cat in skills agents hooks docs templates scripts other; do
+for cat in skills agents hooks docs templates scripts schemas other; do
     CATEGORY_NEW_FILES[$cat]=""
     CATEGORY_UPDATED_FILES[$cat]=""
 done
@@ -488,7 +489,7 @@ done < <(resolve_syncable_files)
 # Count total files
 local total_new=0
 local total_updated=0
-for cat in skills agents hooks docs templates scripts other; do
+for cat in skills agents hooks docs templates scripts schemas other; do
     [[ -n "${CATEGORY_NEW_FILES[$cat]}" ]] && total_new=$((total_new + $(echo -n "${CATEGORY_NEW_FILES[$cat]}" | grep -c '^' || true)))
     [[ -n "${CATEGORY_UPDATED_FILES[$cat]}" ]] && total_updated=$((total_updated + $(echo -n "${CATEGORY_UPDATED_FILES[$cat]}" | grep -c '^' || true)))
 done
@@ -497,7 +498,7 @@ done
 echo -e "${BLUE}Files to sync:${NC}"
 local has_files=false
 
-for cat in skills agents hooks docs templates scripts other; do
+for cat in skills agents hooks docs templates scripts schemas other; do
     local new_files="${CATEGORY_NEW_FILES[$cat]}"
     local updated_files="${CATEGORY_UPDATED_FILES[$cat]}"
 
@@ -546,7 +547,7 @@ fi
 # Interactive category selection (if not forced and multiple categories)
 declare -a SELECTED_CATEGORIES=()
 local category_count=0
-for cat in skills agents hooks docs templates scripts other; do
+for cat in skills agents hooks docs templates scripts schemas other; do
     if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
         ((category_count++)) || true
     fi
@@ -558,7 +559,7 @@ if ! $FORCE && [[ $category_count -gt 1 ]]; then
 
     case $choice in
         a|A)
-            for cat in skills agents hooks docs templates scripts other; do
+            for cat in skills agents hooks docs templates scripts schemas other; do
                 if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
                     SELECTED_CATEGORIES+=("$cat")
                 fi
@@ -566,7 +567,7 @@ if ! $FORCE && [[ $category_count -gt 1 ]]; then
             ;;
         s|S)
             echo "Select categories to sync (y/n for each):"
-            for cat in skills agents hooks docs templates scripts other; do
+            for cat in skills agents hooks docs templates scripts schemas other; do
                 if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
                     echo -n "  $cat? [y/N] "
                     read -r cat_choice
@@ -587,7 +588,7 @@ if ! $FORCE && [[ $category_count -gt 1 ]]; then
     esac
 else
     # Force mode or single category - select all available
-    for cat in skills agents hooks docs templates scripts other; do
+    for cat in skills agents hooks docs templates scripts schemas other; do
         if [[ -n "${CATEGORY_NEW_FILES[$cat]}" || -n "${CATEGORY_UPDATED_FILES[$cat]}" ]]; then
             SELECTED_CATEGORIES+=("$cat")
         fi
