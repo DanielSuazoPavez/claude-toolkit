@@ -1,0 +1,14 @@
+{
+  "version": "2.72.7",
+  "date": "2026-04-27",
+  "headline": "diagnostic no longer counts statusLine as a hook command",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "`setup-toolkit-diagnose.sh` Check 1 now extracts hook commands from `.hooks` only (via `jq`), not from the entire settings file. The old `sed` regex included the `statusLine` block's command, causing a false `EXTRA: .claude/scripts/statusline-capture.sh` when the synced template predated the statusLine addition. Re-sync to pick up the fix."
+      ]
+    }
+  ]
+}

@@ -155,6 +155,44 @@ teardown_test_env
 
 # ---
 
+report_section "=== statusLine command excluded from hook comparison ==="
+
+setup_test_env
+write_settings "$TEMP_DIR/.claude/settings.json" \
+    ".claude/hooks/foo.sh"
+write_settings "$TEMP_DIR/.claude/templates/settings.template.json" \
+    ".claude/hooks/foo.sh"
+# Add statusLine to settings only — should not cause drift
+jq '. + {"statusLine": {"type": "command", "command": ".claude/scripts/statusline-capture.sh"}}' \
+    "$TEMP_DIR/.claude/settings.json" > "$TEMP_DIR/.claude/settings.tmp" && \
+    mv "$TEMP_DIR/.claude/settings.tmp" "$TEMP_DIR/.claude/settings.json"
+
+OUTPUT=$(run_validate)
+EXIT_CODE=$(run_validate_exit_code)
+
+TESTS_RUN=$((TESTS_RUN + 1))
+if [ "$EXIT_CODE" = "0" ]; then
+    report_pass "statusLine in settings only → no drift (exit 0)"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    report_fail "statusLine should not cause drift, got exit $EXIT_CODE"
+    report_detail "Output: $OUTPUT"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+
+TESTS_RUN=$((TESTS_RUN + 1))
+if echo "$OUTPUT" | grep -q "All 1 hook commands match"; then
+    report_pass "Count is 1 (statusLine excluded)"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    report_fail "Expected 'All 1 hook commands match'"
+    report_detail "Output: $OUTPUT"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+fi
+teardown_test_env
+
+# ---
+
 report_section "=== Real toolkit: settings.json + dist template in sync ==="
 
 # Run the real script on the real repo. This is the integration test that
