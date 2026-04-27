@@ -39,9 +39,8 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 
 ## Maintenance (workshop-only)
 
-Excluded from sync via `dist/base/EXCLUDE` (`scripts/cron/`, `validate-dist-manifests.sh`). `validate-all.sh` ships to consumers and skips the dist-manifest validator when the file is absent.
+Excluded from sync via `dist/base/EXCLUDE` (`validate-dist-manifests.sh`). `validate-all.sh` ships to consumers and skips the dist-manifest validator when the file is absent.
 
 | Path | Status | Ships | Description |
 |------|--------|-------|-------------|
-| `cron/backup-lessons-db.sh` | stable | no | Nightly backup of lessons.db; planned to move to claude-sessions |
 | `validate-dist-manifests.sh` | stable | no | Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only |

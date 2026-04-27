@@ -77,7 +77,7 @@ lint-bash:
 	}
 	@shellcheck -S warning \
 	  .claude/hooks/*.sh .claude/hooks/lib/*.sh \
-	  .claude/scripts/*.sh .claude/scripts/cron/*.sh \
+	  .claude/scripts/*.sh \
 	  cli/backlog/*.sh cli/eval/*.sh
 
 validate:
