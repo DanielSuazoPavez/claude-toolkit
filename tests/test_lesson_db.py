@@ -31,6 +31,24 @@ def db(tmp_path: Path) -> sqlite3.Connection:
     return init_lessons_db(tmp_path / "test-lessons.db")
 
 
+@pytest.fixture(scope="class")
+def db_shared(tmp_path_factory: pytest.TempPathFactory) -> sqlite3.Connection:
+    """Class-scoped DB — schema built once, data wiped between tests via _wipe_db."""
+    return init_lessons_db(tmp_path_factory.mktemp("lessons-shared") / "test-lessons.db")
+
+
+@pytest.fixture
+def _wipe_db(db_shared: sqlite3.Connection) -> sqlite3.Connection:
+    """Per-test cleanup for class-scoped db_shared. Deletes from lessons first
+    so FTS triggers + lesson_tags cascade fire, then clears tags/projects/metadata."""
+    db_shared.execute("DELETE FROM lessons")
+    db_shared.execute("DELETE FROM tags")
+    db_shared.execute("DELETE FROM projects")
+    db_shared.execute("DELETE FROM metadata")
+    db_shared.commit()
+    return db_shared
+
+
 # ---------------------------------------------------------------------------
 # Schema initialization
 # ---------------------------------------------------------------------------
@@ -84,6 +102,10 @@ class TestInitDb:
 
 
 class TestProjects:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_create_and_get(self, db: sqlite3.Connection) -> None:
         pid = ensure_project(db, "my-project")
         assert pid == "my-project"
@@ -106,6 +128,10 @@ class TestProjects:
 
 
 class TestTags:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_create_and_get(self, db: sqlite3.Connection) -> None:
         tid = get_or_create_tag(db, "git", keywords="git,push,pull")
         assert tid > 0
@@ -129,6 +155,10 @@ class TestTags:
 
 
 class TestLessons:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_insert_lesson(self, db: sqlite3.Connection) -> None:
         lid = insert_lesson(
             db,
@@ -347,6 +377,10 @@ class TestLessons:
 
 
 class TestTagLesson:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_tag_lesson_ignores_duplicates(self, db: sqlite3.Connection) -> None:
         insert_lesson(
             db,
@@ -372,6 +406,10 @@ class TestTagLesson:
 
 
 class TestMetadata:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_set_and_get(self, db: sqlite3.Connection) -> None:
         set_metadata(db, "last_manage_run", "2026-03-24T12:00:00")
         assert get_metadata(db, "last_manage_run") == "2026-03-24T12:00:00"
@@ -391,6 +429,10 @@ class TestMetadata:
 
 
 class TestFTS:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_fts_finds_lesson(self, db: sqlite3.Connection) -> None:
         insert_lesson(
             db,
@@ -471,6 +513,10 @@ class TestFTS:
 
 
 class TestConstraints:
+    @pytest.fixture
+    def db(self, _wipe_db: sqlite3.Connection) -> sqlite3.Connection:
+        return _wipe_db
+
     def test_tier_check(self, db: sqlite3.Connection) -> None:
         ensure_project(db, "proj")
         with pytest.raises(sqlite3.IntegrityError):
