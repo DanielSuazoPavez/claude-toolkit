@@ -91,10 +91,6 @@
     - **scope**: `tests`
     - **notes**: 5 assertions for a 95-line hook (`suggest-read-json.sh`); missing size-threshold boundary tests (just-under, exactly-at, just-over). Correctness gap (off-by-one in size policy), not a security gap — separated from the P0 settings.json work because it's a different threat class. Add ~3 boundary assertions exercising the threshold value defined in the hook source. Surfaced 2026-04-26 in `output/claude-toolkit/analysis/20260426_1710__design-tests__expect-test-value-audit.md` (Finding 5).
 
-- **[TESTS]** Dedicated test for `verify-resource-deps.sh` (`test-verify-resource-deps`)
-    - **scope**: `tests`
-    - **notes**: Surfaced 2026-04-27 during `macos-grep-pcre`. `verify-resource-deps.sh` is the most complex validator (~440 lines, 7 sections, 9 grep -oP sites pre-migration), runs on every `make validate`, but has no dedicated test file — only `make validate` integration coverage on the live toolkit's data. The macos-grep-pcre migration's regression net was a manual byte-diff against real data, which caught a multi-match-per-line bug on line 250; a fixture-driven test would have caught it without the manual step. Mirror the shape of `tests/test-verify-external-deps.sh`: temp-dir fixture, plant skills/agents/docs/hooks with known references, assert exit code + counts per section. Estimate: 2-3 hours.
-
 
 - **[TOOLKIT]** Re-evaluate `suggestions-box/` as satellite convention + `claude-toolkit send --to` (`suggestions-box-satellite-convention`)
     - **scope**: `toolkit`
