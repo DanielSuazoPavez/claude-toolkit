@@ -29,6 +29,10 @@
 # Configuration
 DOCS_DIR="${CLAUDE_DOCS_DIR:-.claude/docs}"
 
+# Essentials that inject in full (tone-shaping, voice, must reach the model verbatim).
+# All other essential-*.md docs surface as Quick Reference (§1) + path nudge.
+ESSENTIAL_FULL_INJECT=("essential-preferences-communication_style")
+
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "session-start" "SessionStart"
 _hook_perf_probe "hook_init"
@@ -45,17 +49,34 @@ fi
 ESSENTIAL_OUT=""
 ESSENTIAL_COUNT=0
 for f in "$DOCS_DIR"/essential-*.md; do
-  if [ -f "$f" ]; then
-    ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
-    _name="${f##*/}"
-    _name="${_name%.md}"
+  [ -f "$f" ] || continue
+  ESSENTIAL_COUNT=$((ESSENTIAL_COUNT + 1))
+  _name="${f##*/}"
+  _name="${_name%.md}"
+
+  _full=0
+  for _full_name in "${ESSENTIAL_FULL_INJECT[@]}"; do
+    [ "$_name" = "$_full_name" ] && _full=1 && break
+  done
+
+  if [ "$_full" = 1 ]; then
     _content=$(cat "$f" 2>/dev/null) || _content="(Error reading file - permission denied or corrupted)"
     ENTRY_CONTENT="=== ${_name} ===
 ${_content}
 "
-    hook_log_section "essential:${_name}" "$ENTRY_CONTENT"
-    ESSENTIAL_OUT="${ESSENTIAL_OUT}${ENTRY_CONTENT}"
+  else
+    _qr=$(hook_extract_quick_reference "$f")
+    if [ -z "$_qr" ]; then
+      _qr="(no Quick Reference section found — Read full doc on demand)"
+    fi
+    ENTRY_CONTENT="=== ${_name} (Quick Reference) ===
+${_qr}
+Full doc: \`${DOCS_DIR}/${_name}.md\` — Read on demand for sections beyond §1.
+"
   fi
+
+  hook_log_section "essential:${_name}" "$ENTRY_CONTENT"
+  ESSENTIAL_OUT="${ESSENTIAL_OUT}${ENTRY_CONTENT}"
 done
 printf '%s' "$ESSENTIAL_OUT"
 _hook_perf_probe "essential_docs"
