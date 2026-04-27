@@ -95,15 +95,6 @@
     - **scope**: `tests`
     - **notes**: Surfaced 2026-04-27 during `macos-grep-pcre`. `verify-resource-deps.sh` is the most complex validator (~440 lines, 7 sections, 9 grep -oP sites pre-migration), runs on every `make validate`, but has no dedicated test file — only `make validate` integration coverage on the live toolkit's data. The macos-grep-pcre migration's regression net was a manual byte-diff against real data, which caught a multi-match-per-line bug on line 250; a fixture-driven test would have caught it without the manual step. Mirror the shape of `tests/test-verify-external-deps.sh`: temp-dir fixture, plant skills/agents/docs/hooks with known references, assert exit code + counts per section. Estimate: 2-3 hours.
 
-- **[TESTS]** Flaky `test-backlog-query.sh` "filters by scope=skills" under parallel `make check` (`backlog-query-scope-flake`)
-    - **scope**: `tests`
-    - **notes**: Surfaced 2026-04-27 during `diag-statusline-scope`. The "filters by scope=skills" assertion (`expect_output "filters by scope=skills" "High priority skill" scope skills`) failed once under parallel `make check` but passes 100% in isolation (`bash tests/test-backlog-query.sh -q` → 86/86). Output showed the correct text (`[SKILLS] High priority skill`) yet `grep -qF` reported no match. Same class as the `diag-orphan-flake` — likely a transient WSL2 subprocess hiccup under parallel load, not a test logic defect. **Action if it recurs**: add diagnostic output in the failure branch (pipe length, hex dump) to distinguish corruption from a genuine grep miss.
-
-- **[TESTS]** Diagnostic instrumentation for `test-setup-toolkit-diagnose.sh` orphan-detection assertion (`diag-orphan-flake-instrumentation`)
-    - **scope**: `tests`
-    - **references**: `output/claude-toolkit/reviews/20260427_1434__code-debugger__diag-orphan-flake.md`, `output/claude-toolkit/reviews/20260420_1903__code-debugger__diag-tmp-collision.md`
-    - **notes**: Surfaced 2026-04-27 during `macos-grep-pcre`. One unreproducible failure of `tests/test-setup-toolkit-diagnose.sh:837` under parallel `make check` — `grep -q "ORPHAN:.*removed-hook.sh"` reported no match while `report_detail` printed the matching string from the same `$CHECK8` variable. Code-debugger ran 72 concurrent invocations + 5 serial without recurrence; the known DIAG_TMP race (commit 1a05585) is unrelated and already fixed. Best assessment: transient WSL2 subprocess hiccup, not a toolkit defect. **Action if it recurs**: add `printf '%s' "$CHECK8" | wc -c` and `printf '%s' "$CHECK8" | xxd | head` in the failure branch at line 837 to distinguish NUL/encoding corruption from a true grep miss. Optional fallback: replace the `echo | grep -q` with `[[ "$CHECK8" == *"..."* ]]` (pure bash, no subprocess) — doesn't fix a bug, just bypasses the suspect plumbing. Don't act now; only if a second occurrence happens.
-
 
 - **[TOOLKIT]** Re-evaluate `suggestions-box/` as satellite convention + `claude-toolkit send --to` (`suggestions-box-satellite-convention`)
     - **scope**: `toolkit`

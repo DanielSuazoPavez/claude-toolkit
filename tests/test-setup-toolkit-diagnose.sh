@@ -885,6 +885,11 @@ else
     TESTS_FAILED=$((TESTS_FAILED + 1))
     report_fail "Raiz: should detect removed-hook.sh as orphan"
     report_detail "Check 8: $CHECK8"
+    # Diagnostic instrumentation for WSL2 flake investigation (see 20260427_1434__code-debugger__diag-orphan-flake.md)
+    report_detail "CHECK8 byte length: $(printf '%s' "$CHECK8" | wc -c)"
+    report_detail "CHECK8 hex dump (first 20 lines):"
+    report_detail "$(printf '%s' "$CHECK8" | xxd | head -20)"
+    report_detail "OUTPUT byte length: $(printf '%s' "$OUTPUT" | wc -c)"
 fi
 teardown_test_env
 

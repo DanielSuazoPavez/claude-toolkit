@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Notes
+- **tests**: Added diagnostic instrumentation (byte length + hex dump) in failure branches of `test-backlog-query.sh` (all 5 assertion functions) and `test-setup-toolkit-diagnose.sh` (orphan-detection assertion). If the transient WSL2 grep flake recurs under parallel `make check`, the output now distinguishes NUL/encoding corruption from a genuine grep miss. Closes `backlog-query-scope-flake`, `diag-orphan-flake-instrumentation`.
+
 ## [2.72.7] - 2026-04-27 - scope hook extraction to exclude statusLine
 
 ### Fixed
