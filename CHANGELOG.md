@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Notes
+- **docs**: New `dist/raiz/CLAUDE.md` consolidates raiz-sidecar authoring rules in one place — schema, two-step skip check (path filter via MANIFEST + behavioral judgment for feature-gated cases like lessons), `kind` selection table, HTML-override conditions, and two worked examples (skip-only 2.68.3, cross-cutting 2.65.0). Root `CLAUDE.md` replaces the two long sidecar bullets (and the `When You're Done` raiz-preview bullet) with pointers to the new doc. Doc is workshop-internal — not in `dist/raiz/MANIFEST`, doesn't sync to consumers. Backlog `raiz-sidecar-instructions` (P2) closed.
+
 ## [2.69.3] - 2026-04-26 - anti-rampage coverage rationale documented in `relevant-toolkit-hooks.md`
 
 ### Docs
