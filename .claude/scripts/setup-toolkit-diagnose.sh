@@ -227,8 +227,8 @@ check_hooks() {
         return
     fi
 
-    grep -oP '"command"\s*:\s*"\K[^"]+' "$SETTINGS" 2>/dev/null | sort > "$DIAG_TMP/hooks-current.txt"
-    grep -oP '"command"\s*:\s*"\K[^"]+' "$template" 2>/dev/null | sort > "$DIAG_TMP/hooks-template.txt"
+    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS" 2>/dev/null | sort > "$DIAG_TMP/hooks-current.txt"
+    sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$template" 2>/dev/null | sort > "$DIAG_TMP/hooks-template.txt"
 
     local missing extra
     missing=$(comm -23 "$DIAG_TMP/hooks-template.txt" "$DIAG_TMP/hooks-current.txt")
@@ -415,7 +415,7 @@ check_claude_md() {
     if [ -n "$principles" ]; then
         while IFS= read -r line; do
             local keyword
-            keyword=$(echo "$line" | grep -oP '\*\*[^*]+\*\*' | head -1)
+            keyword=$(echo "$line" | grep -oE '\*\*[^*]+\*\*' | head -1)
             if [ -n "$keyword" ] && ! grep -qF "$keyword" CLAUDE.md 2>/dev/null; then
                 output+="SUGGESTION: Missing principle: $line"$'\n'
                 CURRENT_CHECK_SUGGESTIONS=$((CURRENT_CHECK_SUGGESTIONS + 1))
@@ -535,9 +535,9 @@ check_cleanup() {
     # Handles both .claude/hooks/ and $CLAUDE_DIR/hooks/ patterns.
     extract_hook_path() {
         local str="$1" path=""
-        path=$(echo "$str" | grep -oP '\.claude/hooks/[^:)"'\'' ]+' | head -1)
+        path=$(echo "$str" | grep -oE '\.claude/hooks/[^:)"'\'' ]+' | head -1)
         if [ -z "$path" ] && [ "$CLAUDE_DIR" != ".claude" ]; then
-            path=$(echo "$str" | grep -oP "$(printf '%s' "$CLAUDE_DIR" | sed 's/[.[\*^$()+?{|]/\\&/g')/hooks/[^:)\"' ]+" | head -1)
+            path=$(echo "$str" | grep -oE "$(printf '%s' "$CLAUDE_DIR" | sed 's/[.[\*^$()+?{|]/\\&/g')/hooks/[^:)\"' ]+" | head -1)
         fi
         echo "$path"
     }
@@ -545,7 +545,7 @@ check_cleanup() {
     # --- 8b: Stale hook references in settings.json ---
     if [ -f "$SETTINGS" ]; then
         local hook_commands
-        hook_commands=$(grep -oP '"command"\s*:\s*"\K[^"]+' "$SETTINGS" 2>/dev/null || true)
+        hook_commands=$(sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS" 2>/dev/null || true)
         if [ -n "$hook_commands" ]; then
             while IFS= read -r cmd; do
                 [ -z "$cmd" ] && continue

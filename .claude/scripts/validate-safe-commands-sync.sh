@@ -50,7 +50,7 @@ extract_settings_prefixes() {
 extract_hook_prefixes() {
     # Extract lines between SAFE_PREFIXES=( and the closing )
     sed -n '/^SAFE_PREFIXES=(/,/^)/p' "$HOOK" \
-        | grep -oP '"[^"]+' \
+        | grep -oE '"[^"]+' \
         | sed 's/^"//' \
         | sort -u
 }

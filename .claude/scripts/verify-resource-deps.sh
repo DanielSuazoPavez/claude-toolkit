@@ -156,7 +156,7 @@ if [ -f "$SETTINGS" ]; then
         else
             count=$((count + 1))
         fi
-    done < <(grep -oP '"command"\s*:\s*"\K[^"]+' "$SETTINGS")
+    done < <(sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS")
 
     if [ $section_errors -eq 0 ]; then
         echo -e "${GREEN}✓ All $count hook commands resolve to existing files${NC}"
@@ -182,7 +182,7 @@ if [ -d "$HOOKS_DIR" ]; then
             fi
         fi
 
-        skill=$(echo "$match" | grep -oP '`/\K[a-z][-a-z]*(?=`)')
+        skill=$(echo "$match" | sed -nE 's/.*`\/([a-z][-a-z]*)`.*/\1/p')
         [ -z "$skill" ] && continue
         is_builtin_command "$skill" && continue
         if [ ! -d "$CLAUDE_DIR/skills/$skill" ]; then
@@ -232,7 +232,7 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$AGENTS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP 'subagent_type[=:]\s*"?\K[a-z][-a-z]*' "$skillfile")
+        done < <(sed -nE 's/.*subagent_type[=:][[:space:]]*"?([a-z][-a-z]*).*/\1/p' "$skillfile")
 
         # Pattern 2: `name` agent (backtick-quoted name followed by "agent")
         while IFS= read -r agent; do
@@ -247,7 +247,15 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$AGENTS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP '`\K[a-z][-a-z]+(?=`\s+agent\b)' "$skillfile")
+        done < <(awk '
+{
+  while (match($0, /`[a-z][-a-z]+`[[:space:]]+agent([^[:alnum:]_]|$)/)) {
+    s = substr($0, RSTART+1)
+    sub(/`.*/, "", s)
+    print s
+    $0 = substr($0, RSTART + RLENGTH)
+  }
+}' "$skillfile")
 
         # Pattern 3: agents/name (path reference)
         while IFS= read -r agent; do
@@ -261,7 +269,7 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$AGENTS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP 'agents/\K[a-z][-a-z]+' "$skillfile" | grep -v '<agent-name>')
+        done < <(sed -nE 's/.*agents\/([a-z][-a-z]+).*/\1/p' "$skillfile" | grep -v '<agent-name>')
 
     done < <(find "$SKILLS_DIR" -name "SKILL.md")
 
@@ -301,7 +309,13 @@ if [ -d "$SKILLS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP '`/\K[a-z][-a-z]*(?=`)' "$skillfile")
+        done < <(awk '
+{
+  while (match($0, /`\/[a-z][-a-z]*`/)) {
+    print substr($0, RSTART+2, RLENGTH-3)
+    $0 = substr($0, RSTART + RLENGTH)
+  }
+}' "$skillfile")
 
     done < <(find "$SKILLS_DIR" -name "SKILL.md")
 
@@ -337,7 +351,7 @@ if [ -d "$SKILLS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP '\.claude/scripts/[a-z][-a-z]*\.sh' "$skillfile" | sort -u)
+        done < <(grep -oE '\.claude/scripts/[a-z][-a-z]*\.sh' "$skillfile" | sort -u)
 
     done < <(find "$SKILLS_DIR" -name "SKILL.md")
 
@@ -387,7 +401,13 @@ if [ -d "$DOCS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP '`\K(?:essential|relevant)-[a-z][-a-z_]*(?=`)' "$docfile")
+        done < <(awk '
+{
+  while (match($0, /`(essential|relevant)-[a-z][-a-z_]*`/)) {
+    print substr($0, RSTART+1, RLENGTH-2)
+    $0 = substr($0, RSTART + RLENGTH)
+  }
+}' "$docfile")
 
     done < <(find "$DOCS_DIR" -maxdepth 1 -name "*.md")
 
@@ -425,7 +445,13 @@ if [ -d "$SKILLS_DIR" ] && [ -d "$DOCS_DIR" ]; then
             else
                 count=$((count + 1))
             fi
-        done < <(grep -oP '`/\K[a-z][-a-z]*(?=`)' "$docfile")
+        done < <(awk '
+{
+  while (match($0, /`\/[a-z][-a-z]*`/)) {
+    print substr($0, RSTART+2, RLENGTH-3)
+    $0 = substr($0, RSTART + RLENGTH)
+  }
+}' "$docfile")
 
     done < <(find "$DOCS_DIR" -maxdepth 1 -name "*.md")
 

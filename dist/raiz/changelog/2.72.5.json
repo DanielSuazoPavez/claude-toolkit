@@ -1,0 +1,15 @@
+{
+  "version": "2.72.5",
+  "date": "2026-04-27",
+  "headline": "setup-toolkit-diagnose: portable regex extraction for macOS",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "`setup-toolkit-diagnose.sh` no longer uses `grep -oP` (PCRE). On macOS, BSD `grep` rejects `-P` and the diagnostic was emitting `grep: invalid option -- P` while letting downstream comparisons run vacuously over empty data — a silent-correctness bug that hid orphan/stale-ref findings, not just noise.",
+        "Replaced 6 PCRE call sites with portable `sed -nE` / `grep -oE` equivalents. Linux behavior is unchanged; macOS users should now see clean output and trustworthy results from `bash .claude/scripts/setup-toolkit-diagnose.sh`."
+      ]
+    }
+  ]
+}

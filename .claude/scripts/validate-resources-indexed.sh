@@ -142,7 +142,7 @@ if $MANIFEST_MODE && [ -d "$SKILLS_DIR" ]; then
 elif [ -f "$SKILLS_INDEX" ] && [ -d "$SKILLS_DIR" ]; then
     # Toolkit mode: check all disk vs index.
     DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -printf '%h\n' | xargs -n1 basename | sort)
-    INDEX_SKILLS=$(grep -oP '\| `\K[^`]+(?=` \|)' "$SKILLS_INDEX" | sort)
+    INDEX_SKILLS=$(sed -nE 's/^.*\| `([^`]+)` \|.*$/\1/p' "$SKILLS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_SKILLS") <(echo "$INDEX_SKILLS"))
     if [ -n "$MISSING_FROM_INDEX" ]; then
@@ -190,7 +190,7 @@ if $MANIFEST_MODE && [ -d "$AGENTS_DIR" ]; then
     echo -e "${GREEN}✓ $manifest_count agents from MANIFEST validated${NC}"
 elif [ -f "$AGENTS_INDEX" ] && [ -d "$AGENTS_DIR" ]; then
     DISK_AGENTS=$(find "$AGENTS_DIR" -maxdepth 1 -name "*.md" -exec basename {} .md \; | sort)
-    INDEX_AGENTS=$(grep -oP '\| `\K[^`]+(?=` \|)' "$AGENTS_INDEX" | sort)
+    INDEX_AGENTS=$(sed -nE 's/^.*\| `([^`]+)` \|.*$/\1/p' "$AGENTS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_AGENTS") <(echo "$INDEX_AGENTS"))
     if [ -n "$MISSING_FROM_INDEX" ]; then
@@ -236,7 +236,7 @@ if $MANIFEST_MODE && [ -d "$HOOKS_DIR" ]; then
     echo -e "${GREEN}✓ $manifest_count hooks from MANIFEST validated${NC}"
 elif [ -f "$HOOKS_INDEX" ] && [ -d "$HOOKS_DIR" ]; then
     DISK_HOOKS=$(find "$HOOKS_DIR" -maxdepth 1 -name "*.sh" ! -name "validate-resources-indexed.sh" -exec basename {} \; | sort)
-    INDEX_HOOKS=$(grep -oP '\| `\K[^`]+\.sh(?=` \|)' "$HOOKS_INDEX" | sort)
+    INDEX_HOOKS=$(sed -nE 's/^.*\| `([^`]+\.sh)` \|.*$/\1/p' "$HOOKS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_HOOKS") <(echo "$INDEX_HOOKS"))
     if [ -n "$MISSING_FROM_INDEX" ]; then
@@ -284,7 +284,7 @@ if $MANIFEST_MODE && [ -d "$DOCS_DIR" ]; then
 elif [ -f "$DOCS_INDEX" ] && [ -d "$DOCS_DIR" ]; then
     DISK_DOCS=$(find "$DOCS_DIR" -maxdepth 1 -name "*.md" \
         -exec basename {} .md \; | sort)
-    INDEX_DOCS=$(grep -oP '\| `\K[^`]+(?=` \|)' "$DOCS_INDEX" | sort)
+    INDEX_DOCS=$(sed -nE 's/^.*\| `([^`]+)` \|.*$/\1/p' "$DOCS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_DOCS") <(echo "$INDEX_DOCS"))
     if [ -n "$MISSING_FROM_INDEX" ]; then
@@ -330,7 +330,7 @@ if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
     echo -e "${GREEN}✓ $manifest_count scripts from MANIFEST validated${NC}"
 elif [ -f "$SCRIPTS_INDEX" ] && [ -d "$SCRIPTS_DIR" ]; then
     DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f -printf '%P\n' | sort)
-    INDEX_SCRIPTS=$(grep -oP '\| `\K[^`]+\.sh(?=` \|)' "$SCRIPTS_INDEX" | sort)
+    INDEX_SCRIPTS=$(sed -nE 's/^.*\| `([^`]+\.sh)` \|.*$/\1/p' "$SCRIPTS_INDEX" | sort)
 
     MISSING_FROM_INDEX=$(comm -23 <(echo "$DISK_SCRIPTS") <(echo "$INDEX_SCRIPTS"))
     if [ -n "$MISSING_FROM_INDEX" ]; then
