@@ -11,7 +11,6 @@ help:
 	@echo "  make test                      - Run tests"
 	@echo "  make backlog                   - Show project backlog (hides P99 nice-to-haves — use 'claude-toolkit backlog' for all)"
 	@echo "  make claude-toolkit-validate   - Run Claude toolkit validations"
-	@echo "  make claude-toolkit-sync       - Sync Claude toolkit to project"
 
 lint:
 	pre-commit run --all-files
@@ -23,10 +22,7 @@ backlog:
 	@claude-toolkit backlog --exclude-priority P99
 
 # Claude toolkit validation and sync
-.PHONY: claude-toolkit-validate claude-toolkit-sync
+.PHONY: claude-toolkit-validate
 
 claude-toolkit-validate:
 	bash .claude/scripts/validate-all.sh
-
-claude-toolkit-sync:
-	claude-toolkit sync
