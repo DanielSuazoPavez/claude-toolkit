@@ -1,0 +1,15 @@
+{
+  "version": "2.74.0",
+  "date": "2026-04-27",
+  "headline": "PermissionDenied hook — capture auto-mode classifier denials",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "New `log-permission-denied.sh` — logs auto-mode classifier denials to invocations.jsonl for downstream analytics (deny count, classifier latency, reason histograms). Pure logger, no matcher — fires on all tool denials.",
+        "PermissionDenied handler added to `settings.template.json` — new projects get it wired automatically on sync."
+      ]
+    }
+  ]
+}

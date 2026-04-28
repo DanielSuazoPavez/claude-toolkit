@@ -40,6 +40,7 @@
 .claude/hooks/secrets-guard.sh
 .claude/hooks/suggest-read-json.sh
 .claude/hooks/approve-safe-commands.sh
+.claude/hooks/log-permission-denied.sh
 .claude/hooks/session-start.sh
 .claude/hooks/lib/hook-utils.sh
 .claude/hooks/lib/detection-registry.sh

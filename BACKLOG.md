@@ -27,7 +27,9 @@
 
 ## P1 - High
 
-
+- **[TOOLKIT]** Evaluate syncing the CLI to raiz dist (`eval-cli-raiz-dist`)
+    - **scope**: `toolkit`, `cli`, `docs`
+    - **notes**: Evaluate whether and how to include `claude-toolkit` CLI in the raiz distribution profile. Open questions: (1) which subcommands make sense downstream — full CLI or a reduced subset (e.g. `backlog`, `docs`, `lessons search`, `validate` but not `sync`, `eval`, `send`); (2) install story — pip dependency, vendored script, or something else; (3) README / getting-started updates for raiz consumers who'd now have CLI access; (4) whether the CLI needs a consumer-vs-workshop mode flag or if subsetting at dist time is enough. Also consider the manifest model difference: base uses exclude-based (everything ships unless excluded), raiz uses explicit (only declared resources ship). CLI inclusion means declaring it explicitly in the raiz MANIFEST — decide granularity (whole `cli/` tree vs cherry-picked subcommands) and whether the explicit manifest model naturally handles the subsetting or needs a new pattern. Output: analysis doc with recommendation, then implementation if greenlit.
 
 
 - **[HOOKS]** SessionStart payload cap guardrails — pre-emptive validation + reactive truncation detection (`session-start-cap-guardrails`)
