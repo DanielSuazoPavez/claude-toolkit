@@ -19,7 +19,7 @@ The toolkit publishes two distribution profiles, each with its own templates (pr
 |---------|--------|--------|--------|
 | "Capture lessons" principle | Present | Omitted | Lessons system not synced to raiz yet — pending stabilization |
 | Toolkit GitHub link | Linked | Plain text | Raiz is standalone, no dependency on the repo |
-| Validation/Sync make targets | Present | Omitted | Raiz doesn't include validation scripts |
+| Validation/Sync make targets | Present | Omitted | Raiz includes validation scripts but not sync targets |
 | Missing-skills disclaimer | Absent | Present | Raiz resources may reference skills not in the subset |
 
 ### Resource Selection
@@ -41,5 +41,5 @@ Both profiles ship a `.claude/MANIFEST` whose first non-blank line is `# profile
 ## When Editing Templates
 
 - Changes to shared principles (e.g., "Plan before building") go in **both** templates
-- Changes involving lessons, sync, or validation go in **base only** until raiz catches up
+- Changes involving lessons or sync go in **base only** until raiz catches up
 - Always diff both templates after editing one — `diff dist/base/templates/CLAUDE.md.template dist/raiz/templates/CLAUDE.md.template`

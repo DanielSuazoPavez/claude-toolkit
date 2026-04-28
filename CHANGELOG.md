@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.72.13] - 2026-04-27 - ship validation scripts and schema to raiz consumers
+
+### Fixed
+- **dist**: Added `validate-all.sh` and its 6 sub-validators, `statusline-capture.sh`, and `detection-registry.schema.json` to raiz MANIFEST — the `setup-toolkit` skill calls `validate-all.sh` in Phase 3 but none of those scripts were shipping, so raiz consumers saw them all flagged as orphans by `setup-toolkit-diagnose.sh`.
+- **dist**: Removed `claude-toolkit-sync` make target from `Makefile.claude-toolkit` template — the command is interactive and not useful for agentic usage.
+
 ## [2.72.12] - 2026-04-27 - require bash 4+ via #!/usr/bin/env bash shebang sweep
 
 ### Fixed
