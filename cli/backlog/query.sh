@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Simple CLI to query BACKLOG.md (bash-only, jq required for schema lookups)
+# CLI to query and mutate BACKLOG.json
 #
 # Usage:
 #     backlog-query.sh                # List all tasks
@@ -9,13 +9,17 @@
 #     backlog-query.sh unblocked      # Planned/idea + no :depends-on relations
 #     backlog-query.sh blocked        # Has :depends-on relation or status blocked
 #     backlog-query.sh priority P1    # Filter by priority
-#     backlog-query.sh scope DS       # Filter by scope
+#     backlog-query.sh scope cli      # Filter by scope
 #     backlog-query.sh branch         # Tasks with branches
 #     backlog-query.sh relates-to <kind>  # Filter by relates-to kind
 #     backlog-query.sh source <pat>   # Filter by source pattern
 #     backlog-query.sh schema         # Show metadata schema
 #     backlog-query.sh summary        # Counts by priority and status
 #     backlog-query.sh validate       # Validate backlog format
+#     backlog-query.sh render         # Render BACKLOG.md from BACKLOG.json
+#     backlog-query.sh add --id ID --priority P0 --title "..." --scope cli[,hooks]
+#     backlog-query.sh move <id> <priority>
+#     backlog-query.sh remove <id>
 #     backlog-query.sh -v ...         # Verbose output (shows all fields)
 #     backlog-query.sh --path FILE    # Use specific backlog file
 #     backlog-query.sh --exclude-priority P99,P3  # Hide listed priorities
@@ -29,172 +33,74 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib/schema.sh"
 bsl_load_schema
 
-# Tab-separated parse_backlog emit columns:
-#   1=priority   2=id        3=status     4=category   5=title
-#   6=scope      7=branch    8=relates-to 9=plan       10=notes
-#   11=source    12=references
-#
-# scope, relates-to, references are comma-separated lists (post-tokenization).
-# relates-to tokens are <task-id>:<kind>; filters scan for ":<kind>" substrings.
-
-# Find BACKLOG.md in the current directory (where the user invoked the tool).
-# Override with --path FILE.
+# Find BACKLOG.json in the current directory.
 find_backlog() {
-    if [[ -f "BACKLOG.md" ]]; then
-        echo "BACKLOG.md"
+    if [[ -f "BACKLOG.json" ]]; then
+        echo "BACKLOG.json"
     else
-        echo "Error: BACKLOG.md not found in current directory (use --path FILE to override)" >&2
+        echo "Error: BACKLOG.json not found in current directory (use --path FILE to override)" >&2
         exit 1
     fi
 }
 
-# Parse backlog and emit one tab-separated row per task (12 columns).
-parse_backlog() {
-    local backlog="$1"
-    local priority=""
-    local has_task=false
+# Display tasks with count footer. Reads JSON lines from $1 (file path).
+display_tasks_from_file() {
+    local json_file="$1"
+    local verbose="$2"
+    local count
+    count=$(jq -s 'length' "$json_file")
 
-    emit_task() {
-        if [[ "$has_task" == true ]]; then
-            printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-                "$task_priority" "$task_id" "$task_status" "$task_category" \
-                "$task_title" "$task_scope" "$task_branch" "$task_relates" \
-                "$task_plan" "$task_notes" "$task_source" "$task_references"
-        fi
-    }
+    if [[ "$count" -eq 0 ]]; then
+        echo "No tasks found"
+        return
+    fi
 
-    while IFS= read -r line; do
-        # Priority headers (P0, P1, P2, P99, etc.)
-        if [[ "$line" =~ ^##\ (P[0-9]+) ]]; then
-            priority="${BASH_REMATCH[1]}"
-            continue
-        fi
+    jq -r --arg verbose "$verbose" '
+        def fmt:
+            "[" + (if .status then .status else "" end | . + "              " | .[0:14])
+            + "] [" + .priority + "] "
+            + .title
+            + (if .id then " (" + .id + ")" else "" end);
+        fmt,
+        if $verbose == "1" then
+            (if .scope and (.scope | length) > 0 then "    scope: " + (.scope | join(",")) else empty end),
+            (if .branch and .branch != "" then "    branch: " + .branch else empty end),
+            (if .relates_to and (.relates_to | length) > 0 then "    relates-to: " + (.relates_to | join(",")) else empty end),
+            (if .plan and .plan != "" then "    plan: " + .plan else empty end),
+            (if .source and .source != "" then "    source: " + .source else empty end),
+            (if .references and (.references | length) > 0 then "    references: " + (.references | join(",")) else empty end),
+            (if .notes and .notes != "" then "    notes: " + .notes else empty end)
+        else empty end
+    ' "$json_file"
 
-        # Non-priority sections stop task parsing
-        if [[ "$line" =~ ^##\  ]]; then
-            priority=""
-            continue
-        fi
-
-        # Skip lines outside priority sections
-        [[ -z "$priority" ]] && continue
-
-        # Task line: - **[CATEGORY]** Description (`id`)
-        if [[ "$line" =~ ^-\ \*\*\[([^\]]+)\]\*\*\ (.+)$ ]]; then
-            emit_task
-
-            task_priority="$priority"
-            task_category="${BASH_REMATCH[1]}"
-            local rest="${BASH_REMATCH[2]}"
-
-            # Extract id from (`id`) at end of title
-            if [[ "$rest" =~ ^(.*)[[:space:]]\(\`([^\`]+)\`\)$ ]]; then
-                task_title="${BASH_REMATCH[1]}"
-                task_id="${BASH_REMATCH[2]}"
-            else
-                task_title="$rest"
-                task_id=""
-            fi
-
-            task_status=""
-            task_scope=""
-            task_branch=""
-            task_relates=""
-            task_plan=""
-            task_notes=""
-            task_source=""
-            task_references=""
-            has_task=true
-            continue
-        fi
-
-        # Metadata lines (indented under a task)
-        if [[ "$has_task" == true ]]; then
-            if [[ "$line" =~ ^[[:space:]]+-\ \*\*status\*\*:\ (.*)$ ]]; then
-                local v="${BASH_REMATCH[1]}"
-                v="${v#\`}"; v="${v%\`}"
-                task_status="$v"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*scope\*\*:\ (.*)$ ]]; then
-                # Multi-value, comma-separated, per-value backticks (or legacy single-pair).
-                task_scope=$(bsl_split_multivalue "${BASH_REMATCH[1]}" | paste -sd, -)
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*branch\*\*:\ (.*)$ ]]; then
-                local v="${BASH_REMATCH[1]}"
-                v="${v#\`}"; v="${v%\`}"
-                task_branch="$v"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*relates-to\*\*:\ (.*)$ ]]; then
-                # Multi-value: each token is `<id>:<kind>`. Tokenize, comma-join.
-                task_relates=$(bsl_split_multivalue "${BASH_REMATCH[1]}" | paste -sd, -)
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*plan\*\*:\ (.*)$ ]]; then
-                local v="${BASH_REMATCH[1]}"
-                v="${v#\`}"; v="${v%\`}"
-                task_plan="$v"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*source\*\*:\ (.*)$ ]]; then
-                local v="${BASH_REMATCH[1]}"
-                v="${v#\`}"; v="${v%\`}"
-                task_source="$v"
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*references\*\*:\ (.*)$ ]]; then
-                task_references=$(bsl_split_multivalue "${BASH_REMATCH[1]}" | paste -sd, -)
-            elif [[ "$line" =~ ^[[:space:]]+-\ \*\*notes\*\*:\ (.+)$ ]]; then
-                task_notes="${BASH_REMATCH[1]}"
-            fi
-        fi
-
-    done < "$backlog"
-
-    # Output last task
-    emit_task
+    printf "\nFound %d task(s)\n" "$count"
 }
 
-# Format and display tasks (uses awk to handle empty tab-separated fields)
-display_tasks() {
-    local verbose="$1"
-    awk -F'\t' -v verbose="$verbose" '
-    {
-        count++
-        priority=$1; id=$2; status=$3; category=$4; title=$5
-        scope=$6; branch=$7; relates=$8; plan=$9; notes=$10
-        source_=$11; references=$12
-
-        id_display = (id != "") ? " ("id")" : ""
-        cat_display = (category != "") ? "["category"] " : ""
-        status_display = status
-
-        printf "[%14s] [%3s] %s%s%s\n", status_display, priority, cat_display, title, id_display
-
-        if (verbose == "1") {
-            if (scope != "") printf "    scope: %s\n", scope
-            if (branch != "") printf "    branch: %s\n", branch
-            if (relates != "") printf "    relates-to: %s\n", relates
-            if (plan != "") printf "    plan: %s\n", plan
-            if (source_ != "") printf "    source: %s\n", source_
-            if (references != "") printf "    references: %s\n", references
-            if (notes != "") printf "    notes: %s\n", notes
-        }
-    }
-    END {
-        if (count == 0) print "No tasks found"
-        else printf "\nFound %d task(s)\n", count
-    }'
-}
-
-# Display summary counts (uses awk to handle empty tab-separated fields)
 display_summary() {
-    awk -F'\t' '
-    {
-        total++
-        priorities[$1]++
-        status = ($3 != "") ? $3 : "-"
-        statuses[status]++
-    }
-    END {
-        if (total == 0) { print "No tasks found"; exit }
-        print "By priority:"
-        for (p in priorities) printf "  %s: %d\n", p, priorities[p]
-        print ""
-        print "By status:"
-        for (s in statuses) printf "  %s: %d\n", s, statuses[s]
-        printf "\nTotal: %d task(s)\n", total
-    }'
+    local backlog="$1"
+    local exclude_filter="$2"
+
+    local priority_order='["P0","P1","P2","P3","P99"]'
+
+    jq -r --argjson po "$priority_order" --arg ef "$exclude_filter" '
+        .tasks
+        | if $ef != "" then
+            ($ef | split(",") | map(ascii_upcase)) as $excl |
+            map(select(.priority as $p | $excl | index($p) | not))
+          else . end
+        | if length == 0 then "No tasks found" | halt_error(0) else . end
+        | group_by(.priority) as $groups
+        | ($groups | map({key: .[0].priority, value: length}) | from_entries) as $by_priority
+        | (map(.status // "-") | group_by(.) | map({key: .[0], value: length}) | from_entries) as $by_status
+        | length as $total
+        | "By priority:",
+          ($po[] | select($by_priority[.] != null) | "  " + . + ": " + ($by_priority[.] | tostring)),
+          "",
+          "By status:",
+          ($by_status | to_entries | sort_by(.key)[] | "  " + .key + ": " + (.value | tostring)),
+          "",
+          "Total: " + ($total | tostring) + " task(s)"
+    ' "$backlog"
 }
 
 # Display schema (renders from .claude/schemas/backlog/task.schema.json).
@@ -219,10 +125,15 @@ display_schema() {
                 values=$(bsl_status_values | paste -sd, - | sed 's/,/, /g')
                 printf "                values: %s\n" "$values"
                 ;;
-            scope|references)
-                printf "                format: \`a\`, \`b\`\n"
+            priority)
+                local values
+                values=$(bsl_priority_values | paste -sd, - | sed 's/,/, /g')
+                printf "                values: %s\n" "$values"
                 ;;
-            relates-to)
+            scope|references)
+                printf "                format: array of strings\n"
+                ;;
+            relates_to)
                 printf "                format: \`<task-id>:<kind>\`\n"
                 local kinds
                 kinds=$(bsl_relates_to_kinds | paste -sd, - | sed 's/,/, /g')
@@ -231,6 +142,212 @@ display_schema() {
         esac
         echo ""
     done < <(bsl_field_names)
+}
+
+# Render BACKLOG.md from BACKLOG.json
+render_backlog() {
+    local backlog="$1"
+    local output="${2:-BACKLOG.md}"
+
+    local priority_labels='{"P0":"Critical","P1":"High","P2":"Medium","P3":"Low","P99":"Nice to Have"}'
+    local priority_order='["P0","P1","P2","P3","P99"]'
+
+    jq -r --argjson labels "$priority_labels" --argjson po "$priority_order" '
+        "<!-- Auto-generated from BACKLOG.json — do not edit directly -->",
+        "",
+        "# Project Backlog",
+        "",
+        "## Current Goal",
+        "",
+        .current_goal,
+        "",
+        "## Scope Definitions",
+        "",
+        "| Scope | Description |",
+        "|-------|-------------|",
+        (.scopes | to_entries[] | "| \(.key) | \(.value) |"),
+        "",
+        "---",
+        "",
+        (
+            $po[] as $p |
+            (.tasks | map(select(.priority == $p))) as $group |
+            if ($group | length) > 0 then
+                "## \($p) - \($labels[$p])",
+                "",
+                ($group[] |
+                    "- **\(.title)** (`\(.id)`)",
+                    (if .status then "    - **status**: `\(.status)`" else empty end),
+                    (if .scope and (.scope | length) > 0 then "    - **scope**: " + ([.scope[] | "`\(.)`"] | join(", ")) else empty end),
+                    (if .branch and .branch != "" then "    - **branch**: `\(.branch)`" else empty end),
+                    (if .relates_to and (.relates_to | length) > 0 then "    - **relates_to**: " + ([.relates_to[] | "`\(.)`"] | join(", ")) else empty end),
+                    (if .plan and .plan != "" then "    - **plan**: `\(.plan)`" else empty end),
+                    (if .source and .source != "" then "    - **source**: `\(.source)`" else empty end),
+                    (if .references and (.references | length) > 0 then "    - **references**: " + ([.references[] | "`\(.)`"] | join(", ")) else empty end),
+                    (if .notes and .notes != "" then "    - **notes**: \(.notes)" else empty end),
+                    ""
+                ),
+                "---",
+                ""
+            else empty end
+        )
+    ' "$backlog" > "$output"
+
+    local count
+    count=$(jq '.tasks | length' "$backlog")
+    echo "Rendered $count tasks to $output" >&2
+}
+
+# Write JSON back to file (tmp + mv for atomicity)
+write_backlog() {
+    local backlog="$1"
+    local new_json="$2"
+    echo "$new_json" > "${backlog}.tmp" && mv "${backlog}.tmp" "$backlog"
+}
+
+# --- Mutation: add ---
+cmd_add() {
+    local backlog="$1"
+    shift
+    local id="" priority="" title="" scope="" notes="" status="" branch="" source="" plan=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --id) shift; id="${1:-}" ;;
+            --priority) shift; priority="${1:-}" ;;
+            --title) shift; title="${1:-}" ;;
+            --scope) shift; scope="${1:-}" ;;
+            --notes) shift; notes="${1:-}" ;;
+            --status) shift; status="${1:-}" ;;
+            --branch) shift; branch="${1:-}" ;;
+            --source) shift; source="${1:-}" ;;
+            --plan) shift; plan="${1:-}" ;;
+            *) echo "Unknown option for add: $1" >&2; exit 1 ;;
+        esac
+        shift
+    done
+
+    if [[ -z "$id" || -z "$priority" || -z "$title" || -z "$scope" ]]; then
+        echo "Usage: backlog add --id ID --priority P0 --title \"...\" --scope cli[,hooks] [--notes \"...\"] [--status planned]" >&2
+        exit 1
+    fi
+
+    # Default status to idea
+    status="${status:-idea}"
+    priority="${priority^^}"
+
+    # Validate priority
+    if ! bsl_priority_values | grep -qx "$priority"; then
+        echo "Error: invalid priority '$priority' (valid: $(bsl_priority_values | paste -sd, -))" >&2
+        exit 1
+    fi
+
+    # Validate id uniqueness
+    if jq -e --arg id "$id" '.tasks[] | select(.id == $id)' "$backlog" >/dev/null 2>&1; then
+        echo "Error: id '$id' already exists" >&2
+        exit 1
+    fi
+
+    # Validate scope values against scopes object
+    local IFS=','
+    local scope_parts
+    read -ra scope_parts <<< "$scope"
+    for s in "${scope_parts[@]}"; do
+        if ! jq -e --arg s "$s" '.scopes[$s]' "$backlog" >/dev/null 2>&1; then
+            echo "Error: scope '$s' not in scopes definition" >&2
+            exit 1
+        fi
+    done
+
+    # Build scope array JSON
+    local scope_json
+    scope_json=$(printf '%s\n' "${scope_parts[@]}" | jq -R . | jq -s .)
+
+    local new_json
+    new_json=$(jq \
+        --arg id "$id" \
+        --arg priority "$priority" \
+        --arg title "$title" \
+        --argjson scope "$scope_json" \
+        --arg notes "$notes" \
+        --arg status "$status" \
+        --arg branch "$branch" \
+        --arg source_ "$source" \
+        --arg plan "$plan" \
+        '.tasks += [{id: $id, priority: $priority, title: $title, scope: $scope, status: $status}
+            + (if $branch != "" then {branch: $branch} else {} end)
+            + (if $source_ != "" then {source: $source_} else {} end)
+            + (if $plan != "" then {plan: $plan} else {} end)
+            + (if $notes != "" then {notes: $notes} else {} end)]' "$backlog")
+
+    write_backlog "$backlog" "$new_json"
+    echo "Added task '$id' at $priority"
+}
+
+# --- Mutation: move ---
+cmd_move() {
+    local backlog="$1"
+    local id="${2:-}"
+    local new_priority="${3:-}"
+
+    if [[ -z "$id" || -z "$new_priority" ]]; then
+        echo "Usage: backlog move <id> <priority>" >&2
+        exit 1
+    fi
+
+    new_priority="${new_priority^^}"
+
+    if ! bsl_priority_values | grep -qx "$new_priority"; then
+        echo "Error: invalid priority '$new_priority'" >&2
+        exit 1
+    fi
+
+    if ! jq -e --arg id "$id" '.tasks[] | select(.id == $id)' "$backlog" >/dev/null 2>&1; then
+        echo "Error: task '$id' not found" >&2
+        exit 1
+    fi
+
+    local new_json
+    new_json=$(jq --arg id "$id" --arg p "$new_priority" '
+        (.tasks | map(select(.id != $id))) as $others |
+        (.tasks[] | select(.id == $id) | .priority = $p) as $task |
+        .tasks = ($others + [$task])
+    ' "$backlog")
+
+    write_backlog "$backlog" "$new_json"
+    echo "Moved task '$id' to $new_priority"
+}
+
+# --- Mutation: remove ---
+cmd_remove() {
+    local backlog="$1"
+    local id="${2:-}"
+
+    if [[ -z "$id" ]]; then
+        echo "Usage: backlog remove <id>" >&2
+        exit 1
+    fi
+
+    if ! jq -e --arg id "$id" '.tasks[] | select(.id == $id)' "$backlog" >/dev/null 2>&1; then
+        echo "Error: task '$id' not found" >&2
+        exit 1
+    fi
+
+    # Warn if other tasks reference this id in relates_to
+    local refs
+    refs=$(jq -r --arg id "$id" '
+        [.tasks[] | select(.relates_to != null) |
+         select(.relates_to[] | startswith($id + ":")) | .id] | join(", ")
+    ' "$backlog")
+    if [[ -n "$refs" ]]; then
+        echo "Warning: task(s) reference '$id' in relates_to: $refs" >&2
+    fi
+
+    local new_json
+    new_json=$(jq --arg id "$id" '.tasks = [.tasks[] | select(.id != $id)]' "$backlog")
+
+    write_backlog "$backlog" "$new_json"
+    echo "Removed task '$id'"
 }
 
 # Main
@@ -245,7 +362,7 @@ main() {
         case "$1" in
             -v|--verbose) verbose=1 ;;
             -h|--help|help)
-                head -25 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
+                head -28 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
                 exit 0
                 ;;
             --path)
@@ -286,36 +403,22 @@ main() {
         backlog="$(find_backlog)"
     fi
 
-    # Build an awk filter that drops any row whose priority is in the exclude list.
-    # Applied as a pre-filter before subcommand filters, so it composes with all of them
-    # (including summary, which consumes parse_backlog directly).
-    local exclude_cmd="cat"
+    # Build jq exclude filter
+    local exclude_jq=""
     if [[ -n "$exclude_priority" ]]; then
         local upper="${exclude_priority^^}"
-        # Turn "P99,P3" into awk: $1 != "P99" && $1 != "P3"
-        local awk_expr=""
-        local IFS=','
-        # shellcheck disable=SC2206
-        local parts=($upper)
-        for p in "${parts[@]}"; do
-            [[ -z "$p" ]] && continue
-            if [[ -z "$awk_expr" ]]; then
-                awk_expr="\$1 != \"$p\""
-            else
-                awk_expr="$awk_expr && \$1 != \"$p\""
-            fi
-        done
-        if [[ -n "$awk_expr" ]]; then
-            exclude_cmd="awk -F'\t' '$awk_expr'"
-        fi
+        exclude_jq="$upper"
     fi
 
-    local filter_cmd="cat"
+    # Temp file for filtered results
+    _QUERY_TMPFILE=$(mktemp)
+    trap 'rm -f "$_QUERY_TMPFILE"' EXIT
+    local tmpfile="$_QUERY_TMPFILE"
 
     case "${args[0]:-}" in
         "")
-            # All tasks
-            filter_cmd="cat"
+            jq -c ".tasks[] $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         id)
             local task_id="${args[1]:-}"
@@ -323,8 +426,9 @@ main() {
                 echo "Usage: $0 id <task-id>" >&2
                 exit 1
             fi
-            filter_cmd="awk -F'\t' '\$2 == \"$task_id\"'"
-            verbose=1  # always verbose for id lookup
+            jq -c --arg id "$task_id" ".tasks[] | select(.id == \$id) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            verbose=1
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         status)
             local status="${args[1]:-}"
@@ -332,15 +436,16 @@ main() {
                 echo "Usage: $0 status <status-value>" >&2
                 exit 1
             fi
-            filter_cmd="awk -F'\t' '\$3 == \"$status\"'"
+            jq -c --arg s "$status" ".tasks[] | select(.status == \$s) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         unblocked)
-            # planned or idea, no :depends-on relation in column 8
-            filter_cmd="awk -F'\t' '(\$3 == \"planned\" || \$3 == \"idea\") && \$8 !~ /:depends-on(,|$)/'"
+            jq -c ".tasks[] | select((.status == \"planned\" or .status == \"idea\") and ((.relates_to // []) | any(endswith(\":depends-on\")) | not)) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         blocked)
-            # has :depends-on relation in column 8, or status is blocked
-            filter_cmd="awk -F'\t' '\$8 ~ /:depends-on(,|$)/ || \$3 == \"blocked\"'"
+            jq -c ".tasks[] | select(((.relates_to // []) | any(endswith(\":depends-on\"))) or .status == \"blocked\") $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         priority)
             local prio="${args[1]:-}"
@@ -348,8 +453,9 @@ main() {
                 echo "Usage: $0 priority <P0|P1|P2|P3|P99>" >&2
                 exit 1
             fi
-            prio="${prio^^}"  # uppercase
-            filter_cmd="awk -F'\t' '\$1 == \"$prio\"'"
+            prio="${prio^^}"
+            jq -c --arg p "$prio" ".tasks[] | select(.priority == \$p) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         scope)
             local scope="${args[1]:-}"
@@ -357,10 +463,12 @@ main() {
                 echo "Usage: $0 scope <scope-value>" >&2
                 exit 1
             fi
-            filter_cmd="awk -F'\t' '\$6 ~ /$scope/'"
+            jq -c --arg s "$scope" ".tasks[] | select(.scope | index(\$s)) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         branch)
-            filter_cmd="awk -F'\t' '\$7 != \"\"'"
+            jq -c ".tasks[] | select(.branch != null and .branch != \"\") $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         relates-to)
             local kind="${args[1]:-}"
@@ -368,7 +476,8 @@ main() {
                 echo "Usage: $0 relates-to <kind>" >&2
                 exit 1
             fi
-            filter_cmd="awk -F'\t' '\$8 ~ /:$kind(,|$)/'"
+            jq -c --arg k ":$kind" ".tasks[] | select((.relates_to // []) | any(endswith(\$k))) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         source)
             local src_pattern="${args[1]:-}"
@@ -376,21 +485,29 @@ main() {
                 echo "Usage: $0 source <pattern>" >&2
                 exit 1
             fi
-            # Escape forward slashes for the awk regex literal (paths often
-            # contain '/'). awk regex doesn't support \/ inside /.../, so use
-            # the index() approach for fixed-string matching.
-            local awk_pattern_escaped="${src_pattern//\\/\\\\}"
-            awk_pattern_escaped="${awk_pattern_escaped//\"/\\\"}"
-            filter_cmd="awk -F'\t' 'index(\$11, \"$awk_pattern_escaped\") > 0'"
+            jq -c --arg p "$src_pattern" ".tasks[] | select((.source // \"\") | contains(\$p)) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
+            display_tasks_from_file "$tmpfile" "$verbose"
             ;;
         summary)
-            parse_backlog "$backlog" | eval "$exclude_cmd" | display_summary
-            return
+            display_summary "$backlog" "$exclude_jq"
             ;;
         validate)
             local script_dir
             script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
             exec "$script_dir/validate.sh" "$backlog"
+            ;;
+        render)
+            local output="${args[1]:-BACKLOG.md}"
+            render_backlog "$backlog" "$output"
+            ;;
+        add)
+            cmd_add "$backlog" "${args[@]:1}"
+            ;;
+        move)
+            cmd_move "$backlog" "${args[1]:-}" "${args[2]:-}"
+            ;;
+        remove)
+            cmd_remove "$backlog" "${args[1]:-}"
             ;;
         *)
             echo "Unknown command: ${args[0]}" >&2
@@ -398,8 +515,28 @@ main() {
             exit 1
             ;;
     esac
+}
 
-    parse_backlog "$backlog" | eval "$exclude_cmd" | eval "$filter_cmd" | display_tasks "$verbose"
+# Build a jq pipe segment for priority exclusion
+build_exclude_filter() {
+    local exclude="$1"
+    if [[ -z "$exclude" ]]; then
+        echo ""
+        return
+    fi
+    # Turn "P99,P3" into jq: | select(.priority != "P99" and .priority != "P3")
+    local parts
+    IFS=',' read -ra parts <<< "$exclude"
+    local conditions=""
+    for p in "${parts[@]}"; do
+        [[ -z "$p" ]] && continue
+        if [[ -z "$conditions" ]]; then
+            conditions=".priority != \"$p\""
+        else
+            conditions="$conditions and .priority != \"$p\""
+        fi
+    done
+    echo "| select($conditions)"
 }
 
 main "$@"

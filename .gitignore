@@ -19,6 +19,9 @@ __pycache__/
 # Per-project learned lessons (generated, not tracked)
 .claude/learned.json
 
+# Rendered from BACKLOG.json — do not edit directly
+BACKLOG.md
+
 # Claude session artifacts
 output/claude-toolkit/
 .claude/settings.local.json
