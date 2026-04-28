@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Notes
+- **exploration**: Completed `re-explore-web-ecosystem` — two rounds across GitHub, blogs, awesome-lists, and marketplaces. 25+ repos/resources reviewed, 3 curated resource entries added (design.md, Crest agent, aipatternbook.com). Deep dives into VILA-Lab (CC architecture paper) and Crosley (95-hook architecture).
+- **backlog**: 4 new P0/P1 tasks from exploration findings (log-bash-commands, backlog-json-source, hooks-config-driven, sync-profiles). Full triage pass — reprioritized and reordered across all tiers.
+
 ## [2.75.0] - 2026-04-28 - SessionStart payload cap guardrails
 
 ### Added
