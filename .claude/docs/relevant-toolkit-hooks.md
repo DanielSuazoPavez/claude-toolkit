@@ -26,6 +26,7 @@ For credential / path / capability detection, **consume the shared registry** in
 |---|---|---|
 | `PreToolUse` | Matcher is tool-name regex (`Bash`, `Write\|Edit`, `Read\|Grep`) | Yes — dispatcher per tool group |
 | `PermissionRequest` | Matcher is tool-name regex | Not grouped (different lifecycle) |
+| `PermissionDenied` | No matcher (all tools) | Not grouped (pure logger) |
 | `SessionStart` | Singleton, no matcher | Not grouped |
 
 The harness spawns one bash process per registered hook per matching tool call. For N hooks registered on `Bash`, an `ls` call pays N × (bash startup + `hook-utils.sh` sourcing + jq parse). The grouped dispatcher folds N hook registrations into one process; match/check adds work-avoidance on top of that amortization.

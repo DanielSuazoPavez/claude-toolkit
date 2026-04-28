@@ -166,6 +166,16 @@
           }
         ]
       }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/log-permission-denied.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

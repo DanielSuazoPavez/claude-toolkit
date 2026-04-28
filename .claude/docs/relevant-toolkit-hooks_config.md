@@ -46,6 +46,11 @@ Reference for hook triggers, environment variables, and customization options.
 |------|---------|
 | `git-safety.sh` | Blocks unsafe git operations: protected branches + remote-destructive commands |
 
+### PermissionDenied
+| Hook | Purpose |
+|------|---------|
+| `log-permission-denied.sh` | Logs classifier denials into invocations.jsonl for analytics |
+
 ---
 
 ## 3. Environment Variables

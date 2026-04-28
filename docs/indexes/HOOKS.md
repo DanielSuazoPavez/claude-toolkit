@@ -26,7 +26,8 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `enforce-uv-run.sh` | stable | Bash via dispatcher | — | Blocks direct `python`/`python3` calls, suggests `uv run python` |
 | `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | `lessons` (injection only) | Surfaces relevant active lessons as additionalContext based on tool context keywords. Context logging runs independently (gated by `traceability`). |
-| `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | Auto-approves chained commands when all subcommands match safe prefixes |
+| `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | — | Auto-approves chained commands when all subcommands match safe prefixes |
+| `log-permission-denied.sh` | stable | PermissionDenied | `traceability` | Pure logger — captures auto-mode classifier denials into invocations.jsonl for downstream analytics |
 | `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 8 guards |
 | `grouped-read-guard.sh` | stable | PreToolUse (Read) | Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
@@ -221,6 +222,18 @@ Surfaces relevant active lessons as additionalContext based on tool context keyw
 
 Auto-approves chained Bash commands when all subcommands match safe prefixes from settings.json permissions.
 
+### log-permission-denied.sh
+
+**Trigger**: PermissionDenied
+
+Pure logger for auto-mode classifier denials. No stdout output — denial stands.
+
+- Captures: all tool denials (no matcher filter)
+- Logs: one `kind: invocation` row per denial to `invocations.jsonl` (via EXIT trap)
+- The invocation row embeds full PermissionDenied stdin (tool_name, tool_input, permission_mode, tool_use_id)
+- OUTCOME: `pass` — the hook succeeded at its logging job; denial is conveyed by `hook_event=PermissionDenied`
+- Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1`
+
 - Splits commands on `&&`, `||`, `;`, `|` (respects quotes)
 - Checks each subcommand against hardcoded safe prefixes (ls, git status, make, etc.)
 - All match → auto-approve via `permissionDecision: "allow"`
@@ -246,6 +259,7 @@ Hooks are configured in `.claude/settings.json`. See that file for the current h
 | `SessionStart` | Session begins | Loading context, setup |
 | `PreToolUse` | Before tool execution | Validation, blocking |
 | `PostToolUse` | After tool execution | Cleanup, side effects |
+| `PermissionDenied` | After auto-mode classifier denies a tool | Logging, analytics |
 | `Stop` | Agent finishes responding | Transcript analysis, follow-up prompts |
 
 ### Hook Environment
