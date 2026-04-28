@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: enforce make commands instead of direct pytest/pre-commit
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for evaluation-query.sh
 #
 # Usage:
@@ -36,7 +36,7 @@ setup_test_env() {
     echo "# Mock Skill" > "$TEMP_DIR/.claude/skills/mock-skill/SKILL.md"
 
     mkdir -p "$TEMP_DIR/.claude/hooks"
-    echo "#!/bin/bash" > "$TEMP_DIR/.claude/hooks/mock-hook.sh"
+    echo "#!/usr/bin/env bash" > "$TEMP_DIR/.claude/hooks/mock-hook.sh"
 
     mkdir -p "$TEMP_DIR/.claude/docs"
     echo "# Mock Doc" > "$TEMP_DIR/.claude/docs/mock-doc.md"

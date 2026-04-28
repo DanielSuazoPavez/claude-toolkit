@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validates that all hooks source the shared library lib/hook-utils.sh
 #
 # MANIFEST-aware: When .claude/MANIFEST exists and no index files are present

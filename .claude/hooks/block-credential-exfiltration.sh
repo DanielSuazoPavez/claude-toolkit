@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Hook: block-credential-exfiltration
 # Event: PreToolUse (Bash)
 # Purpose: Block commands whose arguments contain credential-shaped tokens.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validates that approve-safe-commands.sh prefixes stay in sync with settings.json permissions
 #
 # Parses settings.json for Bash(...) permission entries, extracts prefixes,

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Runs all validation scripts and reports combined pass/fail
 #
 # Usage:

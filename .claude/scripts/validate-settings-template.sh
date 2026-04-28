@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validates that settings.template.json stays in sync with settings.json
 #
 # Checks:

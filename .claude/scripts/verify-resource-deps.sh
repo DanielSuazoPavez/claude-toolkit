@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies that cross-references between resources point to things that exist
 #
 # MANIFEST-aware: When .claude/MANIFEST exists (target projects), only checks

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for setup-toolkit-diagnose.sh
 #
 # Usage:

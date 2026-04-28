@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for claude-toolkit CLI commands
 #
 # Usage:
@@ -44,7 +44,7 @@ setup_test_env() {
 
     # Create test resources
     echo "# Test Skill" > "$TEMP_DIR/toolkit/.claude/skills/test-skill/SKILL.md"
-    echo "#!/bin/bash" > "$TEMP_DIR/toolkit/.claude/hooks/test-hook.sh"
+    echo "#!/usr/bin/env bash" > "$TEMP_DIR/toolkit/.claude/hooks/test-hook.sh"
     echo "# Test Doc" > "$TEMP_DIR/toolkit/.claude/docs/test-doc.md"
     echo "# Test Agent" > "$TEMP_DIR/toolkit/.claude/agents/test-agent.md"
 

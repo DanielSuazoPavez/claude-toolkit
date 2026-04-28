@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: block dangerous bash commands
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

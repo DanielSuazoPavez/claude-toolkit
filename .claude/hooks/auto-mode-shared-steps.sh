@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Hook: auto-mode-shared-steps
 # Event: PreToolUse (Bash)
 # Purpose: Re-impose a human checkpoint for shared/publishing actions under auto-mode.

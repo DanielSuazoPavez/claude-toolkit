@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Hook: git-safety
 # Event: PreToolUse (EnterPlanMode, Bash)
 # Purpose: Block unsafe git operations — protected branch enforcement + remote-destructive commands

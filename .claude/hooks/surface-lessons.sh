@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: surface relevant lessons based on tool context
 #
 # Settings.json:

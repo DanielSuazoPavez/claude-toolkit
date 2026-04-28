@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validate .claude/hooks/lib/detection-registry.json against its schema.
 #
 # We don't pull in a real JSON Schema validator (no new deps); instead this

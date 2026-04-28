@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for validate-hook-utils.sh
 #
 # Usage:
@@ -42,7 +42,7 @@ teardown_test_env() {
 create_hook_with_lib() {
     local name="$1"
     cat > "$TEMP_DIR/.claude/hooks/$name" << 'HOOK'
-#!/bin/bash
+#!/usr/bin/env bash
 source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "test" "PreToolUse"
 hook_require_tool "Bash"
@@ -54,7 +54,7 @@ HOOK
 create_hook_without_lib() {
     local name="$1"
     cat > "$TEMP_DIR/.claude/hooks/$name" << 'HOOK'
-#!/bin/bash
+#!/usr/bin/env bash
 INPUT=$(cat)
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
 exit 0

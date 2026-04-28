@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Profile detection — identifies which distribution a project was built from.
 #
 # Prints one of: toolkit | base | raiz | unknown

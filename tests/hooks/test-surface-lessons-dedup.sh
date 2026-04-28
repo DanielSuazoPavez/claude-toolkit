@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies intra-session dedup in surface-lessons.sh:
 # a lesson with a session_id row already present in hooks.db.surface_lessons_context
 # (populated downstream by the claude-sessions indexer) is excluded on the next firing.

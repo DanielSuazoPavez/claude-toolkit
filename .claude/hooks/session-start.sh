@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # SessionStart hook: inject essential docs at session start
 #
 # Settings.json:

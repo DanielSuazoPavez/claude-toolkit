@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies hook-utils.sh extracts .tool_use_id / .agent_id from stdin and
 # writes the bare id into invocations.jsonl call_id (tool-vs-agent is
 # derived from hook_event).

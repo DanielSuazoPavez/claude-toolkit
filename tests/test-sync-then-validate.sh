@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # End-to-end: sync the real toolkit into a fresh fixture, then run validators
 # and the diagnose script as a consumer would.
 #

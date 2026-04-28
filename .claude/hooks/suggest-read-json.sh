@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: block Read on large JSON files, point at the read-json jq reference
 #
 # Settings.json:

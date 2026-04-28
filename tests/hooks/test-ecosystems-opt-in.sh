@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies the ecosystems opt-in gating:
 #   - hook_feature_enabled returns correct exit codes for all states
 #   - traceability=0 suppresses JSONL writes in _hook_log_jsonl

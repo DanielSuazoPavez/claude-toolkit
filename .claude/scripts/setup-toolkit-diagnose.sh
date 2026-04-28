@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup-toolkit diagnostic — runs all configuration checks in one pass.
 #
 # Performs 8 checks comparing project configuration against templates:

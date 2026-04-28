@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: enforce uv run for Python commands (venv not activated)
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

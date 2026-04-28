@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for verify-resource-deps.sh
 #
 # Usage:
@@ -73,7 +73,7 @@ EOF
 
 create_hook() {
     local name="$1"
-    local body="${2:-#!/bin/bash}"
+    local body="${2:-#!/usr/bin/env bash}"
     mkdir -p "$TEMP_DIR/.claude/hooks"
     cat > "$TEMP_DIR/.claude/hooks/$name" << EOF
 $body
@@ -89,7 +89,7 @@ create_settings() {
 create_script() {
     local name="$1"
     mkdir -p "$TEMP_DIR/.claude/scripts"
-    echo "#!/bin/bash" > "$TEMP_DIR/.claude/scripts/$name.sh"
+    echo "#!/usr/bin/env bash" > "$TEMP_DIR/.claude/scripts/$name.sh"
 }
 
 create_manifest() {
@@ -173,7 +173,7 @@ assert_output_not_contains() {
 report_section "=== 1. settings.json → hooks: valid commands ==="
 
 setup_test_env
-create_hook "my-hook.sh" "#!/bin/bash\necho hook"
+create_hook "my-hook.sh" "#!/usr/bin/env bash\necho hook"
 create_settings '{"hooks":{"PreToolUse":[{"command":"bash .claude/hooks/my-hook.sh"}]}}'
 OUTPUT=$(run_verify)
 assert_exit_0 "Valid hook commands → exit 0"
@@ -209,7 +209,7 @@ report_section "=== 2. Hooks → skills: valid ref ==="
 
 setup_test_env
 create_skill "my-skill"
-create_hook "test-hook.sh" '#!/bin/bash\n# Use `/my-skill` here'
+create_hook "test-hook.sh" '#!/usr/bin/env bash\n# Use `/my-skill` here'
 OUTPUT=$(run_verify)
 assert_exit_0 "Valid skill ref in hook → exit 0"
 assert_output_contains "Reports valid skill refs" "skill references in hooks are valid" "$OUTPUT"
@@ -222,7 +222,7 @@ report_section "=== 2. Hooks → skills: broken ref ==="
 setup_test_env
 mkdir -p "$TEMP_DIR/.claude/hooks"
 cat > "$TEMP_DIR/.claude/hooks/test-hook.sh" << 'HOOKEOF'
-#!/bin/bash
+#!/usr/bin/env bash
 # Use `/missing-skill` here
 HOOKEOF
 OUTPUT=$(run_verify)
@@ -237,7 +237,7 @@ report_section "=== 2. Hooks → skills: builtin command ignored ==="
 setup_test_env
 mkdir -p "$TEMP_DIR/.claude/hooks"
 cat > "$TEMP_DIR/.claude/hooks/test-hook.sh" << 'HOOKEOF'
-#!/bin/bash
+#!/usr/bin/env bash
 # Use `/clear` and `/help` here
 HOOKEOF
 OUTPUT=$(run_verify)
@@ -487,7 +487,7 @@ teardown_test_env
 report_section "=== Integration: all valid (happy path) ==="
 
 setup_test_env
-create_hook "full-hook.sh" '#!/bin/bash\n# Use `/full-skill` here'
+create_hook "full-hook.sh" '#!/usr/bin/env bash\n# Use `/full-skill` here'
 create_skill "full-skill" 'Use subagent_type=full-agent and `.claude/scripts/full-helper.sh` and `/other-skill`'
 create_skill "other-skill"
 create_agent "full-agent"

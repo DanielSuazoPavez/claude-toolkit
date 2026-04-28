@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for validate-safe-commands-sync.sh
 #
 # Targets the extract_hook_prefixes() helper specifically — it pulls quoted
@@ -59,7 +59,7 @@ write_hook() {
     local file="$1"
     shift
     {
-        echo '#!/bin/bash'
+        echo '#!/usr/bin/env bash'
         echo 'SAFE_PREFIXES=('
         for p in "$@"; do
             printf '    "%s"\n' "$p"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Performance harness for the detection-registry rollout
 #
 # Measures per-invocation duration of the three migrated hooks

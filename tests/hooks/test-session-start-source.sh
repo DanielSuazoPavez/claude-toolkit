@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies hook-utils.sh extracts stdin `.source` on SessionStart events and
 # writes it into invocations.jsonl `source` for downstream sub-session analytics.
 # Also verifies the structured session-start-context.jsonl row (git_branch,

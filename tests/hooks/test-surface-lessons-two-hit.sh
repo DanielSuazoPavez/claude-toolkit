@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies the 2+ keyword-hit threshold in surface-lessons.sh:
 #   - A single context-word match against a tag's keywords does NOT surface.
 #   - Two distinct context-word matches against the same tag DO surface.

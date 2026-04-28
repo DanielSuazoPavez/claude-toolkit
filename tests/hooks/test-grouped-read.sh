@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Smoke-tests for grouped-read-guard.sh — folds secrets-guard (Read branch)
 # and suggest-read-json into one Read-matcher process. Grep stays on
 # standalone secrets-guard.sh (not folded here).

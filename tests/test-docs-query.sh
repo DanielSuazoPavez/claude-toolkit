@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for cli/docs/query.sh (claude-toolkit docs command)
 #
 # Usage:

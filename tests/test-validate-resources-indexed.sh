@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for validate-resources-indexed.sh
 #
 # Usage:
@@ -53,14 +53,14 @@ create_synced_env() {
     echo "# Agent A" > "$TEMP_DIR/.claude/agents/agent-a.md"
 
     mkdir -p "$TEMP_DIR/.claude/hooks"
-    echo "#!/bin/bash" > "$TEMP_DIR/.claude/hooks/hook-a.sh"
+    echo "#!/usr/bin/env bash" > "$TEMP_DIR/.claude/hooks/hook-a.sh"
 
     mkdir -p "$TEMP_DIR/.claude/docs"
     echo "# Doc A" > "$TEMP_DIR/.claude/docs/doc-a.md"
 
     mkdir -p "$TEMP_DIR/.claude/scripts"
     cp "$VALIDATE_SCRIPT" "$TEMP_DIR/.claude/scripts/"
-    echo "#!/bin/bash" > "$TEMP_DIR/.claude/scripts/helper.sh"
+    echo "#!/usr/bin/env bash" > "$TEMP_DIR/.claude/scripts/helper.sh"
 
     # Index files matching all resources
     mkdir -p "$TEMP_DIR/docs/indexes"
@@ -258,7 +258,7 @@ test_mixed_errors() {
     create_synced_env
 
     # Missing hook from index
-    echo "#!/bin/bash" > "$TEMP_DIR/.claude/hooks/hook-b.sh"
+    echo "#!/usr/bin/env bash" > "$TEMP_DIR/.claude/hooks/hook-b.sh"
 
     expect_failure "exits 1 with multiple errors"
     expect_output "reports missing hook" "Not indexed in HOOKS.md"
