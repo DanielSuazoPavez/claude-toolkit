@@ -28,6 +28,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
 | `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | `lessons` (injection only) | Surfaces relevant active lessons as additionalContext based on tool context keywords. Context logging runs independently (gated by `traceability`). |
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | — | Auto-approves chained commands when all subcommands match safe prefixes |
+| `log-tool-uses.sh` | stable | PostToolUse | `traceability` | Pure logger — records every tool invocation (all tools, no matcher) to invocations.jsonl with duration_ms and tool_response for downstream idle-time classification |
 | `log-permission-denied.sh` | stable | PermissionDenied | `traceability` | Pure logger — captures auto-mode classifier denials into invocations.jsonl for downstream analytics |
 | `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 8 guards |
 | `grouped-read-guard.sh` | stable | PreToolUse (Read) | Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks |
@@ -234,6 +235,19 @@ Surfaces relevant active lessons as additionalContext based on tool context keyw
 **Trigger**: PermissionRequest (Bash)
 
 Auto-approves chained Bash commands when all subcommands match safe prefixes from settings.json permissions.
+
+### log-tool-uses.sh
+
+**Trigger**: PostToolUse
+
+Pure logger for all tool invocations. No stdout output, no matcher — fires for every tool.
+
+- Captures: all tool uses (Bash, Read, Write, Edit, Grep, Glob, ToolSearch, Agent, etc.)
+- Logs: one `kind: invocation` row per tool use to `invocations.jsonl` (via EXIT trap)
+- The invocation row embeds full PostToolUse stdin including `duration_ms` (tool execution time) and `tool_response` (output/result)
+- OUTCOME: `pass` — the hook succeeded at its logging job
+- Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1`
+- Downstream: `duration_ms` enables idle-time classification in claude-sessions — gap between consecutive tool calls minus execution duration = model thinking time
 
 ### log-permission-denied.sh
 
