@@ -24,6 +24,15 @@ MISSING=0
 echo "Checking external tool dependencies..."
 echo ""
 
+# --- Platform prerequisite: bash 4+ ---
+BASH_VERSION_MAJOR="${BASH_VERSINFO[0]}"
+if [ "$BASH_VERSION_MAJOR" -ge 4 ] 2>/dev/null; then
+    echo -e "${GREEN}  ✓ bash ${BASH_VERSION}${NC} (>= 4.0 required)"
+else
+    echo -e "${YELLOW}  ⚠ bash ${BASH_VERSION:-unknown} — version 4+ required${NC} (macOS: brew install bash)"
+fi
+echo ""
+
 if [ ! -d "$SKILLS_DIR" ]; then
     echo -e "${YELLOW}Skipped: skills/ not found${NC}"
     exit 0
