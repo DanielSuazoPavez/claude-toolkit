@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.75.0] - 2026-04-28 - SessionStart payload cap guardrails
+
+### Added
+- **hooks**: `detect-session-start-truncation.sh` — `UserPromptSubmit` hook that fires once per session (marker-file guard) to check whether SessionStart output was truncated by the harness ~10KB cap. Uses hook-utils for standardized init and JSONL logging. Warns model when essential docs may be incomplete. Ships to both base and raiz distributions.
+- **scripts**: `validate-session-start-cap.sh` — `make validate` step that runs `session-start.sh` in dry-run, measures payload size, and fails at 10KB / warns at 9.5KB. Catches drift before it hits the harness cap. Added to `validate-all.sh` orchestrator. Ships to raiz.
+- **tests**: `test-validate-session-start-cap.sh` — 7 tests covering threshold enforcement, dry-run isolation, and edge cases.
+
 ## [2.74.0] - 2026-04-27 - PermissionDenied hook for auto-mode classifier observability
 
 ### Added

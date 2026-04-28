@@ -23,7 +23,9 @@
 
 ## P0 - Critical
 
-(none)
+- **[TOOLKIT]** Re-explore the web ecosystem — broad pass across online resources (`re-explore-web-ecosystem`)
+    - **scope**: `toolkit`
+    - **notes**: Plenty of places in the web ecosystem that at least deserve a pass — community resources, forums, repos, articles, tooling directories. Broad exploration sweep, not targeted at a specific gap.
 
 ## P1 - High
 
@@ -31,10 +33,6 @@
     - **scope**: `toolkit`, `cli`, `docs`
     - **notes**: Evaluate whether and how to include `claude-toolkit` CLI in the raiz distribution profile. Open questions: (1) which subcommands make sense downstream — full CLI or a reduced subset (e.g. `backlog`, `docs`, `lessons search`, `validate` but not `sync`, `eval`, `send`); (2) install story — pip dependency, vendored script, or something else; (3) README / getting-started updates for raiz consumers who'd now have CLI access; (4) whether the CLI needs a consumer-vs-workshop mode flag or if subsetting at dist time is enough. Also consider the manifest model difference: base uses exclude-based (everything ships unless excluded), raiz uses explicit (only declared resources ship). CLI inclusion means declaring it explicitly in the raiz MANIFEST — decide granularity (whole `cli/` tree vs cherry-picked subcommands) and whether the explicit manifest model naturally handles the subsetting or needs a new pattern. Output: analysis doc with recommendation, then implementation if greenlit.
 
-
-- **[HOOKS]** SessionStart payload cap guardrails — pre-emptive validation + reactive truncation detection (`session-start-cap-guardrails`)
-    - **scope**: `hooks`
-    - **notes**: Surfaced 2026-04-26 alongside the `session-start-output-too-large` fix. Two complementary guardrails to prevent recurrence and detect when projection differs from harness reality. **(a) Pre-emptive validation** — a `make validate` (or `make check`) step that runs `session-start.sh` in dry-run, sums section bytes, and warns if the projected total exceeds ~9.5KB (cap is ~10.2KB based on empirical investigation; warn before hitting it). Catches drift when someone adds a new essential doc, lesson surfacing changes shape, or a doc grows past Quick Reference. **(b) Reactive detection** — a hook (likely `UserPromptSubmit` on first prompt of a session, or `SessionStart` post-processing) that detects the truncation marker (`<persisted-output>` / `Output too large`) in the just-emitted SessionStart attachment and surfaces a loud warning to the user + a short note to the model: "session start was truncated — essential docs may not be fully loaded; consider Read'ing them explicitly." Two implementation choices for (b): (i) read the session's transcript JSONL for the marker (depends on JSONL write timing); (ii) check the just-emitted hook output for the marker before exit (cleaner, doesn't depend on transcript timing). Lean: (ii). Background: cap is new in Claude Code 2.1.119 (first banner 2026-04-24, reliable on 2.1.120); empirical threshold ~10,240B (10 KiB). Without 4a/4b, the failure mode is silent — model never sees the mandatory-acknowledgment line at the tail and the user has to ask "did you load essential docs?" to surface it (this happened in the originating investigation session).
 
 ## P2 - Medium
 
@@ -53,20 +51,19 @@
 
 ## P3 - Low
 
-- **[TESTS]** Boundary coverage for `test-suggest-json.sh` (`test-suggest-json-boundary`)
-    - **scope**: `tests`
-    - **notes**: 5 assertions for a 95-line hook (`suggest-read-json.sh`); missing size-threshold boundary tests (just-under, exactly-at, just-over). Correctness gap (off-by-one in size policy), not a security gap — separated from the P0 settings.json work because it's a different threat class. Add ~3 boundary assertions exercising the threshold value defined in the hook source. Surfaced 2026-04-26 in `output/claude-toolkit/analysis/20260426_1710__design-tests__expect-test-value-audit.md` (Finding 5).
-
-
-- **[TOOLKIT]** Re-evaluate `suggestions-box/` as satellite convention + `claude-toolkit send --to` (`suggestions-box-satellite-convention`)
-    - **scope**: `toolkit`
-    - **notes**: Today only the workshop (claude-toolkit) has `suggestions-box/` and a documented triage workflow. Satellites (claude-sessions, aws-toolkit, schema-smith, validation-framework) don't — when sending a note from claude-toolkit *to* claude-sessions on 2026-04-26 (the harness-attachment-types observations), I had to `mkdir -p` the destination ad-hoc. Two related changes to evaluate together: (a) add an optional `--to <project-path>` flag to `claude-toolkit send` so you can write to *another* project's `suggestions-box/` without `cd` — current behavior writes to *this* project's box, which is the receive direction only; (b) standardize `suggestions-box/` (with a tiny CLAUDE.md pointing at the workshop's full triage workflow rather than duplicating it) as part of satellite scaffolding. Deferred to evaluate after the pattern gets organic use — if `--to` lands and gets exercised across satellites, the convention case strengthens; if cross-satellite traffic stays at one note a quarter, the formal convention is overkill. Surfaced 2026-04-26 during the SessionStart cap fix wrap-up.
-
 - **[SKILLS]** `/design-aws` skill — idea to deployable AWS architecture (`design-aws`)
     - **scope**: `skills`
     - **notes**: Reference + satellite ready; user-postponed (no dependency blockers). Phased workflow: understand idea → design architecture (output: structured markdown doc) → generate diagram via `/design-diagram` with AWS icons → translate to aws-toolkit input configs (YAML) → review (security-first, then architecture). Leverages aws-toolkit for deterministic generation. Also depends on aws-toolkit v1 input format stability. When skill ships: enforce satellite-contract rule — link out to aws-toolkit docs via CLI convention (see `satellite-cli-docs-convention` task), no duplicated spec in workshop. Design doc: `output/claude-toolkit/design/20260329_1517__brainstorm-idea__design-aws.md`. Drafts: `output/claude-toolkit/drafts/archive/aws-toolkit/` — pre-research on IAM validation tools, cost estimation tools, service selection.
 
 ## P99 - Nice to Have
+
+- **[TESTS]** Boundary coverage for `test-suggest-json.sh` (`test-suggest-json-boundary`)
+    - **scope**: `tests`
+    - **notes**: 5 assertions for a 95-line hook (`suggest-read-json.sh`); missing size-threshold boundary tests (just-under, exactly-at, just-over). Correctness gap (off-by-one in size policy), not a security gap — separated from the P0 settings.json work because it's a different threat class. Add ~3 boundary assertions exercising the threshold value defined in the hook source. Surfaced 2026-04-26 in `output/claude-toolkit/analysis/20260426_1710__design-tests__expect-test-value-audit.md` (Finding 5).
+
+- **[TOOLKIT]** Re-evaluate `suggestions-box/` as satellite convention + `claude-toolkit send --to` (`suggestions-box-satellite-convention`)
+    - **scope**: `toolkit`
+    - **notes**: Today only the workshop (claude-toolkit) has `suggestions-box/` and a documented triage workflow. Satellites (claude-sessions, aws-toolkit, schema-smith, validation-framework) don't — when sending a note from claude-toolkit *to* claude-sessions on 2026-04-26 (the harness-attachment-types observations), I had to `mkdir -p` the destination ad-hoc. Two related changes to evaluate together: (a) add an optional `--to <project-path>` flag to `claude-toolkit send` so you can write to *another* project's `suggestions-box/` without `cd` — current behavior writes to *this* project's box, which is the receive direction only; (b) standardize `suggestions-box/` (with a tiny CLAUDE.md pointing at the workshop's full triage workflow rather than duplicating it) as part of satellite scaffolding. Deferred to evaluate after the pattern gets organic use — if `--to` lands and gets exercised across satellites, the convention case strengthens; if cross-satellite traffic stays at one note a quarter, the formal convention is overkill. Surfaced 2026-04-26 during the SessionStart cap fix wrap-up.
 
 - **[CLI]** Refactor backlog query filters off `eval` (`backlog-query-eval-refactor`)
     - **scope**: `cli`

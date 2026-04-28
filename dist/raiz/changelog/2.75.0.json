@@ -1,0 +1,26 @@
+{
+  "version": "2.75.0",
+  "date": "2026-04-28",
+  "headline": "SessionStart payload cap guardrails — truncation detector + cap validator",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "New `detect-session-start-truncation.sh` — UserPromptSubmit hook that fires once per session to check whether SessionStart output was truncated by the harness ~10KB cap. Warns model when essential docs may be incomplete."
+      ]
+    },
+    {
+      "kind": "scripts",
+      "bullets": [
+        "New `validate-session-start-cap.sh` — fails `make validate` if session-start output exceeds 10KB (warns at 9.5KB). Added to `validate-all.sh` orchestrator."
+      ]
+    },
+    {
+      "kind": "templates",
+      "bullets": [
+        "Both settings templates now include a `UserPromptSubmit` hook entry for the truncation detector."
+      ]
+    }
+  ]
+}

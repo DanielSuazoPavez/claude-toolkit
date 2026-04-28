@@ -81,6 +81,16 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- Session-start payload cap ---
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Running: validate-session-start-cap.sh"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+bash "$SCRIPTS_DIR/validate-session-start-cap.sh"
+if [ $? -ne 0 ]; then
+    FAILURES=$((FAILURES + 1))
+fi
+echo ""
+
 # --- Dist manifest existence (workshop-only; absent in consumer syncs) ---
 if [ -f "$SCRIPTS_DIR/validate-dist-manifests.sh" ]; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
