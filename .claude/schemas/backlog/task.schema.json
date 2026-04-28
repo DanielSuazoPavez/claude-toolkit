@@ -1,32 +1,47 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://claude-toolkit/schemas/backlog/task.schema.json",
-  "title": "Backlog Task Metadata",
-  "description": "Vocabulary for indented metadata fields under a BACKLOG.md task. See .claude/docs/relevant-workflow-backlog.md.",
+  "title": "Backlog Task",
+  "description": "Schema for a task in BACKLOG.json. See .claude/docs/relevant-workflow-backlog.md.",
   "type": "object",
   "additionalProperties": false,
+  "required": ["id", "priority", "title", "scope", "status"],
   "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique task identifier (kebab-case)."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2", "P3", "P99"],
+      "description": "Priority level."
+    },
+    "title": {
+      "type": "string",
+      "description": "One-line task title."
+    },
+    "scope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Technical areas."
+    },
     "status": {
       "type": "string",
       "enum": ["idea", "planned", "in-progress", "ready-for-pr", "pr-open", "blocked"],
       "description": "Lifecycle state."
     },
-    "scope": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Technical areas. Multi-value, comma-separated, each backticked."
-    },
     "branch": {
       "type": "string",
       "description": "Git branch name."
     },
-    "relates-to": {
+    "relates_to": {
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^[a-z0-9-]+:(depends-on|independent-of|supersedes|split-from|relates-to)$"
       },
-      "description": "Task relationships. Form: `<task-id>:<kind>`. Kinds: depends-on, independent-of, supersedes, split-from, relates-to."
+      "description": "Task relationships. Form: <task-id>:<kind>."
     },
     "plan": {
       "type": "string",
@@ -34,16 +49,16 @@
     },
     "source": {
       "type": "string",
-      "description": "Provenance pointer. Conventional forms: suggestions-box/<project>/<file>, session/<id>, issue/<num>, or external URL."
+      "description": "Provenance pointer."
     },
     "references": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Pointers to read while working: code paths, prior PRs, design docs. Multi-value, comma-separated, each backticked."
+      "description": "Pointers to read while working: code paths, prior PRs, design docs."
     },
     "notes": {
       "type": "string",
-      "description": "Free prose. Reserve for context that isn't a pointer."
+      "description": "Free prose context."
     }
   }
 }

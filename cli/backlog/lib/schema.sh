@@ -41,10 +41,15 @@ bsl_status_values() {
     jq -r '.properties.status.enum[]' "$BSL_SCHEMA_PATH"
 }
 
+# bsl_priority_values — one value per line, in enum order.
+bsl_priority_values() {
+    jq -r '.properties.priority.enum[]' "$BSL_SCHEMA_PATH"
+}
+
 # bsl_relates_to_kinds — one kind per line, document order.
 # Extracts from the items.pattern alternation group: "...:(a|b|c)$".
 bsl_relates_to_kinds() {
-    jq -r '.properties."relates-to".items.pattern' "$BSL_SCHEMA_PATH" \
+    jq -r '.properties.relates_to.items.pattern' "$BSL_SCHEMA_PATH" \
         | sed -nE 's/.*\(([^)]+)\).*/\1/p' \
         | tr '|' '\n'
 }
@@ -61,39 +66,4 @@ bsl_field_is_multi() {
     local t
     t=$(jq -r --arg n "$name" '.properties[$n].type // empty' "$BSL_SCHEMA_PATH")
     [[ "$t" == "array" ]]
-}
-
-# bsl_split_multivalue <raw-value> — emit one token per line, with
-# whitespace trimmed and surrounding backticks stripped. Accepts both:
-#   - canonical:    `a`, `b`
-#   - legacy:       `a, b`     (one outer pair, comma inside)
-#   - mixed/loose:  a, `b`, c
-# Trailing empty tokens (from trailing commas) are dropped silently.
-bsl_split_multivalue() {
-    local raw="$1"
-    # Strip a single outer pair of backticks if the whole value is wrapped
-    # in them AND contains commas (legacy single-pair form). This lets us
-    # split on comma uniformly afterwards.
-    if [[ "$raw" =~ ^\`[^\`]*,[^\`]*\`$ ]]; then
-        raw="${raw#\`}"
-        raw="${raw%\`}"
-    fi
-    # Use read -ra to split on commas without globbing. (Naked
-    # `local parts=($raw)` would expand glob metas like `*.md` against cwd.)
-    local parts=()
-    IFS=',' read -ra parts <<< "$raw"
-    for part in "${parts[@]}"; do
-        # ltrim
-        part="${part#"${part%%[![:space:]]*}"}"
-        # rtrim
-        part="${part%"${part##*[![:space:]]}"}"
-        # strip one outer pair of backticks if present
-        part="${part#\`}"
-        part="${part%\`}"
-        # ltrim/rtrim again in case backticks had inner whitespace
-        part="${part#"${part%%[![:space:]]*}"}"
-        part="${part%"${part##*[![:space:]]}"}"
-        [[ -z "$part" ]] && continue
-        echo "$part"
-    done
 }

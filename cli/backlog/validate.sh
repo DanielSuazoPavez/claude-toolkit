@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 #
-# Validate a BACKLOG.md against the schema at .claude/schemas/backlog/task.schema.json
+# Validate a BACKLOG.json against the schema at .claude/schemas/backlog/task.schema.json
 #
 # Usage:
-#     backlog-validate.sh [FILE]         # Validate (default: BACKLOG.md in cwd)
+#     backlog-validate.sh [FILE]         # Validate (default: BACKLOG.json in cwd)
 #     backlog-validate.sh --path FILE    # Validate specific file
 #
 # Checks:
-#   - Required headings present and in order
-#   - All task items have an [CATEGORY] tag and an id
-#   - Status values are in the schema enum
-#   - Metadata field names are in the schema vocabulary
-#   - Typo detection: `depends on` (space) → "did you mean depends-on?" (error)
-#   - relates-to tokens match `<id>:<kind>` with kind in the schema enum
-#   - depends-on field name is rejected with migration hint
-#   - Legacy single-pair backticks on multi-value fields → warn (transition)
-#   - No orphaned metadata (metadata outside a task)
+#   - Valid JSON structure with required top-level keys
+#   - All tasks have required fields (id, priority, title, scope)
+#   - Priority values are in the schema enum
+#   - Status values are in the schema enum (when present)
+#   - No duplicate task ids
+#   - relates_to tokens match <id>:<kind> with kind in the schema enum
+#   - Scope values exist in the scopes object
 
 set -euo pipefail
 
@@ -24,20 +22,10 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib/schema.sh"
 bsl_load_schema
 
-# Cache schema lookups (one jq call each; loop body should not hit jq per-line).
-_VALID_FIELDS=$(bsl_field_names | paste -sd' ' -)
-_VALID_STATUSES=$(bsl_status_values | paste -sd' ' -)
+# Cache schema lookups
+_VALID_STATUSES=$(bsl_status_values | paste -sd'|' -)
+_VALID_PRIORITIES=$(bsl_priority_values | paste -sd'|' -)
 _VALID_KINDS=$(bsl_relates_to_kinds | paste -sd'|' -)
-
-REQUIRED_HEADINGS=(
-    "# Project Backlog"
-    "## Current Goal"
-    "## P0 - Critical"
-    "## P1 - High"
-    "## P2 - Medium"
-    "## P3 - Low"
-    "## P99 - Nice to Have"
-)
 
 # Colors (disabled if not a terminal)
 if [[ -t 1 ]]; then
@@ -53,242 +41,133 @@ fi
 errors=()
 warnings=()
 
-err()  { errors+=("L${1}: ${2}"); }
-warn() { warnings+=("L${1}: ${2}"); }
+err()  { errors+=("${1}"); }
+warn() { warnings+=("${1}"); }
 
 find_backlog() {
-    if [[ -f "BACKLOG.md" ]]; then
-        echo "BACKLOG.md"
+    if [[ -f "BACKLOG.json" ]]; then
+        echo "BACKLOG.json"
     else
-        echo "Error: BACKLOG.md not found in current directory (use --path FILE to override)" >&2
+        echo "Error: BACKLOG.json not found in current directory (use --path FILE to override)" >&2
         exit 1
     fi
 }
 
 validate() {
     local file="$1"
-    local lineno=0
-    local in_task=false
-    local in_priority=false
-    local in_scope_defs=false
-    local current_section=""
-    local headings_found=()
-    local ids_seen=()
-    local defined_scopes=()
-    local has_scope_table=false
-    local task_count=0
 
-    while IFS= read -r line; do
-        ((lineno++)) || true
+    # Must be valid JSON
+    if ! jq -e . "$file" >/dev/null 2>&1; then
+        local jq_err
+        jq_err=$(jq . "$file" 2>&1 >/dev/null)
+        err "invalid JSON: $jq_err"
+        printf "${BOLD}%s${RESET}\n" "$file"
+        printf "  ${RED}error${RESET}  %s\n" "${errors[0]}"
+        echo ""
+        return 1
+    fi
 
-        # Track headings
-        if [[ "$line" =~ ^#\  ]] || [[ "$line" =~ ^##\  ]]; then
-            # Trim trailing whitespace for comparison
-            local trimmed="${line%"${line##*[![:space:]]}"}"
-
-            headings_found+=("$trimmed")
-            in_task=false
-            in_priority=false
-            in_scope_defs=false
-
-            if [[ "$trimmed" =~ ^##\ (P[0-9]+) ]]; then
-                in_priority=true
-                current_section="${BASH_REMATCH[1]}"
-            elif [[ "$trimmed" == "## Scope Definitions" ]]; then
-                in_scope_defs=true
-                has_scope_table=true
-                current_section="other"
-            elif [[ "$trimmed" =~ ^##\  ]]; then
-                current_section="other"
-            fi
-            continue
-        fi
-
-        # Parse scope definitions table rows: | ScopeName | Description |
-        if [[ "$in_scope_defs" == true && "$line" =~ ^\|\ ([^|]+)\| ]]; then
-            local scope_name="${BASH_REMATCH[1]}"
-            # Trim whitespace
-            scope_name="${scope_name%"${scope_name##*[![:space:]]}"}"
-            scope_name="${scope_name#"${scope_name%%[![:space:]]*}"}"
-            # Skip header row and separator
-            [[ "$scope_name" == "Scope" || "$scope_name" =~ ^-+$ ]] && continue
-            defined_scopes+=("$scope_name")
-            continue
-        fi
-
-        # Skip blank lines and horizontal rules
-        [[ -z "$line" || "$line" == "---" ]] && continue
-
-        # Skip content outside priority sections
-        [[ "$in_priority" != true ]] && continue
-
-        # Task item: - **[TAG]** text (`id`)
-        if [[ "$line" =~ ^-\ \*\*\[([^\]]+)\]\*\*\ (.+)$ ]]; then
-            in_task=true
-            ((task_count++)) || true
-
-            local rest="${BASH_REMATCH[2]}"
-            if [[ "$rest" =~ \(\`([^\`]+)\`\)$ ]]; then
-                local tid="${BASH_REMATCH[1]}"
-                # Check for duplicate ids
-                for seen in "${ids_seen[@]+"${ids_seen[@]}"}"; do
-                    if [[ "$seen" == "$tid" ]]; then
-                        err "$lineno" "duplicate id: $tid"
-                    fi
-                done
-                ids_seen+=("$tid")
-            else
-                err "$lineno" "task missing id: $line"
-            fi
-            continue
-        fi
-
-        # Task item without a category tag: no longer supported.
-        if [[ "$line" =~ ^-\ ([^*].+)$ ]] && [[ "$in_priority" == true ]]; then
-            err "$lineno" "task missing required [CATEGORY] tag: $line"
-            continue
-        fi
-
-        # Metadata line: indented - **field**: value.
-        # Loose match here ([a-z][a-z -]+) so typos like `depends on` (space) are
-        # *seen* — the canonical regex would silently drop them.
-        if [[ "$line" =~ ^[[:space:]]+-\ \*\*([a-z][a-z\ -]*)\*\*:\ ?(.*)$ ]]; then
-            local raw_field="${BASH_REMATCH[1]}"
-            local value="${BASH_REMATCH[2]}"
-            # Canonical form: spaces normalized to hyphens.
-            local field="${raw_field// /-}"
-
-            if [[ "$in_task" != true ]]; then
-                err "$lineno" "orphaned metadata (not under a task): $raw_field"
-                continue
-            fi
-
-            # Typo detection: if the raw field had a space, normalize and check
-            # whether the normalized form is either (a) a recognized field or
-            # (b) a known-removed field. Either way, it's a typo (data was
-            # being silently dropped by the old parser).
-            if [[ "$raw_field" != "$field" ]]; then
-                local normalized_known=false
-                for vf in $_VALID_FIELDS; do
-                    [[ "$field" == "$vf" ]] && normalized_known=true
-                done
-                if [[ "$field" == "depends-on" ]]; then
-                    err "$lineno" "unrecognized field '$raw_field' — did you mean 'depends-on'? note: 'depends-on' was removed; use 'relates-to: \`<id>:depends-on\`'"
-                elif [[ "$normalized_known" == true ]]; then
-                    err "$lineno" "unrecognized field '$raw_field' — did you mean '$field'?"
-                else
-                    warn "$lineno" "unrecognized field: $raw_field"
-                fi
-                continue
-            fi
-
-            # depends-on field is removed; emit migration hint and skip parsing.
-            if [[ "$field" == "depends-on" ]]; then
-                warn "$lineno" "field 'depends-on' removed; use 'relates-to: \`<id>:depends-on\`'"
-                continue
-            fi
-
-            # Field name must be in the schema vocabulary.
-            local field_valid=false
-            for vf in $_VALID_FIELDS; do
-                [[ "$field" == "$vf" ]] && field_valid=true
-            done
-            if [[ "$field_valid" != true ]]; then
-                warn "$lineno" "unrecognized field: $field"
-                continue
-            fi
-
-            # Validate status values against schema enum.
-            if [[ "$field" == "status" ]]; then
-                local status="${value#\`}"
-                status="${status%\`}"
-                local status_valid=false
-                for vs in $_VALID_STATUSES; do
-                    [[ "$status" == "$vs" ]] && status_valid=true
-                done
-                if [[ "$status_valid" != true ]]; then
-                    err "$lineno" "invalid status: $status (valid: $_VALID_STATUSES)"
-                fi
-            fi
-
-            # Multi-value fields: tokenize, warn on legacy single-pair backticks.
-            if [[ "$field" == "scope" || "$field" == "relates-to" || "$field" == "references" ]]; then
-                # Detect legacy single-pair-with-commas form: `a, b`
-                if [[ "$value" =~ ^\`[^\`]*,[^\`]*\`$ ]]; then
-                    warn "$lineno" "legacy '\`a, b\`' form on $field; use per-value backticks: '\`a\`, \`b\`'"
-                fi
-            fi
-
-            # relates-to: each token must match <id>:<kind> with kind in the enum.
-            if [[ "$field" == "relates-to" && -n "$value" ]]; then
-                local token
-                while IFS= read -r token; do
-                    [[ -z "$token" ]] && continue
-                    if [[ ! "$token" =~ ^[a-z0-9-]+:($_VALID_KINDS)$ ]]; then
-                        err "$lineno" "malformed relates-to token '$token' (expected '<id>:<kind>'; kinds: ${_VALID_KINDS//|/, })"
-                    fi
-                done < <(bsl_split_multivalue "$value")
-            fi
-
-            # Validate scope values against Scope Definitions table.
-            if [[ "$field" == "scope" && "$has_scope_table" == true && ${#defined_scopes[@]} -gt 0 ]]; then
-                local part
-                while IFS= read -r part; do
-                    [[ -z "$part" ]] && continue
-                    local scope_found=false
-                    for ds in "${defined_scopes[@]}"; do
-                        [[ "$part" == "$ds" ]] && scope_found=true
-                    done
-                    if [[ "$scope_found" != true ]]; then
-                        warn "$lineno" "scope '$part' not in Scope Definitions table"
-                    fi
-                done < <(bsl_split_multivalue "$value")
-            fi
-            continue
-        fi
-
-        # Indented content under a task (comments, continuations) — skip
-        if [[ "$line" =~ ^[[:space:]]+ ]] && [[ "$in_task" == true ]]; then
-            continue
-        fi
-
-        # Anything else in a priority section is unexpected
-        if [[ "$in_priority" == true && ! "$line" =~ ^[[:space:]]*$ ]]; then
-            warn "$lineno" "unexpected line in $current_section: $line"
-        fi
-
-    done < "$file"
-
-    # Check required headings
-    for req in "${REQUIRED_HEADINGS[@]}"; do
-        local found=false
-        for h in "${headings_found[@]+"${headings_found[@]}"}"; do
-            [[ "$h" == "$req" ]] && found=true
-        done
-        if [[ "$found" != true ]]; then
-            err "0" "missing required heading: $req"
+    # Required top-level keys
+    for key in scopes current_goal tasks; do
+        if ! jq -e ".$key" "$file" >/dev/null 2>&1; then
+            err "missing top-level key: $key"
         fi
     done
 
-    # Check heading order (only for required headings that exist)
-    local last_idx=-1
-    for req in "${REQUIRED_HEADINGS[@]}"; do
-        local idx=0
-        for h in "${headings_found[@]+"${headings_found[@]}"}"; do
-            if [[ "$h" == "$req" ]]; then
-                if [[ $idx -lt $last_idx ]]; then
-                    err "0" "heading out of order: $req"
-                fi
-                last_idx=$idx
-                break
+    # Tasks must be an array
+    local tasks_type
+    tasks_type=$(jq -r '.tasks | type' "$file")
+    if [[ "$tasks_type" != "array" ]]; then
+        err "tasks must be an array, got $tasks_type"
+    fi
+
+    local task_count
+    task_count=$(jq '.tasks | length' "$file")
+
+    # Collect all ids for duplicate check
+    local ids_json
+    ids_json=$(jq '[.tasks[].id // null]' "$file")
+
+    # Check for duplicate ids
+    local dups
+    dups=$(echo "$ids_json" | jq -r '[.[] | select(. != null)] | group_by(.) | map(select(length > 1)) | .[0][0] // empty')
+    if [[ -n "$dups" ]]; then
+        err "duplicate id: $dups"
+    fi
+
+    # Get defined scopes
+    local defined_scopes
+    defined_scopes=$(jq -r '.scopes | keys[]' "$file")
+
+    # Validate each task
+    local i=0
+    while [[ $i -lt $task_count ]]; do
+        local task
+        task=$(jq ".tasks[$i]" "$file")
+
+        local tid tpriority ttitle tscope
+        tid=$(echo "$task" | jq -r '.id // empty')
+        tpriority=$(echo "$task" | jq -r '.priority // empty')
+        ttitle=$(echo "$task" | jq -r '.title // empty')
+        tscope=$(echo "$task" | jq -r '.scope // empty')
+        local task_label="${tid:-task[$i]}"
+
+        # Required fields
+        [[ -z "$tid" ]] && err "$task_label: missing required field 'id'"
+        [[ -z "$tpriority" ]] && err "$task_label: missing required field 'priority'"
+        [[ -z "$ttitle" ]] && err "$task_label: missing required field 'title'"
+        [[ "$tscope" == "null" || -z "$tscope" ]] && err "$task_label: missing required field 'scope'"
+
+        # Priority enum
+        if [[ -n "$tpriority" ]] && ! echo "$tpriority" | grep -qE "^($_VALID_PRIORITIES)$"; then
+            err "$task_label: invalid priority '$tpriority' (valid: ${_VALID_PRIORITIES//|/, })"
+        fi
+
+        # Status (required)
+        local tstatus
+        tstatus=$(echo "$task" | jq -r '.status // empty')
+        if [[ -z "$tstatus" ]]; then
+            err "$task_label: missing required field 'status'"
+        elif ! echo "$tstatus" | grep -qE "^($_VALID_STATUSES)$"; then
+            err "$task_label: invalid status '$tstatus' (valid: ${_VALID_STATUSES//|/, })"
+        fi
+
+        # Scope values against scopes object
+        local scope_count
+        scope_count=$(echo "$task" | jq '.scope | length' 2>/dev/null || echo 0)
+        local j=0
+        while [[ $j -lt $scope_count ]]; do
+            local sval
+            sval=$(echo "$task" | jq -r ".scope[$j]")
+            if ! echo "$defined_scopes" | grep -qx "$sval"; then
+                warn "$task_label: scope '$sval' not in scopes definition"
             fi
-            ((idx++)) || true
+            ((j++)) || true
         done
+
+        # relates_to tokens
+        local rt_count
+        rt_count=$(echo "$task" | jq '.relates_to // [] | length')
+        local k=0
+        while [[ $k -lt $rt_count ]]; do
+            local token
+            token=$(echo "$task" | jq -r ".relates_to[$k]")
+            if ! echo "$token" | grep -qE "^[a-z0-9-]+:($_VALID_KINDS)$"; then
+                err "$task_label: malformed relates_to token '$token' (expected '<id>:<kind>'; kinds: ${_VALID_KINDS//|/, })"
+            fi
+            ((k++)) || true
+        done
+
+        ((i++)) || true
     done
+
+    # Count unique ids
+    local id_count
+    id_count=$(echo "$ids_json" | jq '[.[] | select(. != null)] | unique | length')
 
     # Output results
     printf "${BOLD}%s${RESET}\n" "$file"
-    printf "  tasks: %d  |  ids: %d\n" "$task_count" "${#ids_seen[@]}"
+    printf "  tasks: %d  |  ids: %d\n" "$task_count" "$id_count"
 
     if [[ ${#errors[@]} -gt 0 ]]; then
         echo ""
@@ -310,7 +189,6 @@ validate() {
 
     echo ""
 
-    # Exit code: 1 if errors, 0 if only warnings or clean
     [[ ${#errors[@]} -eq 0 ]]
 }
 
@@ -321,11 +199,10 @@ file=""
 for arg in "$@"; do
     case "$arg" in
         -h|--help|help)
-            head -13 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
+            head -16 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
             exit 0
             ;;
         --path)
-            # handled below with shift
             ;;
         *)
             if [[ "${prev_arg:-}" == "--path" ]]; then

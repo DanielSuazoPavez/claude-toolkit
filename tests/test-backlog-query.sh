@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Automated tests for backlog-query.sh
+# Automated tests for backlog-query.sh (JSON-based)
 #
 # Usage:
 #   bash tests/test-backlog-query.sh      # Run all tests
@@ -27,8 +27,6 @@ setup_test_env() {
     TEMP_DIR=$(mktemp -d)
     log_verbose "Created temp dir: $TEMP_DIR"
 
-    # Mirror the cli/backlog/ + .claude/schemas/backlog/ layout so the script's
-    # relative path resolution works inside the temp dir.
     mkdir -p "$TEMP_DIR/cli/backlog/lib" "$TEMP_DIR/.claude/schemas/backlog"
     cp "$QUERY_SCRIPT" "$TEMP_DIR/cli/backlog/"
     cp "$TOOLKIT_DIR/cli/backlog/validate.sh" "$TEMP_DIR/cli/backlog/"
@@ -45,50 +43,61 @@ teardown_test_env() {
     TEMP_DIR=""
 }
 
-# Create a test BACKLOG.md with known content
+# Create a test BACKLOG.json with known content (5 tasks)
 create_test_backlog() {
-    cat > "$TEMP_DIR/BACKLOG.md" << 'EOF'
-# Project Backlog
-
-## P0 - Critical
-
-- **[TESTING]** Critical test task
-    - **status**: `planned`
-    - **scope**: `tests`
-
----
-
-## P1 - High
-
-- **[SKILLS]** High priority skill
-    - **status**: `idea`
-    - **scope**: `skills`
-
-- **[AGENTS]** Blocked agent task
-    - **status**: `blocked`
-    - **scope**: `agents`
-    - **relates-to**: `critical-test-task:depends-on`
-
----
-
-## P2 - Medium
-
-- **[TOOLKIT]** Medium toolkit task
-    - **status**: `in-progress`
-    - **scope**: `toolkit`
-    - **branch**: `feature/toolkit-task`
-    - **source**: `suggestions-box/test-project/issue.txt`
-    - **references**: `path/to/code.sh`, `output/file.md`
-
----
-
-## P99 - Nice to Have
-
-- **[ICEBOX]** Nice-to-have idea task
-    - **status**: `idea`
-    - **scope**: `icebox`
-
-EOF
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {
+    "tests": "Automated testing and validation",
+    "skills": "User-invocable skills",
+    "agents": "Specialized task agents",
+    "toolkit": "Core toolkit infrastructure",
+    "icebox": "Deferred items"
+  },
+  "current_goal": "Test goal",
+  "tasks": [
+    {
+      "id": "critical-test-task",
+      "priority": "P0",
+      "title": "Critical test task",
+      "scope": ["tests"],
+      "status": "planned"
+    },
+    {
+      "id": "high-priority-skill",
+      "priority": "P1",
+      "title": "High priority skill",
+      "scope": ["skills"],
+      "status": "idea"
+    },
+    {
+      "id": "blocked-agent-task",
+      "priority": "P1",
+      "title": "Blocked agent task",
+      "scope": ["agents"],
+      "status": "blocked",
+      "relates_to": ["critical-test-task:depends-on"]
+    },
+    {
+      "id": "medium-toolkit-task",
+      "priority": "P2",
+      "title": "Medium toolkit task",
+      "scope": ["toolkit"],
+      "status": "in-progress",
+      "branch": "feature/toolkit-task",
+      "source": "suggestions-box/test-project/issue.txt",
+      "references": ["path/to/code.sh", "output/file.md"]
+    },
+    {
+      "id": "nice-to-have-idea",
+      "priority": "P99",
+      "title": "Nice-to-have idea task",
+      "scope": ["icebox"],
+      "status": "idea"
+    }
+  ]
+}
+ENDJSON
 }
 
 run_query() {
@@ -97,8 +106,6 @@ run_query() {
 
 # === Test Assertions ===
 
-# Diagnostic helper: dump byte length + hex of the first ~200 bytes of a variable.
-# Called from assertion failure branches to diagnose WSL2 flaky grep misses.
 _dump_diag() {
     local label="$1"
     local data="$2"
@@ -114,8 +121,7 @@ _dump_diag() {
 expect_success() {
     local description="$1"
     shift
-    local output
-    local exit_code
+    local output exit_code
 
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
@@ -136,8 +142,7 @@ expect_success() {
 expect_failure() {
     local description="$1"
     shift
-    local output
-    local exit_code
+    local output exit_code
 
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
@@ -159,8 +164,7 @@ expect_output() {
     local description="$1"
     local expected="$2"
     shift 2
-    local output
-    local exit_code
+    local output exit_code
 
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
@@ -183,8 +187,7 @@ expect_not_output() {
     local description="$1"
     local not_expected="$2"
     shift 2
-    local output
-    local exit_code
+    local output exit_code
 
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
@@ -207,8 +210,7 @@ expect_count() {
     local description="$1"
     local expected_count="$2"
     shift 2
-    local output
-    local exit_code
+    local output exit_code
 
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
@@ -240,12 +242,11 @@ test_help() {
 }
 
 test_no_backlog() {
-    report_section "=== no BACKLOG.md ==="
+    report_section "=== no BACKLOG.json ==="
     setup_test_env
-    # Don't create BACKLOG.md
 
-    expect_failure "errors when BACKLOG.md not found"
-    expect_output "shows error message" "BACKLOG.md not found"
+    expect_failure "errors when BACKLOG.json not found"
+    expect_output "shows error message" "BACKLOG.json not found"
 
     teardown_test_env
 }
@@ -354,25 +355,19 @@ test_exclude_priority() {
     setup_test_env
     create_test_backlog
 
-    # Baseline: P99 task is visible without the flag
     expect_output "P99 task visible by default" "Nice-to-have idea task"
     expect_count "lists all 5 without flag" "5"
 
-    # Single-priority exclude
     expect_count "excludes P99 (4 remain)" "4" --exclude-priority P99
     expect_not_output "hides P99 task" "Nice-to-have idea task" --exclude-priority P99
 
-    # Comma list
     expect_count "excludes P99,P2 (3 remain)" "3" --exclude-priority P99,P2
     expect_not_output "hides P2 task too" "Medium toolkit task" --exclude-priority P99,P2
 
-    # Lowercase accepted
     expect_count "accepts lowercase p99" "4" --exclude-priority p99
 
-    # Composes with subcommand filter: priority P1 still finds 2
     expect_count "composes with priority subcommand" "2" --exclude-priority P99 priority P1
 
-    # Error when value missing
     expect_failure "errors without value" --exclude-priority
 
     teardown_test_env
@@ -389,33 +384,212 @@ test_unknown_command() {
     teardown_test_env
 }
 
-# === Phase 7.2 — Schema, relates-to, source, drift detection ===
+test_schema_subcommand() {
+    report_section "=== schema subcommand ==="
+    setup_test_env
 
-# Helper: write a custom BACKLOG.md (one task per call, append mode after first).
-write_test_backlog() {
-    local body="$1"
-    cat > "$TEMP_DIR/BACKLOG.md" <<EOF
-# Project Backlog
+    expect_success "schema subcommand exits 0" schema
+    for f in id priority title status scope branch relates_to plan source references notes; do
+        expect_output "schema lists $f" "$f" schema
+    done
+    for s in idea planned in-progress ready-for-pr pr-open blocked; do
+        expect_output "schema lists status '$s'" "$s" schema
+    done
+    for p in P0 P1 P2 P3 P99; do
+        expect_output "schema lists priority '$p'" "$p" schema
+    done
+    for k in depends-on independent-of supersedes split-from; do
+        expect_output "schema lists kind '$k'" "$k" schema
+    done
 
-## P1 - High
-
-$body
-EOF
+    teardown_test_env
 }
 
-# Helper: run validate.sh, capture stdout+stderr.
+test_relates_to_filter() {
+    report_section "=== relates-to filter ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A", "b": "B", "c": "C", "d": "D"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "task-a", "priority": "P1", "title": "Task A", "scope": ["a"], "status": "planned",
+     "relates_to": ["task-b:depends-on"]},
+    {"id": "task-b", "priority": "P1", "title": "Task B", "scope": ["b"], "status": "planned"},
+    {"id": "task-c", "priority": "P1", "title": "Task C", "scope": ["c"], "status": "idea",
+     "relates_to": ["task-a:supersedes"]},
+    {"id": "task-d", "priority": "P1", "title": "Task D", "scope": ["d"], "status": "idea",
+     "relates_to": ["task-a:independent-of", "task-b:depends-on"]}
+  ]
+}
+ENDJSON
+
+    expect_count "depends-on kind finds 2" "2" relates-to depends-on
+    expect_count "supersedes finds 1" "1" relates-to supersedes
+    expect_count "independent-of finds 1" "1" relates-to independent-of
+    expect_failure "errors without kind" relates-to
+
+    expect_count "blocked finds 2 (depends-on relations)" "2" blocked
+    expect_count "unblocked finds 2 (idea/planned without :depends-on)" "2" unblocked
+
+    teardown_test_env
+}
+
+test_source_filter() {
+    report_section "=== source filter ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "task-a", "priority": "P1", "title": "From session", "scope": ["a"], "status": "idea",
+     "source": "session/abc123"},
+    {"id": "task-b", "priority": "P1", "title": "From suggestions", "scope": ["a"], "status": "idea",
+     "source": "suggestions-box/claude-sessions/file.txt"},
+    {"id": "task-c", "priority": "P1", "title": "No source", "scope": ["a"], "status": "idea"}
+  ]
+}
+ENDJSON
+
+    expect_count "source 'session/abc' finds 1" "1" source 'session/abc'
+    expect_count "source 'claude-sessions' finds 1" "1" source claude-sessions
+    expect_count "source 'suggestions-box' finds 1" "1" source suggestions-box
+    expect_failure "errors without pattern" source
+
+    expect_output "id lookup shows source" "source: session/abc123" id task-a
+
+    teardown_test_env
+}
+
+test_references_field() {
+    report_section "=== references field ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "task-a", "priority": "P1", "title": "With references", "scope": ["a"], "status": "idea",
+     "references": ["path/code.sh", "output/file.md"]}
+  ]
+}
+ENDJSON
+
+    expect_output "id lookup shows references" "references: path/code.sh,output/file.md" id task-a
+
+    teardown_test_env
+}
+
+# === Mutation tests ===
+
+test_add() {
+    report_section "=== add subcommand ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_output "add creates task" "Added task" add --id new-task --priority P2 --title "New task" --scope tests
+    expect_output "added task is queryable" "New task" id new-task
+    expect_output "added task has status idea" "idea" id new-task
+
+    expect_failure "add rejects duplicate id" add --id critical-test-task --priority P2 --title "Dup" --scope tests
+    expect_failure "add rejects invalid priority" add --id another --priority P7 --title "Bad" --scope tests
+    expect_failure "add rejects invalid scope" add --id another --priority P2 --title "Bad" --scope nonexistent
+    expect_failure "add requires all fields" add --id only-id
+
+    teardown_test_env
+}
+
+test_move() {
+    report_section "=== move subcommand ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_output "move changes priority" "Moved task" move critical-test-task P99
+    expect_output "task is at new priority" "P99" priority P99
+
+    expect_failure "move rejects unknown task" move nonexistent P1
+    expect_failure "move rejects invalid priority" move critical-test-task P7
+
+    teardown_test_env
+}
+
+test_remove() {
+    report_section "=== remove subcommand ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_count "starts with 5 tasks" "5"
+    expect_output "remove deletes task" "Removed task" remove nice-to-have-idea
+    expect_count "now has 4 tasks" "4"
+    expect_not_output "removed task gone" "Nice-to-have idea task"
+
+    expect_output "remove warns on referenced task" "Warning" remove critical-test-task
+
+    expect_failure "remove rejects unknown task" remove nonexistent
+
+    teardown_test_env
+}
+
+test_render() {
+    report_section "=== render subcommand ==="
+    setup_test_env
+    create_test_backlog
+
+    local output
+    output=$(run_query render "$TEMP_DIR/rendered.md")
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [[ -f "$TEMP_DIR/rendered.md" ]]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "render creates output file"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "render creates output file"
+        report_detail "File not found: $TEMP_DIR/rendered.md"
+    fi
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if grep -qF "Auto-generated from BACKLOG.json" "$TEMP_DIR/rendered.md" 2>/dev/null; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "render includes auto-generated header"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "render includes auto-generated header"
+    fi
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if grep -qF "Critical test task" "$TEMP_DIR/rendered.md" 2>/dev/null; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "render includes task titles"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "render includes task titles"
+    fi
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if grep -qF "## P0 - Critical" "$TEMP_DIR/rendered.md" 2>/dev/null; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "render includes priority headers"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "render includes priority headers"
+    fi
+
+    teardown_test_env
+}
+
+# === Validation tests ===
+
 run_validate() {
-    (cd "$TEMP_DIR" && bash cli/backlog/validate.sh BACKLOG.md 2>&1) || true
+    (cd "$TEMP_DIR" && bash cli/backlog/validate.sh BACKLOG.json 2>&1) || true
 }
 
-# Helper: check that validator output contains a substring.
 expect_validator_output() {
     local description="$1"
     local expected="$2"
-    local body="$3"
 
     TESTS_RUN=$((TESTS_RUN + 1))
-    write_test_backlog "$body"
     local output
     output=$(run_validate)
 
@@ -429,249 +603,175 @@ expect_validator_output() {
         report_detail "Expected output to contain: $expected"
         report_detail "Got: ${output:-<empty>}"
         _dump_diag "output" "$output"
-        _dump_diag "expected" "$expected"
     fi
 }
 
-# Helper: check validator output does NOT contain a substring.
-expect_validator_silent() {
-    local description="$1"
-    local not_expected="$2"
-    local body="$3"
+test_validate_valid() {
+    report_section "=== validation: valid backlog ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_validator_output "valid backlog passes" "valid"
+
+    teardown_test_env
+}
+
+test_validate_duplicate_id() {
+    report_section "=== validation: duplicate id ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "dup", "priority": "P1", "title": "First", "scope": ["a"], "status": "idea"},
+    {"id": "dup", "priority": "P1", "title": "Second", "scope": ["a"], "status": "idea"}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "duplicate id detected" "duplicate id"
+
+    teardown_test_env
+}
+
+test_validate_invalid_priority() {
+    report_section "=== validation: invalid priority ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "bad", "priority": "P7", "title": "Bad", "scope": ["a"], "status": "idea"}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "invalid priority detected" "invalid priority"
+
+    teardown_test_env
+}
+
+test_validate_invalid_status() {
+    report_section "=== validation: invalid status ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "bad", "priority": "P1", "title": "Bad", "scope": ["a"], "status": "bogus"}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "invalid status detected" "invalid status"
+
+    teardown_test_env
+}
+
+test_validate_missing_status() {
+    report_section "=== validation: missing status ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "bad", "priority": "P1", "title": "Bad", "scope": ["a"]}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "missing status detected" "missing required field 'status'"
+
+    teardown_test_env
+}
+
+test_validate_missing_required() {
+    report_section "=== validation: missing required fields ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"priority": "P1", "title": "No id", "scope": ["a"], "status": "idea"},
+    {"id": "no-scope", "priority": "P1", "title": "No scope", "status": "idea"}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "missing id detected" "missing required field 'id'"
+    expect_validator_output "missing scope detected" "missing required field 'scope'"
+
+    teardown_test_env
+}
+
+test_validate_malformed_relates_to() {
+    report_section "=== validation: malformed relates_to ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "bad", "priority": "P1", "title": "Bad", "scope": ["a"], "status": "idea",
+     "relates_to": ["bogus-kind"]}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "malformed relates_to detected" "malformed relates_to token"
+
+    teardown_test_env
+}
+
+test_validate_unknown_scope() {
+    report_section "=== validation: unknown scope ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "bad", "priority": "P1", "title": "Bad", "scope": ["nonexistent"], "status": "idea"}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "unknown scope warned" "scope 'nonexistent' not in scopes"
+
+    teardown_test_env
+}
+
+# === Summary sort test ===
+
+test_summary_sorted() {
+    report_section "=== summary priority sort ==="
+    setup_test_env
+    create_test_backlog
+
+    local output
+    output=$(run_query summary)
 
     TESTS_RUN=$((TESTS_RUN + 1))
-    write_test_backlog "$body"
-    local output
-    output=$(run_validate)
+    local p0_line p1_line p2_line p99_line
+    p0_line=$(echo "$output" | grep -n "P0:" | head -1 | cut -d: -f1)
+    p1_line=$(echo "$output" | grep -n "P1:" | head -1 | cut -d: -f1)
+    p2_line=$(echo "$output" | grep -n "P2:" | head -1 | cut -d: -f1)
+    p99_line=$(echo "$output" | grep -n "P99:" | head -1 | cut -d: -f1)
 
-    if ! echo "$output" | grep -qF -- "$not_expected"; then
+    if [[ $p0_line -lt $p1_line && $p1_line -lt $p2_line && $p2_line -lt $p99_line ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        report_pass "$description"
+        report_pass "summary priorities sorted P0→P1→P2→P99"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        report_fail "$description"
-        report_detail "Expected output NOT to contain: $not_expected"
-        report_detail "Got: ${output:-<empty>}"
-        _dump_diag "output" "$output"
-        _dump_diag "not_expected" "$not_expected"
+        report_fail "summary priorities sorted P0→P1→P2→P99"
+        report_detail "Lines: P0=$p0_line P1=$p1_line P2=$p2_line P99=$p99_line"
+        report_detail "Output: $output"
     fi
-}
-
-test_schema_subcommand() {
-    report_section "=== schema subcommand ==="
-    setup_test_env
-    # No BACKLOG.md needed — schema runs without one.
-
-    expect_success "schema subcommand exits 0" schema
-    # Every schema field appears
-    for f in status scope branch relates-to plan source references notes; do
-        expect_output "schema lists $f" "$f" schema
-    done
-    # Every status value appears
-    for s in idea planned in-progress ready-for-pr pr-open blocked; do
-        expect_output "schema lists status '$s'" "$s" schema
-    done
-    # Every relates-to kind appears
-    for k in depends-on independent-of supersedes split-from; do
-        expect_output "schema lists kind '$k'" "$k" schema
-    done
-
-    teardown_test_env
-}
-
-test_relates_to_filter() {
-    report_section "=== relates-to filter ==="
-    setup_test_env
-    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
-# Project Backlog
-
-## P1 - High
-
-- **[A]** Task A (`task-a`)
-    - **status**: `planned`
-    - **relates-to**: `task-b:depends-on`
-
-- **[B]** Task B (`task-b`)
-    - **status**: `planned`
-
-- **[C]** Task C (`task-c`)
-    - **status**: `idea`
-    - **relates-to**: `task-a:supersedes`
-
-- **[D]** Task D (`task-d`)
-    - **status**: `idea`
-    - **relates-to**: `task-a:independent-of`, `task-b:depends-on`
-EOF
-
-    expect_count "depends-on kind finds 2" "2" relates-to depends-on
-    expect_count "supersedes finds 1" "1" relates-to supersedes
-    expect_count "independent-of finds 1" "1" relates-to independent-of
-    expect_failure "errors without kind" relates-to
-
-    # blocked/unblocked use the new column 8 with :depends-on suffix
-    expect_count "blocked finds 2 (depends-on relations)" "2" blocked
-    expect_count "unblocked finds 2 (idea/planned without :depends-on)" "2" unblocked
-
-    teardown_test_env
-}
-
-test_source_filter() {
-    report_section "=== source filter ==="
-    setup_test_env
-    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
-# Project Backlog
-
-## P1 - High
-
-- **[A]** From session (`task-a`)
-    - **status**: `idea`
-    - **source**: `session/abc123`
-
-- **[B]** From suggestions (`task-b`)
-    - **status**: `idea`
-    - **source**: `suggestions-box/claude-sessions/file.txt`
-
-- **[C]** No source (`task-c`)
-    - **status**: `idea`
-EOF
-
-    # Pattern is a substring/regex via awk — 'session' would also match
-    # 'claude-sessions', so use the discriminating prefix 'session/abc'.
-    expect_count "source 'session/abc' finds 1" "1" source 'session/abc'
-    expect_count "source 'claude-sessions' finds 1" "1" source claude-sessions
-    expect_count "source 'suggestions-box' finds 1" "1" source suggestions-box
-    expect_failure "errors without pattern" source
-
-    # Verbose 'id' lookup shows source line
-    expect_output "id lookup shows source" "source: session/abc123" id task-a
-
-    teardown_test_env
-}
-
-test_references_field() {
-    report_section "=== references field ==="
-    setup_test_env
-    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
-# Project Backlog
-
-## P1 - High
-
-- **[A]** With references (`task-a`)
-    - **status**: `idea`
-    - **references**: `path/code.sh`, `output/file.md`
-EOF
-
-    expect_output "id lookup shows references" "references: path/code.sh,output/file.md" id task-a
-
-    teardown_test_env
-}
-
-test_relates_to_edge_cases() {
-    report_section "=== relates-to edge cases (validator) ==="
-    setup_test_env
-
-    # Single value, no comma — accepted.
-    expect_validator_silent "single value parses cleanly" "malformed" \
-        "- **[A]** A (\`a\`)
-    - **relates-to**: \`b:supersedes\`"
-
-    # Trailing comma — accepted (empty token dropped).
-    expect_validator_silent "trailing comma silently dropped" "malformed" \
-        "- **[A]** A (\`a\`)
-    - **relates-to**: \`b:supersedes\`, \`c:depends-on\`,"
-
-    # Invalid kind — error.
-    expect_validator_output "invalid kind errors" "malformed relates-to token" \
-        "- **[A]** A (\`a\`)
-    - **relates-to**: \`b:bogus-kind\`"
-
-    # Missing kind (no colon) — error.
-    expect_validator_output "missing :kind errors" "malformed relates-to token" \
-        "- **[A]** A (\`a\`)
-    - **relates-to**: \`bare-id\`"
-
-    # Missing id (colon at start) — error.
-    expect_validator_output "missing id errors" "malformed relates-to token" \
-        "- **[A]** A (\`a\`)
-    - **relates-to**: \`:depends-on\`"
-
-    teardown_test_env
-}
-
-test_legacy_depends_on_warning() {
-    report_section "=== legacy depends-on field (validator) ==="
-    setup_test_env
-
-    # Field with the old name (correctly hyphenated) → warn with migration hint.
-    expect_validator_output "depends-on field warns with migration hint" \
-        "field 'depends-on' removed" \
-        "- **[A]** A (\`a\`)
-    - **depends-on**: \`other-task\`"
-
-    teardown_test_env
-}
-
-test_typo_detection() {
-    report_section "=== typo detection (validator) ==="
-    setup_test_env
-
-    # 'depends on' (space) → error pointing at depends-on AND the migration.
-    expect_validator_output "depends on (space) errors with did-you-mean" \
-        "did you mean 'depends-on'" \
-        "- **[A]** A (\`a\`)
-    - **depends on**: \`other\`"
-
-    # Typo of a still-valid field — error: did you mean.
-    expect_validator_output "typo of valid field errors" \
-        "did you mean 'relates-to'" \
-        "- **[A]** A (\`a\`)
-    - **relates to**: \`b:depends-on\`"
-
-    # Pure unknown field (no space typo) — warn, not error.
-    expect_validator_output "unknown field warns" \
-        "warn" \
-        "- **[A]** A (\`a\`)
-    - **bogus-field**: \`x\`"
-
-    teardown_test_env
-}
-
-test_legacy_scope_format() {
-    report_section "=== legacy single-pair scope format (validator + parser) ==="
-    setup_test_env
-
-    # Validator warns on legacy form.
-    expect_validator_output "legacy scope warns" "legacy" \
-        "- **[A]** A (\`a\`)
-    - **scope**: \`x, y\`"
-
-    # Parser still tokenizes both forms identically.
-    cat > "$TEMP_DIR/BACKLOG.md" <<'EOF'
-# Project Backlog
-
-## P1 - High
-
-- **[A]** Legacy form (`task-a`)
-    - **status**: `idea`
-    - **scope**: `x, y`
-
-- **[B]** Canonical form (`task-b`)
-    - **status**: `idea`
-    - **scope**: `x`, `y`
-EOF
-    # `scope x` should match both
-    expect_count "scope filter matches both legacy and canonical" "2" scope x
-
-    teardown_test_env
-}
-
-test_canonical_scope_format() {
-    report_section "=== canonical per-value scope format (validator) ==="
-    setup_test_env
-
-    expect_validator_silent "canonical scope is silent" "legacy" \
-        "- **[A]** A (\`a\`)
-    - **scope**: \`x\`, \`y\`"
 
     teardown_test_env
 }
@@ -680,6 +780,7 @@ test_canonical_scope_format() {
 echo "Running backlog-query tests..."
 echo "Script: $QUERY_SCRIPT"
 
+# Core query tests
 test_help
 test_no_backlog
 test_list_all
@@ -692,15 +793,29 @@ test_verbose
 test_exclude_priority
 test_unknown_command
 
-# Phase 7.2 — schema-driven additions
+# Schema-driven
 test_schema_subcommand
 test_relates_to_filter
 test_source_filter
 test_references_field
-test_relates_to_edge_cases
-test_legacy_depends_on_warning
-test_typo_detection
-test_legacy_scope_format
-test_canonical_scope_format
+
+# Mutations
+test_add
+test_move
+test_remove
+test_render
+
+# Validation
+test_validate_valid
+test_validate_duplicate_id
+test_validate_invalid_priority
+test_validate_invalid_status
+test_validate_missing_status
+test_validate_missing_required
+test_validate_malformed_relates_to
+test_validate_unknown_scope
+
+# Summary sort fix
+test_summary_sorted
 
 print_summary

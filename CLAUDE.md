@@ -9,7 +9,7 @@ Claude Toolkit — a **resource workshop** for Claude Code. Authors and distribu
 ```bash
 make check                                     # Run tests and validations
 make test                                      # Run tests only
-make backlog                                   # Show backlog (prefer over reading BACKLOG.md directly)
+make backlog                                   # Show backlog (prefer over reading BACKLOG.json directly)
 claude-toolkit backlog id <task-id>             # Query specific backlog task by id
 ```
 
@@ -17,7 +17,7 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 
 `claude-toolkit` is the toolkit's own CLI — used here for backlog/lessons/docs queries. Run `claude-toolkit <cmd> --help` for details.
 
-- `claude-toolkit backlog <cmd>` — query backlog (e.g. `backlog summary`, `backlog id <task-id>`, `backlog status`, `backlog priority`, `backlog scope`)
+- `claude-toolkit backlog <cmd>` — query/mutate backlog (e.g. `backlog summary`, `backlog id <task-id>`, `backlog status`, `backlog priority`, `backlog scope`, `backlog add`, `backlog move`, `backlog remove`, `backlog render`)
 - `claude-toolkit lessons <cmd>` — manage lessons (e.g. `lessons search <query>`, `lessons list`, `lessons health`)
 - `claude-toolkit docs [name]` — list or emit workshop agent-facing contracts
 - `claude-toolkit eval <cmd>` — query evaluation status (`stale`, `unevaluated`, `above`, `type`)
@@ -29,7 +29,8 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 
 - **Plan before building**: Use plan mode for non-trivial tasks, even when they look simple at first glance
 - **User owns shared-state ops**: Claude does not merge to main, push, open pull requests, or push tags. `/draft-pr` is also user-invoked — it generates the description, the user opens the PR. Wrap-up ends at the handoff. When the user merges, they use `git merge --no-ff` to preserve branch history.
-- **Remove done tasks from backlog**: When a backlog task is completed, delete it entirely — don't strikethrough or leave it with a DONE marker
+- **Backlog via CLI only**: Never read `BACKLOG.json` or `BACKLOG.md` directly — use `claude-toolkit backlog <cmd>` for all queries and mutations. For bulk edits the CLI doesn't cover, use `jq` on `BACKLOG.json` directly
+- **Remove done tasks from backlog**: When a backlog task is completed, remove it via `claude-toolkit backlog remove <id>` — don't leave it with a DONE marker
 - **Capture lessons aggressively**: When you notice a correction, gotcha, pattern, or convention worth preserving, use `/learn` without hesitation. Bias toward capturing — pruning and crystallization happen later via `/manage-lessons`
 - **No sudo access**: Don't run sudo commands — provide shell commands for the user to run manually when elevated privileges are needed
 - **Verify before stating**: Don't state how a system works without checking the code first — read the actual implementation rather than assuming from names or conventions
@@ -94,5 +95,5 @@ Read these before exploring the codebase:
 ## See Also
 
 - `README.md` — Full documentation, CLI usage, sync workflow
-- `make backlog` — Show current priorities (use instead of reading BACKLOG.md directly)
+- `make backlog` — Show current priorities (uses `claude-toolkit backlog` CLI)
 - `.claude/docs/relevant-toolkit-lessons.md` — Lessons ecosystem reference (schema, tiers, tags, CLI, lifecycle)

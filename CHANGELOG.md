@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.77.0] - 2026-04-28 - JSON-backed backlog with CLI mutations
+
+### Added
+- **cli**: `BACKLOG.json` is now the source of truth — `BACKLOG.md` is auto-generated via `backlog render` and gitignored. All queries use `jq` instead of markdown parsing with awk + `eval`-interpolated filters (injection vector eliminated).
+- **cli**: New mutation subcommands — `backlog add`, `backlog move <id> <priority>`, `backlog remove <id>` write directly to `BACKLOG.json`.
+- **cli**: New `backlog render` subcommand — generates `BACKLOG.md` from JSON with priority-grouped sections and metadata.
+- **cli**: `backlog summary` now sorts priority groups deterministically (P0→P1→P2→P3→P99), fixing arbitrary awk iteration order.
+- **cli**: `backlog validate` rewritten for JSON — checks required fields, enum values, duplicate ids, relates_to token format, and scope definitions.
+- **schema**: `task.schema.json` expanded with `id`, `priority`, `title` as required fields; `status` required (defaults to `idea`); `relates-to` renamed to `relates_to`.
+- **scripts**: `migrate-backlog-to-json.sh` — reusable migration from `BACKLOG.md` to `BACKLOG.json` (tested on both claude-toolkit and claude-sessions).
+- **tests**: Backlog test suite rewritten for JSON fixtures — 113 tests (up from 23) covering queries, mutations, render, validation, and summary sort.
+
 ## [2.76.0] - 2026-04-28 - PostToolUse logger for idle-time classification
 
 ### Added
