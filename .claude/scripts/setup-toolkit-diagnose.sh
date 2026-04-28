@@ -227,8 +227,8 @@ check_hooks() {
         return
     fi
 
-    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$SETTINGS" 2>/dev/null > "$DIAG_TMP/hooks-current.txt"
-    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$template" 2>/dev/null > "$DIAG_TMP/hooks-template.txt"
+    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$SETTINGS" > "$DIAG_TMP/hooks-current.txt"
+    jq -r '.hooks | [.. | .command? // empty] | unique | sort[]' "$template" > "$DIAG_TMP/hooks-template.txt"
 
     local missing extra
     missing=$(comm -23 "$DIAG_TMP/hooks-template.txt" "$DIAG_TMP/hooks-current.txt")
@@ -274,8 +274,8 @@ check_permissions() {
         return
     fi
 
-    jq -r '.permissions.allow // [] | .[]' "$SETTINGS" 2>/dev/null | sort > "$DIAG_TMP/perms-current.txt"
-    jq -r '.permissions.allow // [] | .[]' "$template" 2>/dev/null | sort > "$DIAG_TMP/perms-template.txt"
+    jq -r '.permissions.allow // [] | .[]' "$SETTINGS" | sort > "$DIAG_TMP/perms-current.txt"
+    jq -r '.permissions.allow // [] | .[]' "$template" | sort > "$DIAG_TMP/perms-template.txt"
 
     local missing extra
     missing=$(comm -23 "$DIAG_TMP/perms-template.txt" "$DIAG_TMP/perms-current.txt")
@@ -335,8 +335,8 @@ check_mcp() {
     local actual_mcp="$mcp_file"
     [ ! -f "$actual_mcp" ] && actual_mcp="mcp.json"
 
-    jq -r '.mcpServers | keys[]' "$actual_mcp" 2>/dev/null | sort > "$DIAG_TMP/mcp-current.txt"
-    jq -r '.mcpServers | keys[]' "$mcp_template" 2>/dev/null | sort > "$DIAG_TMP/mcp-template.txt"
+    jq -r '.mcpServers | keys[]' "$actual_mcp" | sort > "$DIAG_TMP/mcp-current.txt"
+    jq -r '.mcpServers | keys[]' "$mcp_template" | sort > "$DIAG_TMP/mcp-template.txt"
 
     local missing
     missing=$(comm -23 "$DIAG_TMP/mcp-template.txt" "$DIAG_TMP/mcp-current.txt")
@@ -410,13 +410,13 @@ check_claude_md() {
 
     # Extract bold keywords from Key Principles section of template
     local principles
-    principles=$(sed -n '/^## Key Principles/,/^## /{/^- \*\*/p}' "$claude_template" 2>/dev/null)
+    principles=$(sed -n '/^## Key Principles/,/^## /{/^- \*\*/p}' "$claude_template")
 
     if [ -n "$principles" ]; then
         while IFS= read -r line; do
             local keyword
             keyword=$(echo "$line" | grep -oE '\*\*[^*]+\*\*' | head -1)
-            if [ -n "$keyword" ] && ! grep -qF "$keyword" CLAUDE.md 2>/dev/null; then
+            if [ -n "$keyword" ] && ! grep -qF "$keyword" CLAUDE.md; then
                 output+="SUGGESTION: Missing principle: $line"$'\n'
                 CURRENT_CHECK_SUGGESTIONS=$((CURRENT_CHECK_SUGGESTIONS + 1))
             fi
@@ -545,7 +545,7 @@ check_cleanup() {
     # --- 8b: Stale hook references in settings.json ---
     if [ -f "$SETTINGS" ]; then
         local hook_commands
-        hook_commands=$(sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS" 2>/dev/null || true)
+        hook_commands=$(sed -nE 's/.*"command"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$SETTINGS" || true)
         if [ -n "$hook_commands" ]; then
             while IFS= read -r cmd; do
                 [ -z "$cmd" ] && continue

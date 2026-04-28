@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.72.11] - 2026-04-27 - remove dangerous 2>/dev/null from validators and diagnose script
+
+### Fixed
+- **scripts**: Removed `2>/dev/null` from 13 jq/sed/grep call sites in `validate-settings-template.sh` (1 site), `validate-safe-commands-sync.sh` (1 site), and `setup-toolkit-diagnose.sh` (8 sites) where error suppression turned real failures into silent-correctness bugs. All sites already have file-existence guards upstream — the suppression was hiding unexpected errors, not expected ones. On macOS (or any environment where the command fails), variables came up empty and downstream comparisons passed vacuously. Closes `macos-loud-errors`. Eval-related scripts deferred as P99 (`eval-macos-loud-errors`).
+
 ## [2.72.10] - 2026-04-27 - replace GNU mktemp --suffix with portable alternative
 
 ### Fixed
