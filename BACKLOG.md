@@ -30,20 +30,9 @@
 - **[TOOLKIT]** macOS compatibility for shipped bash scripts (`macos-bash-compatibility`)
     - **scope**: `toolkit`
     - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: Parent task — see subtasks ~~`macos-grep-pcre`~~ (done, v2.72.5), ~~`macos-find-printf`~~ (done, v2.72.9), `macos-bash4-policy`, ~~`macos-mktemp-suffix`~~ (done, v2.72.10), `macos-md5sum` (deferred), ~~`macos-loud-errors`~~ (done), `macos-ci-runner`, `macos-readme-platform` (ordered by descending impact-per-effort). Toolkit's bash scripts assume GNU userland + bash 4+; on macOS (BSD userland + `/bin/bash` 3.2) several validators and `setup-toolkit-diagnose.sh` produce silent-correctness bugs because errors are suppressed with `2>/dev/null` and downstream comparisons pass vacuously over empty data. Surfaced 2026-04-27 by the toolkit's biggest external consumer running `setup-toolkit-diagnose.sh` on macOS — visible symptom was `grep: invalid option -- P` noise; underlying issue is that `setup-toolkit-diagnose.sh`, `make validate`, and `make backlog` are all structurally broken on stock macOS. Analysis report (referenced above) catalogs 38 hard-break sites across 13 files in three independent classes: PCRE grep (22 hits), GNU `find -printf` (6 hits), bash 4+ features (8 hits). Success criterion: macOS consumer can run `setup-toolkit-diagnose.sh`, `make check`, and `make backlog` cleanly.
+    - **notes**: Parent task — see subtasks ~~`macos-grep-pcre`~~ (done, v2.72.5), ~~`macos-find-printf`~~ (done, v2.72.9), ~~`macos-bash4-policy`~~ (done, v2.72.12), ~~`macos-mktemp-suffix`~~ (done, v2.72.10), ~~`macos-loud-errors`~~ (done, v2.72.11), `macos-ci-runner`, `macos-readme-platform` (ordered by descending impact-per-effort). `macos-md5sum` moved to P99 (eval not relevant for macOS consumers yet). Toolkit's bash scripts assume GNU userland + bash 4+; on macOS (BSD userland + `/bin/bash` 3.2) several validators and `setup-toolkit-diagnose.sh` produce silent-correctness bugs because errors are suppressed with `2>/dev/null` and downstream comparisons pass vacuously over empty data. Surfaced 2026-04-27 by the toolkit's biggest external consumer running `setup-toolkit-diagnose.sh` on macOS — visible symptom was `grep: invalid option -- P` noise; underlying issue is that `setup-toolkit-diagnose.sh`, `make validate`, and `make backlog` are all structurally broken on stock macOS. Analysis report (referenced above) catalogs 38 hard-break sites across 13 files in three independent classes: PCRE grep (22 hits), GNU `find -printf` (6 hits), bash 4+ features (8 hits). Success criterion: macOS consumer can run `setup-toolkit-diagnose.sh`, `make check`, and `make backlog` cleanly.
 
 
-- **[TOOLKIT]** Decide bash 4+ policy + apply across scripts (`macos-bash4-policy`)
-    - **scope**: `toolkit`
-    - **relates-to**: `macos-bash-compatibility:depends-on`
-    - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: Stock macOS `/bin/bash` is 3.2 (Apple won't ship GPLv3). Affected features used in this repo: `declare -A` (6 sites in 4 files — `validate-detection-registry.sh`, `verify-external-deps.sh`, `tests/perf-session-start.sh`, `tests/perf-surface-lessons.sh`) and `${var^^}` uppercase expansion (2 sites in `cli/backlog/query.sh`, invoked by `make backlog`). 77 of 83 scripts use `#!/bin/bash`; only 6 use `#!/usr/bin/env bash`. **Decision needed first**: (a) require bash 4+ via `#!/usr/bin/env bash` everywhere + Homebrew bash dependency + a startup version check that tells macOS users to `brew install bash`, or (b) refactor the ~8 affected sites to bash 3.2 syntax (associative arrays → parallel indexed arrays or temp files; `${var^^}` → `tr '[:lower:]' '[:upper:]'`). Option (a) is what most modern dev tools do (asdf, sdkman, etc.). Option (b) keeps the dependency surface smaller but adds friction at every site that wants modern features later. Lean (a). Either way: shebang sweep across the 77 `#!/bin/bash` files. Estimate: half a day for decision + sweep, plus a documented Homebrew prerequisite if (a).
-
-- **[TOOLKIT]** Fix `md5sum` for macOS (`macos-md5sum`)
-    - **scope**: `toolkit`
-    - **relates-to**: `macos-bash-compatibility:depends-on`
-    - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: macOS ships `md5` (BSD) and `shasum`, not `md5sum`. Hits: `cli/eval/query.sh:44`, `tests/test-evaluation-query.sh:61`. Both suppress errors with `2>/dev/null`, so on macOS every resource gets an empty hash; every resource appears stale on `claude-toolkit eval stale`. Fix: switch to `shasum -a 256` or guard with `command -v md5sum`. Deferred until eval core ships. `mktemp --suffix` portion done in v2.72.10.
 
 - **[TOOLKIT]** Add macOS CI runner (`macos-ci-runner`)
     - **scope**: `toolkit`, `tests`
@@ -104,6 +93,12 @@
 - **[SKILLS]** v3 E5 — frontmatter field ordering normalization across skills (`v3-e5-frontmatter-ordering`)
     - **scope**: `skills`
     - **notes**: `build-communication-style` uses non-standard frontmatter order (`name, description, argument-hint, allowed-tools, type`); most skills use `name, type, description, ...`. The A1 sweep resolves `type:` placement but doesn't normalize broader ordering. Could be automated with a small ruff-style linter or a sed pass. Polish, not v3-blocking.
+
+- **[TOOLKIT]** Fix `md5sum` for macOS (`macos-md5sum`)
+    - **scope**: `cli`, `tests`
+    - **relates-to**: `macos-bash-compatibility:relates-to`
+    - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
+    - **notes**: macOS ships `md5` (BSD) and `shasum`, not `md5sum`. Hits: `cli/eval/query.sh:44`, `tests/test-evaluation-query.sh:61`. Both suppress errors with `2>/dev/null`, so on macOS every resource gets an empty hash; every resource appears stale on `claude-toolkit eval stale`. Fix: switch to `shasum -a 256` or guard with `command -v md5sum`. Deferred until eval core ships. `mktemp --suffix` portion done in v2.72.10.
 
 - **[CLI]** Update eval scripts `2>/dev/null` for macOS compatibility (`eval-macos-loud-errors`)
     - **scope**: `cli`, `tests`

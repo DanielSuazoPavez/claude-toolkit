@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.72.12] - 2026-04-27 - require bash 4+ via #!/usr/bin/env bash shebang sweep
+
+### Fixed
+- **scripts**: Swept all 69 `#!/bin/bash` shebangs to `#!/usr/bin/env bash` across hooks (16), scripts (11), and tests (36+). Stock macOS `/bin/bash` is 3.2 (Apple won't ship GPLv3); the hardcoded shebang bypassed Homebrew bash even when installed, causing `declare -A` and `${var^^}` failures. With `env bash`, PATH resolution picks up Homebrew bash 5.x automatically. Policy decision: require bash 4+ (option a) — no syntax downgrades to bash 3.2. Closes `macos-bash4-policy`.
+
 ## [2.72.11] - 2026-04-27 - remove dangerous 2>/dev/null from validators and diagnose script
 
 ### Fixed
