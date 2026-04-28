@@ -18,6 +18,24 @@ claude-toolkit sync
 
 This syncs the `.claude/` directory into your project. Only files listed in `.claude/MANIFEST` are copied — dev-only files stay in the toolkit. Customize as needed.
 
+## Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Linux | Supported | Primary development platform |
+| macOS | Supported | Requires bash 4+ (see below) |
+| Windows (WSL2) | Supported | Via Linux compatibility layer |
+
+### macOS: bash 4+ required
+
+All hooks and scripts require bash 4.0 or later (`declare -A`, `${var^^}`, etc.). macOS ships bash 3.2 (Apple won't distribute GPLv3). Install a modern bash via Homebrew:
+
+```bash
+brew install bash
+```
+
+The toolkit uses `#!/usr/bin/env bash` shebangs, so PATH resolution picks up Homebrew bash automatically — no need to change your default shell.
+
 ## CLI Usage
 
 The `claude-toolkit` CLI manages toolkit distribution and updates.
@@ -93,7 +111,7 @@ For full listings with status and details, see [`docs/indexes/`](docs/indexes/).
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — the CLI this toolkit extends
 - `jq` — JSON processing in hooks and skills (session-start, `read-json` reference, evaluations)
 - `sqlite3` — lesson storage and retrieval (`/learn`, `surface-lessons` hook)
-- `bash` — all hooks and scripts target bash
+- `bash` 4+ — all hooks and scripts target bash (macOS: `brew install bash`)
 - `make` — test runner and common task targets
 - `uv` — Python dependency management (Python-specific hooks expect this)
 
