@@ -105,7 +105,7 @@ echo ""
 echo "=== Permission Allow Rules ==="
 
 extract_permissions() {
-    jq -r '.permissions.allow // [] | .[]' "$1" 2>/dev/null | sort
+    jq -r '.permissions.allow // [] | .[]' "$1" | sort
 }
 
 SETTINGS_PERMS=$(extract_permissions "$SETTINGS")

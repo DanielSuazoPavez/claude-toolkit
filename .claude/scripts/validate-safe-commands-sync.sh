@@ -38,7 +38,7 @@ fi
 # Matches: Bash(cmd:*) → cmd, Bash(cmd *) → cmd, Bash(path/**) → path/
 # Excludes non-Bash entries and path-only entries like Bash(.claude/scripts/**)
 extract_settings_prefixes() {
-    jq -r '.permissions.allow // [] | .[]' "$SETTINGS" 2>/dev/null \
+    jq -r '.permissions.allow // [] | .[]' "$SETTINGS" \
         | grep '^Bash(' \
         | sed -E 's/^Bash\(//; s/\)$//' \
         | sed -E 's/:\*+$//; s/ \*+$//; s/\*+$//' \
