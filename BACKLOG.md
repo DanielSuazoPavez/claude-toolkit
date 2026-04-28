@@ -27,22 +27,8 @@
 
 ## P1 - High
 
-- **[TOOLKIT]** macOS compatibility for shipped bash scripts (`macos-bash-compatibility`)
-    - **scope**: `toolkit`
-    - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: Parent task — see subtasks ~~`macos-grep-pcre`~~ (done, v2.72.5), ~~`macos-find-printf`~~ (done, v2.72.9), ~~`macos-bash4-policy`~~ (done, v2.72.12), ~~`macos-mktemp-suffix`~~ (done, v2.72.10), ~~`macos-loud-errors`~~ (done, v2.72.11), `macos-ci-runner`, `macos-readme-platform` (ordered by descending impact-per-effort). `macos-md5sum` moved to P99 (eval not relevant for macOS consumers yet). Toolkit's bash scripts assume GNU userland + bash 4+; on macOS (BSD userland + `/bin/bash` 3.2) several validators and `setup-toolkit-diagnose.sh` produce silent-correctness bugs because errors are suppressed with `2>/dev/null` and downstream comparisons pass vacuously over empty data. Surfaced 2026-04-27 by the toolkit's biggest external consumer running `setup-toolkit-diagnose.sh` on macOS — visible symptom was `grep: invalid option -- P` noise; underlying issue is that `setup-toolkit-diagnose.sh`, `make validate`, and `make backlog` are all structurally broken on stock macOS. Analysis report (referenced above) catalogs 38 hard-break sites across 13 files in three independent classes: PCRE grep (22 hits), GNU `find -printf` (6 hits), bash 4+ features (8 hits). Success criterion: macOS consumer can run `setup-toolkit-diagnose.sh`, `make check`, and `make backlog` cleanly.
 
 
-
-- **[TOOLKIT]** Add macOS CI runner (`macos-ci-runner`)
-    - **scope**: `toolkit`, `tests`
-    - **relates-to**: `macos-bash-compatibility:depends-on`
-    - **notes**: Prevent regression after the fixes land. GitHub Actions provides free macOS runners. Add a `make check` job on `macos-latest` to the existing CI workflow. Catches BSD-vs-GNU divergences at PR time instead of via consumer bug reports. Order-dependent on the upstream fixes: don't enable until at least the grep/find/bash4 subtasks are done, otherwise CI is red from day one. Estimate: 1-2 hours once preconditions are met.
-
-- **[DOCS]** Document supported platforms in README (`macos-readme-platform`)
-    - **scope**: `docs`
-    - **relates-to**: `macos-bash-compatibility:depends-on`
-    - **notes**: Currently neither `README.md` nor `CLAUDE.md` mentions platform support. After the fixes land, document supported platforms (Linux + macOS) and any prerequisites (e.g. Homebrew bash if `macos-bash4-policy` lands as option (a)). Small, but the kind of thing that decides whether a new consumer hits a wall on day 1. Estimate: 30 min.
 
 - **[HOOKS]** SessionStart payload cap guardrails — pre-emptive validation + reactive truncation detection (`session-start-cap-guardrails`)
     - **scope**: `hooks`
@@ -124,6 +110,11 @@
 - **[CLI]** Add `claude-toolkit lessons demote` subcommand (`lessons-demote-cli`)
     - **scope**: `cli`
     - **notes**: Demoted P3→P99 2026-04-26 — workaround (raw SQL one-liner) is documented and the motivating sweep didn't need it. Surfaced 2026-04-26 during the Key-tier crystallization sweep. CLI exposes `promote`/`deactivate`/`absorb`/`crystallize` but no inverse of `promote`. The Key Promotion Contract in `manage-lessons/SKILL.md` §4.5 lists "demote back to recent" as one of three valid paths when revisiting a Key lesson, but the workaround is currently raw SQL: `sqlite3 ~/.claude/lessons.db "UPDATE lessons SET tier='recent' WHERE id='<ID>';"`. Add a thin subcommand mirroring `promote`'s shape (single `--id`, sets tier='recent', no other side effects). Add when convenient. Design context: `output/claude-toolkit/design/20260426_1623__design__key-lessons-review.md`.
+
+- **[TOOLKIT]** Add macOS CI runner (`macos-ci-runner`)
+    - **scope**: `toolkit`, `tests`
+    - **relates-to**: `macos-bash-compatibility:relates-to`
+    - **notes**: Demoted P1→P99 2026-04-27 — all code fixes landed and validated by a real macOS consumer; new bash scripts are infrequent enough that CI regression catching doesn't justify the maintenance. GitHub Actions `macos-latest` + `make check`. Revisit if macOS-specific regressions recur.
 
 - **[HOOKS]** Per-project customization of detection registry (`hooks-detection-registry-per-project`)
     - **scope**: `hooks`
