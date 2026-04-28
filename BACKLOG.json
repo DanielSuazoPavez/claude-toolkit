@@ -365,7 +365,7 @@
         "tests"
       ],
       "status": "idea",
-      "notes": "make check takes ~120s+ wall. Split concerns: (1) test suite timing — hook tests dominate at ~120s, backlog tests ~30s; identify parallelization opportunities and slow individual tests. (2) Separate make targets: make test (tests only), make lint (shellcheck only), make validate (validators only) as independent targets so make check = all three but each runs independently. Currently lint-bash failures block check even when all tests pass."
+      "notes": "Analysis complete (output/claude-toolkit/analysis/20260428_1800__analyze-idea__test-suite-perf-and-separation.md). Ordered action items: (1) Add make test-fast with SKIP_SLOW=1 for inner-loop dev (~30-40s savings). (2) Document three-layer test/validate/sync-validate separation in tests/CLAUDE.md. (3) Remove redundant individual validator calls from test-sync-then-validate.sh (already runs validate-all.sh). (4) Batch assertions in hook tests to reduce subprocess overhead (biggest perf gain, medium effort). (5) Parallelize lint+validate with test in make check (easy ~5s win). (6) Investigate test-verify-external-deps flakiness under parallel load."
     }
   ]
 }

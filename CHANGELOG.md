@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.77.1] - 2026-04-28 - Fix make check failures
+
+### Fixed
+- **hooks**: Suppress shellcheck SC2034 false positives in `detect-session-start-truncation.sh` — `OUTCOME` and `BYTES_INJECTED` are read by the `_hook_log_timing` EXIT trap in hook-utils, invisible to static analysis.
+- **indexes**: Add `migrate-backlog-to-json.sh` to SCRIPTS.md (Migration section) — was missing from index after 2.77.0.
+
 ## [2.77.0] - 2026-04-28 - JSON-backed backlog with CLI mutations
 
 ### Added
