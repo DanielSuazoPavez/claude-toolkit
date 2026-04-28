@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2.74.0] - 2026-04-27 - PermissionDenied hook for auto-mode classifier observability
+
+### Added
+- **hooks**: `log-permission-denied.sh` — pure-logging hook that captures auto-mode classifier denials into `invocations.jsonl`. No stdout output (denial stands); full stdin embedded in the JSONL row for downstream analytics. Ships to both base and raiz distributions.
+- **hooks**: `PermissionDenied` handler registered in `settings.json` with no matcher (fires on all tool denials). Both `settings.template.json` templates (base + raiz) updated.
+- **tests**: `test-log-permission-denied.sh` — 7 tests covering silent output, JSONL field correctness, stdin payload embedding, traceability gating, and malformed stdin resilience.
+
 ## [2.73.0] - 2026-04-27 - platform support docs and bash version check
 
 ### Added
