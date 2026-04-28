@@ -1,0 +1,14 @@
+{
+  "version": "2.73.0",
+  "date": "2026-04-27",
+  "headline": "bash 4+ version check in verify-external-deps",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "verify-external-deps.sh now checks bash version (>= 4.0) as a platform prerequisite — on macOS with stock bash 3.2, gives an early signal before hooks fail"
+      ]
+    }
+  ]
+}

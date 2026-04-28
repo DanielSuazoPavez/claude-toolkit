@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.73.0] - 2026-04-27 - platform support docs and bash version check
+
+### Added
+- **scripts**: `verify-external-deps.sh` now checks bash version (≥ 4.0 required) as a platform prerequisite before scanning skill-declared tools. On macOS with stock bash 3.2, gives an early signal before hooks fail with `declare -A` or `${var^^}` errors.
+- **docs**: Platform Support section in README — documents Linux, macOS, and WSL2 support with macOS bash 4+ prerequisite and Homebrew install instructions.
+
 ## [2.72.13] - 2026-04-27 - ship validation scripts and schema to raiz consumers
 
 ### Fixed

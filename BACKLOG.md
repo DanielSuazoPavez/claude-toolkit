@@ -27,17 +27,8 @@
 
 ## P1 - High
 
-- **[TOOLKIT]** macOS compatibility for shipped bash scripts (`macos-bash-compatibility`)
-    - **scope**: `toolkit`
-    - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: Parent task — see subtasks ~~`macos-grep-pcre`~~ (done, v2.72.5), ~~`macos-find-printf`~~ (done, v2.72.9), ~~`macos-bash4-policy`~~ (done, v2.72.12), ~~`macos-mktemp-suffix`~~ (done, v2.72.10), ~~`macos-loud-errors`~~ (done, v2.72.11), `macos-readme-platform` (last remaining). `macos-ci-runner` demoted to P99; `macos-md5sum` at P99 (eval not relevant for macOS consumers yet). All code fixes landed — closeable once `macos-readme-platform` ships.
 
 
-
-- **[DOCS]** Document supported platforms in README (`macos-readme-platform`)
-    - **scope**: `docs`
-    - **relates-to**: `macos-bash-compatibility:depends-on`
-    - **notes**: Currently neither `README.md` nor `CLAUDE.md` mentions platform support. After the fixes land, document supported platforms (Linux + macOS) and any prerequisites (e.g. Homebrew bash if `macos-bash4-policy` lands as option (a)). Small, but the kind of thing that decides whether a new consumer hits a wall on day 1. Estimate: 30 min.
 
 - **[HOOKS]** SessionStart payload cap guardrails — pre-emptive validation + reactive truncation detection (`session-start-cap-guardrails`)
     - **scope**: `hooks`
