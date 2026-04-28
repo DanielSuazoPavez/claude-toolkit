@@ -23,10 +23,6 @@
 
 ## P0 - Critical
 
-- **[HOOKS]** PostToolUse bash command logger (`log-bash-commands`)
-    - **scope**: `hooks`
-    - **notes**: Surfaced 2026-04-28 during web ecosystem exploration (Crosley's log-bash pattern). PostToolUse hook that appends every Bash command + exit code + timestamp to a session log file. Zero model cost, pure observability. We have `log-permission-denied.sh` (PostToolUse for denied permissions) but no general command logging. Feeds into session retrospectives and debugging — "what did I run and what failed?" without scrolling through conversation. Design questions: (1) log format — JSONL (machine-readable, consistent with append-only philosophy) vs plain text (human-scannable); (2) log location — per-session file in `output/` or a central log; (3) scope — Bash only or all tool uses (Read/Write/Edit could be useful too but noisier); (4) interaction with claude-sessions if installed (avoid duplicate capture). Start simple: Bash-only, JSONL, per-session file.
-
 - **[CLI]** JSON-backed backlog — source of truth + rendered markdown (`backlog-json-source`)
     - **scope**: `cli`
     - **source**: `output/claude-toolkit/plans/2026-04-27_0257__plan__backlog-schema-surface.md`
@@ -62,6 +58,10 @@
     - **relates-to**: `agent-reasoning-activation:relates-to`, `convention-refinements-anbeeld:relates-to`, `bash-output-compression-hook:relates-to`
 
 ## P2 - Medium
+
+- **[TESTS]** Revisit test suite runner — timing, performance, and output reliability (`test-runner-reliability`)
+    - **scope**: `tests`
+    - **notes**: Surfaced 2026-04-28 during `log-bash-commands` implementation. The parallel test runner (`make test`) reports false failures: all individual test `.exit` files show 0, but the summary shows `?s` timing and "cat: ... No such file" errors for log files not yet written when the summary reader runs. Race condition between parallel test completion and log aggregation. Also: hook tests take 161s (serial) — opportunity for parallelization or selective running. Consider: (1) fix race in log reading (wait for all jobs before summarizing), (2) surface individual test durations in summary, (3) option for running validation-only or test-only subsets faster.
 
 - **[SKILLS]** Add prose cleanup resource to `write-documentation` + fix `draft-pr` verbosity (`prose-cleanup-resource`)
     - **scope**: `skills`

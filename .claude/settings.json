@@ -191,6 +191,16 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/log-tool-uses.sh"
+          }
+        ]
+      }
+    ],
     "PermissionDenied": [
       {
         "hooks": [
