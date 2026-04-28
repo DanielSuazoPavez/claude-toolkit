@@ -1,6 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [2.76.0] - 2026-04-28 - PostToolUse logger for idle-time classification
+
+### Added
+- **hooks**: `log-tool-uses.sh` — PostToolUse pure-logging hook that records every tool invocation (all tools, no matcher) to `invocations.jsonl` with `duration_ms` and `tool_response` embedded. Enables idle-time classification in claude-sessions: gap between consecutive tool calls minus execution duration = model thinking time. Follows `log-permission-denied.sh` pattern. Ships to base distribution; gated by `CLAUDE_TOOLKIT_TRACEABILITY=1`.
 
 ### Notes
 - **exploration**: Completed `re-explore-web-ecosystem` — two rounds across GitHub, blogs, awesome-lists, and marketplaces. 25+ repos/resources reviewed, 3 curated resource entries added (design.md, Crest agent, aipatternbook.com). Deep dives into VILA-Lab (CC architecture paper) and Crosley (95-hook architecture).
