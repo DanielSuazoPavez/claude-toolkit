@@ -30,7 +30,7 @@
 - **[TOOLKIT]** macOS compatibility for shipped bash scripts (`macos-bash-compatibility`)
     - **scope**: `toolkit`
     - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: Parent task — see subtasks ~~`macos-grep-pcre`~~ (done, v2.72.5), ~~`macos-find-printf`~~ (done, v2.72.9), `macos-bash4-policy`, ~~`macos-mktemp-suffix`~~ (done, v2.72.10), `macos-md5sum` (deferred), `macos-loud-errors`, `macos-ci-runner`, `macos-readme-platform` (ordered by descending impact-per-effort). Toolkit's bash scripts assume GNU userland + bash 4+; on macOS (BSD userland + `/bin/bash` 3.2) several validators and `setup-toolkit-diagnose.sh` produce silent-correctness bugs because errors are suppressed with `2>/dev/null` and downstream comparisons pass vacuously over empty data. Surfaced 2026-04-27 by the toolkit's biggest external consumer running `setup-toolkit-diagnose.sh` on macOS — visible symptom was `grep: invalid option -- P` noise; underlying issue is that `setup-toolkit-diagnose.sh`, `make validate`, and `make backlog` are all structurally broken on stock macOS. Analysis report (referenced above) catalogs 38 hard-break sites across 13 files in three independent classes: PCRE grep (22 hits), GNU `find -printf` (6 hits), bash 4+ features (8 hits). Success criterion: macOS consumer can run `setup-toolkit-diagnose.sh`, `make check`, and `make backlog` cleanly.
+    - **notes**: Parent task — see subtasks ~~`macos-grep-pcre`~~ (done, v2.72.5), ~~`macos-find-printf`~~ (done, v2.72.9), `macos-bash4-policy`, ~~`macos-mktemp-suffix`~~ (done, v2.72.10), `macos-md5sum` (deferred), ~~`macos-loud-errors`~~ (done), `macos-ci-runner`, `macos-readme-platform` (ordered by descending impact-per-effort). Toolkit's bash scripts assume GNU userland + bash 4+; on macOS (BSD userland + `/bin/bash` 3.2) several validators and `setup-toolkit-diagnose.sh` produce silent-correctness bugs because errors are suppressed with `2>/dev/null` and downstream comparisons pass vacuously over empty data. Surfaced 2026-04-27 by the toolkit's biggest external consumer running `setup-toolkit-diagnose.sh` on macOS — visible symptom was `grep: invalid option -- P` noise; underlying issue is that `setup-toolkit-diagnose.sh`, `make validate`, and `make backlog` are all structurally broken on stock macOS. Analysis report (referenced above) catalogs 38 hard-break sites across 13 files in three independent classes: PCRE grep (22 hits), GNU `find -printf` (6 hits), bash 4+ features (8 hits). Success criterion: macOS consumer can run `setup-toolkit-diagnose.sh`, `make check`, and `make backlog` cleanly.
 
 
 - **[TOOLKIT]** Decide bash 4+ policy + apply across scripts (`macos-bash4-policy`)
@@ -44,12 +44,6 @@
     - **relates-to**: `macos-bash-compatibility:depends-on`
     - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
     - **notes**: macOS ships `md5` (BSD) and `shasum`, not `md5sum`. Hits: `cli/eval/query.sh:44`, `tests/test-evaluation-query.sh:61`. Both suppress errors with `2>/dev/null`, so on macOS every resource gets an empty hash; every resource appears stale on `claude-toolkit eval stale`. Fix: switch to `shasum -a 256` or guard with `command -v md5sum`. Deferred until eval core ships. `mktemp --suffix` portion done in v2.72.10.
-
-- **[TOOLKIT]** Stop suppressing errors with `2>/dev/null` in validators (`macos-loud-errors`)
-    - **scope**: `toolkit`
-    - **relates-to**: `macos-bash-compatibility:relates-to`
-    - **references**: `output/claude-toolkit/analysis/20260427_1322__analyze-idea__macos-bash-compatibility.md`
-    - **notes**: Discipline issue uncovered by the macOS investigation, orthogonal to platform-specific fixes but causally linked to why the bugs went undetected. The macOS consumer's report framed `grep -P` errors as "cosmetic" because `setup-toolkit-diagnose.sh` kept running — it kept running because errors were silenced. Same pattern in `find -printf` and `md5sum` call sites. Audit `.claude/scripts/*.sh` and `cli/**/*.sh` for `2>/dev/null` and decide per-site whether the failure mode is genuinely expected (keep) or whether the silence is hiding a bug (remove). Heuristic: if the variable downstream of the silenced command is then compared, used in a loop, or written to a report, the silence is dangerous; if it's a "best-effort, missing-is-fine" probe (e.g. optional file), silence is correct. Estimate: 2-3 hours of careful read.
 
 - **[TOOLKIT]** Add macOS CI runner (`macos-ci-runner`)
     - **scope**: `toolkit`, `tests`
@@ -110,6 +104,11 @@
 - **[SKILLS]** v3 E5 — frontmatter field ordering normalization across skills (`v3-e5-frontmatter-ordering`)
     - **scope**: `skills`
     - **notes**: `build-communication-style` uses non-standard frontmatter order (`name, description, argument-hint, allowed-tools, type`); most skills use `name, type, description, ...`. The A1 sweep resolves `type:` placement but doesn't normalize broader ordering. Could be automated with a small ruff-style linter or a sed pass. Polish, not v3-blocking.
+
+- **[CLI]** Update eval scripts `2>/dev/null` for macOS compatibility (`eval-macos-loud-errors`)
+    - **scope**: `cli`, `tests`
+    - **relates-to**: `macos-bash-compatibility:relates-to`
+    - **notes**: `cli/eval/query.sh` (lines 44, 117, 131, 162, 230), `tests/test-evaluation-query.sh:61`, and `tests/lib/test-helpers.sh:61` suppress errors with `2>/dev/null` on `md5sum` and `jq` calls. The `md5sum` sites overlap with `macos-md5sum`. The jq sites follow the same dangerous pattern fixed in validators (v2.72.11). Deferred because eval isn't relevant for macOS consumers yet. Analysis: `output/claude-toolkit/analysis/20260427_1700__analyze-idea__macos-loud-errors.md`.
 
 - **[SKILLS]** v3 E3 — `teardown-worktree` artifact-copy scope decision (`v3-e3-teardown-artifact-scope`)
     - **scope**: `skills`

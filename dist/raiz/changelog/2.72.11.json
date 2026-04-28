@@ -1,0 +1,14 @@
+{
+  "version": "2.72.11",
+  "date": "2026-04-27",
+  "headline": "remove dangerous 2>/dev/null from diagnose script",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "Removed `2>/dev/null` from 8 jq/sed/grep calls in `setup-toolkit-diagnose.sh` that silenced real errors — hook, permission, and MCP checks now surface failures instead of passing vacuously on empty data"
+      ]
+    }
+  ]
+}
