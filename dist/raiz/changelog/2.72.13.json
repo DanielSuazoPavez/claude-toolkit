@@ -1,0 +1,20 @@
+{
+  "version": "2.72.13",
+  "date": "2026-04-27",
+  "headline": "ship validation scripts + schema to raiz; remove sync make target",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "validate-all.sh and its 6 sub-validators, statusline-capture.sh, and detection-registry.schema.json now ship to raiz — setup-toolkit Phase 3 validation works out of the box"
+      ]
+    },
+    {
+      "kind": "templates",
+      "bullets": [
+        "Removed claude-toolkit-sync make target from Makefile template (interactive, not useful for agentic usage)"
+      ]
+    }
+  ]
+}
