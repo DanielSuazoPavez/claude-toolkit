@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Tests for .claude/hooks/lib/detection-registry.sh
 #
 # Covers:

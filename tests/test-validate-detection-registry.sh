@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Tests for .claude/scripts/validate-detection-registry.sh
 #
 # Synthesizes broken registries in a temp dir, points the validator at each,

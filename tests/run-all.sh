@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Unified top-level test runner.
 #
 # Dispatches all top-level bash suites in parallel, plus pytest as one unit.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies that external tools declared in skill compatibility fields are installed
 #
 # Scans SKILL.md frontmatter for `compatibility:` and checks each tool with `command -v`.

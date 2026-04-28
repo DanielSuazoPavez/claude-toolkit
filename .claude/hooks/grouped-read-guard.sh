@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: grouped Read/Grep guard — dispatcher that amortizes bash
 # startup + hook-utils sourcing + jq parsing across multiple checks.
 #

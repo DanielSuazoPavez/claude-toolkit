@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PermissionRequest hook: auto-approve chained commands where all subcommands are safe
 #
 # Settings.json:

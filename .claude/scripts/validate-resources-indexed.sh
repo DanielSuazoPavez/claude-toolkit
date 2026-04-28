@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validates that all resources are properly indexed in their respective index files
 #
 # MANIFEST-aware: When .claude/MANIFEST exists (target projects), only validates

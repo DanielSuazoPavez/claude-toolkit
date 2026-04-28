@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Performance harness for session-start hook
 #
 # Runs the actual hook with CLAUDE_TOOLKIT_HOOK_PERF=1 to get per-phase timing.

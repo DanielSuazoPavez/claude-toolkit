@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Shared setup for hook tests.
 #
 # Sourced by tests/hooks/test-*.sh and the legacy tests/test-hooks.sh.

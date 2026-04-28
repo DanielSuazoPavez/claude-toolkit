@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Shared detection registry loader — populates pre-built bash regexes from
 # .claude/hooks/lib/detection-registry.json so hooks can run pure-bash matches
 # against the cheapness contract (no fork inside match_).

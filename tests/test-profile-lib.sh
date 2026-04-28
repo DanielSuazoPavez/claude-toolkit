@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for .claude/scripts/lib/profile.sh
 #
 # Usage:

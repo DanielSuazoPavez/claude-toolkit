@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Smoke-tests for grouped-bash-guard.sh in two distribution shapes:
 #   - base: all 6 guards present (uses live HOOKS_DIR).
 #   - raiz sim: enforce-make / enforce-uv absent (copy HOOKS_DIR to a

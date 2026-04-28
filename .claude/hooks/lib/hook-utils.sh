@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Shared hook utilities — sourced by all hooks for standardized
 # initialization, outcome handling, and execution logging.
 #

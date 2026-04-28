@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # PreToolUse hook: block REACHING TOWARDS sensitive resources.
 #
 # Scope (responsibility split with block-credential-exfiltration.sh):

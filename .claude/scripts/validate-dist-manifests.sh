@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validates that every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE
 # resolves to a real path on disk. Catches stale entries after renames or deletes.
 #

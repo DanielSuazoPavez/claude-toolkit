@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Automated tests for validate-settings-template.sh
 #
 # Targets the extract_hook_commands() helper specifically — the only place

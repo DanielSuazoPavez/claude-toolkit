@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Verifies session-start.sh lesson surfacing behavior:
 #   - Key and Recent tier lessons are NOT surfaced (dropped).
 #   - Branch lessons surface only when CURRENT_BRANCH is not protected.
