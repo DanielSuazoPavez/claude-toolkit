@@ -17,6 +17,10 @@ Quality domain-specific skills, tools, and references discovered during explorat
 
 - **[tonone-ai/tonone — Crest agent](https://github.com/tonone-ai/tonone)** — Product strategy agent from a 23-agent solo-founder toolkit. Roadmap planning, prioritization frameworks, competitive analysis. Part of a broader plugin (MIT) but the Crest agent prompt is worth referencing standalone for product-oriented projects.
 
+## Knowledge / Reference
+
+- **[aipatternbook.com — Encyclopedia of Agentic Coding Patterns](https://aipatternbook.com/)** — 190+ patterns, antipatterns, and concepts for building software with AI agents. Pattern-language format (Context/Problem/Forces/Solution/Consequences/Related). Covers strategic (what to build) through tactical (how to direct an agent). Freely available, by Wolf McNally.
+
 ## Workflow / Process
 
 - **[obra/superpowers](https://github.com/obra/superpowers)** — 10+ workflow skills: parallel agent dispatch, systematic debugging, TDD cycles, plan writing/execution, git worktrees, code review, skill authoring. Process-oriented, real session examples.
