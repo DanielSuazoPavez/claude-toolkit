@@ -22,6 +22,7 @@ _HOOK_ACTIVE=true
 MARKER_DIR="/tmp/claude-truncation-check"
 MARKER_FILE="$MARKER_DIR/$SESSION_ID"
 if [ -f "$MARKER_FILE" ]; then
+    # shellcheck disable=SC2034  # OUTCOME read by _hook_log_timing EXIT trap
     OUTCOME="pass"
     exit 0
 fi
@@ -33,6 +34,7 @@ PROJECT_DIR_NAME=$(pwd | sed 's|/|-|g; s|^-||')
 TRANSCRIPT="$HOME/.claude/projects/-${PROJECT_DIR_NAME}/${SESSION_ID}.jsonl"
 
 if [ ! -f "$TRANSCRIPT" ]; then
+    # shellcheck disable=SC2034  # OUTCOME read by _hook_log_timing EXIT trap
     OUTCOME="pass"
     exit 0
 fi
@@ -40,7 +42,9 @@ fi
 # Look for the truncation marker on a SessionStart attachment
 if grep -q '"hookEvent":"SessionStart"' "$TRANSCRIPT" && \
    grep '"hookEvent":"SessionStart"' "$TRANSCRIPT" | grep -q 'persisted-output'; then
+    # shellcheck disable=SC2034  # read by _hook_log_timing EXIT trap
     OUTCOME="injected"
+    # shellcheck disable=SC2034  # read by _hook_log_timing EXIT trap
     BYTES_INJECTED=0
     echo ""
     echo "=== SESSION START TRUNCATION DETECTED ==="

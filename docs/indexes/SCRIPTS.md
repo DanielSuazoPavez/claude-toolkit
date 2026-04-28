@@ -38,6 +38,12 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 |------|--------|-------|-------------|
 | `lib/profile.sh` | stable | base + raiz | `detect_profile` — prints `workshop`/`base`/`raiz` so shipped scripts can branch on deployment context |
 
+## Migration
+
+| Script | Status | Ships | Description |
+|--------|--------|-------|-------------|
+| `migrate-backlog-to-json.sh` | stable | base | Migrates `BACKLOG.md` to `BACKLOG.json` — parses goals, scope definitions, tasks with metadata |
+
 ## Maintenance (workshop-only)
 
 Excluded from sync via `dist/base/EXCLUDE` (`validate-dist-manifests.sh`). `validate-all.sh` ships to consumers and skips the dist-manifest validator when the file is absent.
