@@ -16,6 +16,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | Hook | Status | Trigger | Opt-in | Description |
 |------|--------|---------|--------|-------------|
 | `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured row (branch, main branch, cwd) into `session-start-context.jsonl` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
+| `detect-session-start-truncation.sh` | stable | UserPromptSubmit | — | Fires once per session (marker-file guard). Checks transcript for harness truncation of SessionStart output. Warns model when essential docs may be incomplete. Logs via hook-utils (outcome: `pass` when clean, `injected` when truncated). |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
 | `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks shared-state/publishing actions: `git push`, `gh` writes, `gh api`, `curl`/`wget` to `api.github.com`, `curl`/`wget` with `Authorization` header. No-op outside auto-mode |
 | `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Blocks commands carrying credential-shaped tokens in arguments (GitHub PAT, GitLab, Slack, AWS, OpenAI, Anthropic). Sibling to `secrets-guard` — that blocks credential reads at-rest; this blocks the in-flight payload (e.g. token already in context being pasted into `curl -H "Authorization: ..."`) |
@@ -70,6 +71,18 @@ Loads essential memories and git context at the start of each session.
 - Outputs guidance text for memory usage
 - Logs each section's byte/token size to `.claude/logs/session-start-sizes.log` (SESSION_ID, timestamp, project, section, bytes, ~tokens)
 - Persists a structured row into `session-start-context.jsonl` (source, git_branch, main_branch, cwd) per firing — consumed by the claude-sessions projector to seed `state_changes` baselines instead of emitting `from_value=NULL` on first-observation rows. Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1` via the same `_hook_log_jsonl` path as `invocations.jsonl`.
+
+### detect-session-start-truncation.sh
+
+**Trigger**: UserPromptSubmit
+
+Fires once per session to check whether the SessionStart hook output was truncated by the harness (~10KB cap). Uses a marker file (`/tmp/claude-truncation-check/<session_id>`) to skip subsequent prompts.
+
+- Checks: transcript for `persisted-output` on a `SessionStart` hook event (the harness truncation marker)
+- Truncated: emits a loud warning listing the essential docs that may be incomplete
+- Clean: emits a one-line confirmation (`[truncation-detector] no truncation detected`)
+- Logging: uses `hook_init` / `_hook_log_timing` via hook-utils; outcome is `pass` (clean or skipped) or `injected` (truncation detected)
+- Fire-once: marker file per session_id; `/clear` creates a new session so the detector re-fires (correct — new SessionStart may have different truncation status)
 
 ### git-safety.sh
 
@@ -257,6 +270,7 @@ Hooks are configured in `.claude/settings.json`. See that file for the current h
 | Trigger | When | Use For |
 |---------|------|---------|
 | `SessionStart` | Session begins | Loading context, setup |
+| `UserPromptSubmit` | User sends a prompt | Validation, context injection |
 | `PreToolUse` | Before tool execution | Validation, blocking |
 | `PostToolUse` | After tool execution | Cleanup, side effects |
 | `PermissionDenied` | After auto-mode classifier denies a tool | Logging, analytics |
