@@ -27,6 +27,29 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `perf-session-start.sh` | Session-start hook performance benchmark | bash |
 | `perf-surface-lessons.sh` | Surface-lessons hook performance benchmark | bash |
 
+## Three-layer separation: validator tests, real validators, sync-then-validate
+
+Validators (`validate-*.sh`, run by `make validate`) are exercised in three distinct layers. Each catches a different bug class — none is redundant:
+
+| Layer | Inputs | Catches |
+|---|---|---|
+| `test-validate-*.sh` / `test-verify-*.sh` (in `make test`) | Crafted fixtures: fake `.claude/` trees, missing resources, edge cases | **Validator logic bugs** — false positives, false negatives, silent skips |
+| `validate-*.sh` (in `make validate`) | The **real** workshop codebase | **Actual resource drift** — missing index entries, broken refs, real misconfigurations |
+| `test-sync-then-validate.sh` (in `make test`) | A consumer fixture populated by a real `claude-toolkit sync` run | **Consumer-side correctness** — validator assumptions that only hold inside the workshop, sync output gaps |
+
+Why all three:
+
+- A validator that passes its **fixture tests** can still mis-flag real resources — fixtures are by design narrow.
+- A validator that's clean against the **real codebase** can still break on a freshly synced consumer — the workshop has files (e.g. `BACKLOG.json`, `dist/`) that consumers don't.
+- A validator that works in the consumer fixture can still have logic bugs — the fixture is one snapshot, not an exhaustive case set.
+
+Naming convention:
+- `validate-foo.sh` — the validator script (under `.claude/scripts/`)
+- `test-validate-foo.sh` — fixture-driven tests **of** that validator
+- `test-verify-foo.sh` — fixture-driven tests of a `verify-*` script (same pattern, different prefix)
+
+When adding a new validator, add **both** a `test-validate-*.sh` (fixture tests) and ensure it's wired into `validate-all.sh` so `make validate` covers it. `test-sync-then-validate.sh` picks it up automatically through `validate-all.sh`.
+
 ## Shared Helpers
 
 `lib/test-helpers.sh` — sourced by all bash tests. Provides:

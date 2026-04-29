@@ -356,16 +356,6 @@
       ],
       "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Claude Code has native LSP client support (confirmed in v2.1.121 `--bare` flag docs) with 14 LSP plugins in the official marketplace (`anthropics/claude-plugins-official`). Plugins are thin JSON manifests — e.g. pyright-lsp just declares `{\"command\": \"pyright-langserver\", \"args\": [\"--stdio\"], \"extensionToLanguage\": {\".py\": \"python\"}}`. Tasks: (1) install `pyright-lsp` plugin, test impact on code navigation speed/accuracy for this bash+python codebase; (2) assess whether custom LSP configs (without the marketplace plugin) are viable — the plugin format is trivial enough to self-author; (3) evaluate what LSP capabilities are actually exposed (blog claims goToDefinition/findReferences/hover — verify against real behavior); (4) decide whether LSP belongs in the toolkit's recommended setup or stays opt-in per-project. Skip Serena (tried before, too much bloat) and typescript-lsp (not needed). Cross-reference with `eval-claude-mem` for broader context-retrieval strategy. Source: karanbansal.in/blog/claude-code-lsp/ (mixed real+fabricated details — use official plugin docs as canonical source).",
       "status": "idea"
-    },
-    {
-      "id": "test-suite-perf-and-separation",
-      "priority": "P0",
-      "title": "Address test suite timing and separate validation/lint from tests",
-      "scope": [
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "Analysis: output/claude-toolkit/analysis/20260428_1800__analyze-idea__test-suite-perf-and-separation.md. Ordered action items: (1) Reduce per-assertion subprocess overhead in hook tests — each expect_* forks a full bash process (~250ms idle, ~900ms under contention). Batch multiple assertions through a single hook process per section. Biggest perf gain, must not pollute test isolation. (2) Document three-layer test/validate/sync-validate separation in tests/CLAUDE.md — fixture tests (validator logic), real validation (resource drift), consumer-fixture validation (path assumptions in MANIFEST mode). (3) Parallelize lint+validate with test in make check (easy ~5s win). (4) Investigate test-verify-external-deps flakiness under parallel CPU contention."
     }
   ]
 }
