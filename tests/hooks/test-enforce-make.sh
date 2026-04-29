@@ -8,24 +8,28 @@ parse_test_args "$@"
 report_section "=== enforce-make-commands.sh ==="
 hook="enforce-make-commands.sh"
 
+batch_start "$hook"
+
 # Should block (bare commands = full suite runs)
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
+batch_add block '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
     "blocks bare pytest"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"uv run pytest"}}' \
+batch_add block '{"tool_name":"Bash","tool_input":{"command":"uv run pytest"}}' \
     "blocks uv run pytest"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"pre-commit run"}}' \
+batch_add block '{"tool_name":"Bash","tool_input":{"command":"pre-commit run"}}' \
     "blocks direct pre-commit"
-expect_block "$hook" '{"tool_name":"Bash","tool_input":{"command":"ruff check ."}}' \
+batch_add block '{"tool_name":"Bash","tool_input":{"command":"ruff check ."}}' \
     "blocks direct ruff"
 
 # Should allow
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"make test"}}' \
+batch_add allow '{"tool_name":"Bash","tool_input":{"command":"make test"}}' \
     "allows make test"
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"make lint"}}' \
+batch_add allow '{"tool_name":"Bash","tool_input":{"command":"make lint"}}' \
     "allows make lint"
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"}}' \
+batch_add allow '{"tool_name":"Bash","tool_input":{"command":"pytest tests/"}}' \
     "allows targeted pytest"
-expect_allow "$hook" '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
+batch_add allow '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
     "allows other commands"
+
+batch_run
 
 print_summary

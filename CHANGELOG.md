@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Notes
+- **tests**: Hook test suite now batches `expect_*` assertions through parallel `xargs` (`batch_start`/`batch_add`/`batch_run` in `tests/lib/test-helpers.sh`). All 13 `expect_*`-driven hook test files converted. Slowest single hook test file dropped from ~40s to ~32s wall under parallel `make check` load. Sequential paths preserved where needed (secrets-guard tokenized-repo cwds, log-permission-denied JSONL inspection, git-safety per-branch contexts). Workshop-internal — tests don't ship to consumers. Addresses item (1) of `test-suite-perf-and-separation` backlog task; items (2)–(4) remain.
+
 ## [2.77.1] - 2026-04-28 - Fix make check failures
 
 ### Fixed

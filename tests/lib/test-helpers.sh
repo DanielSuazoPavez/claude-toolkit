@@ -220,6 +220,141 @@ expect_contains() {
     fi
 }
 
+# --- Batch execution helpers ---
+# Run multiple hook assertions in parallel, then evaluate results in order.
+#
+# Usage:
+#   batch_start "$hook"
+#   batch_add block "$input1" "description1"
+#   batch_add allow "$input2" "description2"
+#   batch_add contains "$input3" "expected_pattern" "description3"
+#   batch_run
+#
+# Each batch_add call collects a test case. batch_run fires all hook
+# invocations in parallel (BATCH_JOBS, default nproc), then checks
+# results sequentially — counters and output ordering are preserved.
+
+_BATCH_HOOK=""
+_BATCH_DIR=""
+_BATCH_COUNT=0
+declare -a _BATCH_TYPES=()
+declare -a _BATCH_INPUTS=()
+declare -a _BATCH_DESCS=()
+declare -a _BATCH_EXTRAS=()
+
+batch_start() {
+    _BATCH_HOOK="$1"
+    _BATCH_COUNT=0
+    _BATCH_TYPES=()
+    _BATCH_INPUTS=()
+    _BATCH_DESCS=()
+    _BATCH_EXTRAS=()
+    _BATCH_DIR=$(mktemp -d)
+}
+
+batch_add() {
+    local type="$1" input desc extra=""
+    if [ "$type" = "contains" ]; then
+        input="$2"; extra="$3"; desc="$4"
+    else
+        input="$2"; desc="$3"
+    fi
+    _BATCH_TYPES+=("$type")
+    _BATCH_INPUTS+=("$input")
+    _BATCH_DESCS+=("$desc")
+    _BATCH_EXTRAS+=("$extra")
+    _BATCH_COUNT=$((_BATCH_COUNT + 1))
+}
+
+batch_run() {
+    local jobs="${BATCH_JOBS:-$(nproc 2>/dev/null || echo 4)}"
+    local hook_path="$HOOKS_DIR/$_BATCH_HOOK"
+    local i
+
+    # Write each input to a file and run all hook invocations in parallel
+    for ((i = 0; i < _BATCH_COUNT; i++)); do
+        printf '%s' "${_BATCH_INPUTS[$i]}" > "$_BATCH_DIR/in.$i"
+    done
+
+    # Generate runner script: reads input file, runs hook, writes output file
+    local runner="$_BATCH_DIR/run.sh"
+    cat > "$runner" << 'RUNNER_EOF'
+#!/usr/bin/env bash
+idx="$1"; hook="$2"; dir="$3"
+output=$("$hook" < "$dir/in.$idx" 2>/dev/null) || true
+printf '%s' "$output" > "$dir/out.$idx"
+RUNNER_EOF
+    chmod +x "$runner"
+
+    seq 0 $((_BATCH_COUNT - 1)) | xargs -P "$jobs" -I{} bash "$runner" {} "$hook_path" "$_BATCH_DIR"
+
+    # Evaluate results in order
+    for ((i = 0; i < _BATCH_COUNT; i++)); do
+        local type="${_BATCH_TYPES[$i]}"
+        local desc="${_BATCH_DESCS[$i]}"
+        local extra="${_BATCH_EXTRAS[$i]}"
+        local output
+        output=$(cat "$_BATCH_DIR/out.$i" 2>/dev/null) || true
+
+        TESTS_RUN=$((TESTS_RUN + 1))
+        local passed=false
+
+        case "$type" in
+            block)
+                if echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
+                    passed=true
+                fi
+                ;;
+            allow)
+                if [ -z "$output" ] || echo "$output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"allow"'; then
+                    passed=true
+                fi
+                ;;
+            approve)
+                if echo "$output" | grep -q '"behavior"[[:space:]]*:[[:space:]]*"allow"'; then
+                    passed=true
+                fi
+                ;;
+            ask)
+                if echo "$output" | grep -q '"permissionDecision"[[:space:]]*:[[:space:]]*"ask"'; then
+                    passed=true
+                fi
+                ;;
+            silent)
+                if [ -z "$output" ]; then
+                    passed=true
+                fi
+                ;;
+            contains)
+                if echo "$output" | grep -q "$extra"; then
+                    passed=true
+                fi
+                ;;
+        esac
+
+        if [ "$passed" = true ]; then
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+            report_pass "$desc"
+            log_verbose "    Output: ${output:-<empty>}"
+        else
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+            report_fail "$desc"
+            case "$type" in
+                block)    report_detail "Expected: block decision" ;;
+                allow)    report_detail "Expected: empty or allow decision" ;;
+                approve)  report_detail "Expected: decision.behavior allow" ;;
+                ask)      report_detail "Expected: permissionDecision ask" ;;
+                silent)   report_detail "Expected: <empty>" ;;
+                contains) report_detail "Expected to contain: $extra" ;;
+            esac
+            report_detail "Got: ${output:-<empty>}"
+        fi
+    done
+
+    rm -rf "$_BATCH_DIR"
+    _BATCH_COUNT=0
+}
+
 # Print summary and exit with appropriate code
 print_summary() {
     echo ""

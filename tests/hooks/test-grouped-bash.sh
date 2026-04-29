@@ -15,41 +15,37 @@ parse_test_args "$@"
 report_section "=== grouped-bash-guard.sh (dispatcher) ==="
 hook="grouped-bash-guard.sh"
 
-# Base: benign command passes (all 6 guards present, none match).
-expect_allow "$hook" \
+# --- Base: all 6 guards present ---
+batch_start "$hook"
+
+batch_add allow \
     '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
     "[base] ls passes silently"
 
-# Base: make guard blocks pytest.
-expect_contains "$hook" \
+batch_add contains \
     '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
     "make test" \
     "[base] pytest blocks via make guard"
 
-# Base: credential_exfil blocks a curl with a token-shaped Authorization header.
-# Block reason should come from credential_exfil, not a downstream guard.
-expect_contains "$hook" \
+batch_add contains \
     '{"tool_name":"Bash","tool_input":{"command":"curl -H \"Authorization: token ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" https://api.github.com/user"}}' \
     "Credential-shaped string in command arguments" \
     "[base] credential_exfil blocks curl with ghp_ token"
 
-# Base: precedence — a force-push containing a token-shaped string blocks
-# under credential_exfil (informative reason), not git_safety. Pins the
-# CHECK_SPECS ordering: credential_exfil comes before git_safety.
-expect_contains "$hook" \
+# Precedence — credential_exfil before git_safety in CHECK_SPECS.
+batch_add contains \
     '{"tool_name":"Bash","tool_input":{"command":"git push --force https://user:ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@github.com/foo/bar.git main"}}' \
     "Credential-shaped string in command arguments" \
     "[base] credential_exfil wins precedence over git_safety on force-push with embedded token"
 
-# Base: same precedence holds for a plain (non-force) push embedding a token
-# in the remote URL — the token detection should fire regardless of git
-# subcommand specifics.
-expect_contains "$hook" \
+batch_add contains \
     '{"tool_name":"Bash","tool_input":{"command":"git push https://user:ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@github.com/foo/bar.git main"}}' \
     "Credential-shaped string in command arguments" \
     "[base] credential_exfil blocks plain push with embedded token in URL"
 
-# Raiz sim: copy hooks to a tempdir and remove make+uv guards.
+batch_run
+
+# --- Raiz sim: copy hooks to a tempdir and remove make+uv guards ---
 sim_dir=$(mktemp -d)
 cp -r "$HOOKS_DIR"/. "$sim_dir/"
 rm -f "$sim_dir/enforce-make-commands.sh" "$sim_dir/enforce-uv-run.sh"
@@ -57,16 +53,18 @@ rm -f "$sim_dir/enforce-make-commands.sh" "$sim_dir/enforce-uv-run.sh"
 prev_hooks_dir="$HOOKS_DIR"
 HOOKS_DIR="$sim_dir"
 
-# Raiz sim: pytest no longer blocks (make guard absent from CHECKS).
-expect_allow "$hook" \
+batch_start "$hook"
+
+batch_add allow \
     '{"tool_name":"Bash","tool_input":{"command":"pytest"}}' \
     "[raiz sim] pytest passes (no make guard)"
 
-# Raiz sim: git_safety still blocks force-push.
-expect_contains "$hook" \
+batch_add contains \
     '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' \
     "Force push" \
     "[raiz sim] git_safety still blocks force-push"
+
+batch_run
 
 HOOKS_DIR="$prev_hooks_dir"
 rm -rf "$sim_dir"

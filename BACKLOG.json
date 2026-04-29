@@ -365,7 +365,7 @@
         "tests"
       ],
       "status": "idea",
-      "notes": "Analysis complete (output/claude-toolkit/analysis/20260428_1800__analyze-idea__test-suite-perf-and-separation.md). Ordered action items: (1) Add make test-fast with SKIP_SLOW=1 for inner-loop dev (~30-40s savings). (2) Document three-layer test/validate/sync-validate separation in tests/CLAUDE.md. (3) Remove redundant individual validator calls from test-sync-then-validate.sh (already runs validate-all.sh). (4) Batch assertions in hook tests to reduce subprocess overhead (biggest perf gain, medium effort). (5) Parallelize lint+validate with test in make check (easy ~5s win). (6) Investigate test-verify-external-deps flakiness under parallel load."
+      "notes": "Analysis: output/claude-toolkit/analysis/20260428_1800__analyze-idea__test-suite-perf-and-separation.md. Ordered action items: (1) Reduce per-assertion subprocess overhead in hook tests — each expect_* forks a full bash process (~250ms idle, ~900ms under contention). Batch multiple assertions through a single hook process per section. Biggest perf gain, must not pollute test isolation. (2) Document three-layer test/validate/sync-validate separation in tests/CLAUDE.md — fixture tests (validator logic), real validation (resource drift), consumer-fixture validation (path assumptions in MANIFEST mode). (3) Parallelize lint+validate with test in make check (easy ~5s win). (4) Investigate test-verify-external-deps flakiness under parallel CPU contention."
     }
   ]
 }
