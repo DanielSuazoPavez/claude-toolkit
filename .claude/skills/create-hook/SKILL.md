@@ -68,7 +68,18 @@ echo '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | bash .claude/hoo
 # Expected: (empty)
 ```
 
-### 4. Register the Hook
+### 4. Config-Driven Checklist
+
+Before hardcoding any constants in your hook, run this decision tree (full reference: `.claude/docs/relevant-toolkit-hooks_config.md` §3):
+
+- **Is your data a list of structured records (patterns + metadata)?** → Add it to a registry JSON under `.claude/hooks/lib/`, add a schema under `.claude/schemas/hooks/`, add a validator under `.claude/scripts/`, source the loader at the top of your hook. Mirror `detection-registry.{json,sh}` and `validate-detection-registry.sh`.
+- **Is your data a single tunable scalar (regex, threshold, toggle)?** → Declare a `CLAUDE_TOOLKIT_*` env var, register it in `relevant-toolkit-env_vars.md` §3.1, read it with a default fallback. Use `hook_feature_enabled` for `0`/`1` opt-ins.
+- **Is your data a list that already lives in `settings.json` permissions?** → Source `lib/settings-permissions.sh` and read `_SETTINGS_PERMISSIONS_RE_ASK` / `_SETTINGS_PERMISSIONS_ALLOW_PREFIXES` directly. Do not duplicate the list in your hook. Consumer-specific exclusions go in the consumer, not the loader.
+- **None of the above (small, stable, project-internal)?** → Inline is fine. The bar: *"is this list duplicated, projected to grow, or per-project-tunable?"* If no, leave it inline.
+
+The cheapness contract is the same in all three: jq once at hook source-time; pure-bash matching after that.
+
+### 5. Register the Hook
 
 A Bash PreToolUse hook is registered in **one** of two modes — never both. Dual registration would run the hook twice.
 
@@ -98,7 +109,7 @@ CHECK_SPECS=(
 
 Order matters — earlier checks run first. Put cheap-to-gate hooks before expensive ones. If your hook has a non-Bash branch (e.g., matches `EnterPlanMode` too), keep a standalone registration for the non-Bash matcher; the Bash branch still goes through the dispatcher only.
 
-### 5. Quality Gate
+### 6. Quality Gate
 
 Run `/evaluate-hook` on the result:
 - **Target: 85%**
