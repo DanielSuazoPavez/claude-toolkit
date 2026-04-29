@@ -74,79 +74,16 @@ match_auto_mode_shared_steps() {
 # Assumes match_ returned true (we're in auto-mode and the command looks
 # shared-state-shaped). Sets _BLOCK_REASON on block.
 check_auto_mode_shared_steps() {
-    local _raw="$COMMAND"
-    local COMMAND
-    COMMAND=$(_strip_inert_content "$_raw")
+    # The hook's only job: stop the classifier-driven permission_mode=auto
+    # from auto-approving any entry in settings.json permissions.ask. The
+    # Bash() prefix list comes from lib/settings-permissions.sh (loaded
+    # once at source-time). settings.json is the single source of truth.
+    [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ] || return 0
+    [[ "$COMMAND" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]] || return 0
 
-    local trigger=""
+    local trigger="${BASH_REMATCH[2]}"
 
-    # Authorization-header detection runs against the RAW command — the header
-    # value is by definition inside a quoted string, which _strip_inert_content
-    # blanks. We require the surrounding curl/wget verb (auto-mode-specific
-    # framing) and delegate the header-shape match to the registry's
-    # credential/raw alternation (which covers Authorization: token/Bearer/Basic
-    # via the authorization-header entry).
-    if [[ "$_raw" =~ (^|[[:space:];&|])(curl|wget)[[:space:]] ]] \
-       && [ -n "${_REGISTRY_RE__credential__raw:-}" ] \
-       && [[ "$_raw" =~ ${_REGISTRY_RE__credential__raw} ]]; then
-        trigger="curl/wget with credential payload (Authorization header / token / env-var ref)"
-    fi
-
-    # --- settings.json permissions.ask (git push, gh pr/issue/release/repo/
-    # secret/variable/workflow/auth/ssh-key writes, gh api) ---
-    # The Bash() prefix list comes from settings.json permissions.ask via
-    # lib/settings-permissions.sh (loaded once at source-time). curl/wget are
-    # also in permissions.ask but auto-mode handles them via the registry-
-    # driven Authorization-header check above (which sets $trigger first if
-    # it matches) — skip them here so a benign `curl https://x.y/` under
-    # auto-mode does not block.
-    #
-    # Leftmost-match caveat: bash =~ returns the first match in the string.
-    # When curl/wget appears before another permissions.ask token in a chain
-    # (e.g. `curl x && gh pr create y`), a single =~ test traps on curl and
-    # would let the chain bypass. Walk the command segment by segment when
-    # the leftmost match is curl/wget, peeling off the matched segment and
-    # retrying the regex against the remainder. Bounded by the number of
-    # chain operators, which is small in practice.
-    #
-    # The capability/stripped registry match below remains the catch-all
-    # for sensitive-capability calls (gh api host detection lives there).
-    if [[ -n "$trigger" ]]; then
-        : # already detected above
-    elif [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ]; then
-        local _scan="$COMMAND"
-        while [[ "$_scan" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]]; do
-            local _hit="${BASH_REMATCH[2]}"
-            if [[ "$_hit" != "curl" ]] && [[ "$_hit" != "wget" ]]; then
-                trigger="$_hit"
-                break
-            fi
-            # Leftmost match was curl/wget; advance past this segment.
-            # Peel off everything up to and including the next chain
-            # operator (&&, ||, ;, |). If none remain, the scan is done.
-            if [[ "$_scan" =~ [\;\&\|] ]]; then
-                _scan="${_scan#*[\;\&\|]}"
-                # Strip leading repeats of the same operator (e.g. `&&`).
-                _scan="${_scan#[\;\&\|]}"
-            else
-                break
-            fi
-        done
-    fi
-    if [[ -n "$trigger" ]]; then
-        :
-    # --- Sensitive capability call (registry: capability/stripped kind) ---
-    # Currently this matches the github-api-host entry. Future capability
-    # entries (e.g. docker exec, terraform show) will be picked up here too
-    # — that broadening is intentional: auto-mode should gate any sensitive
-    # capability call, not just GitHub API access.
-    elif detection_registry_match capability stripped "$COMMAND"; then
-        trigger="sensitive capability call (${_REGISTRY_MATCHED_ID})"
-    fi
-
-    [[ -z "$trigger" ]] && return 0
-
-    _BLOCK_REASON="Auto-mode shared-step gate: $trigger.\n\nThis command publishes shared state, calls an authenticated API, or touches credentials — a 'together' step on this project that auto-mode does not gate (its classifier guards against destructive/malicious actions, not scope drift).\n\nStop and report to the user with what you were about to do and why. The user will run the command themselves or switch out of auto-mode and re-approve.\n\nCommand: $_raw"
+    _BLOCK_REASON="Auto-mode shared-step gate: $trigger.\n\nThis command publishes shared state, calls an authenticated API, touches credentials, or sends data to the network — a 'together' step on this project that auto-mode does not gate (its classifier guards against destructive/malicious actions, not scope drift).\n\nStop and report to the user with what you were about to do and why. The user will run the command themselves or switch out of auto-mode and re-approve.\n\nCommand: $COMMAND"
     return 1
 }
 

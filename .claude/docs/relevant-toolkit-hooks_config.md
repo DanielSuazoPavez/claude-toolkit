@@ -65,14 +65,11 @@ Three surfaces, by data shape:
 
 **Cheapness contract for all three:** jq is allowed once, at hook source-time. Per-call matching must be pure bash — no fork. See `lib/detection-registry.sh:22` for the canonical statement.
 
-**Consumer-specific filtering:** the loader exposes the unfiltered list; consumer-specific exclusions live in the consumer. Example: `permissions.ask` carries `Bash(curl:*)` and `Bash(wget:*)`, but `auto-mode-shared-steps` delegates those to the registry-driven Authorization-header check via inline `BASH_REMATCH[2] != curl/wget` filters (see `auto-mode-shared-steps.sh` step `--- settings.json permissions.ask ---`). A future consumer (e.g. status-line warning that lists every ask entry) gets the unfiltered list.
-
 **Anti-patterns:**
 
 - Generating a derived JSON from `settings.json` and committing it — drift will reappear. Read `settings.json` directly.
 - Adding a fourth scalar env var when an existing list-shape has the same data — extend the existing registry instead.
 - Inline lists of structured records in a hook script — externalise to a registry as soon as a second consumer or a per-project tuning need appears.
-- Filtering settings-derived lists inside the loader — if the exclusion is consumer-specific, do it in the consumer.
 
 ---
 

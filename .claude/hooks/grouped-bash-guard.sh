@@ -11,9 +11,10 @@
 #   1. dangerous              — sourced from block-dangerous-commands.sh; blocks
 #                                rm -rf /, fork bombs, mkfs, dd to disk, sudo, etc.
 #   2. auto_mode_shared_steps — sourced from auto-mode-shared-steps.sh; under
-#                                permission_mode=auto, blocks git push, gh writes,
-#                                gh api, curl with auth/api.github.com. No-op
-#                                outside auto-mode.
+#                                permission_mode=auto, blocks every entry in
+#                                settings.json permissions.ask (git push, gh
+#                                writes, gh api, curl, wget). No-op outside
+#                                auto-mode.
 #   3. credential_exfil       — sourced from block-credential-exfiltration.sh;
 #                                blocks commands carrying credential-shaped tokens
 #                                (GitHub/GitLab/Slack/AWS/OpenAI/Anthropic) — the

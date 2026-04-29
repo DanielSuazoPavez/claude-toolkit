@@ -71,8 +71,10 @@ assert "_REGISTRY_RE__path__stripped is non-empty" \
     "[ -n \"\${_REGISTRY_RE__path__stripped:-}\" ]"
 assert "_REGISTRY_RE__credential__raw is non-empty" \
     "[ -n \"\${_REGISTRY_RE__credential__raw:-}\" ]"
-assert "_REGISTRY_RE__capability__stripped is non-empty" \
-    "[ -n \"\${_REGISTRY_RE__capability__stripped:-}\" ]"
+# capability/stripped is intentionally empty after the github-api-host
+# entry was removed (auto-mode-shared-steps now blocks curl/wget
+# unconditionally via permissions.ask). Re-add an assertion when a real
+# non-curl capability entry lands (e.g. docker exec, terraform show).
 
 # path/raw bucket is populated by claude-settings (interpreter-body coverage
 # in block-config-edits.sh). Pinned specifically so a future drop of that
@@ -143,12 +145,11 @@ detection_registry_match_kind path 'git commit -m "remove .env.local references"
 rc=$?
 assert_eq "match_kind path skips .env inside commit message (stripped)" "$rc" "1"
 
-# Capability-only command (curl api.github.com) — only matches via stripped target.
-detection_registry_match_kind capability "curl https://api.github.com/repos/foo/bar"
-rc=$?
-assert_eq "match_kind capability hits curl api.github.com" "$rc" "0"
-assert_eq "match_kind capability sets id = github-api-host" \
-    "$_REGISTRY_MATCHED_ID" "github-api-host"
+# Capability bucket is intentionally empty after github-api-host was
+# removed (auto-mode-shared-steps now blocks curl/wget unconditionally
+# via permissions.ask). The match_kind capability path stays — it
+# just always returns 1 against a clean command until a future entry
+# repopulates the bucket.
 
 # Clean miss across all kinds
 detection_registry_match_kind credential "ls -la"

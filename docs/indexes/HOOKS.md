@@ -18,7 +18,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured row (branch, main branch, cwd) into `session-start-context.jsonl` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
 | `detect-session-start-truncation.sh` | stable | UserPromptSubmit | — | Fires once per session (marker-file guard). Checks transcript for harness truncation of SessionStart output. Warns model when essential docs may be incomplete. Logs via hook-utils (outcome: `pass` when clean, `injected` when truncated). |
 | `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
-| `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks shared-state/publishing actions: `git push`, `gh` writes, `gh api`, `curl`/`wget` to `api.github.com`, `curl`/`wget` with `Authorization` header. No-op outside auto-mode |
+| `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks the classifier from auto-approving every entry in `settings.json` `permissions.ask` — `git push`, `gh` writes, `gh api`, `curl`, `wget`. Reading online and shared-state operations belong in interactive mode where `permissions.ask` prompts. No-op outside auto-mode |
 | `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Blocks commands carrying credential-shaped tokens in arguments (GitHub PAT, GitLab, Slack, AWS, OpenAI, Anthropic). Sibling to `secrets-guard` — that blocks credential reads at-rest; this blocks the in-flight payload (e.g. token already in context being pasted into `curl -H "Authorization: ..."`) |
 | `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
 | `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
@@ -113,23 +113,13 @@ Blocks unsafe git operations — protected branch enforcement and remote-destruc
 
 **Trigger**: PreToolUse (Bash) — sourced by `grouped-bash-guard`
 
-Re-imposes a human checkpoint for shared-state/publishing actions when running under `permission_mode=auto`. Auto-mode's classifier guards against destructive/malicious actions but not against scope drift (`git push`, `gh pr create`, etc. get auto-approved). `permissions.ask` does not gate under auto-mode either, so this hook is the only deterministic checkpoint for these actions when auto-mode is on.
+Stops the classifier-driven `permission_mode=auto` from auto-approving operations the project considers scope-sensitive. Under auto-mode, the classifier guards against destructive/malicious actions but happily approves `git push`, `gh pr create`, `curl`, etc. — and `permissions.ask` does not prompt under auto-mode either. This hook fills that gap by blocking every entry in `settings.json` `permissions.ask` whose `Bash(...)` prefix appears in the command.
 
-- Blocks (under `permission_mode=auto` only):
-  - `git push` (any form — `-u`, `--tags`, `HEAD:branch`, etc.)
-  - `gh pr {create,merge,close,comment,review,edit,reopen,ready}`
-  - `gh issue {create,close,comment,edit,reopen,delete,transfer,pin,unpin,lock,unlock}`
-  - `gh release {create,edit,delete,upload,download}`
-  - `gh repo {create,delete,rename,archive,unarchive,edit,set-default,fork,sync,deploy-key}`
-  - `gh secret {set,delete}` / `gh variable {set,delete}`
-  - `gh workflow {run,enable,disable}`
-  - `gh auth {login,logout,refresh,setup-git}` / `gh ssh-key add`
-  - `gh api` (any — even reads authenticate as the user)
-  - `curl`/`wget` to `api.github.com`
-  - `curl`/`wget` with `Authorization: (token|Bearer|Basic)` header
-- No-op when `permission_mode` is `default`, `acceptEdits`, `plan`, or empty
-- Block reason instructs the model to stop and report; the user runs the command themselves or switches out of auto-mode
-- Pairs with `permissions.ask` entries in `settings.json` for the same surface — `ask` covers interactive modes, this hook covers auto-mode
+- Behavior: block under `permission_mode=auto`; no-op under `default`, `acceptEdits`, `plan`, or empty.
+- Source of truth: `settings.json` `permissions.ask` (read via `lib/settings-permissions.sh`). Every Bash entry is in scope — there are no carve-outs in the hook for specific patterns.
+- Today's effective list (from current `permissions.ask`): `git push`; `gh pr {create,merge,close,comment,review,edit,reopen,ready}`; `gh issue {create,close,comment,edit,reopen,delete,transfer,pin,unpin,lock,unlock}`; `gh release {create,edit,delete,upload,download}`; `gh repo {create,delete,rename,archive,unarchive,edit,set-default,fork,sync,deploy-key}`; `gh secret/variable {set,delete}`; `gh workflow {run,enable,disable}`; `gh auth {login,logout,refresh,setup-git}`; `gh ssh-key add`; `gh api` (any); `curl`; `wget`.
+- Block reason instructs the model to stop and report; the user runs the command themselves or switches out of auto-mode.
+- Pairs with `permissions.ask` in `settings.json` — `ask` covers interactive modes (prompt the user), this hook covers auto-mode (block the classifier).
 
 ### block-credential-exfiltration.sh
 

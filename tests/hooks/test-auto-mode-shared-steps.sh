@@ -97,14 +97,13 @@ batch_add block "$(mk auto 'gh issue pin 42')" \
 batch_add block "$(mk auto 'gh issue lock 42')" \
     "blocks gh issue lock"
 
-# Curl/wget leftmost-match gap: the consumer-side curl/wget filter must
-# not let a chained gh-write slip through. The old hardcoded cascade
-# tested each elif independently; the regex-based replacement uses
-# leftmost-match, so a chain like `curl x && gh pr create y` puts curl
-# at BASH_REMATCH[2], the filter trips, and without a re-test the chain
-# would silently pass under auto-mode. These cases pin the fix.
+# Network egress under auto-mode: curl/wget are in permissions.ask, so
+# the auto-mode hook blocks the classifier from auto-approving them.
+# Reading online belongs in interactive mode where the `ask` entries
+# prompt the user. No leftmost-match bypass to worry about anymore —
+# every match in permissions.ask is in scope under auto-mode.
 batch_add block "$(mk auto 'curl https://x && gh pr create --title y')" \
-    "blocks curl-then-gh-pr-create chain (no leftmost-match bypass)"
+    "blocks curl-then-gh-pr-create chain"
 batch_add block "$(mk auto 'wget https://x; gh release create v1')" \
     "blocks wget-then-gh-release-create chain"
 batch_add block "$(mk auto 'curl https://x | gh secret set FOO')" \
@@ -153,14 +152,18 @@ batch_add block "$(mk auto "curl -H 'authorization: Basic abc=' https://x.com")"
     "blocks curl with lowercase authorization: Basic"
 
 # ============================================================
-# Auto-mode: benign curl/wget passes
+# Auto-mode: curl/wget always blocks (network egress out of scope)
 # ============================================================
-batch_add allow "$(mk auto 'curl https://docs.python.org/3/')" \
-    "allows curl to docs (no auth, not api.github.com)"
-batch_add allow "$(mk auto 'curl -O https://example.com/file.tar.gz')" \
-    "allows simple curl download"
-batch_add allow "$(mk auto 'wget https://example.com/x')" \
-    "allows simple wget"
+# Reading online belongs in interactive mode where Bash(curl:*) /
+# Bash(wget:*) in permissions.ask prompts the user. Under auto-mode
+# the hook blocks the classifier from auto-approving them — no
+# carve-outs.
+batch_add block "$(mk auto 'curl https://docs.python.org/3/')" \
+    "blocks bare curl (network egress not allowed under auto-mode)"
+batch_add block "$(mk auto 'curl -O https://example.com/file.tar.gz')" \
+    "blocks simple curl download"
+batch_add block "$(mk auto 'wget https://example.com/x')" \
+    "blocks simple wget"
 
 # ============================================================
 # Auto-mode: unrelated commands pass
@@ -258,19 +261,19 @@ out=$(run_hook_with_settings "$SOT_FX3/settings.json" "$(mk auto 'gh foo bar baz
 assert_allow "does NOT block 'gh foo bar baz' when only settings.local.json has it" "$out"
 trash-put "$SOT_FX3" 2>/dev/null || true
 
-# Case 4: curl consumer-side filter. permissions.ask has Bash(curl:*),
-# but auto-mode delegates curl to the registry-driven Authorization-header
-# check — a benign curl with no auth must NOT block.
+# Case 4: curl is in permissions.ask, so auto-mode blocks the classifier
+# from auto-approving it — even a benign no-auth GET. Network egress
+# belongs in interactive mode where the `ask` entry prompts.
 SOT_FX4=$(mktemp -d)
 cat > "$SOT_FX4/settings.json" <<'JSON'
 {"permissions":{"allow":[],"ask":["Bash(curl:*)","Bash(wget:*)"]}}
 JSON
 out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'curl https://docs.python.org/3/')")
-assert_allow "consumer-side filter: benign curl does NOT block" "$out"
+assert_block "blocks benign curl under auto-mode (in permissions.ask)" "$out"
 
-# Case 5: wget filter (mirror of 4)
+# Case 5: wget mirrors curl
 out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'wget https://example.com/file.zip')")
-assert_allow "consumer-side filter: benign wget does NOT block" "$out"
+assert_block "blocks benign wget under auto-mode (in permissions.ask)" "$out"
 trash-put "$SOT_FX4" 2>/dev/null || true
 
 print_summary

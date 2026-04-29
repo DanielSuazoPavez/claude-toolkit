@@ -8,13 +8,15 @@
       "kind": "hooks",
       "bullets": [
         "approve-safe-commands and auto-mode-shared-steps now mirror your settings.json permissions directly — edit settings.json, hook behavior follows. No drift possible.",
+        "auto-mode now blocks every entry in permissions.ask (including curl and wget) — network egress and shared-state operations belong in interactive mode where permissions.ask prompts.",
         "New shared lib lib/settings-permissions.sh — load once at hook source-time, pure-bash regex match after."
       ]
     },
     {
       "kind": "scripts",
       "bullets": [
-        "Removed validate-safe-commands-sync.sh — it policed drift that can no longer occur."
+        "Removed validate-safe-commands-sync.sh — it policed drift that can no longer occur.",
+        "Removed github-api-host entry from detection-registry.json — auto-mode now blocks curl/wget unconditionally, so the capability-bucket fallback was dead."
       ]
     },
     {
