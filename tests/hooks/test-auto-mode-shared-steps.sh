@@ -97,6 +97,19 @@ batch_add block "$(mk auto 'gh issue pin 42')" \
 batch_add block "$(mk auto 'gh issue lock 42')" \
     "blocks gh issue lock"
 
+# Curl/wget leftmost-match gap: the consumer-side curl/wget filter must
+# not let a chained gh-write slip through. The old hardcoded cascade
+# tested each elif independently; the regex-based replacement uses
+# leftmost-match, so a chain like `curl x && gh pr create y` puts curl
+# at BASH_REMATCH[2], the filter trips, and without a re-test the chain
+# would silently pass under auto-mode. These cases pin the fix.
+batch_add block "$(mk auto 'curl https://x && gh pr create --title y')" \
+    "blocks curl-then-gh-pr-create chain (no leftmost-match bypass)"
+batch_add block "$(mk auto 'wget https://x; gh release create v1')" \
+    "blocks wget-then-gh-release-create chain"
+batch_add block "$(mk auto 'curl https://x | gh secret set FOO')" \
+    "blocks curl-pipe-gh-secret-set chain"
+
 # ============================================================
 # Auto-mode: gh secret/variable/workflow/auth
 # ============================================================

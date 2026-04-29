@@ -98,18 +98,43 @@ check_auto_mode_shared_steps() {
     # lib/settings-permissions.sh (loaded once at source-time). curl/wget are
     # also in permissions.ask but auto-mode handles them via the registry-
     # driven Authorization-header check above (which sets $trigger first if
-    # it matches) — filter them out here so a benign `curl https://x.y/`
-    # under auto-mode does not block.
+    # it matches) — skip them here so a benign `curl https://x.y/` under
+    # auto-mode does not block.
+    #
+    # Leftmost-match caveat: bash =~ returns the first match in the string.
+    # When curl/wget appears before another permissions.ask token in a chain
+    # (e.g. `curl x && gh pr create y`), a single =~ test traps on curl and
+    # would let the chain bypass. Walk the command segment by segment when
+    # the leftmost match is curl/wget, peeling off the matched segment and
+    # retrying the regex against the remainder. Bounded by the number of
+    # chain operators, which is small in practice.
     #
     # The capability/stripped registry match below remains the catch-all
     # for sensitive-capability calls (gh api host detection lives there).
     if [[ -n "$trigger" ]]; then
         : # already detected above
-    elif [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ] \
-         && [[ "$COMMAND" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]] \
-         && [[ "${BASH_REMATCH[2]}" != "curl" ]] \
-         && [[ "${BASH_REMATCH[2]}" != "wget" ]]; then
-        trigger="${BASH_REMATCH[2]}"
+    elif [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ]; then
+        local _scan="$COMMAND"
+        while [[ "$_scan" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]]; do
+            local _hit="${BASH_REMATCH[2]}"
+            if [[ "$_hit" != "curl" ]] && [[ "$_hit" != "wget" ]]; then
+                trigger="$_hit"
+                break
+            fi
+            # Leftmost match was curl/wget; advance past this segment.
+            # Peel off everything up to and including the next chain
+            # operator (&&, ||, ;, |). If none remain, the scan is done.
+            if [[ "$_scan" =~ [\;\&\|] ]]; then
+                _scan="${_scan#*[\;\&\|]}"
+                # Strip leading repeats of the same operator (e.g. `&&`).
+                _scan="${_scan#[\;\&\|]}"
+            else
+                break
+            fi
+        done
+    fi
+    if [[ -n "$trigger" ]]; then
+        :
     # --- Sensitive capability call (registry: capability/stripped kind) ---
     # Currently this matches the github-api-host entry. Future capability
     # entries (e.g. docker exec, terraform show) will be picked up here too
