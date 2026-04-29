@@ -276,4 +276,15 @@ out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'wget https://e
 assert_block "blocks benign wget under auto-mode (in permissions.ask)" "$out"
 trash-put "$SOT_FX4" 2>/dev/null || true
 
+# Case 6: regression — match_ no longer hardcodes git push|gh|curl|wget,
+# so any future Bash() entry in permissions.ask blocks under auto-mode.
+# Synthetic Bash(npm publish:*) — verb outside the old hardcoded set.
+SOT_FX5=$(mktemp -d)
+cat > "$SOT_FX5/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(npm publish:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX5/settings.json" "$(mk auto 'npm publish --dry-run')")
+assert_block "blocks synthetic 'npm publish' (verb outside legacy hardcoded set)" "$out"
+trash-put "$SOT_FX5" 2>/dev/null || true
+
 print_summary

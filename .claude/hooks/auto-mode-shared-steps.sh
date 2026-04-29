@@ -52,34 +52,33 @@ PERMISSION_MODE="${PERMISSION_MODE:-}"
 # ============================================================
 # match_auto_mode_shared_steps — cheap predicate
 # ============================================================
-# Returns 0 (applies) iff:
-#   - permission_mode == "auto"  (no-op outside auto-mode)
-#   - $COMMAND looks like one of the shared-state patterns
-#
-# False positives are fine; false negatives are bugs. The patterns are a
-# coarse skeleton-level match — check_ does the precise filtering.
+# Returns 0 (applies) iff permission_mode == "auto". The earlier verb-list
+# filter (`git push|gh|curl|wget`) was a false-negative source: any future
+# permissions.ask entry whose verb fell outside the hardcoded set silently
+# no-op'd under auto-mode, undermining the hook's claim ("blocks every entry
+# in permissions.ask"). check_ now runs the precise regex on every Bash call
+# under auto-mode — sub-millisecond per call, pure-bash, no fork.
 match_auto_mode_shared_steps() {
-    [[ "$PERMISSION_MODE" == "auto" ]] || return 1
-
-    local stripped
-    stripped=$(_strip_inert_content "$COMMAND")
-
-    # Coarse OR — any of: git push | gh | curl | wget. Precise filter in check_.
-    [[ "$stripped" =~ (^|[[:space:];&|])(git[[:space:]]+push|gh[[:space:]]|curl[[:space:]]|wget[[:space:]]) ]]
+    [[ "$PERMISSION_MODE" == "auto" ]]
 }
 
 # ============================================================
 # check_auto_mode_shared_steps — guard body
 # ============================================================
-# Assumes match_ returned true (we're in auto-mode and the command looks
-# shared-state-shaped). Sets _BLOCK_REASON on block.
+# Assumes match_ returned true (we're in auto-mode). Tests against the
+# STRIPPED command — quoted-string mentions like `echo "to push run: git push"`
+# are blanked, so they don't false-positive against the precise regex.
+# Sets _BLOCK_REASON on block.
 check_auto_mode_shared_steps() {
     # The hook's only job: stop the classifier-driven permission_mode=auto
     # from auto-approving any entry in settings.json permissions.ask. The
     # Bash() prefix list comes from lib/settings-permissions.sh (loaded
     # once at source-time). settings.json is the single source of truth.
     [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ] || return 0
-    [[ "$COMMAND" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]] || return 0
+
+    local stripped
+    stripped=$(_strip_inert_content "$COMMAND")
+    [[ "$stripped" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]] || return 0
 
     local trigger="${BASH_REMATCH[2]}"
 
