@@ -61,7 +61,7 @@ Hooks complement static rules for cases they can't handle.
 | `secrets-guard.sh` | PreToolUse (deny) | Blocks reading `.env`, credential files |
 | `git-safety.sh` | PreToolUse (deny) | Enforces protected branch safety |
 
-**Key design:** The `approve-safe-commands` hook's SAFE_PREFIXES array mirrors the `settings.json` allow list. A validation script (`validate-safe-commands-sync.sh`) enforces they stay in sync — runs in `make check`.
+**Key design:** The `approve-safe-commands` hook reads `settings.json` `permissions.allow` directly via the shared `lib/settings-permissions.sh` loader. No drift possible — `settings.json` is the single source of truth. (Only `cd` is hardcoded as a small `ALWAYS_SAFE` carve-out, since shell builtins can't appear in the harness's permission system.)
 
 ---
 
@@ -98,8 +98,9 @@ Projects customize by adding to `settings.local.json` — they should never modi
 
 ```
 Is this command safe in ANY project?
-├─ Yes → settings.json allow list + approve-safe-commands SAFE_PREFIXES
-│        (run validate-safe-commands-sync.sh to verify)
+├─ Yes → Add to settings.json allow list. The approve-safe-commands hook
+│        picks it up automatically on next session via the shared
+│        lib/settings-permissions.sh loader.
 └─ No  → Is it dangerous in ALL projects?
     ├─ Yes → Deny hook (block-dangerous-commands.sh or similar)
     └─ No  → settings.local.json in each project

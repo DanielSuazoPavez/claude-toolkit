@@ -262,11 +262,11 @@ Pure logger for auto-mode classifier denials. No stdout output — denial stands
 - Gated by `CLAUDE_TOOLKIT_TRACEABILITY=1`
 
 - Splits commands on `&&`, `||`, `;`, `|` (respects quotes)
-- Checks each subcommand against hardcoded safe prefixes (ls, git status, make, etc.)
-- All match → auto-approve via `permissionDecision: "allow"`
+- Reads safe prefixes from `settings.json` `permissions.allow` via `lib/settings-permissions.sh` (jq once at startup, pure-bash regex match after) — `settings.json` is the single source of truth, no drift possible
+- Inline `ALWAYS_SAFE=("cd")` carve-out for the shell builtin (not expressible in `settings.json` permissions)
+- All subcommands match → auto-approve via `permissionDecision: "allow"`
 - Any don't match → stays silent (normal permission prompt shows)
 - Bails on: subshells `$(...)`, backticks, redirects (`>`, `>>`, `<`)
-- Validated by `.claude/scripts/validate-safe-commands-sync.sh` (runs in `make check`)
 
 ## Configuration
 

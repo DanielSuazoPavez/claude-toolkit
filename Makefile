@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-safe-commands-sync test-validate-session-start-cap test-pytest lint-bash validate check backlog tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest lint-bash validate check backlog tag help
 
 install:
 	@uv sync --dev
@@ -17,7 +17,6 @@ help:
 	@echo "  make test-verify-ext-deps - Run verify-external-deps tests only"
 	@echo "  make test-verify-res-deps - Run verify-resource-deps tests only"
 	@echo "  make test-validate-settings-template - Run validate-settings-template tests only"
-	@echo "  make test-validate-safe-commands-sync - Run validate-safe-commands-sync tests only"
 	@echo "  make test-validate-session-start-cap - Run session-start cap tests only"
 	@echo "  make test-pytest       - Run pytest suite only"
 	@echo "  make lint-bash         - Shellcheck shipped bash (hooks, scripts, cli)"
@@ -64,9 +63,6 @@ test-setup-diag:
 
 test-validate-settings-template:
 	@bash tests/test-validate-settings-template.sh -q
-
-test-validate-safe-commands-sync:
-	@bash tests/test-validate-safe-commands-sync.sh -q
 
 test-validate-session-start-cap:
 	@bash tests/test-validate-session-start-cap.sh -q

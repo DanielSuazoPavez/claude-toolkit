@@ -55,8 +55,8 @@ _SETTINGS_PERMISSIONS_FILE="${CLAUDE_TOOLKIT_SETTINGS_JSON:-$_SETTINGS_PERMISSIO
 # Strips the wrapper and the trailing glob to yield the prefix the hooks
 # need (`git status`, `./.claude/hooks/`). Returns the prefix on stdout.
 #
-# Mirrors the transform in validate-safe-commands-sync.sh:44 — kept here
-# so the loader is self-contained.
+# Originally lived in the now-deleted validate-safe-commands-sync.sh —
+# kept here so the loader is self-contained.
 _settings_permissions_extract_prefix() {
     local entry="$1"
     # Strip Bash( ... ) wrapper.

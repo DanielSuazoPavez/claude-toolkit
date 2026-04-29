@@ -61,7 +61,6 @@ docs/getting-started.md
 .claude/scripts/validate-resources-indexed.sh
 .claude/scripts/validate-hook-utils.sh
 .claude/scripts/validate-settings-template.sh
-.claude/scripts/validate-safe-commands-sync.sh
 .claude/scripts/validate-detection-registry.sh
 .claude/scripts/verify-resource-deps.sh
 .claude/scripts/verify-external-deps.sh

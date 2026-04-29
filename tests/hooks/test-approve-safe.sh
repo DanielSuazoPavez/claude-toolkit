@@ -106,10 +106,10 @@ batch_add silent '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test"}}' 
 
 batch_run
 
-# --- Source-of-truth: hook reads CLAUDE_TOOLKIT_SETTINGS_JSON, not the
-# baked-in SAFE_PREFIXES (which no longer exist). Validator scripts
-# (validate-safe-commands-sync.sh) are gone in this phase — the new safety
-# net is structural: settings.json IS the single source of truth, so drift
+# --- Source-of-truth: hook reads CLAUDE_TOOLKIT_SETTINGS_JSON, not a
+# baked-in SAFE_PREFIXES (which no longer exists). The earlier
+# validate-safe-commands-sync.sh is gone — the new safety net is
+# structural: settings.json IS the single source of truth, so drift
 # is impossible.
 report_section "  --- Source-of-truth via CLAUDE_TOOLKIT_SETTINGS_JSON ---"
 
