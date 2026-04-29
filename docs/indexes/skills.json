@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "header": "User-invocable skills activated with `/skill-name`.",
+  "legend": "`*` = under consideration for removal (low usage)",
+  "categories": {
+    "workflow-session": "Workflow & Session",
+    "code-quality": "Code Quality",
+    "design-architecture": "Design & Architecture",
+    "dev-tools": "Development Tools",
+    "toolkit-dev": "Toolkit Development",
+    "personalization": "Personalization"
+  },
+  "category_order": [
+    "workflow-session",
+    "code-quality",
+    "design-architecture",
+    "dev-tools",
+    "toolkit-dev",
+    "personalization"
+  ],
+  "skills": [
+    { "name": "brainstorm-idea",          "category": "workflow-session",      "status": "alpha",  "description": "General-purpose brainstorm facilitation — converges on clarity, not design docs" },
+    { "name": "brainstorm-feature",       "category": "workflow-session",      "status": "stable", "description": "Turn fuzzy ideas into clear designs through structured dialogue" },
+    { "name": "shape-project",            "category": "workflow-session",      "status": "beta",   "description": "Define project identity, scope, and boundaries as a doc" },
+    { "name": "shape-proposal",           "category": "workflow-session",      "status": "beta",   "description": "Shape validated designs into audience-aware proposals" },
+    { "name": "analyze-idea",             "category": "workflow-session",      "status": "stable", "description": "Research tasks - investigate topics, gather evidence, generate reports" },
+    { "name": "review-plan",              "category": "workflow-session",      "status": "stable", "description": "Review implementation plans against quality criteria" },
+    { "name": "write-handoff",            "category": "workflow-session",      "status": "stable", "description": "Capture context before `/clear` for session continuity" },
+    { "name": "wrap-up",                  "category": "workflow-session",      "status": "stable", "description": "Finalize feature branches with changelog, version bump, and backlog updates" },
+    { "name": "learn",                    "category": "workflow-session",      "status": "beta",   "description": "Lightweight lesson capture with auto-metadata and duplicate detection" },
+    { "name": "manage-lessons",           "category": "workflow-session",      "status": "beta",   "description": "Review and manage lesson lifecycle: promote, archive, delete, flag" },
+    { "name": "list-docs",                "category": "workflow-session",      "status": "stable", "description": "List available docs with Quick Reference summaries" },
+
+    { "name": "refactor",                 "category": "code-quality",          "status": "beta",   "description": "Structural refactoring analysis" },
+    { "name": "review-security",          "category": "code-quality",          "status": "alpha",  "description": "Targeted security audit of files/modules — trace-based vulnerability analysis" },
+    { "name": "design-tests",             "category": "code-quality",          "status": "beta",   "description": "Pytest patterns, QA strategy, fixtures, mocking, test prioritization, coverage audits" },
+
+    { "name": "design-db",                "category": "design-architecture",   "status": "beta",   "description": "Design database schemas with normalization and indexing guidance" },
+    { "name": "design-diagram",           "category": "design-architecture",   "status": "beta",   "description": "Create diagrams for architecture, flows, and models" },
+
+    { "name": "write-documentation",      "category": "dev-tools",             "status": "beta",   "description": "Write or update project documentation via gap analysis" },
+    { "name": "draft-pr",                 "category": "dev-tools",             "status": "stable", "description": "Generate pull request descriptions for the current branch" },
+    { "name": "setup-toolkit",            "category": "dev-tools",             "status": "beta",   "description": "Diagnose and fix Claude Toolkit configuration after sync or drift" },
+    { "name": "setup-worktree",           "category": "dev-tools",             "status": "beta",   "description": "Set up git worktree with full Claude configuration for branch isolation" },
+    { "name": "teardown-worktree",        "category": "dev-tools",             "status": "beta",   "description": "Close out a worktree — check, copy artifacts, remove, checkout branch" },
+    { "name": "read-json",                "category": "dev-tools",             "status": "stable", "description": "jq reference — shell-quoting traps and malformed-JSON recipes (knowledge, not user-invocable)" },
+    { "name": "design-docker",            "category": "dev-tools",             "status": "beta",   "description": "Dockerfile and docker-compose patterns, health checks, multi-stage builds" },
+
+    { "name": "create-skill",             "category": "toolkit-dev",           "status": "stable", "description": "Create new skills using test-driven documentation" },
+    { "name": "create-agent",             "category": "toolkit-dev",           "status": "stable", "description": "Create new agents for specialized tasks" },
+    { "name": "create-docs",              "category": "toolkit-dev",           "status": "stable", "description": "Create new doc files following conventions" },
+    { "name": "create-hook",              "category": "toolkit-dev",           "status": "stable", "description": "Create new hooks for Claude Code" },
+    { "name": "evaluate-skill",           "category": "toolkit-dev",           "status": "stable", "description": "Evaluate skill design quality against specifications" },
+    { "name": "evaluate-agent",           "category": "toolkit-dev",           "status": "stable", "description": "Evaluate agent prompt quality and design" },
+    { "name": "evaluate-hook",            "category": "toolkit-dev",           "status": "stable", "description": "Evaluate hook quality before deployment" },
+    { "name": "evaluate-docs",            "category": "toolkit-dev",           "status": "stable", "description": "Evaluate doc file quality against conventions" },
+    { "name": "evaluate-batch",           "category": "toolkit-dev",           "status": "stable", "description": "Batch evaluate resources by type with parallel agents" },
+
+    { "name": "build-communication-style","category": "personalization",       "status": "beta",   "description": "Build or refine a communication style doc through guided discovery" },
+    { "name": "snap-back",                "category": "personalization",       "status": "stable", "description": "Reset tone when Claude drifts into sycophancy" }
+  ]
+}

@@ -122,6 +122,7 @@ echo ""
 # === SKILLS ===
 echo "=== Skills ==="
 SKILLS_INDEX="$PROJECT_ROOT/docs/indexes/SKILLS.md"
+SKILLS_JSON="$PROJECT_ROOT/docs/indexes/skills.json"
 SKILLS_DIR="$CLAUDE_DIR/skills"
 
 if $MANIFEST_MODE && [ -d "$SKILLS_DIR" ]; then
@@ -139,8 +140,25 @@ if $MANIFEST_MODE && [ -d "$SKILLS_DIR" ]; then
 
     manifest_count=${#MANIFEST_SKILLS[@]}
     echo -e "${GREEN}✓ $manifest_count skills from MANIFEST validated${NC}"
+elif [ -f "$SKILLS_JSON" ] && [ -d "$SKILLS_DIR" ]; then
+    # Toolkit mode: skills.json is the source of truth. Delegate to indexes CLI.
+    if bash "$PROJECT_ROOT/cli/indexes/query.sh" validate skills; then
+        :
+    else
+        ERRORS=$((ERRORS + 1))
+    fi
+    # Also check that SKILLS.md is up to date with skills.json (catches forgotten render).
+    if [ -f "$SKILLS_INDEX" ]; then
+        rendered_tmp=$(mktemp)
+        RENDER_OUT="$rendered_tmp" bash "$PROJECT_ROOT/cli/indexes/query.sh" render skills >/dev/null 2>&1 || true
+        if ! diff -q "$rendered_tmp" "$SKILLS_INDEX" >/dev/null 2>&1; then
+            echo -e "${RED}SKILLS.md is stale relative to skills.json. Run: make render${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+        rm -f "$rendered_tmp"
+    fi
 elif [ -f "$SKILLS_INDEX" ] && [ -d "$SKILLS_DIR" ]; then
-    # Toolkit mode: check all disk vs index.
+    # Legacy fallback: no skills.json yet, fall back to MD parsing.
     DISK_SKILLS=$(find "$SKILLS_DIR" -maxdepth 2 -name "SKILL.md" -exec dirname {} \; | while IFS= read -r d; do basename "$d"; done | sort)
     INDEX_SKILLS=$(sed -nE 's/^.*\| `([^`]+)` \|.*$/\1/p' "$SKILLS_INDEX" | sort)
 

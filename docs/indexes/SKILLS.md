@@ -1,3 +1,5 @@
+<!-- Auto-generated from skills.json — do not edit directly. Run `make render` after editing skills.json. -->
+
 # Skills Index
 
 User-invocable skills activated with `/skill-name`.
@@ -67,3 +69,4 @@ User-invocable skills activated with `/skill-name`.
 |-------|--------|-------------|
 | `build-communication-style` | beta | Build or refine a communication style doc through guided discovery |
 | `snap-back` | stable | Reset tone when Claude drifts into sycophancy |
+

@@ -51,6 +51,7 @@ COMMANDS:
     backlog <cmd>   Query backlog (summary, id, status, priority, scope, ...)
     docs [name]     List or emit workshop agent-facing contracts
     eval <cmd>      Query evaluation status (stale, unevaluated, above, type)
+    indexes <cmd>   Render and validate JSON-backed resource indexes (render, validate, list)
     validate        Validate toolkit configuration in current project
     version         Print toolkit version
 
@@ -765,6 +766,7 @@ case "${1:-}" in
     backlog) shift; exec "$TOOLKIT_DIR/cli/backlog/query.sh" "$@" ;;
     docs) shift; exec "$TOOLKIT_DIR/cli/docs/query.sh" "$@" ;;
     eval) shift; exec "$TOOLKIT_DIR/cli/eval/query.sh" "$@" ;;
+    indexes) shift; exec "$TOOLKIT_DIR/cli/indexes/query.sh" "$@" ;;
     validate) shift; cmd_validate "$@" ;;
     *) error "Unknown command: $1. Run 'claude-toolkit --help' for usage." ;;
 esac
