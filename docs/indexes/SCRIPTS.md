@@ -36,6 +36,7 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | Path | Status | Ships | Description |
 |------|--------|-------|-------------|
 | `lib/profile.sh` | stable | base + raiz | `detect_profile` — prints `workshop`/`base`/`raiz` so shipped scripts can branch on deployment context |
+| `lib/settings-integrity.sh` | stable | base + raiz | `settings_integrity_check` — SessionStart tripwire for `.claude/settings.json` rewrites; sourced by `hooks/session-start.sh` |
 
 ## Migration
 
