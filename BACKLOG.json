@@ -97,7 +97,7 @@
       "scope": [
         "tests"
       ],
-      "notes": "Surfaced 2026-04-28 during `log-bash-commands` implementation. The parallel test runner (`make test`) reports false failures: all individual test `.exit` files show 0, but the summary shows `?s` timing and \"cat: ... No such file\" errors for log files not yet written when the summary reader runs. Race condition between parallel test completion and log aggregation. Also: hook tests take 161s (serial) — opportunity for parallelization or selective running. Consider: (1) fix race in log reading (wait for all jobs before summarizing), (2) surface individual test durations in summary, (3) option for running validation-only or test-only subsets faster.",
+      "notes": "Surfaced 2026-04-28 during `log-bash-commands` implementation. Symptom: `?s` timing + `cat: ... No such file` errors in run-all.sh / run-hook-tests.sh aggregation. Original race-condition framing disproven (xargs -P blocks before the aggregation loop reads log files). Real cause is mid-run child kill (SIGINT/SIGKILL) leaving the .log file uncreated. Status: symptom guarded in fix/test-runner-missing-log-guard (existence check + clear \"(no log captured — process likely killed mid-run)\" message). Root cause of the kill itself remains open — needs evidence next time it flakes. Originally also bundled inner-loop UX ideas: (a) make test-fast — rejected (slow files are the critical ones), (b) durations in summary — done, (c) test subset filter — partial (run-all.sh <substring> works but undiscoverable; no make shortcut).",
       "status": "idea"
     },
     {
@@ -356,6 +356,16 @@
       ],
       "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Claude Code has native LSP client support (confirmed in v2.1.121 `--bare` flag docs) with 14 LSP plugins in the official marketplace (`anthropics/claude-plugins-official`). Plugins are thin JSON manifests — e.g. pyright-lsp just declares `{\"command\": \"pyright-langserver\", \"args\": [\"--stdio\"], \"extensionToLanguage\": {\".py\": \"python\"}}`. Tasks: (1) install `pyright-lsp` plugin, test impact on code navigation speed/accuracy for this bash+python codebase; (2) assess whether custom LSP configs (without the marketplace plugin) are viable — the plugin format is trivial enough to self-author; (3) evaluate what LSP capabilities are actually exposed (blog claims goToDefinition/findReferences/hover — verify against real behavior); (4) decide whether LSP belongs in the toolkit's recommended setup or stays opt-in per-project. Skip Serena (tried before, too much bloat) and typescript-lsp (not needed). Cross-reference with `eval-claude-mem` for broader context-retrieval strategy. Source: karanbansal.in/blog/claude-code-lsp/ (mixed real+fabricated details — use official plugin docs as canonical source).",
       "status": "idea"
+    },
+    {
+      "id": "backlog-render-priority-flag",
+      "priority": "P3",
+      "title": "`backlog render` ignores `--priority` filter (writes to literal `--priority` file)",
+      "scope": [
+        "cli"
+      ],
+      "status": "idea",
+      "notes": "Surfaced 2026-04-29: `claude-toolkit backlog render --priority P1,P2,P3` should filter the rendered BACKLOG.md output, but instead treats `--priority` as the output path argument and writes the rendered backlog into a literal file named `--priority` in the cwd. Also reports \"Rendered 30 tasks to --priority\" — count is the full set, ignoring the intended filter. Root cause likely in cli/backlog/render.sh argument parsing — render does not accept the `--priority` flag, but the dispatcher passes it through as a positional path. Either reject unknown flags or implement priority filtering for render."
     }
   ]
 }
