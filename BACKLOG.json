@@ -14,17 +14,17 @@
     {
       "id": "hooks-config-driven",
       "priority": "P1",
-      "title": "Config-driven hook parameters — standardize tunable values in JSON configs",
+      "title": "Config-driven hook parameters — read settings.json directly, document the convention",
       "scope": [
         "hooks"
       ],
       "relates_to": [
-        "sync-profiles:relates-to",
-        "v3-e5-frontmatter-ordering:relates-to",
-        "prose-cleanup-resource:relates-to"
+        "hooks-stop-quality-gate:split-from",
+        "sync-profiles:relates-to"
       ],
-      "notes": "Surfaced 2026-04-28 during web ecosystem exploration (Crosley's 95-hook architecture). We already have ad hoc config-like patterns (detection registry JSON, session-start cap threshold) but no standard convention for \"tunable hook parameters live in JSON configs, not hardcoded in scripts.\" Proposal: establish a convention where hooks source thresholds, patterns, and toggles from JSON config files (e.g. `.claude/hooks/config/` or similar), making behavior adjustable per-project without editing shipped scripts. Fits naturally with sync-profiles — a project's hook configs could override toolkit defaults. Also opens the door for a **Stop-event quality gate** (inspired by Crosley's blog-quality-gate: 12-module linter on modified content at response finalization). We have no Stop hooks today — quality checks are all manual via evaluate-* skills. A lightweight Stop hook could catch oversized skills, broken frontmatter, or prose antipatterns automatically, connecting to `v3-e5-frontmatter-ordering` and `prose-cleanup-resource`. Start with a convention doc, then migrate existing hardcoded values as proof of concept.",
-      "status": "idea"
+      "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Reshaped 2026-04-29 after `output/claude-toolkit/analysis/20260429_1012__analyze-idea__hooks-config-driven.md`: pattern is already half-built (`detection-registry.json` + schema + validator + perf test as the canonical model; `CLAUDE_TOOLKIT_*` env vars cover scalars). Two concrete duplications drive this task: (1) `auto-mode-shared-steps.sh` lines 92-120 hardcode the gh-write subcommand list mirroring `permissions.ask` in `settings.json` — no validator policing drift (highest priority); (2) `approve-safe-commands.sh` SAFE_PREFIXES (lines 49-92) mirror `permissions.allow` Bash entries, currently policed by `validate-safe-commands-sync.sh` — that validator becomes deletable indirection once the hook reads settings.json directly. Scope: (a) wire `auto-mode-shared-steps.sh` to read `permissions.ask` from `settings.json` at startup; (b) wire `approve-safe-commands.sh` to read `permissions.allow`; (c) delete `validate-safe-commands-sync.sh` after (b) lands; (d) extend `.claude/docs/relevant-toolkit-hooks_config.md` with explicit guidance — JSON registry for record lists (cite `detection-registry.json`), env vars for scalars (cite the `CLAUDE_TOOLKIT_*` registry), `settings.json` for permission-derived data; (e) add config-driven checklist to `/create-hook` skill. Cheapness contract: load via jq once at hook startup, match via pure-bash regex (mirrors `detection-registry.sh`). Stop-event quality gate split out to `hooks-stop-quality-gate` (P99).",
+      "status": "planned",
+      "plan": "output/claude-toolkit/plans/2026-04-29__plan__hooks-config-driven.md"
     },
     {
       "id": "eval-claude-mem",
@@ -366,6 +366,21 @@
       ],
       "status": "idea",
       "notes": "Surfaced 2026-04-29: `claude-toolkit backlog render --priority P1,P2,P3` should filter the rendered BACKLOG.md output, but instead treats `--priority` as the output path argument and writes the rendered backlog into a literal file named `--priority` in the cwd. Also reports \"Rendered 30 tasks to --priority\" — count is the full set, ignoring the intended filter. Root cause likely in cli/backlog/render.sh argument parsing — render does not accept the `--priority` flag, but the dispatcher passes it through as a positional path. Either reject unknown flags or implement priority filtering for render."
+    },
+    {
+      "id": "hooks-stop-quality-gate",
+      "priority": "P99",
+      "title": "Stop-event quality gate hook — auto-lint resource changes at response finalization",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Split out 2026-04-29 from `hooks-config-driven` (was bundled as a Stop hook idea). Inspired by Crosley's blog-quality-gate (12-module linter on modified content at response finalization). We have no Stop hooks today — quality checks are all manual via evaluate-* skills. A lightweight Stop hook could catch oversized skills, broken frontmatter, or prose antipatterns automatically. Connects to `v3-e5-frontmatter-ordering` (token size validator — directly consumable by a Stop gate) and `prose-cleanup-resource` (12-module linter equivalent for prose). Should consume from the config-driven hooks convention once that convention is documented (`hooks-config-driven`). Open questions before promoting: which checks fire (resource files only? all writes?), block-vs-warn semantics, perf budget on Stop event, scope per-resource-type vs global.",
+      "relates_to": [
+        "hooks-config-driven:split-from",
+        "v3-e5-frontmatter-ordering:relates-to",
+        "prose-cleanup-resource:relates-to"
+      ]
     }
   ]
 }
