@@ -28,6 +28,7 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/settings-permissions.sh"
 
 # Pre-build credential/raw + capability/stripped alternation regexes from
 # .claude/hooks/lib/detection-registry.json so check_ can match against them
@@ -35,6 +36,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
 # purpose for redundancy: if the dispatcher misorders or the exfil hook is
 # absent in a profile, the auto-mode gate still catches the canonical shape.
 detection_registry_load
+
+# Load the gh-write block list from settings.json permissions.ask. The hook
+# previously hardcoded a cascade that matched the same shape; replacing it
+# with a settings-derived regex keeps settings.json the single source of
+# truth (no drift). Loader is jq-once at source-time, idempotent — safe
+# under the dispatcher's source loop.
+settings_permissions_load || true
 
 # PERMISSION_MODE is parsed once at main / dispatcher level into a global. The
 # match_ function below reads the global (no jq, no fork — see §4 cheapness
@@ -44,92 +52,37 @@ PERMISSION_MODE="${PERMISSION_MODE:-}"
 # ============================================================
 # match_auto_mode_shared_steps — cheap predicate
 # ============================================================
-# Returns 0 (applies) iff:
-#   - permission_mode == "auto"  (no-op outside auto-mode)
-#   - $COMMAND looks like one of the shared-state patterns
-#
-# False positives are fine; false negatives are bugs. The patterns are a
-# coarse skeleton-level match — check_ does the precise filtering.
+# Returns 0 (applies) iff permission_mode == "auto". The earlier verb-list
+# filter (`git push|gh|curl|wget`) was a false-negative source: any future
+# permissions.ask entry whose verb fell outside the hardcoded set silently
+# no-op'd under auto-mode, undermining the hook's claim ("blocks every entry
+# in permissions.ask"). check_ now runs the precise regex on every Bash call
+# under auto-mode — sub-millisecond per call, pure-bash, no fork.
 match_auto_mode_shared_steps() {
-    [[ "$PERMISSION_MODE" == "auto" ]] || return 1
-
-    local stripped
-    stripped=$(_strip_inert_content "$COMMAND")
-
-    # Coarse OR — any of: git push | gh | curl | wget. Precise filter in check_.
-    [[ "$stripped" =~ (^|[[:space:];&|])(git[[:space:]]+push|gh[[:space:]]|curl[[:space:]]|wget[[:space:]]) ]]
+    [[ "$PERMISSION_MODE" == "auto" ]]
 }
 
 # ============================================================
 # check_auto_mode_shared_steps — guard body
 # ============================================================
-# Assumes match_ returned true (we're in auto-mode and the command looks
-# shared-state-shaped). Sets _BLOCK_REASON on block.
+# Assumes match_ returned true (we're in auto-mode). Tests against the
+# STRIPPED command — quoted-string mentions like `echo "to push run: git push"`
+# are blanked, so they don't false-positive against the precise regex.
+# Sets _BLOCK_REASON on block.
 check_auto_mode_shared_steps() {
-    local _raw="$COMMAND"
-    local COMMAND
-    COMMAND=$(_strip_inert_content "$_raw")
+    # The hook's only job: stop the classifier-driven permission_mode=auto
+    # from auto-approving any entry in settings.json permissions.ask. The
+    # Bash() prefix list comes from lib/settings-permissions.sh (loaded
+    # once at source-time). settings.json is the single source of truth.
+    [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ] || return 0
 
-    local trigger=""
+    local stripped
+    stripped=$(_strip_inert_content "$COMMAND")
+    [[ "$stripped" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]] || return 0
 
-    # Authorization-header detection runs against the RAW command — the header
-    # value is by definition inside a quoted string, which _strip_inert_content
-    # blanks. We require the surrounding curl/wget verb (auto-mode-specific
-    # framing) and delegate the header-shape match to the registry's
-    # credential/raw alternation (which covers Authorization: token/Bearer/Basic
-    # via the authorization-header entry).
-    if [[ "$_raw" =~ (^|[[:space:];&|])(curl|wget)[[:space:]] ]] \
-       && [ -n "${_REGISTRY_RE__credential__raw:-}" ] \
-       && [[ "$_raw" =~ ${_REGISTRY_RE__credential__raw} ]]; then
-        trigger="curl/wget with credential payload (Authorization header / token / env-var ref)"
-    fi
+    local trigger="${BASH_REMATCH[2]}"
 
-    # --- git push (any form) ---
-    if [[ -n "$trigger" ]]; then
-        : # already detected above
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])git[[:space:]]+push([[:space:]]|$) ]]; then
-        trigger="git push"
-    # --- gh pr write subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+pr[[:space:]]+(create|merge|close|comment|review|edit|reopen|ready) ]]; then
-        trigger="gh pr write"
-    # --- gh issue write subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+issue[[:space:]]+(create|close|comment|edit|reopen|delete|transfer|pin|unpin|lock|unlock) ]]; then
-        trigger="gh issue write"
-    # --- gh release write subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+release[[:space:]]+(create|edit|delete|upload|download) ]]; then
-        # download is read but bundled here — auto-mode has no business pulling release artifacts unprompted
-        trigger="gh release write"
-    # --- gh repo mutating subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+repo[[:space:]]+(create|delete|rename|archive|unarchive|edit|set-default|fork|sync|deploy-key) ]]; then
-        trigger="gh repo write"
-    # --- gh secret/variable/workflow/auth/ssh-key writes ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+(secret|variable)[[:space:]]+(set|delete) ]]; then
-        trigger="gh secret/variable write"
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+workflow[[:space:]]+(run|enable|disable) ]]; then
-        trigger="gh workflow write"
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+auth[[:space:]]+(login|logout|refresh|setup-git) ]]; then
-        trigger="gh auth"
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+ssh-key[[:space:]]+add ]]; then
-        trigger="gh ssh-key add"
-    # --- gh api (any) ---
-    # Full restrictive: even GET against the API authenticates as the user.
-    # Read calls under auto-mode without explicit user approval are still
-    # scope drift on this project. If a specific read is needed, the user
-    # can run it themselves or switch out of auto-mode.
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+api([[:space:]]|$) ]]; then
-        trigger="gh api"
-    # --- Sensitive capability call (registry: capability/stripped kind) ---
-    # Currently this matches the github-api-host entry. Future capability
-    # entries (e.g. docker exec, terraform show) will be picked up here too
-    # — that broadening is intentional: auto-mode should gate any sensitive
-    # capability call, not just GitHub API access.
-    elif detection_registry_match capability stripped "$COMMAND"; then
-        trigger="sensitive capability call (${_REGISTRY_MATCHED_ID})"
-    fi
-
-    [[ -z "$trigger" ]] && return 0
-
-    _BLOCK_REASON="Auto-mode shared-step gate: $trigger.\n\nThis command publishes shared state, calls an authenticated API, or touches credentials — a 'together' step on this project that auto-mode does not gate (its classifier guards against destructive/malicious actions, not scope drift).\n\nStop and report to the user with what you were about to do and why. The user will run the command themselves or switch out of auto-mode and re-approve.\n\nCommand: $_raw"
+    _BLOCK_REASON="Auto-mode shared-step gate: $trigger.\n\nThis command publishes shared state, calls an authenticated API, touches credentials, or sends data to the network — a 'together' step on this project that auto-mode does not gate (its classifier guards against destructive/malicious actions, not scope drift).\n\nStop and report to the user with what you were about to do and why. The user will run the command themselves or switch out of auto-mode and re-approve.\n\nCommand: $COMMAND"
     return 1
 }
 

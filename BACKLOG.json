@@ -14,17 +14,17 @@
     {
       "id": "hooks-config-driven",
       "priority": "P1",
-      "title": "Config-driven hook parameters — standardize tunable values in JSON configs",
+      "title": "Config-driven hook parameters — read settings.json directly, document the convention",
       "scope": [
         "hooks"
       ],
       "relates_to": [
-        "sync-profiles:relates-to",
-        "v3-e5-frontmatter-ordering:relates-to",
-        "prose-cleanup-resource:relates-to"
+        "hooks-stop-quality-gate:split-from",
+        "sync-profiles:relates-to"
       ],
-      "notes": "Surfaced 2026-04-28 during web ecosystem exploration (Crosley's 95-hook architecture). We already have ad hoc config-like patterns (detection registry JSON, session-start cap threshold) but no standard convention for \"tunable hook parameters live in JSON configs, not hardcoded in scripts.\" Proposal: establish a convention where hooks source thresholds, patterns, and toggles from JSON config files (e.g. `.claude/hooks/config/` or similar), making behavior adjustable per-project without editing shipped scripts. Fits naturally with sync-profiles — a project's hook configs could override toolkit defaults. Also opens the door for a **Stop-event quality gate** (inspired by Crosley's blog-quality-gate: 12-module linter on modified content at response finalization). We have no Stop hooks today — quality checks are all manual via evaluate-* skills. A lightweight Stop hook could catch oversized skills, broken frontmatter, or prose antipatterns automatically, connecting to `v3-e5-frontmatter-ordering` and `prose-cleanup-resource`. Start with a convention doc, then migrate existing hardcoded values as proof of concept.",
-      "status": "idea"
+      "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Reshaped 2026-04-29 after `output/claude-toolkit/analysis/20260429_1012__analyze-idea__hooks-config-driven.md`: pattern is already half-built (`detection-registry.json` + schema + validator + perf test as the canonical model; `CLAUDE_TOOLKIT_*` env vars cover scalars). Two concrete duplications drive this task: (1) `auto-mode-shared-steps.sh` lines 92-120 hardcode the gh-write subcommand list mirroring `permissions.ask` in `settings.json` — no validator policing drift (highest priority); (2) `approve-safe-commands.sh` SAFE_PREFIXES (lines 49-92) mirror `permissions.allow` Bash entries, currently policed by `validate-safe-commands-sync.sh` — that validator becomes deletable indirection once the hook reads settings.json directly. Scope: (a) wire `auto-mode-shared-steps.sh` to read `permissions.ask` from `settings.json` at startup; (b) wire `approve-safe-commands.sh` to read `permissions.allow`; (c) delete `validate-safe-commands-sync.sh` after (b) lands; (d) extend `.claude/docs/relevant-toolkit-hooks_config.md` with explicit guidance — JSON registry for record lists (cite `detection-registry.json`), env vars for scalars (cite the `CLAUDE_TOOLKIT_*` registry), `settings.json` for permission-derived data; (e) add config-driven checklist to `/create-hook` skill. Cheapness contract: load via jq once at hook startup, match via pure-bash regex (mirrors `detection-registry.sh`). Stop-event quality gate split out to `hooks-stop-quality-gate` (P99).",
+      "status": "planned",
+      "plan": "output/claude-toolkit/plans/2026-04-29__plan__hooks-config-driven.md"
     },
     {
       "id": "eval-claude-mem",
@@ -97,7 +97,7 @@
       "scope": [
         "tests"
       ],
-      "notes": "Surfaced 2026-04-28 during `log-bash-commands` implementation. Symptom: `?s` timing + `cat: ... No such file` errors in run-all.sh / run-hook-tests.sh aggregation. Original race-condition framing disproven (xargs -P blocks before the aggregation loop reads log files). Real cause is mid-run child kill (SIGINT/SIGKILL) leaving the .log file uncreated. Status: symptom guarded in fix/test-runner-missing-log-guard (existence check + clear \"(no log captured — process likely killed mid-run)\" message). Root cause of the kill itself remains open — needs evidence next time it flakes. Originally also bundled inner-loop UX ideas: (a) make test-fast — rejected (slow files are the critical ones), (b) durations in summary — done, (c) test subset filter — partial (run-all.sh <substring> works but undiscoverable; no make shortcut).",
+      "notes": "Surfaced 2026-04-28 during `log-bash-commands` implementation. Symptom: `?s` timing + `cat: ... No such file` errors in run-all.sh / run-hook-tests.sh aggregation. Original race-condition framing disproven (xargs -P blocks before the aggregation loop reads log files). Real cause is mid-run child kill (SIGINT/SIGKILL) leaving the .log file uncreated. Status: symptom guarded in fix/test-runner-missing-log-guard (existence check + clear \"(no log captured — process likely killed mid-run)\" message). Root cause of the kill itself remains open — needs evidence next time it flakes. Originally also bundled inner-loop UX ideas: (a) make test-fast — rejected (slow files are the critical ones), (b) durations in summary — done, (c) test subset filter — partial (run-all.sh <substring> works but undiscoverable; no make shortcut). Flake observed 2026-04-29 during phase-1 work on hooks-config-driven: test-backlog-query.sh failed expect_output \"filters by P1\" on a 113-test run (got 2 P1 tasks listed in output where the test expected substring match against the first one), then passed cleanly on the immediate re-run. Hypothesis: expect_output substring-match against multi-line stdout is brittle when the fixture has multiple matching tasks and output ordering varies under parallel scheduling — the assertion finds the second task's row first and the substring isn't literally first-line. Worth investigating expect_output semantics + adding a run-many-times harness to surface other latent flakes.\n",
       "status": "idea"
     },
     {
@@ -366,6 +366,79 @@
       ],
       "status": "idea",
       "notes": "Surfaced 2026-04-29: `claude-toolkit backlog render --priority P1,P2,P3` should filter the rendered BACKLOG.md output, but instead treats `--priority` as the output path argument and writes the rendered backlog into a literal file named `--priority` in the cwd. Also reports \"Rendered 30 tasks to --priority\" — count is the full set, ignoring the intended filter. Root cause likely in cli/backlog/render.sh argument parsing — render does not accept the `--priority` flag, but the dispatcher passes it through as a positional path. Either reject unknown flags or implement priority filtering for render."
+    },
+    {
+      "id": "hooks-stop-quality-gate",
+      "priority": "P99",
+      "title": "Stop-event quality gate hook — auto-lint resource changes at response finalization",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Split out 2026-04-29 from `hooks-config-driven` (was bundled as a Stop hook idea). Inspired by Crosley's blog-quality-gate (12-module linter on modified content at response finalization). We have no Stop hooks today — quality checks are all manual via evaluate-* skills. A lightweight Stop hook could catch oversized skills, broken frontmatter, or prose antipatterns automatically. Connects to `v3-e5-frontmatter-ordering` (token size validator — directly consumable by a Stop gate) and `prose-cleanup-resource` (12-module linter equivalent for prose). Should consume from the config-driven hooks convention once that convention is documented (`hooks-config-driven`). Open questions before promoting: which checks fire (resource files only? all writes?), block-vs-warn semantics, perf budget on Stop event, scope per-resource-type vs global.",
+      "relates_to": [
+        "hooks-config-driven:split-from",
+        "v3-e5-frontmatter-ordering:relates-to",
+        "prose-cleanup-resource:relates-to"
+      ]
+    },
+    {
+      "id": "validate-settings-permissions",
+      "priority": "P99",
+      "title": "Validator for ERE-metachar entries in settings.json permissions",
+      "scope": [
+        "hooks",
+        "scripts"
+      ],
+      "status": "idea",
+      "notes": "Surfaced 2026-04-29 by goal-verifier on hooks-config-driven (review at output/claude-toolkit/reviews/20260429_1217__goal-verifier__feat-hooks-config-driven.md). The lib/settings-permissions.sh loader audits each Bash() prefix for ERE metacharacters and silently skips entries that contain `*?+()[]{}^$\\|` (with a stderr warning that no one will see in production). Today's permissions.{allow,ask} are clean, but a future contributor adding e.g. `Bash(npm run|test:*)` or `Bash(node --inspect=*:*)` would see the entry vanish from the hook's effective list with no make-check signal. Add a validate-settings-permissions.sh that runs in make validate: walk both buckets, flag entries that would be silently dropped by the loader. Cheap (single jq + a regex audit). Not a current defect — strictly preventative.\n",
+      "relates_to": [
+        "hooks-config-driven:relates-to"
+      ]
+    },
+    {
+      "id": "hooks-readonly-verb-allowlist-audit",
+      "priority": "P3",
+      "title": "Periodically audit read-only verb allowlist in block-config-edits.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md",
+      "notes": "Fix #4 introduced a path-side default-deny for .claude/settings.json: any write-shaped verb alongside the path blocks. Read-only verbs (cat, grep, jq, head, tail, wc, diff, ls, find, stat, file) on the path pass through. As new read-only tools (bat, rg, eza, etc.) become common, false-positive blocks would surface when reading settings — extend the allowlist when that happens. Living as a recurring backlog task because the allowlist isn't enumerated in code (the invariant is documented inline; comment-only persistence won't materialize as a reminder)."
+    },
+    {
+      "id": "hooks-settings-integrity-state-tampering",
+      "priority": "P3",
+      "title": "Move settings-integrity state file out of repo to ~/.claude/",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md",
+      "notes": "The integrity check stores its baseline at .claude/logs/settings-integrity.json — in-repo, gitignored, but LLM-writable. A session can rewrite settings.json then update the state file so the next session sees no drift (silent). Move state to $HOME/.claude/settings-integrity/<project-id>.json (per-machine, outside the repo's hook surface) so tampering requires escaping the project sandbox. Closes the cheapest bypass after committing the rewrite."
+    },
+    {
+      "id": "hooks-settings-integrity-commit-author-check",
+      "priority": "P3",
+      "title": "Settings-integrity: verify covering-commit author + remote presence",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md",
+      "notes": "Current integrity check trusts any commit covering the change as evidence of legitimate edit. An LLM that runs git commit on a settings.json rewrite silences the warning. Tighten by (a) verifying the covering commit's author matches git config user.email/user.name, and (b) checking the commit exists on origin (not just local). Both signals make a programmatic commit harder to forge. Trade-off: noisier on legitimate uncommitted-but-author-matched edits — needs a UX call."
+    },
+    {
+      "id": "hooks-block-config-edits-broaden-symlink-coverage",
+      "priority": "P3",
+      "title": "block-config-edits: catch write-through-symlink when match_ doesn't fire",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md",
+      "notes": "Fix #4 added a symlink defense (creation + write-through), gated by match_config_edits firing. The match_ predicate fires on settings-shaped paths or a narrow set of write verbs (>, >>, tee, cp, mv) — it does NOT fire on a bare 'echo > /tmp/link' when the link was planted out-of-band. The symlink-creation step is still blocked, so the bypass requires the link to exist before the LLM session — different threat model. Documented gap; revisit if it becomes reachable. Either broaden match_ further (cost: more check_ invocations) or accept and document."
     }
   ]
 }

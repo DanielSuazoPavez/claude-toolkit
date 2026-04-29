@@ -111,6 +111,24 @@ batch_add block "$(mk_bash 'mv /tmp/x .claude/settings.json')" \
 batch_add block "$(mk_bash 'cat /tmp/x > .claude/settings.local.json')" \
     "blocks Bash single-redirect > .claude/settings.local.json"
 
+# --- Default-deny: additional write-shaped verbs targeting settings ---
+batch_add block "$(mk_bash 'cp /tmp/x .claude/settings.json')" \
+    "blocks Bash cp /tmp/x .claude/settings.json"
+batch_add block "$(mk_bash 'cp -f /tmp/x .claude/settings.json')" \
+    "blocks Bash cp -f /tmp/x .claude/settings.json"
+batch_add block "$(mk_bash 'install /tmp/x .claude/settings.json')" \
+    "blocks Bash install /tmp/x .claude/settings.json"
+batch_add block "$(mk_bash 'dd if=/tmp/x of=.claude/settings.json')" \
+    "blocks Bash dd of=.claude/settings.json"
+batch_add block "$(mk_bash 'truncate -s 0 .claude/settings.json')" \
+    "blocks Bash truncate .claude/settings.json"
+batch_add block "$(mk_bash 'awk -i inplace BEGIN{print} .claude/settings.json')" \
+    "blocks Bash awk -i inplace .claude/settings.json"
+batch_add block "$(mk_bash 'rsync /tmp/x .claude/settings.json')" \
+    "blocks Bash rsync /tmp/x .claude/settings.json"
+batch_add block "$(mk_bash 'chmod 666 .claude/settings.json')" \
+    "blocks Bash chmod .claude/settings.json"
+
 # --- Interpreter-bodied settings writes (in scope: python, bash, sh) ---
 batch_add block "$(mk_bash 'python -c "open('"'"'.claude/settings.local.json'"'"','"'"'w'"'"').write(x)"')" \
     "blocks Bash python -c writing .claude/settings.local.json (double-quoted body)"
@@ -125,15 +143,38 @@ batch_add block "$(mk_bash $'python <<PYEOF\nopen(".claude/settings.local.json",
 batch_add block "$(mk_bash 'python3 -c "open('"'"'.claude/settings.json'"'"','"'"'w'"'"').write(x)"')" \
     "blocks Bash python3 -c writing .claude/settings.json (versioned binary)"
 
-# --- Negatives: out-of-scope interpreters NOT blocked (deferred per scope) ---
-batch_add allow "$(mk_bash 'ruby -e "File.write('"'"'.claude/settings.json'"'"', x)"')" \
-    "allows ruby -e (out of scope, deferred)"
-batch_add allow "$(mk_bash 'node -e "fs.writeFileSync('"'"'.claude/settings.json'"'"', x)"')" \
-    "allows node -e (out of scope, deferred)"
+# --- Interpreter-bodied settings writes — extended set (ruby/perl/node) ---
+batch_add block "$(mk_bash 'ruby -e "File.write('"'"'.claude/settings.json'"'"', x)"')" \
+    "blocks ruby -e writing .claude/settings.json"
+batch_add block "$(mk_bash 'node -e "require('"'"'fs'"'"').writeFileSync('"'"'.claude/settings.json'"'"', '"'"'{}'"'"')"')" \
+    "blocks node -e writing .claude/settings.json"
+batch_add block "$(mk_bash 'perl -e "open F,\">\",\".claude/settings.json\"; print F \"{}\""')" \
+    "blocks perl -e writing .claude/settings.json"
 
 # --- Negatives: legitimate read-only / no-interpreter ---
 batch_add allow "$(mk_bash 'echo see .claude/settings.json for config')" \
     "allows echo mentioning .claude/settings.json (no interpreter -c/<<)"
+
+# --- Negatives: settings path appears only as quoted data (false-positive guard) ---
+batch_add allow "$(mk_bash $'jq -nc --arg p \'.claude/settings.json\' \'$p\'')" \
+    "allows jq with .claude/settings.json inside single-quoted arg"
+
+# --- Symlink defense: creating symlink targeting settings ---
+batch_add block "$(mk_bash 'ln -s .claude/settings.json /tmp/sneaky')" \
+    "blocks Bash ln -s targeting .claude/settings.json"
+batch_add block "$(mk_bash 'ln -s /tmp/x .claude/settings.json')" \
+    "blocks Bash ln -s with link side at .claude/settings.json"
+
+# --- Symlink write-through (defense-in-depth): blocked when match_ fires
+# (i.e. the command also mentions settings literally OR uses an in-scope
+# verb like cp/mv/tee). A symlink-only redirect (`echo > /tmp/link`) where
+# the LLM never created the link is a different threat model — the symlink-
+# creation step (above) is the load-bearing defense; pre-existing rogue
+# links would have been planted outside this session. ---
+_SYMLINK_TMP=$(mktemp -d)
+ln -s "$_SYMLINK_TMP/.claude/settings.json" "$_SYMLINK_TMP/sneaky-link"
+batch_add block "$(mk_bash "cp /tmp/x $_SYMLINK_TMP/sneaky-link")" \
+    "blocks Bash cp through pre-existing symlink resolving to .claude/settings.json"
 
 # --- Block-reason verb sanity ---
 batch_add contains "$(mk_bash 'python -c "open('"'"'.claude/settings.local.json'"'"','"'"'w'"'"').write(x)"')" \

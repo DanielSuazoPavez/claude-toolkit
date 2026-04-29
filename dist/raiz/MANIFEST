@@ -45,6 +45,7 @@
 .claude/hooks/lib/hook-utils.sh
 .claude/hooks/lib/detection-registry.sh
 .claude/hooks/lib/detection-registry.json
+.claude/hooks/lib/settings-permissions.sh
 # docs (inside .claude/)
 .claude/docs/essential-conventions-code_style.md
 .claude/docs/relevant-toolkit-context.md
@@ -61,12 +62,12 @@ docs/getting-started.md
 .claude/scripts/validate-resources-indexed.sh
 .claude/scripts/validate-hook-utils.sh
 .claude/scripts/validate-settings-template.sh
-.claude/scripts/validate-safe-commands-sync.sh
 .claude/scripts/validate-detection-registry.sh
 .claude/scripts/verify-resource-deps.sh
 .claude/scripts/verify-external-deps.sh
 .claude/scripts/statusline-capture.sh
 .claude/scripts/lib/profile.sh
+.claude/scripts/lib/settings-integrity.sh
 
 # schemas
 .claude/schemas/hooks/detection-registry.schema.json

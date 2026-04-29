@@ -20,7 +20,6 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | `validate-resources-indexed.sh` | stable | base | Checks disk resources match index entries |
 | `validate-settings-template.sh` | stable | base | Checks settings.json matches template |
 | `verify-resource-deps.sh` | stable | base | Validates cross-references between resources |
-| `validate-safe-commands-sync.sh` | stable | base | Checks approve-safe-commands hook prefixes match settings.json |
 | `validate-hook-utils.sh` | stable | base | Checks all hooks source shared library lib/hook-utils.sh |
 | `validate-detection-registry.sh` | stable | base | Validates `.claude/hooks/lib/detection-registry.json` against schema (id format, enums, regex compilability) |
 | `validate-session-start-cap.sh` | stable | base + raiz | Checks session-start hook output stays within harness ~10KB cap (warn at 9.5KB, fail at 10KB) |
@@ -37,6 +36,7 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | Path | Status | Ships | Description |
 |------|--------|-------|-------------|
 | `lib/profile.sh` | stable | base + raiz | `detect_profile` — prints `workshop`/`base`/`raiz` so shipped scripts can branch on deployment context |
+| `lib/settings-integrity.sh` | stable | base + raiz | `settings_integrity_check` — SessionStart tripwire for `.claude/settings.json` rewrites; sourced by `hooks/session-start.sh` |
 
 ## Migration
 

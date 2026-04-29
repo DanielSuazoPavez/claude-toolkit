@@ -46,8 +46,10 @@ Set in `.claude/settings.json` `env` block. Opt-ins are read by hooks via `hook_
 | `CLAUDE_TOOLKIT_PROTECTED_BRANCHES` | `^(main\|master)$` | consumer | `hooks/git-safety.sh:33`, `hooks/session-start.sh:133` | Regex for protected branches — `git-safety.sh` blocks commit / EnterPlanMode on these; `session-start.sh` skips branch-lessons surfacing |
 | `CLAUDE_TOOLKIT_HOOK_PERF` | unset | consumer | `hooks/lib/hook-utils.sh:256, 533` | Set to `1` to emit per-phase `HOOK_PERF` timing lines to stderr |
 | `CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB` | `50` | consumer | `hooks/suggest-read-json.sh:64` | Size threshold (KB) for `suggest-read-json.sh` blocking |
+| `CLAUDE_TOOLKIT_SETTINGS_INTEGRITY` | `"1"` | consumer | `scripts/lib/settings-integrity.sh` (sourced by `hooks/session-start.sh`) | `"1"` enables the SessionStart integrity check for `.claude/settings.json` and `.claude/settings.local.json` — surfaces a warning when the file changed since last session without a covering commit. Set to `"0"` to opt out |
 | `CLAUDE_TOOLKIT_CLAUDE_DIR` | `.claude` | workshop-internal | `bin/claude-toolkit:255`, `scripts/setup-toolkit-diagnose.sh:26`, `scripts/validate-hook-utils.sh:15`, plus other validate scripts | Override the `.claude` directory location. Used by toolkit-internal scripts |
 | `CLAUDE_TOOLKIT_CLAUDE_DETECTION_REGISTRY` | `<lib>/detection-registry.json` | workshop-internal | `hooks/lib/detection-registry.sh:48`, `scripts/validate-detection-registry.sh:19` | Path to the secrets-detection registry JSON. Used by the validator and tests |
+| `CLAUDE_TOOLKIT_SETTINGS_JSON` | `<claude-dir>/settings.json` | workshop-internal | `hooks/lib/settings-permissions.sh:48` | Path to the `settings.json` file the permissions loader reads. Tests/fixtures override; production hooks fall through to `$CLAUDE_TOOLKIT_CLAUDE_DIR/settings.json` |
 
 Pre-opt-in projects (neither lessons nor traceability key present) get a session-start nudge pointing at `/setup-toolkit`. The nudge self-extinguishes once either key is written — distinguishing "unset" from "explicitly 0" uses `[ -z "${VAR+x}" ]`. `/setup-toolkit` Phase 1.5 writes both keys on first run.
 

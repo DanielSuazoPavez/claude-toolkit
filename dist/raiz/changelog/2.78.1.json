@@ -1,0 +1,23 @@
+{
+  "version": "2.78.1",
+  "date": "2026-04-29",
+  "headline": "Hook security tightening — settings.json default-deny + chain-operator gaps + auto-mode false negatives",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "block-config-edits.sh: settings.json/.local.json writes are now path-side default-deny. Any write-shaped verb (cp, install, dd, truncate, rsync, awk -i, chmod, chown, ln -s, plus the prior >, >>, tee, sed -i, mv) targeting settings blocks. ruby/perl/node -e and heredoc forms now covered. Symlink trampolines (ln -s creation + write-through pre-existing link) detected via realpath when match_ fires.",
+        "approve-safe-commands.sh: split_command now recognizes newline (\\n), CR (\\r), and lone & as chain operators. Closes two bypasses where a benign leading subcommand silenced the hook on the rest (e.g. `git status\\necho INJECTED`, `git status & rm -rf /tmp`).",
+        "auto-mode-shared-steps.sh: dropped the hardcoded `git push|gh|curl|wget` filter from match_. The dispatcher skipped check_ when match_ said no, so any future permissions.ask entry whose verb sat outside that list silently no-op'd under auto-mode. match_ now gates only on permission_mode=auto; check_ runs the precise regex from settings.json on every Bash call.",
+        "session-start.sh: new SettingsIntegrity tripwire. Computes SHA-256 of .claude/settings.json and .claude/settings.local.json each session, compares against last-known hash. Surfaces a warning when the hash drifted AND the file is uncommitted — silent on baseline, match, or committed change. Defense-in-depth backstop, not a gate. Opt-out via CLAUDE_TOOLKIT_SETTINGS_INTEGRITY=0."
+      ]
+    },
+    {
+      "kind": "scripts",
+      "bullets": [
+        "New lib/settings-integrity.sh — exposes settings_integrity_check, sourced by session-start.sh."
+      ]
+    }
+  ]
+}

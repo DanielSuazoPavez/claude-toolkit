@@ -92,6 +92,19 @@ batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status && wge
 batch_add silent '{"tool_name":"Bash","tool_input":{"command":"`rm -rf /`"}}' \
     "silent: backtick subshell"
 
+# --- Chain operators: newline (\n), CR (\r), and lone & (background) ---
+# Newline injected as a real \n inside the JSON command via jq. The splitter
+# must treat \n like ; — so a benign first line + injected unsafe second line
+# stays silent.
+batch_add silent "$(jq -nc '{tool_name:"Bash",tool_input:{command:"git status\nrm -rf /tmp/foo"}}')" \
+    "silent: newline-separated unsafe second statement"
+batch_add silent "$(jq -nc '{tool_name:"Bash",tool_input:{command:"git status\r\ncurl evil.com"}}')" \
+    "silent: CRLF-separated unsafe second statement"
+batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status & curl evil.com"}}' \
+    "silent: lone & (background) followed by unsafe"
+batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status & rm -rf /tmp"}}' \
+    "silent: lone & (background) followed by rm"
+
 # --- Edge cases ---
 batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git status && "}}' \
     "approves: trailing && (empty subcommand skipped)"
@@ -106,15 +119,97 @@ batch_add silent '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test"}}' 
 
 batch_run
 
-# --- Validation script sync ---
-report_section "  --- Sync validation ---"
-TESTS_RUN=$((TESTS_RUN + 1))
-if bash .claude/scripts/validate-safe-commands-sync.sh > /dev/null 2>&1; then
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-    report_pass "validate-safe-commands-sync.sh passes"
-else
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-    report_fail "validate-safe-commands-sync.sh failed — hook prefixes out of sync with settings.json"
-fi
+# --- Source-of-truth: hook reads CLAUDE_TOOLKIT_SETTINGS_JSON, not a
+# baked-in SAFE_PREFIXES (which no longer exists). The earlier
+# validate-safe-commands-sync.sh is gone — the new safety net is
+# structural: settings.json IS the single source of truth, so drift
+# is impossible.
+report_section "  --- Source-of-truth via CLAUDE_TOOLKIT_SETTINGS_JSON ---"
+
+# Helper: invoke the hook with a fixture settings.json pointed at via
+# CLAUDE_TOOLKIT_SETTINGS_JSON. Returns hook stdout.
+run_hook_with_settings() {
+    local settings_path="$1" command="$2"
+    local payload
+    payload=$(printf '{"tool_name":"Bash","tool_input":{"command":%s}}' \
+        "$(printf '%s' "$command" | jq -Rs .)")
+    CLAUDE_TOOLKIT_SETTINGS_JSON="$settings_path" \
+        bash .claude/hooks/approve-safe-commands.sh <<< "$payload"
+}
+
+assert_approve() {
+    local desc="$1" out="$2"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [[ "$out" == *'"behavior":"allow"'* ]]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$desc"
+        report_detail "expected behavior:allow, got: $out"
+    fi
+}
+
+assert_silent() {
+    local desc="$1" out="$2"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [ -z "$out" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$desc"
+        report_detail "expected silent, got: $out"
+    fi
+}
+
+# Case 1: positive — fixture has Bash(npm run:*) which is NOT in the real
+# settings.json. The hook approves npm run only if it's reading from the
+# fixture (proves the hook is settings-driven, not hardcoded).
+SOT_FX1=$(mktemp -d)
+cat > "$SOT_FX1/settings.json" <<'JSON'
+{"permissions":{"allow":["Bash(npm run:*)"],"ask":[]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX1/settings.json" "npm run test")
+assert_approve "approves 'npm run test' when fixture lists Bash(npm run:*)" "$out"
+trash-put "$SOT_FX1" 2>/dev/null || true
+
+# Case 2: negative — fixture WITHOUT Bash(git status:*). The real
+# settings.json HAS it, so this only passes if the hook is genuinely
+# reading the env-var-pointed file (not falling back to anything else).
+SOT_FX2=$(mktemp -d)
+cat > "$SOT_FX2/settings.json" <<'JSON'
+{"permissions":{"allow":["Bash(echo:*)"],"ask":[]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX2/settings.json" "git status")
+assert_silent "does NOT approve 'git status' when fixture omits it" "$out"
+trash-put "$SOT_FX2" 2>/dev/null || true
+
+# Case 3: settings.local.json is ignored. Fixture settings.json has empty
+# allow; sibling settings.local.json has Bash(mv:*). The harness honors
+# local-allow via its own permission system, but the hook does not — its
+# behavior is shaped by settings.json only (decision 1 of plan).
+SOT_FX3=$(mktemp -d)
+cat > "$SOT_FX3/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":[]}}
+JSON
+cat > "$SOT_FX3/settings.local.json" <<'JSON'
+{"permissions":{"allow":["Bash(mv:*)"],"ask":[]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX3/settings.json" "mv foo bar && ls")
+assert_silent "does NOT approve 'mv foo bar && ls' when only settings.local.json has mv" "$out"
+trash-put "$SOT_FX3" 2>/dev/null || true
+
+# Case 4: ALWAYS_SAFE carve-out preserved — `cd` cannot be expressed in
+# settings.json (it's a shell builtin the harness never sees in isolation).
+# Even with a fixture missing `cd`, the chain `cd /tmp && ls` approves
+# because the hook keeps an inline ALWAYS_SAFE=("cd") allowlist.
+SOT_FX4=$(mktemp -d)
+cat > "$SOT_FX4/settings.json" <<'JSON'
+{"permissions":{"allow":["Bash(ls:*)"],"ask":[]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX4/settings.json" "cd /tmp && ls")
+assert_approve "approves 'cd /tmp && ls' via ALWAYS_SAFE carve-out" "$out"
+trash-put "$SOT_FX4" 2>/dev/null || true
 
 print_summary

@@ -25,13 +25,14 @@
 #     - mv ... targeting the above paths
 #     - NOT read-only commands (grep, cat without redirect)
 #
-# Known unprotected vectors (documented gaps, not bugs):
-#   - Symlink redirection (e.g. ln -s .claude/settings.json /tmp/x; write /tmp/x).
-#     The Bash regex matches typed paths, not realpath-resolved targets. Adding
-#     realpath() costs a fork per Write call; deferred until seen in the wild.
-#   - ruby/perl/node interpreter bodies (-e flags). Out of scope per current
-#     toolchain (no ruby/perl/node use in repo). One-line extension to the
-#     INTERP_RE in match_/check_config_edits when needed.
+# Settings-path coverage (.claude/settings.json, .claude/settings.local.json):
+# default-deny — any write-shaped verb token (>, >>, tee, sed -i, mv, cp, install,
+# dd, truncate, rsync, awk -i, chmod, chown, ln -s) appearing alongside the path
+# in the stripped command blocks. Read-only verbs (cat, grep, jq, head, tail, wc,
+# diff, ls, find, stat, file) referencing the path pass through. Symlink writes
+# (creating a symlink to settings, or redirecting to a pre-existing symlink that
+# resolves to settings) are caught via realpath -m, gated by match_ already firing.
+# Interpreter bodies covered: python, bash, sh, ruby, perl, node — all -c/-e/<<.
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
@@ -90,9 +91,23 @@ is_blocked_settings() {
 # Pure bash pattern matching — no forks, no jq, no git.
 match_config_edits() {
     local CONFIG_HINT='(bashrc|bash_profile|bash_login|profile|zshrc|zprofile|zshenv|zlogin|gitconfig|authorized_keys|\.ssh/config|\.claude/settings(\.local)?\.json)'
-    local VERB_HINT='(>>|[^>]>[^>]|tee[[:space:]]|sed[[:space:]]+-i|mv[[:space:]])'
-    local INTERP_HINT='(python[0-9.]*|bash|sh)[[:space:]]+(-c|<<)'
-    [[ "$COMMAND" =~ $CONFIG_HINT ]] && { [[ "$COMMAND" =~ $VERB_HINT ]] || [[ "$COMMAND" =~ $INTERP_HINT ]]; }
+    # Verb hint kept broad — once any of these appears alongside a config-shaped
+    # path, check_ runs the precise filter. False positives are fine; false
+    # negatives are bugs. See .claude/docs/relevant-toolkit-hooks.md §4.
+    local VERB_HINT='(>>|[^>]>[^>]|tee[[:space:]]|sed[[:space:]]+-i|mv[[:space:]]|cp[[:space:]]|install[[:space:]]|dd[[:space:]]|truncate[[:space:]]|rsync[[:space:]]|awk[[:space:]]+-i|chmod[[:space:]]|chown[[:space:]]|ln[[:space:]]+-s)'
+    local INTERP_HINT='(python[0-9.]*|bash|sh|ruby|perl|node)[[:space:]]+(-c|-e|<<)'
+    if [[ "$COMMAND" =~ $CONFIG_HINT ]]; then
+        [[ "$COMMAND" =~ $VERB_HINT ]] || [[ "$COMMAND" =~ $INTERP_HINT ]]
+        return
+    fi
+    # Symlink defense gate: fire match_ when a write-shaped verb is present,
+    # so check_ can resolve symlink targets via realpath. The realpath fork
+    # only happens for tokens that are actual symlinks ([ -L ]), so the
+    # broadened match_ surface stays cheap in steady state. Confined to a
+    # narrower subset than VERB_HINT (drop sed -i / mv-only / etc. that have
+    # no symlink-trampoline angle in normal use).
+    local SYMLINK_GATE='([^>]|^)>[[:space:]]|>>[[:space:]]|tee[[:space:]]|cp[[:space:]]|mv[[:space:]]'
+    [[ "$COMMAND" =~ $SYMLINK_GATE ]]
 }
 
 # ============================================================
@@ -117,74 +132,104 @@ check_config_edits() {
     local CONFIGS='(\.(bashrc|bash_profile|bash_login|profile|zshrc|zprofile|zshenv|zlogin|gitconfig)|\.ssh/(authorized_keys|config))'
     local HOME_CONFIG="(~|\\\$HOME|\\\$\{HOME\})/$CONFIGS"
 
-    # Settings path: bare segment, used in patterns where the verb-side regex
-    # already provides the left boundary (consuming a space). All settings
-    # patterns below pre-supply that boundary themselves.
-    local SETTINGS_BARE='\.claude/settings(\.local)?\.json'
-
-    # Block append (>>) to home config or settings
+    # Block writes to home config — kept per-verb because the home patterns
+    # are anchored on ~/$HOME and the verb context ties the regex to actual
+    # write operations rather than mere mentions of a config name.
     local APPEND_RE_HOME=">>.*$HOME_CONFIG"
-    local APPEND_RE_SETTINGS=">>[[:space:]]+$SETTINGS_BARE"
     if [[ "$COMMAND" =~ $APPEND_RE_HOME ]]; then
         _BLOCK_REASON="BLOCKED: Appending to shell/SSH/git config risks persistent environment poisoning. Use project-level .envrc or local config instead."
         return 1
     fi
-    if [[ "$COMMAND" =~ $APPEND_RE_SETTINGS ]]; then
-        _BLOCK_REASON="$(_settings_reason 'Appending to')"
-        return 1
-    fi
-
-    # Block tee targeting home config or settings.
-    # tee branch covers both `tee FILE` and `tee -a FILE`/`tee -a -- FILE`.
     local TEE_RE_HOME="tee[[:space:]].*$HOME_CONFIG"
-    local TEE_RE_SETTINGS="tee[[:space:]]+(-[a-zA-Z]+[[:space:]]+)*$SETTINGS_BARE"
     if [[ "$COMMAND" =~ $TEE_RE_HOME ]]; then
         _BLOCK_REASON="BLOCKED: Writing to shell/SSH/git config via tee risks persistent environment poisoning. Use project-level .envrc or local config instead."
         return 1
     fi
-    if [[ "$COMMAND" =~ $TEE_RE_SETTINGS ]]; then
-        _BLOCK_REASON="$(_settings_reason 'Writing via tee to')"
-        return 1
-    fi
-
-    # Block sed -i targeting home config or settings
     local SED_RE_HOME="sed[[:space:]]+-i.*$HOME_CONFIG"
-    local SED_RE_SETTINGS="sed[[:space:]]+-i.*[[:space:]]$SETTINGS_BARE"
     if [[ "$COMMAND" =~ $SED_RE_HOME ]]; then
         _BLOCK_REASON="BLOCKED: Editing shell/SSH/git config in-place risks persistent environment poisoning. Use project-level .envrc or local config instead."
         return 1
     fi
-    if [[ "$COMMAND" =~ $SED_RE_SETTINGS ]]; then
-        _BLOCK_REASON="$(_settings_reason 'Editing in-place')"
-        return 1
-    fi
-
-    # Block mv targeting home config or settings
     local MV_RE_HOME="mv[[:space:]].*$HOME_CONFIG"
-    local MV_RE_SETTINGS="mv[[:space:]].*[[:space:]]$SETTINGS_BARE"
     if [[ "$COMMAND" =~ $MV_RE_HOME ]]; then
         _BLOCK_REASON="BLOCKED: Moving file to shell/SSH/git config risks persistent environment poisoning. Use project-level .envrc or local config instead."
         return 1
     fi
-    if [[ "$COMMAND" =~ $MV_RE_SETTINGS ]]; then
-        _BLOCK_REASON="$(_settings_reason 'Moving file to')"
-        return 1
+
+    # ============================================================
+    # Settings-path side: default-deny
+    # ============================================================
+    # If .claude/settings(.local)?.json appears in the stripped command (so
+    # references inside quoted strings or heredoc bodies don't false-positive)
+    # AND any write-shaped verb token also appears, block. Read-only verbs
+    # (cat, grep, jq, head, tail, wc, diff, ls, find, stat, file) on settings
+    # are common enough that the read-only allowlist is documented as the
+    # invariant, not the verb list. New shell verbs that read but don't write
+    # (e.g. bat, rg, eza) need an entry here when they show up — see the
+    # hooks-readonly-verb-allowlist-audit backlog item.
+    local SETTINGS_BARE='\.claude/settings(\.local)?\.json'
+    if [[ "$COMMAND" =~ $SETTINGS_BARE ]]; then
+        local SETTINGS_WRITE_VERB='(>>|>|tee[[:space:]]|sed[[:space:]]+-i|mv[[:space:]]|cp[[:space:]]|install[[:space:]]|dd[[:space:]]|truncate[[:space:]]|rsync[[:space:]]|awk[[:space:]]+-i|chmod[[:space:]]|chown[[:space:]]|ln[[:space:]]+-s)'
+        if [[ "$COMMAND" =~ $SETTINGS_WRITE_VERB ]]; then
+            _BLOCK_REASON="$(_settings_reason 'Writing to')"
+            return 1
+        fi
     fi
 
-    # Block single-redirect (>) to settings — covers `cat foo > .claude/settings.local.json`.
-    # Lead char [^>] (or start) ensures we don't double-match >> here.
-    local SINGLE_REDIR_RE_SETTINGS='([^>]|^)>[[:space:]]+'"$SETTINGS_BARE"
-    if [[ "$COMMAND" =~ $SINGLE_REDIR_RE_SETTINGS ]]; then
-        _BLOCK_REASON="$(_settings_reason 'Redirecting output to')"
-        return 1
+    # Symlink defense — gated by the match_ hint so the realpath fork only
+    # happens on commands that already look settings-shaped. Two angles:
+    #   (a) `ln -s <target> <link>` where <target> resolves under .claude/
+    #       settings — catches the symlink-creation step.
+    #   (b) `... > <path>` (or >>, tee, etc.) where <path> exists as a symlink
+    #       resolving under .claude/settings — catches write-through-symlink
+    #       on a pre-existing trampoline.
+    # Both conditions match against the raw command (we want literal token
+    # paths, not stripped). realpath -m doesn't error on missing components.
+    if command -v realpath >/dev/null 2>&1; then
+        # (a) ln -s creation
+        if [[ "$_raw" =~ ln[[:space:]]+-s[[:space:]]+([^[:space:]]+)[[:space:]]+([^[:space:]]+) ]]; then
+            local _ln_target="${BASH_REMATCH[1]}" _ln_link="${BASH_REMATCH[2]}"
+            local _resolved
+            _resolved=$(realpath -m "$_ln_target" 2>/dev/null)
+            if [[ "$_resolved" =~ /\.claude/settings(\.local)?\.json$ ]]; then
+                _BLOCK_REASON="$(_settings_reason 'Creating symlink to')"
+                return 1
+            fi
+            # Also catch `ln -s settings.json link-in-claude` (link side under .claude)
+            _resolved=$(realpath -m "$_ln_link" 2>/dev/null)
+            if [[ "$_resolved" =~ /\.claude/settings(\.local)?\.json$ ]]; then
+                _BLOCK_REASON="$(_settings_reason 'Creating symlink at')"
+                return 1
+            fi
+        fi
+        # (b) write-through-symlink: scan tokens following >, >>, or following
+        # tee/cp/mv/sed -i/etc., resolve them, block if they land on settings.
+        # Cheap version: walk every whitespace-separated token in the raw cmd,
+        # skip obvious non-paths, resolve, test.
+        local _tok
+        for _tok in $_raw; do
+            # Skip flag-shaped and verb-shaped tokens; only test path-shaped.
+            case "$_tok" in
+                -*|*=*|'>'|'>>'|'<'|'|'|'&&'|';'|'&'|'||') continue ;;
+            esac
+            # Only test tokens that exist as a symlink — keeps fork count low.
+            [ -L "$_tok" ] || continue
+            local _resolved
+            _resolved=$(realpath -m "$_tok" 2>/dev/null)
+            if [[ "$_resolved" =~ /\.claude/settings(\.local)?\.json$ ]]; then
+                _BLOCK_REASON="$(_settings_reason 'Writing through symlink to')"
+                return 1
+            fi
+        done
     fi
 
-    # Interpreter-body settings writes: python -c, bash -c, sh -c, python heredoc.
-    # Runs against the RAW command via the detection registry — _strip_inert_content
-    # blanks quoted/heredoc bodies, which is exactly where interpreter payloads
-    # live. Conjunction (interpreter token AND registered settings path) keeps the
-    # false-positive surface small. Out of scope per current toolchain: ruby/perl/node.
-    local INTERP_RE='(python[0-9.]*|bash|sh)[[:space:]]+(-c|<<)'
+    # Interpreter-body settings writes: python -c, bash -c, sh -c, ruby -e,
+    # perl -e, node -e, plus heredoc forms for any of these. Runs against the
+    # RAW command via the detection registry — _strip_inert_content blanks
+    # quoted/heredoc bodies, which is exactly where interpreter payloads live.
+    # Conjunction (interpreter token AND registered settings path) keeps the
+    # false-positive surface small.
+    local INTERP_RE='(python[0-9.]*|bash|sh|ruby|perl|node)[[:space:]]+(-c|-e|<<)'
     if [[ "$_raw" =~ $INTERP_RE ]] \
        && detection_registry_match path raw "$_raw" \
        && [ "$_REGISTRY_MATCHED_ID" = "claude-settings" ]; then

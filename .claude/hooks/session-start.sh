@@ -37,6 +37,25 @@ source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "session-start" "SessionStart"
 _hook_perf_probe "hook_init"
 
+# === SETTINGS INTEGRITY CHECK (defense-in-depth) ===
+# Backstops the runtime block-config-edits.sh hook. If settings.json or
+# settings.local.json changed since last session without a covering commit,
+# surface a loud warning. Silent on baseline / match / committed-change.
+# Opt-out via CLAUDE_TOOLKIT_SETTINGS_INTEGRITY=0.
+if [ -f "$(dirname "$0")/../scripts/lib/settings-integrity.sh" ]; then
+    # shellcheck source=../scripts/lib/settings-integrity.sh
+    source "$(dirname "$0")/../scripts/lib/settings-integrity.sh"
+    _SI_OUT=$(settings_integrity_check)
+    if [ -n "$_SI_OUT" ]; then
+        echo "=== SETTINGS INTEGRITY ==="
+        echo "$_SI_OUT"
+        echo ""
+        # Mirror to actionable items too — staged for ACK section below.
+        ACTIONABLE_ITEMS_INTEGRITY="$_SI_OUT"
+    fi
+fi
+_hook_perf_probe "settings_integrity"
+
 # Check we're in a project with docs
 if [ ! -d "$DOCS_DIR" ]; then
     echo "Warning: $DOCS_DIR not found. Run from project root."
@@ -107,6 +126,12 @@ _hook_perf_probe "git_context"
 
 # === TOOLKIT VERSION ===
 ACTIONABLE_ITEMS=""
+if [ -n "${ACTIONABLE_ITEMS_INTEGRITY:-}" ]; then
+    while IFS= read -r _line; do
+        [ -z "$_line" ] && continue
+        ACTIONABLE_ITEMS="${ACTIONABLE_ITEMS}\n- $_line"
+    done <<< "$ACTIONABLE_ITEMS_INTEGRITY"
+fi
 if [ -f ".claude-toolkit-version" ] && command -v claude-toolkit &>/dev/null; then
     PROJECT_VER=$(<.claude-toolkit-version) 2>/dev/null || PROJECT_VER=""
     TOOLKIT_VER=$(claude-toolkit version 2>/dev/null)

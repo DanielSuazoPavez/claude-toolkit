@@ -79,6 +79,36 @@ batch_add allow "$(mk auto 'gh repo view')" \
 batch_add allow "$(mk auto 'gh repo clone foo/bar')" \
     "allows gh repo clone"
 
+# Cascade-and-permissions.ask reconciliation regressions (the cascade had
+# 9 entries the old permissions.ask was missing — these must keep blocking
+# both before and after the cascade-to-regex swap):
+batch_add block "$(mk auto 'gh release download v1 --repo foo/bar')" \
+    "blocks gh release download (cascade ⊃ ask reconciliation)"
+batch_add block "$(mk auto 'gh repo deploy-key add ~/.ssh/id_ed25519.pub')" \
+    "blocks gh repo deploy-key add"
+batch_add block "$(mk auto 'gh repo unarchive foo/bar')" \
+    "blocks gh repo unarchive"
+batch_add block "$(mk auto 'gh repo sync')" \
+    "blocks gh repo sync"
+batch_add block "$(mk auto 'gh issue transfer 42 newrepo')" \
+    "blocks gh issue transfer"
+batch_add block "$(mk auto 'gh issue pin 42')" \
+    "blocks gh issue pin"
+batch_add block "$(mk auto 'gh issue lock 42')" \
+    "blocks gh issue lock"
+
+# Network egress under auto-mode: curl/wget are in permissions.ask, so
+# the auto-mode hook blocks the classifier from auto-approving them.
+# Reading online belongs in interactive mode where the `ask` entries
+# prompt the user. No leftmost-match bypass to worry about anymore —
+# every match in permissions.ask is in scope under auto-mode.
+batch_add block "$(mk auto 'curl https://x && gh pr create --title y')" \
+    "blocks curl-then-gh-pr-create chain"
+batch_add block "$(mk auto 'wget https://x; gh release create v1')" \
+    "blocks wget-then-gh-release-create chain"
+batch_add block "$(mk auto 'curl https://x | gh secret set FOO')" \
+    "blocks curl-pipe-gh-secret-set chain"
+
 # ============================================================
 # Auto-mode: gh secret/variable/workflow/auth
 # ============================================================
@@ -122,14 +152,18 @@ batch_add block "$(mk auto "curl -H 'authorization: Basic abc=' https://x.com")"
     "blocks curl with lowercase authorization: Basic"
 
 # ============================================================
-# Auto-mode: benign curl/wget passes
+# Auto-mode: curl/wget always blocks (network egress out of scope)
 # ============================================================
-batch_add allow "$(mk auto 'curl https://docs.python.org/3/')" \
-    "allows curl to docs (no auth, not api.github.com)"
-batch_add allow "$(mk auto 'curl -O https://example.com/file.tar.gz')" \
-    "allows simple curl download"
-batch_add allow "$(mk auto 'wget https://example.com/x')" \
-    "allows simple wget"
+# Reading online belongs in interactive mode where Bash(curl:*) /
+# Bash(wget:*) in permissions.ask prompts the user. Under auto-mode
+# the hook blocks the classifier from auto-approving them — no
+# carve-outs.
+batch_add block "$(mk auto 'curl https://docs.python.org/3/')" \
+    "blocks bare curl (network egress not allowed under auto-mode)"
+batch_add block "$(mk auto 'curl -O https://example.com/file.tar.gz')" \
+    "blocks simple curl download"
+batch_add block "$(mk auto 'wget https://example.com/x')" \
+    "blocks simple wget"
 
 # ============================================================
 # Auto-mode: unrelated commands pass
@@ -150,5 +184,107 @@ batch_add allow "$(mk auto 'echo "to push run: git push"')" \
     "allows git push inside double-quoted string under auto"
 
 batch_run
+
+# ============================================================
+# Source-of-truth: hook reads settings.json permissions.ask via the
+# settings-permissions loader. Drive CLAUDE_TOOLKIT_SETTINGS_JSON at
+# fixture files to verify the list is genuinely sourced (not hardcoded).
+# ============================================================
+report_section "  --- Source-of-truth via CLAUDE_TOOLKIT_SETTINGS_JSON ---"
+
+run_hook_with_settings() {
+    local settings_path="$1" payload="$2"
+    CLAUDE_TOOLKIT_SETTINGS_JSON="$settings_path" \
+        bash .claude/hooks/auto-mode-shared-steps.sh <<< "$payload"
+}
+
+assert_block() {
+    local desc="$1" out="$2"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [[ "$out" == *'"decision": "block"'* ]]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$desc"
+        report_detail "expected block, got: $out"
+    fi
+}
+
+assert_allow() {
+    local desc="$1" out="$2"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [ -z "$out" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$desc"
+        report_detail "expected allow (silent), got: $out"
+    fi
+}
+
+# Case 1 (positive): synthetic Bash(gh foo bar:*) in fixture's
+# permissions.ask. The cascade never had this; only a settings-driven
+# hook can block it.
+SOT_FX1=$(mktemp -d)
+cat > "$SOT_FX1/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(gh foo bar:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX1/settings.json" "$(mk auto 'gh foo bar baz')")
+assert_block "blocks synthetic 'gh foo bar baz' from fixture permissions.ask" "$out"
+trash-put "$SOT_FX1" 2>/dev/null || true
+
+# Case 2 (negative): fixture has no Bash(gh pr create:*). The hook must
+# NOT block — proves the list is truly sourced from the env-var-pointed
+# file (real settings.json HAS gh pr create, so an unsupervised reader
+# would mis-read).
+SOT_FX2=$(mktemp -d)
+cat > "$SOT_FX2/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":[]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX2/settings.json" "$(mk auto 'gh pr create --title x')")
+assert_allow "does NOT block 'gh pr create' when fixture omits it" "$out"
+trash-put "$SOT_FX2" 2>/dev/null || true
+
+# Case 3: settings.local.json is intentionally ignored. Only
+# settings.local.json carries Bash(gh foo bar:*); settings.json is empty.
+# Hook must NOT block.
+SOT_FX3=$(mktemp -d)
+cat > "$SOT_FX3/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":[]}}
+JSON
+cat > "$SOT_FX3/settings.local.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(gh foo bar:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX3/settings.json" "$(mk auto 'gh foo bar baz')")
+assert_allow "does NOT block 'gh foo bar baz' when only settings.local.json has it" "$out"
+trash-put "$SOT_FX3" 2>/dev/null || true
+
+# Case 4: curl is in permissions.ask, so auto-mode blocks the classifier
+# from auto-approving it — even a benign no-auth GET. Network egress
+# belongs in interactive mode where the `ask` entry prompts.
+SOT_FX4=$(mktemp -d)
+cat > "$SOT_FX4/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(curl:*)","Bash(wget:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'curl https://docs.python.org/3/')")
+assert_block "blocks benign curl under auto-mode (in permissions.ask)" "$out"
+
+# Case 5: wget mirrors curl
+out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'wget https://example.com/file.zip')")
+assert_block "blocks benign wget under auto-mode (in permissions.ask)" "$out"
+trash-put "$SOT_FX4" 2>/dev/null || true
+
+# Case 6: regression — match_ no longer hardcodes git push|gh|curl|wget,
+# so any future Bash() entry in permissions.ask blocks under auto-mode.
+# Synthetic Bash(npm publish:*) — verb outside the old hardcoded set.
+SOT_FX5=$(mktemp -d)
+cat > "$SOT_FX5/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(npm publish:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX5/settings.json" "$(mk auto 'npm publish --dry-run')")
+assert_block "blocks synthetic 'npm publish' (verb outside legacy hardcoded set)" "$out"
+trash-put "$SOT_FX5" 2>/dev/null || true
 
 print_summary
