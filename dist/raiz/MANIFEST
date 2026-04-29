@@ -67,6 +67,7 @@ docs/getting-started.md
 .claude/scripts/verify-external-deps.sh
 .claude/scripts/statusline-capture.sh
 .claude/scripts/lib/profile.sh
+.claude/scripts/lib/settings-integrity.sh
 
 # schemas
 .claude/schemas/hooks/detection-registry.schema.json
