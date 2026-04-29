@@ -9,15 +9,14 @@ report_section "=== log-permission-denied.sh ==="
 hook="log-permission-denied.sh"
 
 # --- Silent output (denial stands) ---
-
-expect_silent "$hook" '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"rm -rf /"},"tool_use_id":"toolu_01ABC","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+batch_start "$hook"
+batch_add silent '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"rm -rf /"},"tool_use_id":"toolu_01ABC","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
     "silent: Bash denial"
-
-expect_silent "$hook" '{"session_id":"s2","tool_name":"Write","tool_input":{"file_path":"/etc/passwd","content":"x"},"tool_use_id":"toolu_02DEF","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+batch_add silent '{"session_id":"s2","tool_name":"Write","tool_input":{"file_path":"/etc/passwd","content":"x"},"tool_use_id":"toolu_02DEF","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
     "silent: Write denial"
-
-expect_silent "$hook" '{"session_id":"s3","tool_name":"Edit","tool_input":{"file_path":"/etc/shadow"},"tool_use_id":"toolu_03GHI","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+batch_add silent '{"session_id":"s3","tool_name":"Edit","tool_input":{"file_path":"/etc/shadow"},"tool_use_id":"toolu_03GHI","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
     "silent: Edit denial"
+batch_run
 
 # --- JSONL logging (traceability enabled) ---
 report_section "--- JSONL logging ---"
@@ -84,8 +83,9 @@ fi
 
 # --- Malformed stdin ---
 report_section "--- edge cases ---"
-
-expect_silent "$hook" 'not-json' \
+batch_start "$hook"
+batch_add silent 'not-json' \
     "silent: malformed stdin (no crash)"
+batch_run
 
 print_summary

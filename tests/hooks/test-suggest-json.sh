@@ -8,18 +8,22 @@ parse_test_args "$@"
 report_section "=== suggest-read-json.sh ==="
 hook="suggest-read-json.sh"
 
+batch_start "$hook"
+
 # Should block (large JSON or unknown JSON)
-expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' \
+batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' \
     "blocks unknown .json files"
-expect_block "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/output.json"}}' \
+batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/output.json"}}' \
     "blocks data .json files"
 
 # Should allow (config files in allowlist)
-expect_allow "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/package.json"}}' \
+batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/package.json"}}' \
     "allows package.json"
-expect_allow "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/tsconfig.json"}}' \
+batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/tsconfig.json"}}' \
     "allows tsconfig.json"
-expect_allow "$hook" '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' \
+batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' \
     "allows non-json files"
+
+batch_run
 
 print_summary
