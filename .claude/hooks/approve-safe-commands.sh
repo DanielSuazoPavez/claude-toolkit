@@ -145,6 +145,20 @@ split_command() {
                 i=$((i + 1))
                 continue
             fi
+            # Lone & (background) — bash backgrounds the previous statement and
+            # runs the next. Splits like ;. The && case above already consumed
+            # double-&, so any remaining single & is a chain operator.
+            if [ "$char" = "&" ]; then
+                result+=$'\n'
+                i=$((i + 1))
+                continue
+            fi
+            # Newline / CR — bash treats \n as a statement separator (CRLF safety).
+            if [ "$char" = $'\n' ] || [ "$char" = $'\r' ]; then
+                result+=$'\n'
+                i=$((i + 1))
+                continue
+            fi
         fi
 
         result+="$char"

