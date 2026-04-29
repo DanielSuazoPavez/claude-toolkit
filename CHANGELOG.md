@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [2.78.1] - 2026-04-29 - Hooks security findings — settings.json default-deny + chain-operator gaps + auto-mode coarse-filter drop
+
+### Fixed
+- **hooks**: `block-config-edits.sh` — replaced the per-verb settings regexes (`>>`, `>`, `tee`, `sed -i`, `mv`) with a path-side default-deny: any `.claude/settings(.local)?.json` reference in the stripped command alongside any write-shaped verb token blocks. Closes the previously-bypassable verbs (`cp`, `install`, `dd`, `truncate`, `rsync`, `awk -i`, `chmod`, `chown`). Extended `INTERP_RE` to ruby/perl/node `-e` (and heredoc forms). Added symlink defense: `ln -s` creating a trampoline to settings, plus write-through via a pre-existing symlink that resolves to settings — both via `realpath -m`, gated on `match_` already firing.
+- **hooks**: `approve-safe-commands.sh::split_command` now recognizes `\n`, `\r`, and lone `&` as chain operators. Newline (`git status\necho INJECTED`) and background (`git status & rm -rf /tmp`) were both auto-approving on the safe leading subcommand because the splitter only knew `&&`, `||`, `;`, `|`. Both bypasses reproducible before this fix.
+- **hooks**: `auto-mode-shared-steps.sh` — dropped the coarse `git push|gh|curl|wget` regex from `match_`. The dispatcher skips `check_` when `match_` returns false, so any `permissions.ask` entry whose verb fell outside the hardcoded set silently no-op'd under auto-mode. `match_` now gates only on `permission_mode == "auto"`; `check_` runs the precise `_SETTINGS_PERMISSIONS_RE_ASK` (built from `settings.json`) on every Bash call. `check_` switched from raw `$COMMAND` to the stripped command to preserve the existing false-positive avoidance for tokens inside quoted strings.
+
+### Added
+- **hooks**: SessionStart settings-integrity tripwire (defense-in-depth backstop for `block-config-edits.sh`). Computes SHA-256 of `.claude/settings.json` and `.claude/settings.local.json` on session start, compares against the last-known hash stored at `.claude/logs/settings-integrity.json` (gitignored, per-machine). Surfaces a warning when the hash drifted AND the working-tree content differs from HEAD's committed blob — silent on baseline / match / committed-change. Does not block; the user decides. Tripwire, not a vault: a determined attacker who reads this code can commit the rewrite or forge the state file. Opt-out via `CLAUDE_TOOLKIT_SETTINGS_INTEGRITY=0`.
+- **scripts**: New `.claude/scripts/lib/settings-integrity.sh` — exposes `settings_integrity_check` for `session-start.sh`. Ships in raiz MANIFEST, indexed in `docs/indexes/SCRIPTS.md`.
+- **env vars**: `CLAUDE_TOOLKIT_SETTINGS_INTEGRITY` (default `"1"`) registered in `relevant-toolkit-env_vars.md` §3.1.
+- **tests**: 31 new fixture cases — 12 in `test-block-config.sh` (cp/install/dd/truncate/awk-i/rsync/chmod/ruby-e/node-e/perl-e/ln-s creation/write-through-symlink), 4 in `test-approve-safe.sh` (newline/CRLF/lone-&), 1 in `test-auto-mode-shared-steps.sh` (synthetic `Bash(npm publish:*)`), and a new `test-session-start-integrity.sh` (5 cases — baseline, match, committed-change, uncommitted drift, opt-out).
+
+### Notes
+- **backlog**: Added 4 follow-ups during this work — `hooks-readonly-verb-allowlist-audit` (P3, periodically audit the read-only verb allowlist for new tools like `bat`/`rg`), `hooks-settings-integrity-state-tampering` (P3, move state file out of repo to `~/.claude/`), `hooks-settings-integrity-commit-author-check` (P3, verify covering commit author + remote presence), `hooks-block-config-edits-broaden-symlink-coverage` (P3, catch write-through-symlink when `match_` doesn't fire on a bare path).
+- **source**: `output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md` — the security-review findings this branch closes (Fix #1 + #2 + #3 + #4 + #5).
+
 ## [2.78.0] - 2026-04-29 - Hooks read permission lists from settings.json directly
 
 ### Added
