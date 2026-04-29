@@ -114,7 +114,11 @@ if [ "${#failed_labels[@]}" -gt 0 ]; then
     for label in "${failed_labels[@]}"; do
         echo ""
         echo "--- $label ---"
-        cat "$LOG_DIR/$label.log"
+        if [ -f "$LOG_DIR/$label.log" ]; then
+            cat "$LOG_DIR/$label.log"
+        else
+            echo "(no log captured — process likely killed mid-run)"
+        fi
     done
 fi
 

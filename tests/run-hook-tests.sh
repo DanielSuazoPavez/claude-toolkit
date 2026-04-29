@@ -105,7 +105,11 @@ if [ "${#failed_files[@]}" -gt 0 ]; then
     for base in "${failed_files[@]}"; do
         echo ""
         echo "--- $base.sh ---"
-        cat "$LOG_DIR/$base.log"
+        if [ -f "$LOG_DIR/$base.log" ]; then
+            cat "$LOG_DIR/$base.log"
+        else
+            echo "(no log captured — process likely killed mid-run)"
+        fi
     done
 fi
 
