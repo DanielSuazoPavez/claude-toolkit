@@ -27,8 +27,16 @@
 #   # Expected: {"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}
 
 source "$(dirname "$0")/lib/hook-utils.sh"
+source "$(dirname "$0")/lib/settings-permissions.sh"
 hook_init "approve-safe-commands" "PermissionRequest"
 hook_require_tool "Bash"
+
+# Load Bash() prefixes from settings.json permissions.allow once at startup.
+# Failure (missing settings, empty allow) → loader returns 1 and the hook
+# falls through to "no auto-approve" — the harness then prompts as if no
+# PermissionRequest hook had run. That's the correct fail-safe for a
+# permission-grant operation.
+settings_permissions_load || true
 
 COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0
@@ -44,49 +52,11 @@ if echo "$COMMAND" | grep -qE '(>>|[0-9]*>|<|&>)'; then
     exit 0
 fi
 
-# Safe command prefixes — must match settings.json permissions.allow Bash entries
-# Validated by .claude/scripts/validate-safe-commands-sync.sh
-SAFE_PREFIXES=(
-    # Shell builtins
-    "cd"
-    # Read-only
-    "ls"
-    "find"
-    "cat"
-    "head"
-    "tail"
-    "wc"
-    "diff"
-    "grep"
-    "echo"
-    # Filesystem
-    "mkdir"
-    "touch"
-    "trash-put"
-    # Tools
-    "jq"
-    "make"
-    # Git read
-    "git status"
-    "git log"
-    "git diff"
-    "git show"
-    "git blame"
-    "git rev-parse"
-    "git fetch"
-    # Git write
-    "git stash"
-    "git add"
-    "git rm --cached"
-    "git checkout"
-    "git switch"
-    "git commit"
-    # Hook/script paths — trust assumption: these dirs are not writable by untrusted sources
-    "./.claude/hooks/"
-    ".claude/scripts/"
-    # Toolkit CLI
-    "claude-toolkit"
-)
+# Shell builtins — not expressible in settings.json permissions because
+# the harness never sees them as Bash invocations (they're builtins inside
+# a chain). Kept here as a small inline carve-out alongside the
+# settings-derived list. See `relevant-toolkit-hooks_config.md` decision matrix.
+ALWAYS_SAFE=("cd")
 
 # Check if a single command matches any safe prefix
 is_safe() {
@@ -111,7 +81,7 @@ is_safe() {
 
     [ -z "$cmd" ] && return 1
 
-    for prefix in "${SAFE_PREFIXES[@]}"; do
+    for prefix in "${ALWAYS_SAFE[@]}" "${_SETTINGS_PERMISSIONS_ALLOW_PREFIXES[@]}"; do
         # Check if command starts with the prefix
         # For path prefixes (ending in /), match command starting with that path
         # For command prefixes, match exact or followed by space
