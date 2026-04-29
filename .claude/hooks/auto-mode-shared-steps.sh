@@ -28,6 +28,7 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/settings-permissions.sh"
 
 # Pre-build credential/raw + capability/stripped alternation regexes from
 # .claude/hooks/lib/detection-registry.json so check_ can match against them
@@ -35,6 +36,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
 # purpose for redundancy: if the dispatcher misorders or the exfil hook is
 # absent in a profile, the auto-mode gate still catches the canonical shape.
 detection_registry_load
+
+# Load the gh-write block list from settings.json permissions.ask. The hook
+# previously hardcoded a cascade that matched the same shape; replacing it
+# with a settings-derived regex keeps settings.json the single source of
+# truth (no drift). Loader is jq-once at source-time, idempotent — safe
+# under the dispatcher's source loop.
+settings_permissions_load || true
 
 # PERMISSION_MODE is parsed once at main / dispatcher level into a global. The
 # match_ function below reads the global (no jq, no fork — see §4 cheapness
@@ -84,40 +92,24 @@ check_auto_mode_shared_steps() {
         trigger="curl/wget with credential payload (Authorization header / token / env-var ref)"
     fi
 
-    # --- git push (any form) ---
+    # --- settings.json permissions.ask (git push, gh pr/issue/release/repo/
+    # secret/variable/workflow/auth/ssh-key writes, gh api) ---
+    # The Bash() prefix list comes from settings.json permissions.ask via
+    # lib/settings-permissions.sh (loaded once at source-time). curl/wget are
+    # also in permissions.ask but auto-mode handles them via the registry-
+    # driven Authorization-header check above (which sets $trigger first if
+    # it matches) — filter them out here so a benign `curl https://x.y/`
+    # under auto-mode does not block.
+    #
+    # The capability/stripped registry match below remains the catch-all
+    # for sensitive-capability calls (gh api host detection lives there).
     if [[ -n "$trigger" ]]; then
         : # already detected above
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])git[[:space:]]+push([[:space:]]|$) ]]; then
-        trigger="git push"
-    # --- gh pr write subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+pr[[:space:]]+(create|merge|close|comment|review|edit|reopen|ready) ]]; then
-        trigger="gh pr write"
-    # --- gh issue write subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+issue[[:space:]]+(create|close|comment|edit|reopen|delete|transfer|pin|unpin|lock|unlock) ]]; then
-        trigger="gh issue write"
-    # --- gh release write subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+release[[:space:]]+(create|edit|delete|upload|download) ]]; then
-        # download is read but bundled here — auto-mode has no business pulling release artifacts unprompted
-        trigger="gh release write"
-    # --- gh repo mutating subcommands ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+repo[[:space:]]+(create|delete|rename|archive|unarchive|edit|set-default|fork|sync|deploy-key) ]]; then
-        trigger="gh repo write"
-    # --- gh secret/variable/workflow/auth/ssh-key writes ---
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+(secret|variable)[[:space:]]+(set|delete) ]]; then
-        trigger="gh secret/variable write"
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+workflow[[:space:]]+(run|enable|disable) ]]; then
-        trigger="gh workflow write"
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+auth[[:space:]]+(login|logout|refresh|setup-git) ]]; then
-        trigger="gh auth"
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+ssh-key[[:space:]]+add ]]; then
-        trigger="gh ssh-key add"
-    # --- gh api (any) ---
-    # Full restrictive: even GET against the API authenticates as the user.
-    # Read calls under auto-mode without explicit user approval are still
-    # scope drift on this project. If a specific read is needed, the user
-    # can run it themselves or switch out of auto-mode.
-    elif [[ "$COMMAND" =~ (^|[[:space:];&|])gh[[:space:]]+api([[:space:]]|$) ]]; then
-        trigger="gh api"
+    elif [ -n "${_SETTINGS_PERMISSIONS_RE_ASK:-}" ] \
+         && [[ "$COMMAND" =~ $_SETTINGS_PERMISSIONS_RE_ASK ]] \
+         && [[ "${BASH_REMATCH[2]}" != "curl" ]] \
+         && [[ "${BASH_REMATCH[2]}" != "wget" ]]; then
+        trigger="${BASH_REMATCH[2]}"
     # --- Sensitive capability call (registry: capability/stripped kind) ---
     # Currently this matches the github-api-host entry. Future capability
     # entries (e.g. docker exec, terraform show) will be picked up here too

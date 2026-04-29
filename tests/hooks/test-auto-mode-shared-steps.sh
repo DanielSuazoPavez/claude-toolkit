@@ -169,4 +169,95 @@ batch_add allow "$(mk auto 'echo "to push run: git push"')" \
 
 batch_run
 
+# ============================================================
+# Source-of-truth: hook reads settings.json permissions.ask via the
+# settings-permissions loader. Drive CLAUDE_TOOLKIT_SETTINGS_JSON at
+# fixture files to verify the list is genuinely sourced (not hardcoded).
+# ============================================================
+report_section "  --- Source-of-truth via CLAUDE_TOOLKIT_SETTINGS_JSON ---"
+
+run_hook_with_settings() {
+    local settings_path="$1" payload="$2"
+    CLAUDE_TOOLKIT_SETTINGS_JSON="$settings_path" \
+        bash .claude/hooks/auto-mode-shared-steps.sh <<< "$payload"
+}
+
+assert_block() {
+    local desc="$1" out="$2"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [[ "$out" == *'"decision": "block"'* ]]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$desc"
+        report_detail "expected block, got: $out"
+    fi
+}
+
+assert_allow() {
+    local desc="$1" out="$2"
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if [ -z "$out" ]; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "$desc"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "$desc"
+        report_detail "expected allow (silent), got: $out"
+    fi
+}
+
+# Case 1 (positive): synthetic Bash(gh foo bar:*) in fixture's
+# permissions.ask. The cascade never had this; only a settings-driven
+# hook can block it.
+SOT_FX1=$(mktemp -d)
+cat > "$SOT_FX1/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(gh foo bar:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX1/settings.json" "$(mk auto 'gh foo bar baz')")
+assert_block "blocks synthetic 'gh foo bar baz' from fixture permissions.ask" "$out"
+trash-put "$SOT_FX1" 2>/dev/null || true
+
+# Case 2 (negative): fixture has no Bash(gh pr create:*). The hook must
+# NOT block — proves the list is truly sourced from the env-var-pointed
+# file (real settings.json HAS gh pr create, so an unsupervised reader
+# would mis-read).
+SOT_FX2=$(mktemp -d)
+cat > "$SOT_FX2/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":[]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX2/settings.json" "$(mk auto 'gh pr create --title x')")
+assert_allow "does NOT block 'gh pr create' when fixture omits it" "$out"
+trash-put "$SOT_FX2" 2>/dev/null || true
+
+# Case 3: settings.local.json is intentionally ignored. Only
+# settings.local.json carries Bash(gh foo bar:*); settings.json is empty.
+# Hook must NOT block.
+SOT_FX3=$(mktemp -d)
+cat > "$SOT_FX3/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":[]}}
+JSON
+cat > "$SOT_FX3/settings.local.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(gh foo bar:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX3/settings.json" "$(mk auto 'gh foo bar baz')")
+assert_allow "does NOT block 'gh foo bar baz' when only settings.local.json has it" "$out"
+trash-put "$SOT_FX3" 2>/dev/null || true
+
+# Case 4: curl consumer-side filter. permissions.ask has Bash(curl:*),
+# but auto-mode delegates curl to the registry-driven Authorization-header
+# check — a benign curl with no auth must NOT block.
+SOT_FX4=$(mktemp -d)
+cat > "$SOT_FX4/settings.json" <<'JSON'
+{"permissions":{"allow":[],"ask":["Bash(curl:*)","Bash(wget:*)"]}}
+JSON
+out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'curl https://docs.python.org/3/')")
+assert_allow "consumer-side filter: benign curl does NOT block" "$out"
+
+# Case 5: wget filter (mirror of 4)
+out=$(run_hook_with_settings "$SOT_FX4/settings.json" "$(mk auto 'wget https://example.com/file.zip')")
+assert_allow "consumer-side filter: benign wget does NOT block" "$out"
+trash-put "$SOT_FX4" 2>/dev/null || true
+
 print_summary
