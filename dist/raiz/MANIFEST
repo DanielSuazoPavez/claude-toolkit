@@ -45,6 +45,7 @@
 .claude/hooks/lib/hook-utils.sh
 .claude/hooks/lib/detection-registry.sh
 .claude/hooks/lib/detection-registry.json
+.claude/hooks/lib/settings-permissions.sh
 # docs (inside .claude/)
 .claude/docs/essential-conventions-code_style.md
 .claude/docs/relevant-toolkit-context.md

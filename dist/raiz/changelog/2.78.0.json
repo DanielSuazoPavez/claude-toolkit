@@ -1,0 +1,27 @@
+{
+  "version": "2.78.0",
+  "date": "2026-04-29",
+  "headline": "Hooks now read permission lists from settings.json directly",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "approve-safe-commands and auto-mode-shared-steps now mirror your settings.json permissions directly — edit settings.json, hook behavior follows. No drift possible.",
+        "New shared lib lib/settings-permissions.sh — load once at hook source-time, pure-bash regex match after."
+      ]
+    },
+    {
+      "kind": "scripts",
+      "bullets": [
+        "Removed validate-safe-commands-sync.sh — it policed drift that can no longer occur."
+      ]
+    },
+    {
+      "kind": "templates",
+      "bullets": [
+        "settings.template.json permissions.ask now lists 9 gh subcommands the auto-mode hook already gated via a hardcoded cascade (gh issue {transfer,pin,unpin,lock,unlock}, gh release download, gh repo {unarchive,sync,deploy-key}). No behavior change for existing projects; new projects' settings.json reflects the explicit list on first sync."
+      ]
+    }
+  ]
+}

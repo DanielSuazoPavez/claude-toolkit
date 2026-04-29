@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [2.78.0] - 2026-04-29 - Hooks read permission lists from settings.json directly
+
+### Added
+- **hooks/lib**: New shared library `.claude/hooks/lib/settings-permissions.sh` — exposes `settings.json` `permissions.allow` / `permissions.ask` Bash entries as a pre-built alternation regex + bash array. Single `jq` pass at hook source-time; pure-bash regex matching after that. Mirrors the `detection-registry.sh` cheapness contract and idempotency guard.
+- **env vars**: New workshop-internal `CLAUDE_TOOLKIT_SETTINGS_JSON` (overrides the loader's `settings.json` path; used by tests/fixtures). Registered in `relevant-toolkit-env_vars.md` §3.1.
+- **docs**: `relevant-toolkit-hooks_config.md` gains a new §3 "Where Tunable Hook Values Live" with the three-surface decision matrix (JSON registry / `CLAUDE_TOOLKIT_*` env var / `settings.json`) plus consumer-side filtering convention and anti-patterns.
+- **skills**: `/create-hook` gains a "Config-Driven Checklist" section that points at the matrix doc.
+- **tests**: New `tests/hooks/test-settings-permissions.sh` — 18 assertions covering empty permissions, Bash() filtering, word-boundary alternation, path-form prefix preservation, idempotent re-source, missing file, settings.local.json ignored, both-bucket population, BASH_REMATCH[2] indexing, and ERE-metachar prefix rejection. Plus 9 new fixture cases in `test-approve-safe.sh` and `test-auto-mode-shared-steps.sh` pinning the new source-of-truth semantics.
+
+### Changed
+- **hooks**: `approve-safe-commands.sh` now reads its safe-prefix list from `settings.json` `permissions.allow` via the new loader. The hardcoded `SAFE_PREFIXES` array is gone; only `cd` remains as a small inline `ALWAYS_SAFE` carve-out (shell builtin not expressible in `settings.json` permissions). Drift is structurally impossible — `settings.json` is the single source of truth.
+- **hooks**: `auto-mode-shared-steps.sh` replaces its 30-line gh-cascade (`git push`, `gh pr/issue/release/repo/secret/variable/workflow/auth/ssh-key/api`) with a single regex test against `settings.json` `permissions.ask`. `curl` and `wget` are also in `permissions.ask` but auto-mode delegates them to the registry-driven Authorization-header check; consumer-side `BASH_REMATCH[2] != curl/wget` filter keeps the loader generic. Capability-registry catch-all stays as the last `elif`.
+- **settings**: `permissions.ask` extended with 9 entries that the auto-mode hook's cascade already gated (`gh issue {transfer,pin,unpin,lock,unlock}`, `gh release download`, `gh repo {unarchive,sync,deploy-key}`). No behavior change — these were always blocked under auto-mode; the entries make `settings.json` the explicit source of truth. `dist/raiz/templates/settings.template.json` mirrored.
+- **docs**: `relevant-toolkit-permissions_config.md` "Key design" paragraph + decision tree rewritten to reflect the new design (no validator step, no SAFE_PREFIXES sync to police).
+- **indexes**: `docs/indexes/HOOKS.md` and `docs/indexes/SCRIPTS.md` updated for the new design and the dropped script.
+
+### Removed
+- **scripts**: `validate-safe-commands-sync.sh` and `tests/test-validate-safe-commands-sync.sh` — superseded. The validator's job (keep the hook's hardcoded prefix list in sync with `settings.json`) disappears when the hook reads `settings.json` directly. `Makefile` target + help line, `validate-all.sh` invocation, and `dist/raiz/MANIFEST` line all dropped (raiz MANIFEST 57 → 56 entries; scripts index 14 → 13).
+
 ### Notes
 - **tests**: Hook test suite now batches `expect_*` assertions through parallel `xargs` (`batch_start`/`batch_add`/`batch_run` in `tests/lib/test-helpers.sh`). All 13 `expect_*`-driven hook test files converted. Slowest single hook test file dropped from ~40s to ~32s wall under parallel `make check` load. Sequential paths preserved where needed (secrets-guard tokenized-repo cwds, log-permission-denied JSONL inspection, git-safety per-branch contexts). Workshop-internal — tests don't ship to consumers. Addresses item (1) of `test-suite-perf-and-separation` backlog task.
 - **tests/docs**: `tests/CLAUDE.md` documents the three-layer separation between fixture-driven validator tests (`test-validate-*.sh`), real-codebase validation (`make validate`), and consumer-fixture validation (`test-sync-then-validate.sh`) — explains why each layer exists and what bug class it catches. Closes `test-suite-perf-and-separation` backlog task: items (3) and (4) reviewed and dropped (parallelizing lint+validate with test would contend for CPU; `test-verify-external-deps` flake not reproducible after re-test under load).
