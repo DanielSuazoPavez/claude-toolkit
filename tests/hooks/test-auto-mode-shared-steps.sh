@@ -79,6 +79,24 @@ batch_add allow "$(mk auto 'gh repo view')" \
 batch_add allow "$(mk auto 'gh repo clone foo/bar')" \
     "allows gh repo clone"
 
+# Cascade-and-permissions.ask reconciliation regressions (the cascade had
+# 9 entries the old permissions.ask was missing — these must keep blocking
+# both before and after the cascade-to-regex swap):
+batch_add block "$(mk auto 'gh release download v1 --repo foo/bar')" \
+    "blocks gh release download (cascade ⊃ ask reconciliation)"
+batch_add block "$(mk auto 'gh repo deploy-key add ~/.ssh/id_ed25519.pub')" \
+    "blocks gh repo deploy-key add"
+batch_add block "$(mk auto 'gh repo unarchive foo/bar')" \
+    "blocks gh repo unarchive"
+batch_add block "$(mk auto 'gh repo sync')" \
+    "blocks gh repo sync"
+batch_add block "$(mk auto 'gh issue transfer 42 newrepo')" \
+    "blocks gh issue transfer"
+batch_add block "$(mk auto 'gh issue pin 42')" \
+    "blocks gh issue pin"
+batch_add block "$(mk auto 'gh issue lock 42')" \
+    "blocks gh issue lock"
+
 # ============================================================
 # Auto-mode: gh secret/variable/workflow/auth
 # ============================================================
