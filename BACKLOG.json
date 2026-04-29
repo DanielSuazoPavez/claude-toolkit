@@ -381,6 +381,20 @@
         "v3-e5-frontmatter-ordering:relates-to",
         "prose-cleanup-resource:relates-to"
       ]
+    },
+    {
+      "id": "validate-settings-permissions",
+      "priority": "P99",
+      "title": "Validator for ERE-metachar entries in settings.json permissions",
+      "scope": [
+        "hooks",
+        "scripts"
+      ],
+      "status": "idea",
+      "notes": "Surfaced 2026-04-29 by goal-verifier on hooks-config-driven (review at output/claude-toolkit/reviews/20260429_1217__goal-verifier__feat-hooks-config-driven.md). The lib/settings-permissions.sh loader audits each Bash() prefix for ERE metacharacters and silently skips entries that contain `*?+()[]{}^$\\|` (with a stderr warning that no one will see in production). Today's permissions.{allow,ask} are clean, but a future contributor adding e.g. `Bash(npm run|test:*)` or `Bash(node --inspect=*:*)` would see the entry vanish from the hook's effective list with no make-check signal. Add a validate-settings-permissions.sh that runs in make validate: walk both buckets, flag entries that would be silently dropped by the loader. Cheap (single jq + a regex audit). Not a current defect — strictly preventative.\n",
+      "relates_to": [
+        "hooks-config-driven:relates-to"
+      ]
     }
   ]
 }
