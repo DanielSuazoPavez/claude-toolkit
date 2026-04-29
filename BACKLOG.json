@@ -395,6 +395,17 @@
       "relates_to": [
         "hooks-config-driven:relates-to"
       ]
+    },
+    {
+      "id": "hooks-readonly-verb-allowlist-audit",
+      "priority": "P3",
+      "title": "Periodically audit read-only verb allowlist in block-config-edits.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md",
+      "notes": "Fix #4 introduced a path-side default-deny for .claude/settings.json: any write-shaped verb alongside the path blocks. Read-only verbs (cat, grep, jq, head, tail, wc, diff, ls, find, stat, file) on the path pass through. As new read-only tools (bat, rg, eza, etc.) become common, false-positive blocks would surface when reading settings — extend the allowlist when that happens. Living as a recurring backlog task because the allowlist isn't enumerated in code (the invariant is documented inline; comment-only persistence won't materialize as a reminder)."
     }
   ]
 }
