@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Notes
+- **design**: `design/hook-framework-refactor.md` — design doc for the P0 hook-framework-refactor task. Eight contracts resolved: header grammar (`# CC-HOOK:` prefix, 5 required keys + 5 optional with defaults), dispatcher composition (codegen from explicit `lib/dispatch-order.json`), logging schema (new `kind: smoketest` row + `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT=1` flag), 20 validator checks closing Crosley's silent-fail gap and the stale-codegen gap, smoke-test fixtures on disk, two-tier perf budget (5ms scope-miss / 50ms scope-hit defaults), scope-filter format mirroring `detection-registry.json`, `RELATES-TO` closed enum. Worked example: `secrets-guard` end-to-end. New top-level `design/` directory keeps the doc repo-internal (not synced to consumers).
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §1 + §10 — added the "two legitimate jobs" principle (guardrails and sensible context injection) and four anti-pattern rows for wrong-tool failure modes (output-quality judgment, multi-hook consensus, PostToolUse formatters that invalidate Edit's freshness cache, multi-turn state machines). One-bit per-session markers stay explicitly fine — those are idempotency assertions, not state machines.
+- **backlog**: Added P1 `hooks-block-destructive-sql` — guardrail gap surfaced during the design review. `block-dangerous-commands` covers filesystem catastrophes but nothing covers irreversible SQL run via Bash. Lands after `hook-framework-refactor` so the new hook gets the header grammar and smoke-test contract from the start.
+
 ## [2.79.0] - 2026-04-29 - JSON-backed resource indexes (skills, agents, scripts) + render-staleness check
 
 ### Added
