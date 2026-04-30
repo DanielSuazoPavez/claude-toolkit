@@ -7,6 +7,25 @@
 - Wiring a hook into the grouped dispatcher
 - Debugging why a hook did/didn't run for a given tool call
 
+### What hooks are for
+
+Hooks have **two legitimate jobs**. Anything else is the wrong tool.
+
+1. **Guardrails** — block, ask, or approve in pre-events. Stop the agent from doing things it shouldn't (destructive commands, credential exfil, scope drift). Negative value: prevent mistakes. Cheap, deterministic, narrowly-scoped.
+2. **Sensible context injection** — SessionStart docs, surface-lessons, guidance nudges. Positive value: shape the work without being prescriptive.
+
+If a hook proposal needs *more* than {block, approve, ask, inject, log, nothing} as its output, the framing is wrong. Specifically reject:
+
+- Hooks that judge output quality (use `/review` or a skill)
+- Hooks that coordinate with other hooks for "consensus" (build agents, not hooks)
+- Hooks that parse intent or implement business logic (a skill in disguise)
+- Hooks that fix model output via PostToolUse formatters (use Stop time, or have the model invoke `make fmt` itself — PostToolUse writes invalidate Edit's freshness cache)
+- Hooks that maintain multi-turn state machines (a database with extra steps)
+
+**One-bit assertions are fine** (truncation detector's per-session marker file: "have I already complained?" — not a state machine, an idempotency guard). Multi-turn coordination is not.
+
+### Structure
+
 Hooks split into three parts:
 - `match_<name>` — cheap predicate, returns 0 if the hook applies to this call
 - `check_<name>` — the actual guard; runs only when `match_` returned 0; sets `_BLOCK_REASON` on block
@@ -273,6 +292,10 @@ The dispatcher tolerates absent guards: each `CHECK_SPECS` entry probes its sour
 | Inline credential / path regex when a registry entry could carry it | Forces drift across hooks; new credential shapes need N edits instead of 1 — see §11 |
 | Wrong detection target (raw vs stripped) | False negatives when secrets sit inside quoted strings, or false positives from commit-message text — see §11 |
 | "Simplifying" security-boundary tests by collapsing the {tool, target, verb} matrix into one assertion per resource | The regex may collapse them; the tests must not — see §12 |
+| Hook judges whether the model's output is good enough | Quality is a model/skill job — hooks have stdin and a regex, not the context to judge |
+| Hooks coordinating for "consensus" / multi-hook scoring | Hooks are leaf nodes by design; if you need agents talking, build agents |
+| PostToolUse hook that writes the file the model just edited (formatter, linter --fix) | Invalidates Edit's freshness cache → forces re-Read on the next edit. Run the formatter on Stop instead, or have the model invoke `make fmt` |
+| Hook tracks state across many invocations to make a decision | A database with extra steps; multi-turn state machines don't fit the {one event in, one decision out} shape. One-bit per-session markers (truncation detector) are fine — those are assertions, not state machines |
 
 ---
 
