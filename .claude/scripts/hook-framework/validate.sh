@@ -6,7 +6,6 @@
 #
 # TODO: V12 once HOOKS.md is regenerated from headers (index branch).
 # TODO: V16 once any hook declares SCOPE-FILTER.
-# TODO: V18/V19/V20 once tests/hooks/fixtures/ exists (smoke-test branch).
 #
 # Usage:
 #   bash .claude/scripts/hook-framework/validate.sh [hooks_dir] [settings_file]
@@ -529,6 +528,30 @@ check_V15() {
     done
 }
 
+# ---- V18: every hook has at least one fixture (.json + .expect pair) ----
+check_V18() {
+    local fixtures_root="${CLAUDE_TOOLKIT_FIXTURES_DIR:-tests/hooks/fixtures}"
+    for name in "${!HEADER_JSON[@]}"; do
+        local dir="$fixtures_root/$name"
+        if [ ! -d "$dir" ]; then
+            err "V18" "hook '$name' has no fixture directory ($dir)"
+            continue
+        fi
+        local found=0
+        for j in "$dir"/*.json; do
+            [ -f "$j" ] || continue
+            local stem="${j%.json}"
+            if [ -f "${stem}.expect" ]; then
+                found=1
+                break
+            fi
+        done
+        if [ "$found" = "0" ]; then
+            err "V18" "hook '$name' fixture dir has no <name>.json + <name>.expect pair ($dir)"
+        fi
+    done
+}
+
 # ---- V17: PERF-BUDGET-MS shape ----
 check_V17() {
     for name in "${!HEADER_JSON[@]}"; do
@@ -561,6 +584,7 @@ check_V13
 check_V14
 check_V15
 check_V17
+check_V18
 
 # ---- Summary ----
 total=${#HOOK_FILES[@]}
