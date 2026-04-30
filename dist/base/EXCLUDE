@@ -28,3 +28,4 @@
 
 # Toolkit maintenance scripts
 .claude/scripts/validate-dist-manifests.sh
+.claude/scripts/hook-framework/

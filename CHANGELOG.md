@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.79.2] - 2026-04-30 - Hook header parser (hook-framework-refactor item 2)
+
+### Added
+- **scripts**: `.claude/scripts/hook-framework/parse-headers.sh` — workshop-internal parser for the `# CC-HOOK:` header grammar. Reads one hook file, emits one JSON object on stdout in declaration order; pass-through (no defaults), exits 1 on malformed directives or duplicate keys, exits 0 silently on files with no header. Added to `dist/base/EXCLUDE` so it stays workshop-only. Indexed under `scripts.json` (maintenance family). Second sequencing item of `hook-framework-refactor` (C1) — locks the seam every later contract reads from. Validator (V1–V20), dispatcher codegen, and migration are still ahead.
+
 ## [2.79.1] - 2026-04-30 - Hook logging library extraction (hook-framework-refactor item 1)
 
 ### Changed

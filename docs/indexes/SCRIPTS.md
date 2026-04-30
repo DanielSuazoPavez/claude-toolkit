@@ -50,7 +50,8 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 
 Excluded from sync via `dist/base/EXCLUDE` (`validate-dist-manifests.sh`). `validate-all.sh` ships to consumers and skips the dist-manifest validator when the file is absent.
 
-| Script | Status | Ships | Description |
+| Path | Status | Ships | Description |
 |--------|--------|-------|-------------|
 | `validate-dist-manifests.sh` | stable | no | Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only |
+| `hook-framework/parse-headers.sh` | stable | no | Parses a hook file's `# CC-HOOK:` header block into one JSON object on stdout (declaration order, pass-through, no defaults); workshop-only build-time tool feeding the future hook validator and dispatcher codegen |
 
