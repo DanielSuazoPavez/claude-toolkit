@@ -528,6 +528,51 @@ check_V15() {
     done
 }
 
+# ---- V19+V20: run every fixture; V19 errors on outcome mismatch, V20 warns on perf budget overrun ----
+# V19 and V20 share one runner invocation per fixture (perf, simplicity).
+check_V19_V20() {
+    local fixtures_root="${CLAUDE_TOOLKIT_FIXTURES_DIR:-tests/hooks/fixtures}"
+    local runner="${CLAUDE_TOOLKIT_SMOKE_RUNNER:-tests/hooks/run-smoke.sh}"
+    if [ ! -f "$runner" ]; then
+        err "V19" "smoke runner not found: $runner"
+        return
+    fi
+    for name in "${!HEADER_JSON[@]}"; do
+        local dir="$fixtures_root/$name"
+        [ -d "$dir" ] || continue   # V18 already errored
+        local json="${HEADER_JSON[$name]}"
+
+        # Per-hook PERF-BUDGET-MS (default fallback per design §C6).
+        local budget hit=50 miss=5
+        budget=$(echo "$json" | jq -r '."PERF-BUDGET-MS" // ""')
+        [[ "$budget" =~ scope_miss=([0-9]+) ]] && miss="${BASH_REMATCH[1]}"
+        [[ "$budget" =~ scope_hit=([0-9]+) ]]  && hit="${BASH_REMATCH[1]}"
+
+        for j in "$dir"/*.json; do
+            [ -f "$j" ] || continue
+            local stem; stem="$(basename "$j" .json)"
+            [ -f "$dir/${stem}.expect" ] || continue
+
+            local report; report=$(mktemp)
+            if ! bash "$runner" "$name" "$stem" --report "$report" >/dev/null 2>&1; then
+                err "V19" "hook '$name' fixture '$stem' failed (rerun: bash $runner $name $stem)"
+                rm -f "$report"
+                continue
+            fi
+            # V20: read duration_ms + outcome from the captured row.
+            local dur outcome applicable
+            dur=$(jq -r '.duration_ms // 0' "$report" 2>/dev/null)
+            outcome=$(jq -r '.outcome // "pass"' "$report" 2>/dev/null)
+            applicable="$hit"
+            [ "$outcome" = "pass" ] && applicable="$miss"
+            if [ "${dur:-0}" -gt "$applicable" ] 2>/dev/null; then
+                warn "V20" "hook '$name' fixture '$stem' took ${dur}ms (budget ${applicable}ms for outcome=${outcome})"
+            fi
+            rm -f "$report"
+        done
+    done
+}
+
 # ---- V18: every hook has at least one fixture (.json + .expect pair) ----
 check_V18() {
     local fixtures_root="${CLAUDE_TOOLKIT_FIXTURES_DIR:-tests/hooks/fixtures}"
@@ -585,6 +630,7 @@ check_V14
 check_V15
 check_V17
 check_V18
+check_V19_V20
 
 # ---- Summary ----
 total=${#HOOK_FILES[@]}
