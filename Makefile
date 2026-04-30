@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest lint-bash validate check backlog tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest lint-bash validate check backlog render tag help
 
 install:
 	@uv sync --dev
@@ -23,6 +23,7 @@ help:
 	@echo "  make validate          - Run all validations (indexes + deps)"
 	@echo "  make tag               - Create git tag from VERSION file"
 	@echo "  make backlog           - Show project backlog (hides P99 nice-to-haves — use 'claude-toolkit backlog' for all)"
+	@echo "  make render            - Render JSON-backed indexes (BACKLOG.md, docs/indexes/*.md) from JSON sources"
 	@echo "  make check             - Run everything (tests + lint-bash + validate)"
 
 test:
@@ -81,6 +82,10 @@ tag:
 backlog:
 	@bash cli/backlog/query.sh --exclude-priority P99
 
+render:
+	@bash cli/backlog/query.sh render
+	@bash cli/indexes/query.sh render
+
 lint-bash:
 	@command -v shellcheck >/dev/null || { \
 	  echo "shellcheck not installed — required for bash linting in this repo."; \
@@ -90,7 +95,7 @@ lint-bash:
 	@shellcheck -S warning \
 	  .claude/hooks/*.sh .claude/hooks/lib/*.sh \
 	  .claude/scripts/*.sh \
-	  cli/backlog/*.sh cli/eval/*.sh
+	  cli/backlog/*.sh cli/eval/*.sh cli/indexes/*.sh
 
 validate:
 	@bash .claude/scripts/validate-all.sh

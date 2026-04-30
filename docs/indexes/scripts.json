@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "header": "Workshop-internal tooling in `.claude/scripts/` — validators, diagnostics, statusline capture, cron jobs. Most of these ship to consumer projects via `claude-toolkit sync` so the same validation/diagnostic contract runs everywhere; a smaller subset is workshop-only (cron maintenance). This index isn't a product catalog — it's a drift check against disk, enforced by `validate-resources-indexed.sh`.\n\nThe `Ships` column uses: **base** = synced to base consumers, **raiz** = also in the raiz profile manifest, **no** = workshop-only.\n\nFor user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).",
+  "families": {
+    "diagnostic":  "Diagnostic",
+    "validation":  "Validation",
+    "statusline":  "Statusline",
+    "libraries":   "Libraries",
+    "migration":   "Migration",
+    "maintenance": "Maintenance (workshop-only)"
+  },
+  "family_order": [
+    "diagnostic",
+    "validation",
+    "statusline",
+    "libraries",
+    "migration",
+    "maintenance"
+  ],
+  "family_notes": {
+    "maintenance": "Excluded from sync via `dist/base/EXCLUDE` (`validate-dist-manifests.sh`). `validate-all.sh` ships to consumers and skips the dist-manifest validator when the file is absent."
+  },
+  "scripts": [
+    { "path": "setup-toolkit-diagnose.sh",       "family": "diagnostic",  "status": "stable", "description": "Consolidated diagnostic — runs all 8 setup-toolkit checks in one pass" },
+
+    { "path": "validate-all.sh",                 "family": "validation",  "status": "stable", "description": "Orchestrator — runs all validators" },
+    { "path": "validate-resources-indexed.sh",   "family": "validation",  "status": "stable", "description": "Checks disk resources match index entries" },
+    { "path": "validate-settings-template.sh",   "family": "validation",  "status": "stable", "description": "Checks settings.json matches template" },
+    { "path": "verify-resource-deps.sh",         "family": "validation",  "status": "stable", "description": "Validates cross-references between resources" },
+    { "path": "validate-hook-utils.sh",          "family": "validation",  "status": "stable", "description": "Checks all hooks source shared library lib/hook-utils.sh" },
+    { "path": "validate-detection-registry.sh",  "family": "validation",  "status": "stable", "description": "Validates `.claude/hooks/lib/detection-registry.json` against schema (id format, enums, regex compilability)" },
+    { "path": "validate-session-start-cap.sh",   "family": "validation",  "status": "stable", "description": "Checks session-start hook output stays within harness ~10KB cap (warn at 9.5KB, fail at 10KB)" },
+    { "path": "verify-external-deps.sh",         "family": "validation",  "status": "stable", "description": "Checks external tools declared in skill compatibility fields are installed" },
+
+    { "path": "statusline-capture.sh",           "family": "statusline",  "status": "stable", "description": "Captures Claude Code statusline JSON to `~/.claude/usage-snapshots/snapshots.jsonl`, forwards stdin to powerline" },
+
+    { "path": "lib/profile.sh",                  "family": "libraries",   "status": "stable", "description": "`detect_profile` — prints `workshop`/`base`/`raiz` so shipped scripts can branch on deployment context" },
+    { "path": "lib/settings-integrity.sh",       "family": "libraries",   "status": "stable", "description": "`settings_integrity_check` — SessionStart tripwire for `.claude/settings.json` rewrites; sourced by `hooks/session-start.sh`" },
+
+    { "path": "migrate-backlog-to-json.sh",      "family": "migration",   "status": "stable", "description": "Migrates `BACKLOG.md` to `BACKLOG.json` — parses goals, scope definitions, tasks with metadata" },
+
+    { "path": "validate-dist-manifests.sh",      "family": "maintenance", "status": "stable", "description": "Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only" }
+  ]
+}

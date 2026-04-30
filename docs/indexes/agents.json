@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "header": "Specialized agents for complex, multi-step tasks.",
+  "footer_md": "## Usage\n\nAgents are invoked by Claude when appropriate for the task. You can also request them explicitly:\n\n```\nUse the codebase-explorer agent to analyze the tech stack\nUse the code-debugger agent to investigate this issue\n```\n\n## Creating New Agents\n\n1. Create `.claude/agents/your-agent.md`\n2. Include frontmatter:\n   ```yaml\n   ---\n   name: agent-name\n   description: One-line description\n   tools: Read, Grep, Glob, Bash\n   color: cyan  # optional\n   ---\n   ```\n3. Define the agent's role, principles, and output format\n4. Use `/evaluate-agent` to evaluate quality\n",
+  "categories": {
+    "codebase-analysis": "Codebase Analysis",
+    "code-quality":     "Code Quality",
+    "document-review":  "Document Review",
+    "verification":     "Verification"
+  },
+  "category_order": [
+    "codebase-analysis",
+    "code-quality",
+    "document-review",
+    "verification"
+  ],
+  "agents": [
+    {
+      "name": "codebase-explorer",
+      "category": "codebase-analysis",
+      "status": "stable",
+      "description": "Explores codebase and writes structured analysis to `output/claude-toolkit/reviews/codebase/`. Use for onboarding or understanding architecture. Related: pattern-finder catalogs specific implementation patterns, code-reviewer assesses code quality, /write-docs turns output into documentation."
+    },
+    {
+      "name": "pattern-finder",
+      "category": "codebase-analysis",
+      "status": "beta",
+      "description": "Documents how things are implemented - finds examples of patterns. Related: codebase-explorer maps high-level architecture, code-reviewer assesses quality, code-debugger uses pattern catalog for expected behavior."
+    },
+    {
+      "name": "code-reviewer",
+      "category": "code-quality",
+      "status": "stable",
+      "description": "Pragmatic code reviewer focused on real risks, proportional to project scale. Related: code-debugger digs into root causes, goal-verifier checks completeness, /refactor for structural issues, /review-security for deeper vulnerability analysis."
+    },
+    {
+      "name": "code-debugger",
+      "category": "code-quality",
+      "status": "alpha",
+      "description": "Investigates bugs using scientific method with persistent state. Related: code-reviewer surfaces potential problems, pattern-finder shows how things are supposed to work, goal-verifier confirms fixes end-to-end."
+    },
+    {
+      "name": "proposal-reviewer",
+      "category": "document-review",
+      "status": "beta",
+      "description": "Reviews proposals for audience fit, tone consistency, and blind spots. Related: /shape-proposal creates documents to review, /brainstorm-feature for earlier-stage designs, code-reviewer for code quality (vs document quality)."
+    },
+    {
+      "name": "goal-verifier",
+      "category": "verification",
+      "status": "experimental",
+      "description": "Verifies work is actually complete (L1: exists, L2: substantive, L3: wired). Writes report to `output/claude-toolkit/reviews/`. Complementary: implementation-checker checks plan alignment, code-reviewer checks code quality/risks, /wrap-up may invoke verification before merge. **Experimental:** devil's advocate + negative cases added to reduce false-green rate. Restore to `245dba0` if experiment fails."
+    },
+    {
+      "name": "implementation-checker",
+      "category": "verification",
+      "status": "stable",
+      "description": "Compares implementation to planning docs, writes report to `output/claude-toolkit/reviews/`. Complementary: goal-verifier checks goal achievement, code-reviewer checks code quality independent of plan, /review-plan reviews plan quality before implementation."
+    }
+  ]
+}

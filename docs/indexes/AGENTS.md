@@ -1,3 +1,5 @@
+<!-- Auto-generated from agents.json — do not edit directly. Run `make render` after editing agents.json. -->
+
 # Agents Index
 
 Specialized agents for complex, multi-step tasks.
@@ -20,7 +22,7 @@ Specialized agents for complex, multi-step tasks.
 
 | Agent | Status | Description | Tools |
 |-------|--------|-------------|-------|
-| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots. Related: /shape-proposal creates documents to review, /brainstorm-feature for earlier-stage designs, code-reviewer for code quality (vs document quality). | Read, Grep, Glob, Write |
+| `proposal-reviewer` | beta | Reviews proposals for audience fit, tone consistency, and blind spots. Related: /shape-proposal creates documents to review, /brainstorm-feature for earlier-stage designs, code-reviewer for code quality (vs document quality). | Read, Write |
 
 ## Verification
 
@@ -52,3 +54,4 @@ Use the code-debugger agent to investigate this issue
    ```
 3. Define the agent's role, principles, and output format
 4. Use `/evaluate-agent` to evaluate quality
+

@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+## [2.79.0] - 2026-04-29 - JSON-backed resource indexes (skills, agents, scripts) + render-staleness check
+
+### Added
+- **indexes**: New JSON sources of truth — `docs/indexes/skills.json`, `agents.json`, `scripts.json`. The corresponding `*.md` files become generated artifacts with an auto-generated banner; agents re-render after editing JSON instead of hand-editing markdown tables. Each entry stores name/category/status/description; `agents.json` derives the `Tools` column from each agent's frontmatter at render time, and `scripts.json` derives the `Ships` column from `dist/base/EXCLUDE` and `dist/raiz/MANIFEST`.
+- **cli**: New `claude-toolkit indexes <render|validate|list> [<type>]` subcommand (`cli/indexes/query.sh`). `validate` checks JSON shape, required fields, valid categories/statuses, no duplicates, and disk-vs-JSON parity. `list` supports `--category`/`--family`/`--status` filters.
+- **make**: New `make render` target — regenerates `BACKLOG.md` and all `docs/indexes/*.md` from JSON sources. `make check` now fails when a rendered MD drifts from its JSON (`SKILLS.md/AGENTS.md/SCRIPTS.md is stale relative to *.json. Run: make render`).
+
+### Changed
+- **scripts**: `validate-resources-indexed.sh` toolkit-mode skills/agents/scripts sections now delegate to `claude-toolkit indexes validate <type>` and add a render-staleness check. MANIFEST mode (downstream consumers) is unchanged — they still receive rendered MD only.
+- **lint**: `make lint-bash` now covers `cli/indexes/*.sh`.
+
+### Fixed
+- **raiz**: `dist/raiz/MANIFEST` now ships `.claude/scripts/validate-session-start-cap.sh`. The script protects the session-start hook (which raiz already ships) but was missing from the manifest. Surfaced when migrating `SCRIPTS.md` — the prior MD claimed `base + raiz` for this script but the manifest disagreed; manifest is source of truth, so the script now matches that claim.
+- **indexes**: Render of `AGENTS.md` corrected `proposal-reviewer`'s tools column. The hand-maintained MD said `Read, Grep, Glob, Write`; agent frontmatter says `Read, Write` (which is what Claude actually loads). Frontmatter wins.
+
+### Notes
+- **backlog**: Added 2 P0 follow-ups during this work — `hooks-json-backed-index` (HOOKS.md needs a design pass before render — more dimensions than other resources) and `docs-as-resource-rethink` (consider absorbing `.claude/docs/*` into native rules + knowledge skills instead of migrating DOCS.md).
+- **plan**: `output/claude-toolkit/plans/json-backed-indexes.md` — design sketch for the migration pattern.
+
 ## [2.78.1] - 2026-04-29 - Hooks security findings — settings.json default-deny + chain-operator gaps + auto-mode coarse-filter drop
 
 ### Fixed

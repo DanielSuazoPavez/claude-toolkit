@@ -439,6 +439,66 @@
       "status": "idea",
       "source": "output/claude-toolkit/reviews/20260429_1341__review-security__hooks-permissions.md",
       "notes": "Fix #4 added a symlink defense (creation + write-through), gated by match_config_edits firing. The match_ predicate fires on settings-shaped paths or a narrow set of write verbs (>, >>, tee, cp, mv) — it does NOT fire on a bare 'echo > /tmp/link' when the link was planted out-of-band. The symlink-creation step is still blocked, so the bypass requires the link to exist before the LLM session — different threat model. Documented gap; revisit if it becomes reachable. Either broaden match_ further (cost: more check_ invocations) or accept and document."
+    },
+    {
+      "id": "hooks-centralize-dispatcher",
+      "priority": "P1",
+      "title": "Centralize grouped-hook dispatcher loop into lib/dispatcher.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "planned",
+      "source": "refactor analysis 2026-04-29",
+      "references": [
+        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
+        ".claude/hooks/grouped-bash-guard.sh",
+        ".claude/hooks/grouped-read-guard.sh",
+        ".claude/hooks/lib/hook-utils.sh",
+        ".claude/docs/relevant-toolkit-hooks.md"
+      ],
+      "notes": "grouped-bash-guard.sh:56-135 and grouped-read-guard.sh:40-95 carry the same ~50-line dispatcher loop verbatim (probe-and-source check files, match->check loop, substep emission, post-block skipped tail). Extract into hook_dispatcher_run helper in a new .claude/hooks/lib/dispatcher.sh so each grouped-* entry script becomes ~25-30 lines. Sets precedent for future grouped-<event>-guard hooks (e.g. Edit/Write). Drift risk is real: substep outcome contract (pass/block/skipped/not_applicable) is consumed by analytics in invocations.jsonl. Risks: _BLOCK_REASON must not be shadowed in the helper; hook_block must run in caller shell (no subshell); nameref (local -n, bash 4.3+) is fine since hooks already require bash 5.0+ for EPOCHREALTIME. Validate with golden-file test on invocations.jsonl pre/post. Don't forget to add lib/dispatcher.sh to dist/raiz/MANIFEST and any relevant docs/indexes/*.md entries."
+    },
+    {
+      "id": "hooks-extract-logging-lib",
+      "priority": "P1",
+      "title": "Extract JSONL logging from hook-utils.sh into lib/hook-logging.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "planned",
+      "source": "refactor analysis 2026-04-29 (follow-up scope expansion: surface-lessons.sh also calls hook_log_context)",
+      "relates_to": [
+        "hooks-centralize-dispatcher:independent-of"
+      ],
+      "references": [
+        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
+        ".claude/hooks/lib/hook-utils.sh",
+        ".claude/hooks/surface-lessons.sh",
+        ".claude/hooks/session-start.sh"
+      ],
+      "notes": "hook-utils.sh mixes universal framework (hook_init, hook_block, hook_approve, hook_require_tool, etc.) with feature-specific JSONL emitters: hook_log_context (lib/hook-utils.sh:466-492, used by surface-lessons.sh) and hook_log_session_start_context (:501-521, used by session-start.sh). Also general logging (hook_log_section :399-422, hook_log_substep :433-461, _hook_log_jsonl :388-394, _hook_log_timing :530-587) — the whole logging surface is ~200 lines. Extract into .claude/hooks/lib/hook-logging.sh and source it from hook-utils.sh so existing call sites keep working unchanged (compatibility shim — hook-utils stays the public entry point). Improves cohesion: hook-utils.sh becomes pure framework; logging concerns live together. Idempotency guard pattern (_HOOK_LOGGING_SOURCED) mirrors existing libs. Don't forget dist/raiz/MANIFEST + docs/indexes update."
+    },
+    {
+      "id": "hooks-json-backed-index",
+      "priority": "P0",
+      "title": "JSON-backed HOOKS index — design pass before render",
+      "scope": [
+        "hooks",
+        "cli"
+      ],
+      "status": "idea",
+      "notes": "HOOKS.md is the next index to migrate after skills/agents/scripts landed in feat/json-backed-indexes. Needs a design pass first — hooks have more dimensions than other resources (event types, matchers, blocking semantics, settings.json wiring) and the index columns may not be a clean fit for the current render pattern. Decide: which fields are derived from settings.json, which from frontmatter, which are hand-edited in hooks.json. Also reconsider grouping (currently by event type — keep or rethink?). Reference: docs/indexes/HOOKS.md, dist/raiz/MANIFEST hooks section, .claude/settings.json hooks block."
+    },
+    {
+      "id": "docs-as-resource-rethink",
+      "priority": "P0",
+      "title": "Rethink docs as a resource — absorb into rules and knowledge skills",
+      "scope": [
+        "docs",
+        "skills"
+      ],
+      "status": "idea",
+      "notes": "Instead of migrating DOCS.md to JSON-backed render (deferred from feat/json-backed-indexes), step back: docs may be the wrong primitive. Claude Code already has 'rules' as a first-class concept, and knowledge-only skills (e.g. read-json) already cover the 'load on demand' shape. Investigate: which .claude/docs/* belong as rules (always-on conventions), which as knowledge skills (load-on-demand reference), which to remove. Goal is to stop swimming against the current — fewer custom primitives, more leverage of native ones. Reference: .claude/docs/ contents, docs/indexes/DOCS.md, list-docs skill."
     }
   ]
 }
