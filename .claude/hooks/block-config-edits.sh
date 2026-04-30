@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Block writes to shell config, SSH files, and Claude settings
 # CC-HOOK: EVENTS: PreToolUse(Write|Edit)
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=config_edits
 # CC-HOOK: STATUS: stable
 # CC-HOOK: OPT-IN: none
 #

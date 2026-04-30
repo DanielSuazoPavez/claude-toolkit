@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Redirect pytest and pre-commit invocations to make targets
 # CC-HOOK: EVENTS: NONE
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=make
 # CC-HOOK: STATUS: stable
 # CC-HOOK: OPT-IN: none
 # CC-HOOK: SHIPS-IN: base

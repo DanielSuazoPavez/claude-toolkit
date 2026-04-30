@@ -59,37 +59,10 @@ source "$(dirname "$0")/lib/hook-utils.sh"
 hook_init "grouped-bash-guard" "PreToolUse"
 hook_require_tool "Bash"
 
-# CHECK_SPECS: ordered (name, source-file) pairs. Files missing from the
-# current distribution (e.g. raiz doesn't ship enforce-make/enforce-uv)
-# are silently skipped — the corresponding check just isn't in CHECKS.
-CHECK_SPECS=(
-    "dangerous:block-dangerous-commands.sh"
-    "auto_mode_shared_steps:auto-mode-shared-steps.sh"
-    "credential_exfil:block-credential-exfiltration.sh"
-    "git_safety:git-safety.sh"
-    "secrets_guard:secrets-guard.sh"
-    "config_edits:block-config-edits.sh"
-    "make:enforce-make-commands.sh"
-    "uv:enforce-uv-run.sh"
-)
-CHECKS=()
-hook_dir="$(dirname "$0")"
-for spec in "${CHECK_SPECS[@]}"; do
-    name="${spec%%:*}"
-    file="${spec#*:}"
-    src="$hook_dir/$file"
-    [ -f "$src" ] || continue
-    # shellcheck source=/dev/null
-    source "$src"
-    if declare -F "match_$name" >/dev/null && declare -F "check_$name" >/dev/null; then
-        CHECKS+=("$name")
-    else
-        # File shipped but functions missing — rename/drift signal.
-        # Distribution-absence (file not shipped) short-circuited above
-        # and does NOT emit this event.
-        hook_log_substep "check_${name}_missing_match_check" 0 "skipped" 0
-    fi
-done
+# CHECK_SPECS + sourcing loop are generated from lib/dispatch-order.json +
+# CC-HOOK headers. Edit dispatch-order.json (not here) and run `make hooks-render`.
+# shellcheck source=lib/dispatcher-grouped-bash-guard.sh
+source "$(dirname "$0")/lib/dispatcher-grouped-bash-guard.sh"
 
 COMMAND=$(hook_get_input '.tool_input.command')
 [ -z "$COMMAND" ] && exit 0

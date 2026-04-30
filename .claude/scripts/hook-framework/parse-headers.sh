@@ -41,7 +41,7 @@ fi
 # List-typed keys: top-level comma split → JSON array.
 is_list_key() {
     case "$1" in
-        EVENTS|DISPATCHED-BY|SHIPS-IN|RELATES-TO) return 0 ;;
+        EVENTS|DISPATCHED-BY|DISPATCH-FN|SHIPS-IN|RELATES-TO) return 0 ;;
         *) return 1 ;;
     esac
 }

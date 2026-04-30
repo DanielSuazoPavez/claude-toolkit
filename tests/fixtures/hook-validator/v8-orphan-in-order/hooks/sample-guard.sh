@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CC-HOOK: NAME: sample-guard
-# CC-HOOK: PURPOSE: A dispatched-only hook
+# CC-HOOK: PURPOSE: Dispatched and properly ordered
 # CC-HOOK: EVENTS: NONE
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=sample

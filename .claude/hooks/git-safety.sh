@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Block unsafe git operations on protected branches and remote-destructive ops
 # CC-HOOK: EVENTS: PreToolUse(EnterPlanMode)
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=git_safety
 # CC-HOOK: STATUS: stable
 # CC-HOOK: OPT-IN: none
 #

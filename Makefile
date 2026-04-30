@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest lint-bash validate check backlog render tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest lint-bash validate check backlog render hooks-render tag help
 
 install:
 	@uv sync --dev
@@ -24,6 +24,7 @@ help:
 	@echo "  make tag               - Create git tag from VERSION file"
 	@echo "  make backlog           - Show project backlog (hides P99 nice-to-haves — use 'claude-toolkit backlog' for all)"
 	@echo "  make render            - Render JSON-backed indexes (BACKLOG.md, docs/indexes/*.md) from JSON sources"
+	@echo "  make hooks-render      - Regenerate lib/dispatcher-*.sh from headers + dispatch-order.json"
 	@echo "  make check             - Run everything (tests + lint-bash + validate)"
 
 test:
@@ -85,6 +86,9 @@ backlog:
 render:
 	@bash cli/backlog/query.sh render
 	@bash cli/indexes/query.sh render
+
+hooks-render:
+	@bash .claude/scripts/hook-framework/render-dispatcher.sh
 
 lint-bash:
 	@command -v shellcheck >/dev/null || { \

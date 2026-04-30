@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Block commands carrying credential-shaped tokens in arguments
 # CC-HOOK: EVENTS: NONE
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=credential_exfil
 # CC-HOOK: STATUS: stable
 # CC-HOOK: OPT-IN: none
 # CC-HOOK: RELATES-TO: secrets-guard(complement-direction)

@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 # Validates the # CC-HOOK: header block in every hook against project state.
 #
-# In scope: V1–V7, V9, V10, V13–V15, V17 (see design/hook-framework-refactor.md C4).
+# In scope: V1–V11, V13–V15, V17 (see design/hook-framework-refactor.md C4).
 # Each check_VN function is independent — failures aggregate into ERRORS / WARNINGS.
 #
-# TODO: V8  once dispatch-order.json exists (codegen branch).
-# TODO: V11 once lib/dispatcher-*.sh are generated (codegen branch).
 # TODO: V12 once HOOKS.md is regenerated from headers (index branch).
 # TODO: V16 once any hook declares SCOPE-FILTER.
 # TODO: V18/V19/V20 once tests/hooks/fixtures/ exists (smoke-test branch).
@@ -368,7 +366,7 @@ declare -A DISPATCHER_SHORTNAMES=()  # "<dispatcher>:<hookname>" -> short name
 _load_dispatcher_specs() {
     local dispatcher
     for dispatcher in grouped-bash-guard grouped-read-guard; do
-        local f="$HOOKS_DIR/$dispatcher.sh"
+        local f="$HOOKS_DIR/lib/dispatcher-${dispatcher}.sh"
         [ -f "$f" ] || continue
         # Extract lines from the CHECK_SPECS=( ... ) block: "short:hook-file.sh"
         local in_block=0
@@ -413,6 +411,74 @@ check_V10() {
             fi
         done < <(echo "$json" | jq -r '."DISPATCHED-BY" // [] | .[]?' 2>/dev/null)
     done
+}
+
+# ---- V8: header / dispatch-order.json drift ----
+check_V8() {
+    local order_file="$HOOKS_DIR/lib/dispatch-order.json"
+    if [ ! -f "$order_file" ]; then
+        return 0
+    fi
+
+    # For each hook with DISPATCHED-BY, assert it's listed in dispatch-order.json#<dispatcher>.
+    for name in "${!HEADER_JSON[@]}"; do
+        local json="${HEADER_JSON[$name]}"
+        [ -z "$json" ] && continue
+        while IFS= read -r dent; do
+            [ -z "$dent" ] && continue
+            if [[ "$dent" =~ ^([a-z0-9-]+)\([A-Za-z|]+\)$ ]]; then
+                local dispatcher="${BASH_REMATCH[1]}"
+                if ! jq -e --arg d "$dispatcher" --arg n "$name" '
+                    (.dispatchers[$d] // []) | index($n) != null
+                ' "$order_file" >/dev/null 2>&1; then
+                    err "V8" "hook '$name' declares DISPATCHED-BY: $dispatcher but is not listed in lib/dispatch-order.json#$dispatcher. Add it to the array at the position where it should run (catastrophic gates first, informative gates after)."
+                fi
+            fi
+        done < <(echo "$json" | jq -r '."DISPATCHED-BY" // [] | .[]?' 2>/dev/null)
+    done
+
+    # For each entry in dispatch-order.json, assert a hook exists with matching DISPATCHED-BY.
+    local dispatchers
+    mapfile -t dispatchers < <(jq -r '.dispatchers | keys[]' "$order_file" 2>/dev/null)
+    for dispatcher in "${dispatchers[@]}"; do
+        local hooks
+        mapfile -t hooks < <(jq -r --arg d "$dispatcher" '.dispatchers[$d][]?' "$order_file" 2>/dev/null)
+        for hook in "${hooks[@]}"; do
+            local json="${HEADER_JSON[$hook]:-}"
+            if [ -z "$json" ]; then
+                err "V8" "lib/dispatch-order.json#$dispatcher lists '$hook' but no hook with that name has a CC-HOOK header."
+                continue
+            fi
+            local found=0
+            while IFS= read -r dent; do
+                [ -z "$dent" ] && continue
+                if [[ "$dent" =~ ^${dispatcher}\([A-Za-z|]+\)$ ]]; then
+                    found=1
+                fi
+            done < <(echo "$json" | jq -r '."DISPATCHED-BY" // [] | .[]?' 2>/dev/null)
+            if [ "$found" = "0" ]; then
+                err "V8" "lib/dispatch-order.json#$dispatcher lists '$hook' but '$hook' header is missing DISPATCHED-BY: $dispatcher(...)."
+            fi
+        done
+    done
+}
+
+# ---- V11: generated dispatchers byte-identical to a fresh render ----
+check_V11() {
+    local renderer="$SCRIPT_DIR/render-dispatcher.sh"
+    [ -f "$renderer" ] || return 0
+    local order_file="$HOOKS_DIR/lib/dispatch-order.json"
+    [ -f "$order_file" ] || return 0
+    local out
+    out=$(CLAUDE_TOOLKIT_HOOKS_DIR="$HOOKS_DIR" bash "$renderer" --check 2>&1)
+    local rc=$?
+    # rc=1 → drift (V11 territory). rc=2 → inconsistency, surfaced by V8 instead.
+    if [ "$rc" = "1" ]; then
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            err "V11" "$line — run: make hooks-render"
+        done <<<"$out"
+    fi
 }
 
 # ---- V13: OPT-IN value is in allowed enum ----
@@ -487,8 +553,10 @@ check_V4
 check_V5
 check_V6
 check_V7
+check_V8
 check_V9
 check_V10
+check_V11
 check_V13
 check_V14
 check_V15
@@ -498,10 +566,10 @@ check_V17
 total=${#HOOK_FILES[@]}
 echo ""
 if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
-    echo -e "${GREEN}Hook header validation passed.${NC} 13 checks ran, 0 errors, 0 warnings across $total hooks."
+    echo -e "${GREEN}Hook header validation passed.${NC} 15 checks ran, 0 errors, 0 warnings across $total hooks."
     exit 0
 elif [ "$ERRORS" -eq 0 ]; then
-    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 13 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks."
+    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 15 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks."
     exit 0
 else
     echo -e "${RED}Hook header validation failed.${NC} $ERRORS error(s), $WARNINGS warning(s) across $total hooks."

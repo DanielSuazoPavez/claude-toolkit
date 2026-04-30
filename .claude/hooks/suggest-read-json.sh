@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Block Read on large JSON files and suggest jq via Bash
 # CC-HOOK: EVENTS: NONE
 # CC-HOOK: DISPATCHED-BY: grouped-read-guard(Read)
+# CC-HOOK: DISPATCH-FN: grouped-read-guard=suggest_read_json
 # CC-HOOK: STATUS: stable
 # CC-HOOK: OPT-IN: none
 #

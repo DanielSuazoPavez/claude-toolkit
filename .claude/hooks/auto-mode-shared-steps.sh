@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Re-impose checkpoint for shared/publishing actions under auto mode
 # CC-HOOK: EVENTS: NONE
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=auto_mode_shared_steps
 # CC-HOOK: STATUS: stable
 # CC-HOOK: OPT-IN: none
 #

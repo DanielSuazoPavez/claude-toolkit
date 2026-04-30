@@ -115,6 +115,21 @@ _run_case "v7-orphan-settings"
 assert_exit "exit 1" 1 "$_EC"
 assert_err_contains "V7 fires when header does not list registered event" 'V7'
 
+report_section "v8-missing-from-order"
+_run_case "v8-missing-from-order"
+assert_exit "exit 1" 1 "$_EC"
+assert_err_contains "V8 fires when DISPATCHED-BY hook missing from dispatch-order.json" 'V8.*sample-guard.*not listed'
+
+report_section "v8-orphan-in-order"
+_run_case "v8-orphan-in-order"
+assert_exit "exit 1" 1 "$_EC"
+assert_err_contains "V8 fires when dispatch-order.json lists hook with no matching header" 'V8.*ghost-guard'
+
+report_section "v11-stale"
+_run_case "v11-stale"
+assert_exit "exit 1" 1 "$_EC"
+assert_err_contains "V11 fires when generated dispatcher drifts from a fresh render" 'V11.*hooks-render'
+
 report_section "v9-double-registration"
 _run_case "v9-double-registration"
 assert_exit "exit 1" 1 "$_EC"
