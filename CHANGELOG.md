@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.79.3] - 2026-04-30 - Hook header migration (hook-framework-refactor item 3)
+
+### Changed
+- **hooks**: All 17 hooks under `.claude/hooks/` carry a `# CC-HOOK:` header block at the top — full-shape, not minimum-required-keys-only. Headers consolidate the dispatcher graph (`DISPATCHED-BY`), ship-set (`SHIPS-IN`), and relates-to edges (`RELATES-TO`) that previously lived scattered across `.claude/settings.json`, dispatcher source, and `HOOKS.md` prose. Inert metadata — pure comments — until the validator (V1–V20, next branch) and dispatcher codegen consume them. `parse-headers.sh` produces a real JSON object for every hook now. Conventions across the set: `EVENTS: NONE` sentinel for the 6 dispatched-only hooks (no direct subscription, runs through `DISPATCHED-BY`); `SHIPS-IN: base` declared on the 5 base-only hooks per `dist/raiz/MANIFEST`; `OPT-IN: traceability` on `log-tool-uses`/`log-permission-denied`, `OPT-IN: lessons` on `surface-lessons`, `OPT-IN: none` everywhere else; `RELATES-TO` edges encoded with reciprocals (secrets-guard ↔ block-credential-exfil, session-start ↔ detect-session-start-truncation, enforce-make → enforce-uv, log-tool-uses → surface-lessons). No behavioral change; hook tests unchanged.
+
 ## [2.79.2] - 2026-04-30 - Hook header parser (hook-framework-refactor item 2)
 
 ### Added
