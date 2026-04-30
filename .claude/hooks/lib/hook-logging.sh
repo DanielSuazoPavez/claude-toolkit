@@ -33,6 +33,16 @@ _hook_log_jsonl() {
     printf '%s\n' "$line" >> "$HOOK_LOG_DIR/$file" 2>/dev/null || true
 }
 
+# Sibling writer for the smoketest branch. Bypasses the traceability gate —
+# smoke fixtures need a row regardless of feature flags. Lazy-creates the
+# log dir like _hook_log_jsonl does.
+_hook_log_jsonl_unguarded() {
+    local file="$1"
+    local line="$2"
+    mkdir -p "$HOOK_LOG_DIR" 2>/dev/null || return 0
+    printf '%s\n' "$line" >> "$HOOK_LOG_DIR/$file" 2>/dev/null || true
+}
+
 # ============================================================
 # hook_log_section SECTION_NAME CONTENT
 # ============================================================
@@ -167,6 +177,38 @@ hook_log_session_start_context() {
 # payload attached. Stdin is embedded as a parsed object when valid JSON
 # (the common path) or as a raw string fallback when hook_init flagged
 # the input as unparseable.
+# ============================================================
+# _hook_log_smoketest  (internal — emits one kind:smoketest row)
+# ============================================================
+# Called from _hook_log_timing when CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT=1.
+# Writes to smoketest.jsonl (separate from invocations.jsonl) so analytics
+# consumers reading invocations.jsonl never see test rows.
+_hook_log_smoketest() {
+    local end_ms ts duration_ms
+    end_ms=$(_now_ms)
+    ts=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
+    duration_ms=$(( end_ms - HOOK_START_MS ))
+    local fixture="${CLAUDE_TOOLKIT_HOOK_FIXTURE:-}"
+    local line
+    line=$(jq -c -n \
+        --arg kind "smoketest" \
+        --arg session_id "smoketest" \
+        --arg invocation_id "smoketest-${HOOK_NAME}-${fixture}" \
+        --arg timestamp "$ts" \
+        --arg project "(test)" \
+        --arg hook_event "$HOOK_EVENT" \
+        --arg hook_name "$HOOK_NAME" \
+        --arg tool_name "${TOOL_NAME:-}" \
+        --argjson duration_ms "$duration_ms" \
+        --arg outcome "$OUTCOME" \
+        --argjson bytes_injected "${BYTES_INJECTED:-0}" \
+        --arg decision_json "${_HOOK_RECORDED_DECISION:-}" \
+        --arg fixture "$fixture" \
+        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, decision_json:$decision_json, fixture:$fixture}' \
+        2>/dev/null) || return 0
+    _hook_log_jsonl_unguarded "smoketest.jsonl" "$line"
+}
+
 _hook_log_timing() {
     # Emit HOOK_PERF TOTAL before the _HOOK_ACTIVE guard — perf timing
     # is orthogonal to hook logging and should cover early exits too.
@@ -174,6 +216,12 @@ _hook_log_timing() {
         local _perf_end_ms
         _perf_end_ms=$(_now_ms)
         printf 'HOOK_PERF\tTOTAL\t%d\n' "$(( _perf_end_ms - HOOK_START_MS ))" >&2
+    fi
+    # Smoketest branch — fires regardless of _HOOK_ACTIVE and traceability so
+    # fixtures that early-exit via hook_require_tool still emit a row.
+    if [ "${CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT:-}" = "1" ]; then
+        _hook_log_smoketest
+        return 0
     fi
     # Skip logging if hook never matched a tool (early exit from hook_require_tool)
     [ "$_HOOK_ACTIVE" = true ] || return 0

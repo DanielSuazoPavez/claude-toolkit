@@ -40,6 +40,8 @@ HOOK_START_MS=0
 OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
+# shellcheck disable=SC2034  # _HOOK_RECORDED_DECISION read in hook-logging.sh smoketest branch
+_HOOK_RECORDED_DECISION=""
 # shellcheck disable=SC2034  # HOOK_LOG_DIR read in hook-logging.sh
 HOOK_LOG_DIR="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}"
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
@@ -346,7 +348,12 @@ hook_block() {
     # Escape backslashes first, then double quotes for JSON
     reason="${reason//\\/\\\\}"
     reason="${reason//\"/\\\"}"
-    echo "{\"decision\": \"block\", \"reason\": \"$reason\"}"
+    local json="{\"decision\": \"block\", \"reason\": \"$reason\"}"
+    if [ "${CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT:-}" = "1" ]; then
+        _HOOK_RECORDED_DECISION="$json"
+        exit 0
+    fi
+    echo "$json"
     exit 0
 }
 
@@ -358,11 +365,17 @@ hook_approve() {
     local reason="$1"
     reason="${reason//\\/\\\\}"
     reason="${reason//\"/\\\"}"
+    local json
     if [ "$HOOK_EVENT" = "PermissionRequest" ]; then
-        echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PermissionRequest\",\"decision\":{\"behavior\":\"allow\"}}}"
+        json="{\"hookSpecificOutput\":{\"hookEventName\":\"PermissionRequest\",\"decision\":{\"behavior\":\"allow\"}}}"
     else
-        echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"$reason\"}}"
+        json="{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"$reason\"}}"
     fi
+    if [ "${CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT:-}" = "1" ]; then
+        _HOOK_RECORDED_DECISION="$json"
+        exit 0
+    fi
+    echo "$json"
     exit 0
 }
 
@@ -378,7 +391,12 @@ hook_ask() {
     local reason="$1"
     reason="${reason//\\/\\\\}"
     reason="${reason//\"/\\\"}"
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"$reason\"}}"
+    local json="{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"$reason\"}}"
+    if [ "${CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT:-}" = "1" ]; then
+        _HOOK_RECORDED_DECISION="$json"
+        exit 0
+    fi
+    echo "$json"
     exit 0
 }
 
@@ -392,7 +410,12 @@ hook_inject() {
     local context="$1"
     # shellcheck disable=SC2034
     BYTES_INJECTED=${#context}
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"additionalContext\":\"$context\"}}"
+    local json="{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"additionalContext\":\"$context\"}}"
+    if [ "${CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT:-}" = "1" ]; then
+        _HOOK_RECORDED_DECISION="$json"
+        exit 0
+    fi
+    echo "$json"
     exit 0
 }
 
