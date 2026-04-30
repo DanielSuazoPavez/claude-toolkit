@@ -19,6 +19,7 @@
         "hooks"
       ],
       "relates_to": [
+        "hook-framework-refactor:relates-to",
         "hooks-stop-quality-gate:split-from",
         "sync-profiles:relates-to"
       ],
@@ -456,7 +457,10 @@
         ".claude/hooks/lib/hook-utils.sh",
         ".claude/docs/relevant-toolkit-hooks.md"
       ],
-      "notes": "grouped-bash-guard.sh:56-135 and grouped-read-guard.sh:40-95 carry the same ~50-line dispatcher loop verbatim (probe-and-source check files, match->check loop, substep emission, post-block skipped tail). Extract into hook_dispatcher_run helper in a new .claude/hooks/lib/dispatcher.sh so each grouped-* entry script becomes ~25-30 lines. Sets precedent for future grouped-<event>-guard hooks (e.g. Edit/Write). Drift risk is real: substep outcome contract (pass/block/skipped/not_applicable) is consumed by analytics in invocations.jsonl. Risks: _BLOCK_REASON must not be shadowed in the helper; hook_block must run in caller shell (no subshell); nameref (local -n, bash 4.3+) is fine since hooks already require bash 5.0+ for EPOCHREALTIME. Validate with golden-file test on invocations.jsonl pre/post. Don't forget to add lib/dispatcher.sh to dist/raiz/MANIFEST and any relevant docs/indexes/*.md entries."
+      "notes": "grouped-bash-guard.sh:56-135 and grouped-read-guard.sh:40-95 carry the same ~50-line dispatcher loop verbatim (probe-and-source check files, match->check loop, substep emission, post-block skipped tail). Extract into hook_dispatcher_run helper in a new .claude/hooks/lib/dispatcher.sh so each grouped-* entry script becomes ~25-30 lines. Sets precedent for future grouped-<event>-guard hooks (e.g. Edit/Write). Drift risk is real: substep outcome contract (pass/block/skipped/not_applicable) is consumed by analytics in invocations.jsonl. Risks: _BLOCK_REASON must not be shadowed in the helper; hook_block must run in caller shell (no subshell); nameref (local -n, bash 4.3+) is fine since hooks already require bash 5.0+ for EPOCHREALTIME. Validate with golden-file test on invocations.jsonl pre/post. Don't forget to add lib/dispatcher.sh to dist/raiz/MANIFEST and any relevant docs/indexes/*.md entries.",
+      "relates_to": [
+        "hook-framework-refactor:relates-to"
+      ]
     },
     {
       "id": "hooks-extract-logging-lib",
@@ -468,6 +472,7 @@
       "status": "planned",
       "source": "refactor analysis 2026-04-29 (follow-up scope expansion: surface-lessons.sh also calls hook_log_context)",
       "relates_to": [
+        "hook-framework-refactor:relates-to",
         "hooks-centralize-dispatcher:independent-of"
       ],
       "references": [
@@ -479,17 +484,6 @@
       "notes": "hook-utils.sh mixes universal framework (hook_init, hook_block, hook_approve, hook_require_tool, etc.) with feature-specific JSONL emitters: hook_log_context (lib/hook-utils.sh:466-492, used by surface-lessons.sh) and hook_log_session_start_context (:501-521, used by session-start.sh). Also general logging (hook_log_section :399-422, hook_log_substep :433-461, _hook_log_jsonl :388-394, _hook_log_timing :530-587) — the whole logging surface is ~200 lines. Extract into .claude/hooks/lib/hook-logging.sh and source it from hook-utils.sh so existing call sites keep working unchanged (compatibility shim — hook-utils stays the public entry point). Improves cohesion: hook-utils.sh becomes pure framework; logging concerns live together. Idempotency guard pattern (_HOOK_LOGGING_SOURCED) mirrors existing libs. Don't forget dist/raiz/MANIFEST + docs/indexes update."
     },
     {
-      "id": "hooks-json-backed-index",
-      "priority": "P0",
-      "title": "JSON-backed HOOKS index — design pass before render",
-      "scope": [
-        "hooks",
-        "cli"
-      ],
-      "status": "idea",
-      "notes": "HOOKS.md is the next index to migrate after skills/agents/scripts landed in feat/json-backed-indexes. Needs a design pass first — hooks have more dimensions than other resources (event types, matchers, blocking semantics, settings.json wiring) and the index columns may not be a clean fit for the current render pattern. Decide: which fields are derived from settings.json, which from frontmatter, which are hand-edited in hooks.json. Also reconsider grouping (currently by event type — keep or rethink?). Reference: docs/indexes/HOOKS.md, dist/raiz/MANIFEST hooks section, .claude/settings.json hooks block."
-    },
-    {
       "id": "docs-as-resource-rethink",
       "priority": "P0",
       "title": "Rethink docs as a resource — absorb into rules and knowledge skills",
@@ -499,6 +493,49 @@
       ],
       "status": "idea",
       "notes": "Instead of migrating DOCS.md to JSON-backed render (deferred from feat/json-backed-indexes), step back: docs may be the wrong primitive. Claude Code already has 'rules' as a first-class concept, and knowledge-only skills (e.g. read-json) already cover the 'load on demand' shape. Investigate: which .claude/docs/* belong as rules (always-on conventions), which as knowledge skills (load-on-demand reference), which to remove. Goal is to stop swimming against the current — fewer custom primitives, more leverage of native ones. Reference: .claude/docs/ contents, docs/indexes/DOCS.md, list-docs skill."
+    },
+    {
+      "id": "hook-framework-refactor",
+      "priority": "P0",
+      "title": "Hook framework refactor — declarative headers as SSOT, precompiled dispatcher, header-derived index",
+      "scope": [
+        "hooks",
+        "cli",
+        "docs"
+      ],
+      "status": "idea",
+      "source": "brainstorm 2026-04-29 — output/claude-toolkit/brainstorm/20260429_2249__brainstorm-feature__hook-framework.md",
+      "relates_to": [
+        "hooks-json-backed-index:supersedes",
+        "hooks-centralize-dispatcher:relates-to",
+        "hooks-extract-logging-lib:relates-to",
+        "hooks-config-driven:relates-to"
+      ],
+      "references": [
+        "output/claude-toolkit/brainstorm/20260429_2249__brainstorm-feature__hook-framework.md",
+        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
+        "output/claude-toolkit/analysis/20260429_2234__analyze-idea__hook-framework-prior-art.md",
+        "output/claude-toolkit/analysis/20260429_2235__analyze-idea__hook-framework-prior-art.md",
+        "output/claude-toolkit/analysis/20260429_1012__analyze-idea__hooks-config-driven.md",
+        "output/claude-toolkit/analysis/20260325_1820__analyze-idea__hook-router.md",
+        ".claude/hooks/lib/hook-utils.sh",
+        ".claude/hooks/grouped-bash-guard.sh",
+        ".claude/hooks/grouped-read-guard.sh",
+        ".claude/settings.json",
+        "docs/indexes/HOOKS.md",
+        ".claude/hooks/lib/detection-registry.json"
+      ],
+      "notes": "Bundles four independently-planned P1 tasks (hooks-json-backed-index, hooks-centralize-dispatcher, hooks-extract-logging-lib, hooks-config-driven) into one design — they are symptoms of the same problem (hook truth scattered across script + settings.json + dispatcher source lines + HOOKS.md prose). Promoted to P0: maintainability is the bottleneck even though individual hooks still work. Core idea: declarative bash header per hook (CC-HOOK key:value mini-grammar, one key per line, regex-parseable — NOT YAML-in-comments) is single source of truth. Build-time make step precompiles dispatchers from headers (runtime parse rejected). JSON HOOKS index + per-hook prose .md files derived from headers. Validators: header<->settings.json drift, header<->dispatcher composition, header<->hook_feature_enabled call sites, disk<->index drift, plus per-hook smoke test (Crosley warning: 3 of his first 20 hooks silently failed registration). Each hook gets a testable-at-scale flag (return decision instead of exit) so the test suite can invoke 18 hooks against canned stdin without subprocess gymnastics. Steal from Crosley: JSON file-scope rules read once by dispatcher (pair with detection-registry.json pattern — same shape, different concern). Bash-only justification: keep deps low, avoid Python/Node load cost. Eight concerns to design contracts for: definition, registration, composition, logging, config/scope/opt-in, performance, testing, non-redundancy. Sequencing (provisional): logging extract -> header grammar+parser+validator -> precompiled dispatcher -> JSON index -> config-driven wiring -> path-scope filter (follow-up). Next step: design doc (not further brainstorm) answering the open contract questions in the brainstorm doc."
+    },
+    {
+      "id": "hooks-block-destructive-sql",
+      "priority": "P1",
+      "title": "Hook: block destructive SQL statements via Bash",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Surfaced 2026-04-30 during hook-framework-refactor design review — guardrail gap. block-dangerous-commands covers filesystem catastrophes but nothing covers irreversible SQL run via Bash (sqlite3, psql, mysql, duckdb invocations, plus interpreter-body writes via python -c). Pattern: mirror block-dangerous-commands shape — match_ on token presence, check_ on structural conditions (e.g. unconditional row deletion, schema-object teardown). Use _strip_inert_content to avoid matching SQL inside comments / heredocs / string literals. Allowlist for test fixtures via env or per-project settings. Lives at .claude/hooks/block-destructive-sql.sh, dispatched by grouped-bash-guard. Land after hook-framework-refactor so the new hook gets the header grammar + smoke test from the start. Reference test shape: tests/hooks/test-block-dangerous-commands.sh."
     }
   ]
 }
