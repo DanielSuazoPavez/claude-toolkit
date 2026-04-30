@@ -191,6 +191,7 @@ echo ""
 # === AGENTS ===
 echo "=== Agents ==="
 AGENTS_INDEX="$PROJECT_ROOT/docs/indexes/AGENTS.md"
+AGENTS_JSON="$PROJECT_ROOT/docs/indexes/agents.json"
 AGENTS_DIR="$CLAUDE_DIR/agents"
 
 if $MANIFEST_MODE && [ -d "$AGENTS_DIR" ]; then
@@ -206,6 +207,17 @@ if $MANIFEST_MODE && [ -d "$AGENTS_DIR" ]; then
 
     manifest_count=${#MANIFEST_AGENTS[@]}
     echo -e "${GREEN}✓ $manifest_count agents from MANIFEST validated${NC}"
+elif [ -f "$AGENTS_JSON" ] && [ -d "$AGENTS_DIR" ]; then
+    if bash "$PROJECT_ROOT/cli/indexes/query.sh" validate agents; then :; else ERRORS=$((ERRORS + 1)); fi
+    if [ -f "$AGENTS_INDEX" ]; then
+        rendered_tmp=$(mktemp)
+        RENDER_OUT="$rendered_tmp" bash "$PROJECT_ROOT/cli/indexes/query.sh" render agents >/dev/null 2>&1 || true
+        if ! diff -q "$rendered_tmp" "$AGENTS_INDEX" >/dev/null 2>&1; then
+            echo -e "${RED}AGENTS.md is stale relative to agents.json. Run: make render${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+        rm -f "$rendered_tmp"
+    fi
 elif [ -f "$AGENTS_INDEX" ] && [ -d "$AGENTS_DIR" ]; then
     DISK_AGENTS=$(find "$AGENTS_DIR" -maxdepth 1 -name "*.md" -exec basename {} .md \; | sort)
     INDEX_AGENTS=$(sed -nE 's/^.*\| `([^`]+)` \|.*$/\1/p' "$AGENTS_INDEX" | sort)
