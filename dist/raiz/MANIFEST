@@ -63,6 +63,7 @@ docs/getting-started.md
 .claude/scripts/validate-hook-utils.sh
 .claude/scripts/validate-settings-template.sh
 .claude/scripts/validate-detection-registry.sh
+.claude/scripts/validate-session-start-cap.sh
 .claude/scripts/verify-resource-deps.sh
 .claude/scripts/verify-external-deps.sh
 .claude/scripts/statusline-capture.sh
