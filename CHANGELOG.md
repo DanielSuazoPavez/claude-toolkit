@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.79.4] - 2026-04-30 - Hook header validator (hook-framework-refactor item 4)
+
+### Added
+- **scripts**: `.claude/scripts/hook-framework/validate.sh` — hook header validator covering V1–V7, V9, V10, V13–V15, V17 from design/hook-framework-refactor.md C4 (13 of the 20 designed checks; the remaining 7 wait on artifacts that don't exist yet — `dispatch-order.json`, generated dispatchers, regenerated `HOOKS.md`, smoke-test fixtures). Each check is an independent function so later branches can plug in without touching scaffolding. Wired into `validate-all.sh` so `make check` now fails on drift between any hook header and `settings.json` / dispatcher source. Workshop-only — lives under `.claude/scripts/hook-framework/` which `dist/base/EXCLUDE` already filters out. Indexed under `scripts.json` (maintenance family). Fourth sequencing item of `hook-framework-refactor` (after logging extract / parser / header migration); next up is dispatcher codegen, which lands the artifacts V8/V11/V12 need.
+- **tests**: `tests/test-validate-hook-headers.sh` + `tests/fixtures/hook-validator/` — fixture-driven tests, one case per check (15 cases, 32 assertions). Includes an integration case that runs the validator against the real `.claude/` tree.
+
 ## [2.79.3] - 2026-04-30 - Hook header migration (hook-framework-refactor item 3)
 
 ### Changed
