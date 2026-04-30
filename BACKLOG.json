@@ -463,27 +463,6 @@
       ]
     },
     {
-      "id": "hooks-extract-logging-lib",
-      "priority": "P1",
-      "title": "Extract JSONL logging from hook-utils.sh into lib/hook-logging.sh",
-      "scope": [
-        "hooks"
-      ],
-      "status": "planned",
-      "source": "refactor analysis 2026-04-29 (follow-up scope expansion: surface-lessons.sh also calls hook_log_context)",
-      "relates_to": [
-        "hook-framework-refactor:relates-to",
-        "hooks-centralize-dispatcher:independent-of"
-      ],
-      "references": [
-        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
-        ".claude/hooks/lib/hook-utils.sh",
-        ".claude/hooks/surface-lessons.sh",
-        ".claude/hooks/session-start.sh"
-      ],
-      "notes": "hook-utils.sh mixes universal framework (hook_init, hook_block, hook_approve, hook_require_tool, etc.) with feature-specific JSONL emitters: hook_log_context (lib/hook-utils.sh:466-492, used by surface-lessons.sh) and hook_log_session_start_context (:501-521, used by session-start.sh). Also general logging (hook_log_section :399-422, hook_log_substep :433-461, _hook_log_jsonl :388-394, _hook_log_timing :530-587) — the whole logging surface is ~200 lines. Extract into .claude/hooks/lib/hook-logging.sh and source it from hook-utils.sh so existing call sites keep working unchanged (compatibility shim — hook-utils stays the public entry point). Improves cohesion: hook-utils.sh becomes pure framework; logging concerns live together. Idempotency guard pattern (_HOOK_LOGGING_SOURCED) mirrors existing libs. Don't forget dist/raiz/MANIFEST + docs/indexes update."
-    },
-    {
       "id": "docs-as-resource-rethink",
       "priority": "P0",
       "title": "Rethink docs as a resource — absorb into rules and knowledge skills",
@@ -508,7 +487,6 @@
       "relates_to": [
         "hooks-json-backed-index:supersedes",
         "hooks-centralize-dispatcher:relates-to",
-        "hooks-extract-logging-lib:relates-to",
         "hooks-config-driven:relates-to"
       ],
       "references": [

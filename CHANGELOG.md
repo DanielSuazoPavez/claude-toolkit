@@ -2,9 +2,17 @@
 
 ## [Unreleased]
 
+## [2.79.1] - 2026-04-30 - Hook logging library extraction (hook-framework-refactor item 1)
+
+### Changed
+- **hooks**: Extracted JSONL logging from `.claude/hooks/lib/hook-utils.sh` into `.claude/hooks/lib/hook-logging.sh` (`hook_log_section`, `hook_log_substep`, `hook_log_context`, `hook_log_session_start_context`, `_hook_log_jsonl`, `_hook_log_timing`). `hook-utils.sh` sources the new file after globals; consumer hooks unchanged, JSONL row shape unchanged. First sequencing item of the hook-framework-refactor (C3) — lands the file boundary so later contracts (smoketest `kind` row, `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT` flag) can evolve the logging surface in isolation.
+
+### Fixed
+- **scripts**: `verify-resource-deps.sh` BUILTIN_COMMANDS now includes `review` (the Claude Code built-in `/review` slash command), unblocking the dependency check on `.claude/docs/relevant-toolkit-hooks.md` which references it as an alternative to output-quality hooks.
+
 ### Notes
 - **design**: `design/hook-framework-refactor.md` — design doc for the P0 hook-framework-refactor task. Eight contracts resolved: header grammar (`# CC-HOOK:` prefix, 5 required keys + 5 optional with defaults), dispatcher composition (codegen from explicit `lib/dispatch-order.json`), logging schema (new `kind: smoketest` row + `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT=1` flag), 20 validator checks closing Crosley's silent-fail gap and the stale-codegen gap, smoke-test fixtures on disk, two-tier perf budget (5ms scope-miss / 50ms scope-hit defaults), scope-filter format mirroring `detection-registry.json`, `RELATES-TO` closed enum. Worked example: `secrets-guard` end-to-end. New top-level `design/` directory keeps the doc repo-internal (not synced to consumers).
-- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §1 + §10 — added the "two legitimate jobs" principle (guardrails and sensible context injection) and four anti-pattern rows for wrong-tool failure modes (output-quality judgment, multi-hook consensus, PostToolUse formatters that invalidate Edit's freshness cache, multi-turn state machines). One-bit per-session markers stay explicitly fine — those are idempotency assertions, not state machines.
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §1 + §10 — added the "two legitimate jobs" principle (guardrails and sensible context injection) and four anti-pattern rows for wrong-tool failure modes (output-quality judgment, multi-hook consensus, PostToolUse formatters that invalidate Edit's freshness cache, multi-turn state machines). One-bit per-session markers stay explicitly fine — those are idempotency assertions, not state machines. Plus a one-line pointer to `lib/hook-logging.sh` next to the `_HOOK_UTILS_SOURCED` guard section.
 - **backlog**: Added P1 `hooks-block-destructive-sql` — guardrail gap surfaced during the design review. `block-dangerous-commands` covers filesystem catastrophes but nothing covers irreversible SQL run via Bash. Lands after `hook-framework-refactor` so the new hook gets the header grammar and smoke-test contract from the start.
 
 ## [2.79.0] - 2026-04-29 - JSON-backed resource indexes (skills, agents, scripts) + render-staleness check
