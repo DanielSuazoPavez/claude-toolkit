@@ -530,13 +530,60 @@ check_V15() {
 
 # ---- V19+V20: run every fixture; V19 errors on outcome mismatch, V20 warns on perf budget overrun ----
 # V19 and V20 share one runner invocation per fixture (perf, simplicity).
+# Measure the per-hook bash+jq floor on this machine: minimum duration_ms
+# observed when the hook does nothing but hook_init + trap. Anything above
+# this floor is the hook's actual work; warnings should be read against it.
+# Floor varies by platform (~5ms tight Linux, ~90ms WSL2 due to jq fork cost).
+_measure_hook_floor() {
+    local probe_dir lib_src
+    probe_dir=$(mktemp -d)
+    mkdir -p "$probe_dir/lib" "$probe_dir/fixtures/_floor-probe"
+    # HOOKS_DIR may be relative or absolute; resolve to absolute path so the
+    # symlinks created below resolve from the probe dir (not from $PWD).
+    if [ -d "$HOOKS_DIR/lib" ]; then
+        lib_src="$(cd "$HOOKS_DIR/lib" && pwd)"
+    else
+        echo 0
+        rm -rf "$probe_dir"
+        return 0
+    fi
+    ln -sf "$lib_src"/* "$probe_dir/lib/" 2>/dev/null
+    cat > "$probe_dir/_floor-probe.sh" <<'PROBE'
+#!/usr/bin/env bash
+source "$(dirname "$0")/lib/hook-utils.sh"
+hook_init "_floor-probe" "PreToolUse"
+exit 0
+PROBE
+    cat > "$probe_dir/fixtures/_floor-probe/n.json" <<'JSON'
+{"session_id":"s","tool_name":"Bash","tool_input":{"command":"ls"}}
+JSON
+    cat > "$probe_dir/fixtures/_floor-probe/n.expect" <<'EXP'
+outcome=pass
+EXP
+    local report; report=$(mktemp)
+    local min=999999 dur i
+    for i in 1 2 3; do
+        if CLAUDE_TOOLKIT_HOOKS_DIR="$probe_dir" \
+           CLAUDE_TOOLKIT_FIXTURES_DIR="$probe_dir/fixtures" \
+           bash "${CLAUDE_TOOLKIT_SMOKE_RUNNER:-tests/hooks/run-smoke.sh}" _floor-probe n --report "$report" >/dev/null 2>&1; then
+            dur=$(jq -r '.duration_ms // 999999' "$report" 2>/dev/null)
+            [ "${dur:-999999}" -lt "$min" ] 2>/dev/null && min="$dur"
+        fi
+    done
+    rm -rf "$probe_dir" "$report"
+    echo "$min"
+}
+
 check_V19_V20() {
+    # Same explicit opt-out as V18 — synthetic V1-V17 test cases skip smoke.
+    [ "${CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS:-0}" = "1" ] && return 0
     local fixtures_root="${CLAUDE_TOOLKIT_FIXTURES_DIR:-tests/hooks/fixtures}"
     local runner="${CLAUDE_TOOLKIT_SMOKE_RUNNER:-tests/hooks/run-smoke.sh}"
     if [ ! -f "$runner" ]; then
         err "V19" "smoke runner not found: $runner"
         return
     fi
+    PERF_FLOOR_MS=$(_measure_hook_floor)
     for name in "${!HEADER_JSON[@]}"; do
         local dir="$fixtures_root/$name"
         [ -d "$dir" ] || continue   # V18 already errored
@@ -566,7 +613,8 @@ check_V19_V20() {
             applicable="$hit"
             [ "$outcome" = "pass" ] && applicable="$miss"
             if [ "${dur:-0}" -gt "$applicable" ] 2>/dev/null; then
-                warn "V20" "hook '$name' fixture '$stem' took ${dur}ms (budget ${applicable}ms for outcome=${outcome})"
+                local above=$(( dur - PERF_FLOOR_MS ))
+                warn "V20" "hook '$name' fixture '$stem' took ${dur}ms (budget ${applicable}ms for outcome=${outcome}; bash+jq floor ${PERF_FLOOR_MS}ms → hook work ~${above}ms)"
             fi
             rm -f "$report"
         done
@@ -575,6 +623,12 @@ check_V19_V20() {
 
 # ---- V18: every hook has at least one fixture (.json + .expect pair) ----
 check_V18() {
+    # Explicit opt-out for synthetic test fixtures that exercise V1-V17
+    # against a custom hooks tree. The validator-test harness sets this so
+    # those cases don't need to ship per-hook smoke fixtures just to keep
+    # V18 happy. Real workshops/consumers leave this unset and V18 enforces
+    # fixture presence as documented.
+    [ "${CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS:-0}" = "1" ] && return 0
     local fixtures_root="${CLAUDE_TOOLKIT_FIXTURES_DIR:-tests/hooks/fixtures}"
     for name in "${!HEADER_JSON[@]}"; do
         local dir="$fixtures_root/$name"
@@ -634,14 +688,16 @@ check_V19_V20
 
 # ---- Summary ----
 total=${#HOOK_FILES[@]}
+floor_note=""
+[ -n "${PERF_FLOOR_MS:-}" ] && floor_note=" (V20 bash+jq floor ${PERF_FLOOR_MS}ms)"
 echo ""
 if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
-    echo -e "${GREEN}Hook header validation passed.${NC} 15 checks ran, 0 errors, 0 warnings across $total hooks."
+    echo -e "${GREEN}Hook header validation passed.${NC} 18 checks ran, 0 errors, 0 warnings across $total hooks${floor_note}."
     exit 0
 elif [ "$ERRORS" -eq 0 ]; then
-    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 15 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks."
+    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 18 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks${floor_note}."
     exit 0
 else
-    echo -e "${RED}Hook header validation failed.${NC} $ERRORS error(s), $WARNINGS warning(s) across $total hooks."
+    echo -e "${RED}Hook header validation failed.${NC} $ERRORS error(s), $WARNINGS warning(s) across $total hooks${floor_note}."
     exit 1
 fi

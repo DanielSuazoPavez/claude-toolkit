@@ -11,6 +11,10 @@ General testing conventions (shared across projects): `.claude/docs/relevant-con
 | `run-all.sh` | Unified top-level runner: dispatches all bash suites + pytest in parallel, single summary | bash |
 | `hooks/test-*.sh` | Per-hook tests (one file per hook/dispatcher); run via `run-hook-tests.sh` | bash |
 | `run-hook-tests.sh` | Parallel runner for `hooks/test-*.sh`, with per-file summary | bash |
+| `hooks/run-smoke.sh` | Replays one fixture under env-isolated sandbox; emits `kind:smoketest` row | bash |
+| `hooks/run-smoke-all.sh` | Walks `hooks/fixtures/<hook>/*.json` and invokes `run-smoke.sh` per fixture | bash |
+| `hooks/fixtures/<hook>/<case>.{json,expect}` | Smoke fixtures: stdin payload + outcome assertions per hook | data |
+| `hooks/fixtures/_templates/` | Reference stdin templates (one per `(event, primary-tool)` — V18 ignores) | data |
 | `test-cli.sh` | `bin/claude-toolkit` sync/send commands | bash |
 | `test-backlog-query.sh` | Backlog query script | bash |
 | `test-docs-query.sh` | Docs query script (`claude-toolkit docs`) | bash |

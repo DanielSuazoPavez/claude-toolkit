@@ -18,11 +18,15 @@ parse_test_args "$@"
 
 # Run validator on a fixture, capture stdout/stderr/exit.
 # Sets _OUT / _ERR / _EC
+# Synthetic fixtures here exercise V1-V17 (header parsing, settings.json
+# linkage, dispatcher integrity) against minimal hook trees that don't ship
+# smoke fixtures. CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS opts out of V18/V19/V20
+# so V1-V17 can be tested in isolation.
 _run_case() {
     local case="$1"
-    _ERR=$(bash "$VALIDATOR" "$FIX/$case/hooks" "$FIX/$case/settings.json" 2>&1 >/dev/null)
+    _ERR=$(CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS=1 bash "$VALIDATOR" "$FIX/$case/hooks" "$FIX/$case/settings.json" 2>&1 >/dev/null)
     _EC=$?
-    _OUT=$(bash "$VALIDATOR" "$FIX/$case/hooks" "$FIX/$case/settings.json" 2>/dev/null)
+    _OUT=$(CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS=1 bash "$VALIDATOR" "$FIX/$case/hooks" "$FIX/$case/settings.json" 2>/dev/null)
 }
 
 assert_exit() {
