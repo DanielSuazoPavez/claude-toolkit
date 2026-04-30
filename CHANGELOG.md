@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [2.81.0] - 2026-04-30 - Smoke-test harness (hook-framework-refactor item 6)
+
+### Added
+- **hooks**: `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT` env flag in `lib/hook-utils.sh` — when set, `hook_block`/`hook_approve`/`hook_ask`/`hook_inject` record their decision JSON into `_HOOK_RECORDED_DECISION` and exit without writing to stdout. The EXIT trap in `lib/hook-logging.sh` then emits one `kind:smoketest` row per invocation to `smoketest.jsonl` (separate file from `invocations.jsonl` so analytics consumers are unaffected). Trap branch precedes the `_HOOK_ACTIVE` and traceability guards so hooks that early-exit via `hook_require_tool` still emit a row — needed to verify dispatch shape, not just the success path.
+- **tests**: `tests/hooks/run-smoke.sh` — replays one fixture's stdin through the hook under env-isolated sandbox (`env -i`, `HOME=$tmpdir/fakehome`, all `CLAUDE_*` analytics paths in tmpdir). Reads `<fixture>.expect` line-by-line: `outcome=`, `hook_event=`, `hook_name=`, `tool_name=`, `decision_json_contains=`, `bytes_injected_min=`, `duration_ms_max=`. Exit codes: 0 pass / 1 outcome mismatch / 2 runner error. `--report <path>` copies the JSONL row out so V20 can read `duration_ms` without re-running.
+- **tests**: `tests/hooks/run-smoke-all.sh` — walks every fixture sequentially, sums pass/fail/runner-error.
+- **tests**: `tests/hooks/fixtures/<hook>/<case>.{json,expect}` — one fixture per hook (17 hooks), plus stdin templates under `_templates/`. `_templates/` has no header so V18 ignores it.
+- **scripts**: `validate.sh` V18 (every hook has at least one fixture), V19 (runner replay matches `.expect`), V20 (warn when `duration_ms` exceeds `PERF-BUDGET-MS` for the observed outcome). 18 of the 20 designed checks now ran (was 15). V20 measures a per-machine bash+jq floor (no-op hook `duration_ms`) and reports it in every warning as `hook work ~Nms` — without that anchor, warnings like "took 25ms (budget 5ms)" misread as failures when they're actually 5ms of work plus 20ms of bash startup.
+- **make**: New `make hooks-smoke` target — runs every fixture via `run-smoke-all.sh`. Wired into `make check` after `make validate`.
+- **tests**: `tests/test-hook-utils-smoketest-flag.sh` — covers the four outcome helpers under the flag, the no-helper-called pass path, and the `hook_require_tool` early-exit regression case (15 assertions).
+
+### Changed
+- **scripts**: `validate.sh` summary count 15 → 18. `CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS=1` opts V18/V19/V20 out — used by the V1-V17 synthetic test harness so those minimal hook trees don't need to ship per-hook smoke fixtures.
+- **tests**: `test-validate-hook-headers.sh` sets `CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS=1` on every synthetic fixture run.
+
+### Notes
+- Closes the silent-fail gap V6/V7 only half-cover (registration shape, but not "does the hook actually fire"). Every hook now has executed proof-of-life on every `make check`.
+- V20 is warn-only by design — local CPU jitter and smoke harness startup overhead make a hard gate flaky. Strict gating deferred to a future `make hooks-perf-strict`.
+- V20 surfaces real overruns above per-hook budgets (notably `grouped-bash-guard` ~440ms, `approve-safe-commands` ~207ms, `session-start` ~97ms hook work on WSL2). These are signal for a follow-up perf pass, not failures of this branch.
+
 ## [2.80.0] - 2026-04-30 - Dispatcher codegen (hook-framework-refactor item 5)
 
 ### Added

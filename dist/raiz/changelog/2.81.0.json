@@ -1,0 +1,8 @@
+{
+  "version": "2.81.0",
+  "date": "2026-04-30",
+  "headline": "Smoke-test harness — workshop-internal, no raiz-visible change",
+  "skip": true,
+  "sections": [],
+  "skip_reason": "lib/hook-utils.sh and lib/hook-logging.sh changes add the CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT flag and the kind:smoketest trap branch. Both are gated on the env var being set, which only the workshop-internal smoke runner sets. Raiz consumers don't ship the runner, fixtures, or the validator's V18/V19/V20 — so on raiz the flag is unset, the branch is dormant, and behavior is identical to 2.80.0."
+}

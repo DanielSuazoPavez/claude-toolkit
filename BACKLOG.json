@@ -514,6 +514,16 @@
       ],
       "status": "idea",
       "notes": "Surfaced 2026-04-30 during hook-framework-refactor design review — guardrail gap. block-dangerous-commands covers filesystem catastrophes but nothing covers irreversible SQL run via Bash (sqlite3, psql, mysql, duckdb invocations, plus interpreter-body writes via python -c). Pattern: mirror block-dangerous-commands shape — match_ on token presence, check_ on structural conditions (e.g. unconditional row deletion, schema-object teardown). Use _strip_inert_content to avoid matching SQL inside comments / heredocs / string literals. Allowlist for test fixtures via env or per-project settings. Lives at .claude/hooks/block-destructive-sql.sh, dispatched by grouped-bash-guard. Land after hook-framework-refactor so the new hook gets the header grammar + smoke test from the start. Reference test shape: tests/hooks/test-block-dangerous-commands.sh."
+    },
+    {
+      "id": "hooks-perf-pass-after-v20",
+      "priority": "P2",
+      "title": "Address V20 perf overruns surfaced by smoke harness (grouped-* dispatchers ~440ms, approve-safe-commands ~207ms, session-start ~97ms hook work)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Item 6's smoke harness landed V20 perf warnings that fire on every make check. Each warning reports duration_ms minus a per-machine bash+jq floor (~20ms WSL2, ~5ms tight Linux). Real overruns observed: grouped-bash-guard ~440ms hook work (loads many child match_/check_ pairs), grouped-read-guard ~252ms, approve-safe-commands ~207ms (likely the safe-command regex set), session-start ~97ms (subprocess spawning for git context), block-dangerous-commands ~48ms. Either trim the work, raise PERF-BUDGET-MS in the headers to realistic numbers, or add a make hooks-perf-strict target that gates the worst offenders."
     }
   ]
 }
