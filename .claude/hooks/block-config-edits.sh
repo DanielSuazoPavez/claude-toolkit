@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: block-config-edits
+# CC-HOOK: PURPOSE: Block writes to shell config, SSH files, and Claude settings
+# CC-HOOK: EVENTS: PreToolUse(Write|Edit)
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PreToolUse hook: block writes to shell config, SSH files, and Claude settings
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

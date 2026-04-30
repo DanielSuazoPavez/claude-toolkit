@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: session-start
+# CC-HOOK: PURPOSE: Inject essential docs and git context at session start
+# CC-HOOK: EVENTS: SessionStart
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+# CC-HOOK: RELATES-TO: detect-session-start-truncation(informs)
+#
 # SessionStart hook: inject essential docs at session start
 #
 # Settings.json:

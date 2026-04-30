@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: auto-mode-shared-steps
+# CC-HOOK: PURPOSE: Re-impose checkpoint for shared/publishing actions under auto mode
+# CC-HOOK: EVENTS: NONE
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # Hook: auto-mode-shared-steps
 # Event: PreToolUse (Bash)
 # Purpose: Re-impose a human checkpoint for shared/publishing actions under auto-mode.

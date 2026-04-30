@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: grouped-read-guard
+# CC-HOOK: PURPOSE: Dispatcher for Read PreToolUse — amortizes startup across grouped checks
+# CC-HOOK: EVENTS: PreToolUse(Read)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PreToolUse hook: grouped Read/Grep guard — dispatcher that amortizes bash
 # startup + hook-utils sourcing + jq parsing across multiple checks.
 #

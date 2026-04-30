@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: grouped-bash-guard
+# CC-HOOK: PURPOSE: Dispatcher for Bash PreToolUse — amortizes startup across grouped checks
+# CC-HOOK: EVENTS: PreToolUse(Bash)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PreToolUse hook: grouped Bash guard — dispatcher that amortizes bash
 # startup + hook-utils sourcing + jq parsing across multiple checks.
 #

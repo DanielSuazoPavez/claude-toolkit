@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: suggest-read-json
+# CC-HOOK: PURPOSE: Block Read on large JSON files and suggest jq via Bash
+# CC-HOOK: EVENTS: NONE
+# CC-HOOK: DISPATCHED-BY: grouped-read-guard(Read)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PreToolUse hook: block Read on large JSON files, point at the read-json jq reference
 #
 # Settings.json:

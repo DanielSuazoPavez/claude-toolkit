@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: secrets-guard
+# CC-HOOK: PURPOSE: Block reaches towards .env, SSH keys, and cloud creds at-rest
+# CC-HOOK: EVENTS: PreToolUse(Grep)
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash), grouped-read-guard(Read)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+# CC-HOOK: RELATES-TO: block-credential-exfiltration(complement-direction)
+#
 # PreToolUse hook: block REACHING TOWARDS sensitive resources.
 #
 # Scope (responsibility split with block-credential-exfiltration.sh):

@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: log-permission-denied
+# CC-HOOK: PURPOSE: Log auto-mode classifier denials to invocations.jsonl
+# CC-HOOK: EVENTS: PermissionDenied
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: traceability
+#
 # PermissionDenied hook: log auto-mode classifier denials for analytics
 #
 # Settings.json:

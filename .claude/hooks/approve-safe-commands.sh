@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: approve-safe-commands
+# CC-HOOK: PURPOSE: Auto-approve chained Bash commands when every subcommand is safe
+# CC-HOOK: EVENTS: PermissionRequest(Bash)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PermissionRequest hook: auto-approve chained commands where all subcommands are safe
 #
 # Settings.json:

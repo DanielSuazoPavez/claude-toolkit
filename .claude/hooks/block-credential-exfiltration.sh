@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: block-credential-exfiltration
+# CC-HOOK: PURPOSE: Block commands carrying credential-shaped tokens in arguments
+# CC-HOOK: EVENTS: NONE
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+# CC-HOOK: RELATES-TO: secrets-guard(complement-direction)
+#
 # Hook: block-credential-exfiltration
 # Event: PreToolUse (Bash)
 # Purpose: Block commands whose arguments contain credential-shaped tokens.

@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: detect-session-start-truncation
+# CC-HOOK: PURPOSE: Detect truncation of SessionStart attachment and warn the user once
+# CC-HOOK: EVENTS: UserPromptSubmit
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+# CC-HOOK: SHIPS-IN: base
+# CC-HOOK: RELATES-TO: session-start(informs)
+#
 # Session-start truncation detector
 #
 # Runs on UserPromptSubmit. Checks the transcript for the harness
