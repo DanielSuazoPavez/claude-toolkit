@@ -59,6 +59,10 @@ FIXTURE_EXPECT="$FIXTURE_DIR/$FIXTURE.expect"
 tmpdir=$(mktemp -d -t claude-toolkit-smoke-XXXXXX)
 trap 'rm -rf "$tmpdir"' EXIT
 mkdir -p "$tmpdir/fakehome"
+# Empty lessons.db so hooks that early-exit when missing (surface-lessons)
+# proceed past their guard and emit a smoketest row. Lessons feature itself
+# stays disabled via CLAUDE_TOOLKIT_LESSONS=0.
+: > "$tmpdir/lessons.db"
 
 # Run the hook in a sanitised env. env -i strips inherited CLAUDE_* vars;
 # we re-export only the allowlist needed for the harness + sandboxed paths.
@@ -70,6 +74,7 @@ env -i \
     CLAUDE_ANALYTICS_HOOKS_DIR="$tmpdir/hook-logs" \
     CLAUDE_ANALYTICS_HOOKS_DB="$tmpdir/nonexistent-hooks.db" \
     CLAUDE_ANALYTICS_SESSIONS_DB="$tmpdir/nonexistent-sessions.db" \
+    CLAUDE_ANALYTICS_LESSONS_DB="$tmpdir/lessons.db" \
     CLAUDE_TOOLKIT_HOOKS_DB_DIR="$tmpdir" \
     CLAUDE_TOOLKIT_LESSONS=0 \
     CLAUDE_TOOLKIT_TRACEABILITY=0 \

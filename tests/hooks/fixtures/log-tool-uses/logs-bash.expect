@@ -1,0 +1,3 @@
+outcome=pass
+hook_name=log-tool-uses
+hook_event=PostToolUse

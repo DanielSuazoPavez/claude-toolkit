@@ -1,0 +1,3 @@
+outcome=approved
+hook_name=approve-safe-commands
+hook_event=PermissionRequest
