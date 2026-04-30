@@ -477,6 +477,28 @@
         ".claude/hooks/session-start.sh"
       ],
       "notes": "hook-utils.sh mixes universal framework (hook_init, hook_block, hook_approve, hook_require_tool, etc.) with feature-specific JSONL emitters: hook_log_context (lib/hook-utils.sh:466-492, used by surface-lessons.sh) and hook_log_session_start_context (:501-521, used by session-start.sh). Also general logging (hook_log_section :399-422, hook_log_substep :433-461, _hook_log_jsonl :388-394, _hook_log_timing :530-587) — the whole logging surface is ~200 lines. Extract into .claude/hooks/lib/hook-logging.sh and source it from hook-utils.sh so existing call sites keep working unchanged (compatibility shim — hook-utils stays the public entry point). Improves cohesion: hook-utils.sh becomes pure framework; logging concerns live together. Idempotency guard pattern (_HOOK_LOGGING_SOURCED) mirrors existing libs. Don't forget dist/raiz/MANIFEST + docs/indexes update."
+    },
+    {
+      "id": "hooks-json-backed-index",
+      "priority": "P0",
+      "title": "JSON-backed HOOKS index — design pass before render",
+      "scope": [
+        "hooks",
+        "cli"
+      ],
+      "status": "idea",
+      "notes": "HOOKS.md is the next index to migrate after skills/agents/scripts landed in feat/json-backed-indexes. Needs a design pass first — hooks have more dimensions than other resources (event types, matchers, blocking semantics, settings.json wiring) and the index columns may not be a clean fit for the current render pattern. Decide: which fields are derived from settings.json, which from frontmatter, which are hand-edited in hooks.json. Also reconsider grouping (currently by event type — keep or rethink?). Reference: docs/indexes/HOOKS.md, dist/raiz/MANIFEST hooks section, .claude/settings.json hooks block."
+    },
+    {
+      "id": "docs-as-resource-rethink",
+      "priority": "P0",
+      "title": "Rethink docs as a resource — absorb into rules and knowledge skills",
+      "scope": [
+        "docs",
+        "skills"
+      ],
+      "status": "idea",
+      "notes": "Instead of migrating DOCS.md to JSON-backed render (deferred from feat/json-backed-indexes), step back: docs may be the wrong primitive. Claude Code already has 'rules' as a first-class concept, and knowledge-only skills (e.g. read-json) already cover the 'load on demand' shape. Investigate: which .claude/docs/* belong as rules (always-on conventions), which as knowledge skills (load-on-demand reference), which to remove. Goal is to stop swimming against the current — fewer custom primitives, more leverage of native ones. Reference: .claude/docs/ contents, docs/indexes/DOCS.md, list-docs skill."
     }
   ]
 }

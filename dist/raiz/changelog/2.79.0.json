@@ -1,0 +1,14 @@
+{
+  "version": "2.79.0",
+  "date": "2026-04-29",
+  "headline": "validate-session-start-cap.sh now ships to raiz",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "New script: .claude/scripts/validate-session-start-cap.sh — guards your session-start hook against the harness ~10KB cap."
+      ]
+    }
+  ]
+}
