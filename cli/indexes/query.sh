@@ -18,6 +18,9 @@ TOOLKIT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INDEXES_DIR="$TOOLKIT_DIR/docs/indexes"
 SKILLS_DIR="$TOOLKIT_DIR/.claude/skills"
 AGENTS_DIR="$TOOLKIT_DIR/.claude/agents"
+SCRIPTS_DIR="$TOOLKIT_DIR/.claude/scripts"
+DIST_BASE_EXCLUDE="$TOOLKIT_DIR/dist/base/EXCLUDE"
+DIST_RAIZ_MANIFEST="$TOOLKIT_DIR/dist/raiz/MANIFEST"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; NC='\033[0m'
 
@@ -25,7 +28,7 @@ err()  { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 warn() { echo -e "${YELLOW}$1${NC}" >&2; }
 ok()   { echo -e "${GREEN}$1${NC}" >&2; }
 
-KNOWN_TYPES=(skills agents)
+KNOWN_TYPES=(skills agents scripts)
 
 usage() {
     cat <<'EOF'
@@ -341,6 +344,189 @@ list_agents() {
         | select(($cat == "" or .category == $cat))
         | select(($st  == "" or .status == $st))
         | "\(.name)\t\(.category)\t\(.status)\t\(.description)"
+    ' "$json"
+}
+
+# === script_ships: derive Ships value for a script path ===
+# Echoes one of: "no" | "base" | "base + raiz".
+# Path arg is relative to .claude/scripts (e.g. "lib/profile.sh", "validate-all.sh").
+script_ships() {
+    local rel="$1"
+    local full=".claude/scripts/$rel"
+
+    # Excluded from base = workshop-only (no).
+    if [[ -f "$DIST_BASE_EXCLUDE" ]] && grep -Fxq "$full" "$DIST_BASE_EXCLUDE"; then
+        echo "no"; return
+    fi
+    # Excluded by directory prefix (e.g. ".claude/scripts/some-dir/")?
+    if [[ -f "$DIST_BASE_EXCLUDE" ]]; then
+        while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^# ]] && continue
+            line="${line## }"; line="${line%% }"
+            if [[ "$line" == */ && "$full" == "$line"* ]]; then
+                echo "no"; return
+            fi
+        done < "$DIST_BASE_EXCLUDE"
+    fi
+
+    # In raiz manifest? Then it ships to both.
+    if [[ -f "$DIST_RAIZ_MANIFEST" ]] && grep -Fxq "$full" "$DIST_RAIZ_MANIFEST"; then
+        echo "base + raiz"; return
+    fi
+
+    echo "base"
+}
+
+# === build_scripts_with_ships: augment scripts.json entries with .ships ===
+build_scripts_with_ships() {
+    local json="$1"
+    local merged
+    merged=$(jq -c '.scripts[]' "$json" | while IFS= read -r entry; do
+        local path ships
+        path=$(jq -r '.path' <<< "$entry")
+        ships=$(script_ships "$path")
+        jq -c --arg s "$ships" '. + {ships: $s}' <<< "$entry"
+    done | jq -s '.')
+    jq --argjson scripts "$merged" '.scripts = $scripts' "$json"
+}
+
+# === render_scripts: docs/indexes/scripts.json + dist/* -> SCRIPTS.md ===
+render_scripts() {
+    local json="$INDEXES_DIR/scripts.json"
+    local out="${RENDER_OUT:-$INDEXES_DIR/SCRIPTS.md}"
+    [[ -f "$json" ]] || err "scripts.json not found at $json"
+
+    local enriched
+    enriched=$(build_scripts_with_ships "$json")
+
+    # Header column varies: "Path" for libraries/maintenance (path-style), "Script" otherwise.
+    # We pass the rule via jq: families with "/" in any path get "Path".
+    jq -nr --argjson d "$enriched" '
+        $d as $data |
+        "<!-- Auto-generated from scripts.json — do not edit directly. Run `make render` after editing scripts.json. -->",
+        "",
+        "# Scripts Index",
+        "",
+        $data.header,
+        "",
+        (
+            $data.family_order[] as $fam |
+            ($data.scripts | map(select(.family == $fam))) as $group |
+            if ($group | length) > 0 then
+                "## \($data.families[$fam] // $fam)",
+                "",
+                (if $data.family_notes[$fam] then $data.family_notes[$fam], "" else empty end),
+                (
+                    ($group | any(.path | contains("/"))) as $path_style |
+                    (if $path_style then "| Path | Status | Ships | Description |" else "| Script | Status | Ships | Description |" end),
+                    "|--------|--------|-------|-------------|",
+                    ($group[] | "| `\(.path)` | \(.status) | \(.ships) | \(.description) |")
+                ),
+                ""
+            else empty end
+        )
+    ' > "$out"
+
+    local count
+    count=$(jq '.scripts | length' "$json")
+    ok "Rendered $count scripts to ${out#$TOOLKIT_DIR/}"
+}
+
+# === validate_scripts: structural + disk-vs-json checks ===
+validate_scripts() {
+    local json="$INDEXES_DIR/scripts.json"
+    [[ -f "$json" ]] || err "scripts.json not found at $json"
+
+    local errors=0
+
+    if ! jq -e '.scripts | type == "array"' "$json" >/dev/null; then
+        warn "scripts.json: .scripts must be an array"; errors=$((errors + 1))
+    fi
+
+    local missing
+    missing=$(jq -r '.scripts[] | select((.path|not) or (.family|not) or (.status|not) or (.description|not)) | .path // "<unnamed>"' "$json")
+    if [[ -n "$missing" ]]; then
+        warn "scripts.json: entries missing required fields:"
+        echo "$missing" | sed 's/^/  - /' >&2
+        errors=$((errors + 1))
+    fi
+
+    local bad_fam
+    bad_fam=$(jq -r '
+        (.families | keys) as $valid |
+        .scripts[] | select(.family as $f | ($valid | index($f) | not)) |
+        "\(.path) (family=\(.family))"
+    ' "$json")
+    if [[ -n "$bad_fam" ]]; then
+        warn "scripts.json: scripts with unknown family:"
+        echo "$bad_fam" | sed 's/^/  - /' >&2
+        errors=$((errors + 1))
+    fi
+
+    local bad_status
+    bad_status=$(jq -r '
+        ["alpha","beta","stable","deprecated"] as $valid |
+        .scripts[] | select(.status as $s | ($valid | index($s) | not)) |
+        "\(.path) (status=\(.status))"
+    ' "$json")
+    if [[ -n "$bad_status" ]]; then
+        warn "scripts.json: scripts with invalid status:"
+        echo "$bad_status" | sed 's/^/  - /' >&2
+        errors=$((errors + 1))
+    fi
+
+    local dupes
+    dupes=$(jq -r '.scripts | group_by(.path) | map(select(length > 1)) | .[] | .[0].path' "$json")
+    if [[ -n "$dupes" ]]; then
+        warn "scripts.json: duplicate paths:"
+        echo "$dupes" | sed 's/^/  - /' >&2
+        errors=$((errors + 1))
+    fi
+
+    if [[ -d "$SCRIPTS_DIR" ]]; then
+        local disk_scripts index_scripts missing_from_index stale_in_index
+        disk_scripts=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f | sed 's|^\./||' | sort)
+        index_scripts=$(jq -r '.scripts[].path' "$json" | sort)
+
+        missing_from_index=$(comm -23 <(echo "$disk_scripts") <(echo "$index_scripts"))
+        if [[ -n "$missing_from_index" ]]; then
+            warn "Not in scripts.json (disk has .sh but no entry):"
+            echo "$missing_from_index" | sed 's/^/  - /' >&2
+            errors=$((errors + $(echo "$missing_from_index" | wc -l)))
+        fi
+
+        stale_in_index=$(comm -13 <(echo "$disk_scripts") <(echo "$index_scripts"))
+        if [[ -n "$stale_in_index" ]]; then
+            warn "Stale in scripts.json (entry but no .sh on disk):"
+            echo "$stale_in_index" | sed 's/^/  - /' >&2
+            errors=$((errors + $(echo "$stale_in_index" | wc -l)))
+        fi
+    fi
+
+    if [[ $errors -eq 0 ]]; then
+        ok "scripts.json: all checks passed ($(jq '.scripts | length' "$json") scripts)"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# === list_scripts: query json with optional filters ===
+list_scripts() {
+    local json="$INDEXES_DIR/scripts.json"
+    local family="" status=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --family|--category) family="$2"; shift 2 ;;
+            --status) status="$2"; shift 2 ;;
+            *) err "Unknown filter: $1" ;;
+        esac
+    done
+    jq -r --arg fam "$family" --arg st "$status" '
+        .scripts[]
+        | select(($fam == "" or .family == $fam))
+        | select(($st  == "" or .status == $st))
+        | "\(.path)\t\(.family)\t\(.status)\t\(.description)"
     ' "$json"
 }
 

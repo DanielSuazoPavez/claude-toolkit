@@ -343,6 +343,7 @@ echo ""
 # === SCRIPTS ===
 echo "=== Scripts ==="
 SCRIPTS_INDEX="$PROJECT_ROOT/docs/indexes/SCRIPTS.md"
+SCRIPTS_JSON="$PROJECT_ROOT/docs/indexes/scripts.json"
 SCRIPTS_DIR="$CLAUDE_DIR/scripts"
 
 if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
@@ -358,6 +359,17 @@ if $MANIFEST_MODE && [ -d "$SCRIPTS_DIR" ]; then
 
     manifest_count=${#MANIFEST_SCRIPTS[@]}
     echo -e "${GREEN}✓ $manifest_count scripts from MANIFEST validated${NC}"
+elif [ -f "$SCRIPTS_JSON" ] && [ -d "$SCRIPTS_DIR" ]; then
+    if bash "$PROJECT_ROOT/cli/indexes/query.sh" validate scripts; then :; else ERRORS=$((ERRORS + 1)); fi
+    if [ -f "$SCRIPTS_INDEX" ]; then
+        rendered_tmp=$(mktemp)
+        RENDER_OUT="$rendered_tmp" bash "$PROJECT_ROOT/cli/indexes/query.sh" render scripts >/dev/null 2>&1 || true
+        if ! diff -q "$rendered_tmp" "$SCRIPTS_INDEX" >/dev/null 2>&1; then
+            echo -e "${RED}SCRIPTS.md is stale relative to scripts.json. Run: make render${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+        rm -f "$rendered_tmp"
+    fi
 elif [ -f "$SCRIPTS_INDEX" ] && [ -d "$SCRIPTS_DIR" ]; then
     DISK_SCRIPTS=$(cd "$SCRIPTS_DIR" && find . -name "*.sh" -type f | sed 's|^\./||' | sort)
     INDEX_SCRIPTS=$(sed -nE 's/^.*\| `([^`]+\.sh)` \|.*$/\1/p' "$SCRIPTS_INDEX" | sort)
