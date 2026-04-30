@@ -40,9 +40,18 @@ HOOK_START_MS=0
 OUTCOME="pass"
 BYTES_INJECTED=0
 TOTAL_BYTES_INJECTED=0
+# shellcheck disable=SC2034  # HOOK_LOG_DIR read in hook-logging.sh
 HOOK_LOG_DIR="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}"
 _HOOK_ACTIVE=false  # true once hook_require_tool matches (or for SessionStart)
 _HOOK_INPUT_VALID=true  # false when stdin failed jq empty in hook_init
+
+# Logging functions (hook_log_*, _hook_log_jsonl, _hook_log_timing) live in
+# the sibling lib so the framework refactor can evolve the JSONL row shape
+# (smoketest kind, decision capture) without churning init/decision callers.
+# Sourced after globals so logging functions see them in scope. Many globals
+# above are read only by hook-logging.sh — shellcheck can't see across the
+# source boundary, hence the SC2034 disables at re-assignment sites below.
+source "$(dirname "${BASH_SOURCE[0]}")/hook-logging.sh"
 
 # ============================================================
 # _now_ms
@@ -192,15 +201,20 @@ hook_init() {
     HOOK_INPUT=$(cat)
     # shellcheck disable=SC2034  # INPUT is read by sourcing hooks/scripts (statusline-capture.sh, tests)
     INPUT="$HOOK_INPUT"
+    # shellcheck disable=SC2034  # INVOCATION_ID/PROJECT/OUTCOME/*BYTES_INJECTED read in hook-logging.sh
     INVOCATION_ID="$$-${EPOCHSECONDS:-$(date +%s)}"
+    # shellcheck disable=SC2034
     PROJECT="$(_resolve_project_id)"
     # Capture timestamp once, reuse in all logging.
     # Millisecond precision — multiple hook rows within a single turn land in
     # the same second, and ms lets us order them chronologically.
     _HOOK_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
     HOOK_START_MS=$(_now_ms)
+    # shellcheck disable=SC2034
     OUTCOME="pass"
+    # shellcheck disable=SC2034
     BYTES_INJECTED=0
+    # shellcheck disable=SC2034
     TOTAL_BYTES_INJECTED=0
 
     # Validate stdin is parseable JSON — malformed input means nothing
@@ -224,11 +238,13 @@ hook_init() {
         # For non-PreToolUse events, continue with best effort
     fi
 
+    # shellcheck disable=SC2034  # SESSION_ID read in hook-logging.sh
     SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
 
     local _tid _aid
     _tid=$(echo "$HOOK_INPUT" | jq -r '.tool_use_id // ""' 2>/dev/null)
     _aid=$(echo "$HOOK_INPUT" | jq -r '.agent_id // ""' 2>/dev/null)
+    # shellcheck disable=SC2034  # CALL_ID read in hook-logging.sh
     if [ -n "$_tid" ]; then
         CALL_ID="$_tid"
     elif [ -n "$_aid" ]; then
@@ -240,6 +256,7 @@ hook_init() {
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
         _HOOK_ACTIVE=true
+        # shellcheck disable=SC2034  # HOOK_SOURCE read in hook-logging.sh
         HOOK_SOURCE=$(echo "$HOOK_INPUT" | jq -r '.source // ""' 2>/dev/null || echo "")
     fi
     trap '_hook_log_timing' EXIT
@@ -370,218 +387,12 @@ hook_ask() {
 # ============================================================
 # CONTEXT_STRING must already be JSON-escaped by the caller.
 hook_inject() {
+    # shellcheck disable=SC2034  # OUTCOME/BYTES_INJECTED read in hook-logging.sh
     OUTCOME="injected"
     local context="$1"
+    # shellcheck disable=SC2034
     BYTES_INJECTED=${#context}
     echo "{\"hookSpecificOutput\":{\"hookEventName\":\"$HOOK_EVENT\",\"additionalContext\":\"$context\"}}"
     exit 0
 }
 
-# ============================================================
-# _hook_log_jsonl FILENAME JSON_LINE  (internal — append one JSON line)
-# ============================================================
-# Gated on traceability. Lazy-creates HOOK_LOG_DIR on first write.
-# Each call appends one line; for typical row sizes (< PIPE_BUF / 4KB on
-# Linux) a single >> append is atomic. The EXIT-trap row may be larger
-# when stdin is embedded; concurrent writers are rare here (one hook
-# process per invocation), so interleaving risk is negligible in practice.
-_hook_log_jsonl() {
-    hook_feature_enabled traceability || return 0
-    local file="$1"
-    local line="$2"
-    mkdir -p "$HOOK_LOG_DIR" 2>/dev/null || return 0
-    printf '%s\n' "$line" >> "$HOOK_LOG_DIR/$file" 2>/dev/null || true
-}
-
-# ============================================================
-# hook_log_section SECTION_NAME CONTENT
-# ============================================================
-hook_log_section() {
-    local section="$1"
-    local content="$2"
-    local bytes=${#content}
-    TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
-    hook_feature_enabled traceability || return 0
-    local line
-    line=$(jq -c -n \
-        --arg kind "section" \
-        --arg session_id "$SESSION_ID" \
-        --arg invocation_id "$INVOCATION_ID" \
-        --arg timestamp "$_HOOK_TIMESTAMP" \
-        --arg project "$PROJECT" \
-        --arg hook_event "$HOOK_EVENT" \
-        --arg hook_name "$HOOK_NAME" \
-        --arg tool_name "$TOOL_NAME" \
-        --arg section "$section" \
-        --argjson bytes_injected "$bytes" \
-        --arg source "$HOOK_SOURCE" \
-        --arg call_id "$CALL_ID" \
-        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:$section, duration_ms:0, outcome:"pass", bytes_injected:$bytes_injected, source:$source, call_id:$call_id}' \
-        2>/dev/null) || return 0
-    _hook_log_jsonl "invocations.jsonl" "$line"
-}
-
-# ============================================================
-# hook_log_substep NAME DURATION_MS OUTCOME [BYTES_INJECTED]
-# ============================================================
-# Records one sub-step row for grouped hooks (e.g. grouped-bash-guard).
-# OUTCOME: pass | block | approve | inject | skipped | not_applicable
-#   - skipped: predecessor blocked, this check didn't run (duration 0)
-#   - not_applicable: match_ predicate returned false, check body skipped
-#     by design (duration = predicate cost)
-# See .claude/docs/relevant-toolkit-hooks.md §5 for full outcome semantics.
-hook_log_substep() {
-    local name="$1"
-    local duration_ms="$2"
-    local outcome="$3"
-    local bytes="${4:-0}"
-    if [ "$outcome" = "inject" ] 2>/dev/null; then
-        TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
-    fi
-    hook_feature_enabled traceability || return 0
-    local line
-    line=$(jq -c -n \
-        --arg kind "substep" \
-        --arg session_id "$SESSION_ID" \
-        --arg invocation_id "$INVOCATION_ID" \
-        --arg timestamp "$_HOOK_TIMESTAMP" \
-        --arg project "$PROJECT" \
-        --arg hook_event "$HOOK_EVENT" \
-        --arg hook_name "$HOOK_NAME" \
-        --arg tool_name "$TOOL_NAME" \
-        --arg section "$name" \
-        --argjson duration_ms "$duration_ms" \
-        --arg outcome "$outcome" \
-        --argjson bytes_injected "$bytes" \
-        --arg source "$HOOK_SOURCE" \
-        --arg call_id "$CALL_ID" \
-        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:$section, duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, source:$source, call_id:$call_id}' \
-        2>/dev/null) || return 0
-    _hook_log_jsonl "invocations.jsonl" "$line"
-}
-
-# ============================================================
-# hook_log_context RAW_CONTEXT KEYWORDS MATCH_COUNT MATCHED_IDS
-# ============================================================
-hook_log_context() {
-    local raw_context="$1"
-    local keywords="$2"
-    local match_count="$3"
-    local matched_ids="$4"
-    hook_feature_enabled traceability || return 0
-    # Defensive: --argjson requires a clean integer; strip whitespace and
-    # default to 0 if upstream produced anything weird.
-    match_count="${match_count//[[:space:]]/}"
-    [[ "$match_count" =~ ^[0-9]+$ ]] || match_count=0
-    local line
-    line=$(jq -c -n \
-        --arg kind "context" \
-        --arg session_id "$SESSION_ID" \
-        --arg invocation_id "$INVOCATION_ID" \
-        --arg timestamp "$_HOOK_TIMESTAMP" \
-        --arg project "$PROJECT" \
-        --arg hook_name "$HOOK_NAME" \
-        --arg tool_name "$TOOL_NAME" \
-        --arg raw_context "$raw_context" \
-        --arg keywords "$keywords" \
-        --argjson match_count "$match_count" \
-        --arg matched_lesson_ids "$matched_ids" \
-        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_name:$hook_name, tool_name:$tool_name, raw_context:$raw_context, keywords:$keywords, match_count:$match_count, matched_lesson_ids:$matched_lesson_ids}' \
-        2>/dev/null) || return 0
-    _hook_log_jsonl "surface-lessons-context.jsonl" "$line"
-}
-
-# ============================================================
-# hook_log_session_start_context GIT_BRANCH MAIN_BRANCH CWD
-# ============================================================
-# Records the structured git/cwd payload observed at each session-start hook
-# firing (startup / resume / clear / compact). Consumed by the sessions
-# projector to seed state_changes baselines with the real starting branch
-# instead of emitting from_value=NULL on first observation.
-hook_log_session_start_context() {
-    local git_branch="$1"
-    local main_branch="$2"
-    local cwd="$3"
-    hook_feature_enabled traceability || return 0
-    local line
-    line=$(jq -c -n \
-        --arg kind "session_start_context" \
-        --arg session_id "$SESSION_ID" \
-        --arg invocation_id "$INVOCATION_ID" \
-        --arg timestamp "$_HOOK_TIMESTAMP" \
-        --arg project "$PROJECT" \
-        --arg hook_name "$HOOK_NAME" \
-        --arg source "$HOOK_SOURCE" \
-        --arg git_branch "$git_branch" \
-        --arg main_branch "$main_branch" \
-        --arg cwd "$cwd" \
-        '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_name:$hook_name, source:$source, git_branch:$git_branch, main_branch:$main_branch, cwd:$cwd}' \
-        2>/dev/null) || return 0
-    _hook_log_jsonl "session-start-context.jsonl" "$line"
-}
-
-# ============================================================
-# _hook_log_timing  (internal — EXIT trap)
-# ============================================================
-# Emits one `kind: invocation` row per hook firing with the full stdin
-# payload attached. Stdin is embedded as a parsed object when valid JSON
-# (the common path) or as a raw string fallback when hook_init flagged
-# the input as unparseable.
-_hook_log_timing() {
-    # Emit HOOK_PERF TOTAL before the _HOOK_ACTIVE guard — perf timing
-    # is orthogonal to hook logging and should cover early exits too.
-    if [ "${CLAUDE_TOOLKIT_HOOK_PERF:-}" = "1" ]; then
-        local _perf_end_ms
-        _perf_end_ms=$(_now_ms)
-        printf 'HOOK_PERF\tTOTAL\t%d\n' "$(( _perf_end_ms - HOOK_START_MS ))" >&2
-    fi
-    # Skip logging if hook never matched a tool (early exit from hook_require_tool)
-    [ "$_HOOK_ACTIVE" = true ] || return 0
-    hook_feature_enabled traceability || return 0
-    local end_ms ts
-    end_ms=$(_now_ms)
-    ts=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)
-    local duration_ms=$(( end_ms - HOOK_START_MS ))
-    local bytes=$BYTES_INJECTED
-    if [ "$TOTAL_BYTES_INJECTED" -gt 0 ] 2>/dev/null; then
-        bytes=$TOTAL_BYTES_INJECTED
-    fi
-    local line
-    if [ "$_HOOK_INPUT_VALID" = true ]; then
-        line=$(printf '%s' "$HOOK_INPUT" | jq -c \
-            --arg kind "invocation" \
-            --arg session_id "$SESSION_ID" \
-            --arg invocation_id "$INVOCATION_ID" \
-            --arg timestamp "$ts" \
-            --arg project "$PROJECT" \
-            --arg hook_event "$HOOK_EVENT" \
-            --arg hook_name "$HOOK_NAME" \
-            --arg tool_name "$TOOL_NAME" \
-            --argjson duration_ms "$duration_ms" \
-            --arg outcome "$OUTCOME" \
-            --argjson bytes_injected "$bytes" \
-            --arg source "$HOOK_SOURCE" \
-            --arg call_id "$CALL_ID" \
-            '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:"", duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, source:$source, call_id:$call_id, stdin:.}' \
-            2>/dev/null) || return 0
-    else
-        line=$(jq -c -n \
-            --arg kind "invocation" \
-            --arg session_id "$SESSION_ID" \
-            --arg invocation_id "$INVOCATION_ID" \
-            --arg timestamp "$ts" \
-            --arg project "$PROJECT" \
-            --arg hook_event "$HOOK_EVENT" \
-            --arg hook_name "$HOOK_NAME" \
-            --arg tool_name "$TOOL_NAME" \
-            --argjson duration_ms "$duration_ms" \
-            --arg outcome "$OUTCOME" \
-            --argjson bytes_injected "$bytes" \
-            --arg source "$HOOK_SOURCE" \
-            --arg call_id "$CALL_ID" \
-            --arg stdin_raw "$HOOK_INPUT" \
-            '{kind:$kind, session_id:$session_id, invocation_id:$invocation_id, timestamp:$timestamp, project:$project, hook_event:$hook_event, hook_name:$hook_name, tool_name:$tool_name, section:"", duration_ms:$duration_ms, outcome:$outcome, bytes_injected:$bytes_injected, source:$source, call_id:$call_id, stdin_raw:$stdin_raw}' \
-            2>/dev/null) || return 0
-    fi
-    _hook_log_jsonl "invocations.jsonl" "$line"
-}

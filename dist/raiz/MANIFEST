@@ -43,6 +43,7 @@
 .claude/hooks/log-permission-denied.sh
 .claude/hooks/session-start.sh
 .claude/hooks/lib/hook-utils.sh
+.claude/hooks/lib/hook-logging.sh
 .claude/hooks/lib/detection-registry.sh
 .claude/hooks/lib/detection-registry.json
 .claude/hooks/lib/settings-permissions.sh

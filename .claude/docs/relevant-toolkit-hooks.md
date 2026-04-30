@@ -257,6 +257,8 @@ _HOOK_UTILS_SOURCED=1
 
 Don't remove or rearrange the guard — it's load-bearing for the dispatcher contract. If you add new globals to `hook-utils.sh`, put them *below* the guard so they don't get reset on re-source.
 
+JSONL emitters (`hook_log_section`, `hook_log_substep`, `hook_log_context`, `hook_log_session_start_context`, `_hook_log_jsonl`, `_hook_log_timing`) live in the sibling `lib/hook-logging.sh`, sourced by `hook-utils.sh` after globals. Hooks still source only `hook-utils.sh`; the logging file has its own `_HOOK_LOGGING_SOURCED` guard for symmetric idempotency.
+
 ---
 
 ## 9. Current Hook Set
