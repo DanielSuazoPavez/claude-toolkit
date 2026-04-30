@@ -47,6 +47,8 @@
 .claude/hooks/lib/detection-registry.sh
 .claude/hooks/lib/detection-registry.json
 .claude/hooks/lib/settings-permissions.sh
+.claude/hooks/lib/dispatcher-grouped-bash-guard.sh
+.claude/hooks/lib/dispatcher-grouped-read-guard.sh
 # docs (inside .claude/)
 .claude/docs/essential-conventions-code_style.md
 .claude/docs/relevant-toolkit-context.md

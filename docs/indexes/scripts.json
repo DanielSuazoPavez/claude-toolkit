@@ -41,6 +41,7 @@
 
     { "path": "validate-dist-manifests.sh",      "family": "maintenance", "status": "stable", "description": "Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only" },
     { "path": "hook-framework/parse-headers.sh", "family": "maintenance", "status": "stable", "description": "Parses a hook file's `# CC-HOOK:` header block into one JSON object on stdout (declaration order, pass-through, no defaults); workshop-only build-time tool feeding the future hook validator and dispatcher codegen" },
-    { "path": "hook-framework/validate.sh",      "family": "maintenance", "status": "stable", "description": "Validates `# CC-HOOK:` headers across `.claude/hooks/` against `settings.json` and dispatcher source — covers V1–V7, V9, V10, V13–V15, V17 (see design/hook-framework-refactor.md C4); workshop-only" }
+    { "path": "hook-framework/validate.sh",      "family": "maintenance", "status": "stable", "description": "Validates `# CC-HOOK:` headers across `.claude/hooks/` against `settings.json`, dispatch-order.json, and the generated dispatchers — covers V1–V11, V13–V15, V17 (see design/hook-framework-refactor.md C4); workshop-only" },
+    { "path": "hook-framework/render-dispatcher.sh", "family": "maintenance", "status": "stable", "description": "Generates `lib/dispatcher-grouped-bash-guard.sh` and `dispatcher-grouped-read-guard.sh` from CC-HOOK headers + `lib/dispatch-order.json`; supports `--check` for V11 drift detection; workshop-only build-time tool" }
   ]
 }

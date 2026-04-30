@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [2.80.0] - 2026-04-30 - Dispatcher codegen (hook-framework-refactor item 5)
+
+### Added
+- **hooks**: `.claude/hooks/lib/dispatch-order.json` — explicit per-dispatcher hook order, single source of truth for which hooks dispatch under `grouped-bash-guard` and `grouped-read-guard` and in what sequence (catastrophic gates first, informative gates after). Order matches the prior hand-maintained `CHECK_SPECS` arrays verbatim.
+- **hooks**: `.claude/hooks/lib/dispatcher-grouped-bash-guard.sh` and `dispatcher-grouped-read-guard.sh` — generated `CHECK_SPECS` arrays + sourcing loop, derived from `dispatch-order.json` and CC-HOOK headers. Committed (not gitignored) so consumers don't need bash to sync. Parent dispatchers source these and run the unchanged dispatch loop.
+- **scripts**: `.claude/scripts/hook-framework/render-dispatcher.sh` — workshop-only codegen tool. `bash render-dispatcher.sh [--check] [target...]`. No args → render every dispatcher; `--check` exits 1 on drift, 2 on inconsistency (order entry with no matching `DISPATCHED-BY` or missing `DISPATCH-FN`). Workshop-only — `.claude/scripts/hook-framework/` is already in `dist/base/EXCLUDE`.
+- **make**: New `make hooks-render` target — regenerates `lib/dispatcher-*.sh` from headers + `dispatch-order.json`. No `check` dependency; V11 catches drift at validate time.
+- **scripts**: `validate.sh` V8 (header / dispatch-order drift) and V11 (stale generated dispatcher) now implemented. V10 pivots to read `CHECK_SPECS` from the generated dispatcher. 15 of the 20 designed checks now ran (was 13).
+- **tests**: `tests/fixtures/hook-validator/v8-missing-from-order/`, `v8-orphan-in-order/`, `v11-stale/` plus three new assertions in `tests/test-validate-hook-headers.sh` (38 tests total, was 32).
+
+### Changed
+- **hooks**: All 9 hooks with `DISPATCHED-BY` carry a new `# CC-HOOK: DISPATCH-FN: <dispatcher>=<fn_stem>` header line — explicit hook → function-stem map, removes the implicit naming-convention link between dispatcher CHECK_SPECS and per-hook `match_<stem>` / `check_<stem>` functions. `secrets-guard` is the only multi-dispatcher case (`grouped-bash-guard=secrets_guard, grouped-read-guard=secrets_guard_read`).
+- **hooks**: `grouped-bash-guard.sh` and `grouped-read-guard.sh` no longer carry the `CHECK_SPECS` array or sourcing loop — both `source` their generated `lib/dispatcher-*.sh` instead. Behavior at runtime is unchanged.
+- **scripts**: `parse-headers.sh` `is_list_key()` recognizes `DISPATCH-FN` as a list-typed key (top-level comma split into JSON array).
+- **dist**: `dist/raiz/MANIFEST` ships the two new generated `lib/dispatcher-*.sh` files (consumers source them at hook runtime).
+
+### Notes
+- Closes the design's SSOT claim for the dispatcher graph (C2 + C4). `dispatch-order.json` is workshop-only — it doesn't ship to consumers; raiz consumers receive the rendered output.
+- Order in `dispatch-order.json` is load-bearing: it determines which `_BLOCK_REASON` fires first when multiple checks would block the same command.
+
 ## [2.79.4] - 2026-04-30 - Hook header validator (hook-framework-refactor item 4)
 
 ### Added
