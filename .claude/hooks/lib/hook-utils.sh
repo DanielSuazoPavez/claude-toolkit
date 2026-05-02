@@ -225,9 +225,24 @@ hook_init() {
     # shellcheck disable=SC2034
     TOTAL_BYTES_INJECTED=0
 
-    # Validate stdin is parseable JSON — malformed input means nothing
-    # downstream is reliable (tool_name, session_id, tool_input).
-    if ! echo "$HOOK_INPUT" | jq empty 2>/dev/null; then
+    # Single jq invocation extracts all stdin fields hooks care about, joined
+    # by SOH (\x01) — a control byte that cannot appear in legitimate values.
+    # Replaces 4-5 separate forks (validate + session_id + tool_use_id +
+    # agent_id + source). Validation is implicit: jq exit != 0 means malformed.
+    local _hook_init_rc _hook_init_line _tid _aid
+    _hook_init_line=$(printf '%s' "$HOOK_INPUT" | jq -r '
+        (.session_id // "unknown") + "" +
+        (.tool_use_id // "") + "" +
+        (.agent_id // "") + "" +
+        (.source // "") + "" +
+        (.tool_name // "")
+    ' 2>/dev/null)
+    _hook_init_rc=$?
+    # shellcheck disable=SC2034  # SESSION_ID/HOOK_SOURCE read in hook-logging.sh; _HOOK_INIT_TOOL_NAME used by hook_require_tool
+    IFS=$'\x01' read -r SESSION_ID _tid _aid HOOK_SOURCE _HOOK_INIT_TOOL_NAME <<<"$_hook_init_line"
+    : "${SESSION_ID:=unknown}"
+
+    if [ "$_hook_init_rc" -ne 0 ]; then
         OUTCOME="error"
         SESSION_ID="unknown"
         _HOOK_INPUT_VALID=false
@@ -246,12 +261,6 @@ hook_init() {
         # For non-PreToolUse events, continue with best effort
     fi
 
-    # shellcheck disable=SC2034  # SESSION_ID read in hook-logging.sh
-    SESSION_ID=$(echo "$HOOK_INPUT" | jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
-
-    local _tid _aid
-    _tid=$(echo "$HOOK_INPUT" | jq -r '.tool_use_id // ""' 2>/dev/null)
-    _aid=$(echo "$HOOK_INPUT" | jq -r '.agent_id // ""' 2>/dev/null)
     # shellcheck disable=SC2034  # CALL_ID read in hook-logging.sh
     if [ -n "$_tid" ]; then
         CALL_ID="$_tid"
@@ -264,8 +273,6 @@ hook_init() {
     # SessionStart hooks don't call hook_require_tool, so mark active immediately
     if [ "$HOOK_EVENT" = "SessionStart" ]; then
         _HOOK_ACTIVE=true
-        # shellcheck disable=SC2034  # HOOK_SOURCE read in hook-logging.sh
-        HOOK_SOURCE=$(echo "$HOOK_INPUT" | jq -r '.source // ""' 2>/dev/null || echo "")
     fi
     trap '_hook_log_timing' EXIT
 }
@@ -324,7 +331,8 @@ hook_feature_enabled() {
 # hook_require_tool TOOL1 [TOOL2 ...]
 # ============================================================
 hook_require_tool() {
-    TOOL_NAME=$(echo "$HOOK_INPUT" | jq -r '.tool_name // ""' 2>/dev/null) || exit 0
+    # tool_name was already extracted in hook_init via the consolidated jq call.
+    TOOL_NAME="${_HOOK_INIT_TOOL_NAME:-}"
     local match=false
     for expected in "$@"; do
         if [ "$TOOL_NAME" = "$expected" ]; then
