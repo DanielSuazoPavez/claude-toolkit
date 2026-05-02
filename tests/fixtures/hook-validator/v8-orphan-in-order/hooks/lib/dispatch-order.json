@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "dispatchers": {
+    "grouped-bash-guard": [
+      "sample-guard",
+      "ghost-guard"
+    ]
+  }
+}

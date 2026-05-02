@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "dispatchers": {
+    "grouped-bash-guard": [
+      "block-dangerous-commands",
+      "auto-mode-shared-steps",
+      "block-credential-exfiltration",
+      "git-safety",
+      "secrets-guard",
+      "block-config-edits",
+      "enforce-make-commands",
+      "enforce-uv-run"
+    ],
+    "grouped-read-guard": [
+      "secrets-guard",
+      "suggest-read-json"
+    ]
+  }
+}

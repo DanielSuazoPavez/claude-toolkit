@@ -1,0 +1,3 @@
+outcome=pass
+hook_name=surface-lessons
+hook_event=PreToolUse

@@ -1,0 +1,6 @@
+{
+  "version": "2.79.4",
+  "skip": true,
+  "skip_reason": "Workshop-only — validator lives under .claude/scripts/hook-framework/ which dist/base/EXCLUDE filters out. Raiz consumers see no behavioral change.",
+  "sections": []
+}

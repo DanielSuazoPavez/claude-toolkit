@@ -58,21 +58,28 @@ detection_registry_load() {
         return 1
     fi
 
-    # Single jq invocation. Pattern/message are base64-encoded so backslashes,
-    # quotes, and arbitrary bytes survive the shell-pipe round-trip without
-    # special escaping (jq's @tsv would mangle backslashes; raw NUL separators
-    # don't survive command substitution).
-    local id kind target pattern_b64 message_b64 pattern message
-    while IFS=$'\t' read -r id kind target pattern_b64 message_b64; do
-        [ -z "$id" ] && continue
-        pattern=$(printf '%s' "$pattern_b64" | base64 -d 2>/dev/null)
-        message=$(printf '%s' "$message_b64" | base64 -d 2>/dev/null)
+    # Single jq invocation. Fields are joined by SOH (\x01) — a control byte that
+    # cannot appear in a regex source. Avoids the 2 base64 forks per entry that
+    # the previous TSV+@base64 approach paid (44 forks for 22 entries → ~130ms
+    # on WSL2). NUL separators were tried first but bash variables can't hold a
+    # NUL byte, so SOH is the next-cleanest single-byte sentinel.
+    local SEP=$'\x01'
+    local line id kind target pattern message
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        IFS="$SEP" read -r id kind target pattern message <<<"$line"
+        # Defensive: refuse smuggled sentinel bytes in registry data.
+        case "$pattern$message" in *$'\x01'*)
+            echo "detection-registry: SOH byte in pattern/message at id=$id" >&2
+            return 1
+            ;;
+        esac
         _REGISTRY_IDS+=("$id")
         _REGISTRY_KINDS+=("$kind")
         _REGISTRY_TARGETS+=("$target")
         _REGISTRY_PATTERNS+=("$pattern")
         _REGISTRY_MESSAGES+=("$message")
-    done < <(jq -r '.entries[] | [.id, .kind, .target, (.pattern | @base64), (.message | @base64)] | @tsv' "$_REGISTRY_PATH" 2>/dev/null)
+    done < <(jq -r ".entries[] | \"\(.id)${SEP}\(.kind)${SEP}\(.target)${SEP}\(.pattern)${SEP}\(.message)\"" "$_REGISTRY_PATH" 2>/dev/null)
 
     if [ "${#_REGISTRY_IDS[@]}" -eq 0 ]; then
         echo "detection-registry: no entries loaded from $_REGISTRY_PATH" >&2

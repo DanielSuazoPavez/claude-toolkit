@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: grouped-read-guard
+# CC-HOOK: PURPOSE: Dispatcher for Read PreToolUse — amortizes startup across grouped checks
+# CC-HOOK: EVENTS: PreToolUse(Read)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PreToolUse hook: grouped Read/Grep guard — dispatcher that amortizes bash
 # startup + hook-utils sourcing + jq parsing across multiple checks.
 #
@@ -37,25 +43,10 @@ hook_require_tool "Read"
 # shellcheck disable=SC2034  # read by sourced check modules, not directly
 FILE_PATH=$(hook_get_input '.tool_input.file_path')
 
-CHECK_SPECS=(
-    "secrets_guard_read:secrets-guard.sh"
-    "suggest_read_json:suggest-read-json.sh"
-)
-CHECKS=()
-hook_dir="$(dirname "$0")"
-for spec in "${CHECK_SPECS[@]}"; do
-    name="${spec%%:*}"
-    file="${spec#*:}"
-    src="$hook_dir/$file"
-    [ -f "$src" ] || continue
-    # shellcheck source=/dev/null
-    source "$src"
-    if declare -F "match_$name" >/dev/null && declare -F "check_$name" >/dev/null; then
-        CHECKS+=("$name")
-    else
-        hook_log_substep "check_${name}_missing_match_check" 0 "skipped" 0
-    fi
-done
+# CHECK_SPECS + sourcing loop are generated from lib/dispatch-order.json +
+# CC-HOOK headers. Edit dispatch-order.json (not here) and run `make hooks-render`.
+# shellcheck source=lib/dispatcher-grouped-read-guard.sh
+source "$(dirname "$0")/lib/dispatcher-grouped-read-guard.sh"
 
 _BLOCK_REASON=""
 

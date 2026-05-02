@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: log-tool-uses
+# CC-HOOK: PURPOSE: Log every tool invocation to invocations.jsonl
+# CC-HOOK: EVENTS: PostToolUse
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: traceability
+# CC-HOOK: SHIPS-IN: base
+# CC-HOOK: RELATES-TO: surface-lessons(informs)
+#
 # PostToolUse logger: records every tool invocation to invocations.jsonl
 # with full stdin (including duration_ms and tool_response) for
 # downstream idle-time classification in claude-sessions.

@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: surface-lessons
+# CC-HOOK: PURPOSE: Surface relevant lessons based on tool context
+# CC-HOOK: EVENTS: PreToolUse(Bash|Read|Write|Edit)
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: lessons
+# CC-HOOK: SHIPS-IN: base
+#
 # PreToolUse hook: surface relevant lessons based on tool context
 #
 # Settings.json:

@@ -1,0 +1,8 @@
+{
+  "session_id": "smoke-session",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/tmp/example.txt",
+    "content": "hello"
+  }
+}

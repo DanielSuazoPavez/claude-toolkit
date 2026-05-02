@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: enforce-uv-run
+# CC-HOOK: PURPOSE: Enforce uv run for Python commands when the venv is not activated
+# CC-HOOK: EVENTS: NONE
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=uv
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+# CC-HOOK: SHIPS-IN: base
+#
 # PreToolUse hook: enforce uv run for Python commands (venv not activated)
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

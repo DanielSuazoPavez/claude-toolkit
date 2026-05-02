@@ -1,0 +1,3 @@
+outcome=blocked
+hook_name=block-credential-exfiltration
+hook_event=PreToolUse

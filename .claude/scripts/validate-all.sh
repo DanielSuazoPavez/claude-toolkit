@@ -81,6 +81,18 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# --- Hook headers (workshop-only; .claude/scripts/hook-framework/ is excluded from sync) ---
+if [ -f "$SCRIPTS_DIR/hook-framework/validate.sh" ]; then
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Running: hook-framework/validate.sh"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    bash "$SCRIPTS_DIR/hook-framework/validate.sh"
+    if [ $? -ne 0 ]; then
+        FAILURES=$((FAILURES + 1))
+    fi
+    echo ""
+fi
+
 # --- Dist manifest existence (workshop-only; absent in consumer syncs) ---
 if [ -f "$SCRIPTS_DIR/validate-dist-manifests.sh" ]; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

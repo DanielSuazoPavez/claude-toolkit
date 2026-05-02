@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: block-dangerous-commands
+# CC-HOOK: PURPOSE: Block rm -rf /, fork bombs, mkfs, and dd commands
+# CC-HOOK: EVENTS: NONE
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=dangerous
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+#
 # PreToolUse hook: block dangerous bash commands
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

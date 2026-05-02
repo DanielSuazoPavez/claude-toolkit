@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# CC-HOOK: NAME: enforce-make-commands
+# CC-HOOK: PURPOSE: Redirect pytest and pre-commit invocations to make targets
+# CC-HOOK: EVENTS: NONE
+# CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
+# CC-HOOK: DISPATCH-FN: grouped-bash-guard=make
+# CC-HOOK: STATUS: stable
+# CC-HOOK: OPT-IN: none
+# CC-HOOK: SHIPS-IN: base
+# CC-HOOK: RELATES-TO: enforce-uv-run(extends)
+#
 # PreToolUse hook: enforce make commands instead of direct pytest/pre-commit
 #
 # Dual-mode: standalone (main) or sourced by grouped-bash-guard (match_/check_).

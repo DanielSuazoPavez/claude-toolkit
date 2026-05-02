@@ -1,0 +1,13 @@
+{
+  "session_id": "smoke-session",
+  "tool_name": "Bash",
+  "tool_use_id": "tu_smoke_1",
+  "tool_input": {
+    "command": "ls"
+  },
+  "tool_response": {
+    "stdout": "",
+    "stderr": "",
+    "exit_code": 0
+  }
+}

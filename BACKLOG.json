@@ -12,22 +12,6 @@
   "current_goal": "**v3 — Final polish before cut.** Addressing important features (memory, context management, bash output compression), architectural decisions (packaging, distribution, sync profiles), and polishing rough edges (test suite performance, frontmatter normalization). P99 tasks are deferred — ignore unless explicitly prompted. The line between \"what ships in v3\" and \"what comes after\" is being drawn now.",
   "tasks": [
     {
-      "id": "hooks-config-driven",
-      "priority": "P1",
-      "title": "Config-driven hook parameters — read settings.json directly, document the convention",
-      "scope": [
-        "hooks"
-      ],
-      "relates_to": [
-        "hook-framework-refactor:relates-to",
-        "hooks-stop-quality-gate:split-from",
-        "sync-profiles:relates-to"
-      ],
-      "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Reshaped 2026-04-29 after `output/claude-toolkit/analysis/20260429_1012__analyze-idea__hooks-config-driven.md`: pattern is already half-built (`detection-registry.json` + schema + validator + perf test as the canonical model; `CLAUDE_TOOLKIT_*` env vars cover scalars). Two concrete duplications drive this task: (1) `auto-mode-shared-steps.sh` lines 92-120 hardcode the gh-write subcommand list mirroring `permissions.ask` in `settings.json` — no validator policing drift (highest priority); (2) `approve-safe-commands.sh` SAFE_PREFIXES (lines 49-92) mirror `permissions.allow` Bash entries, currently policed by `validate-safe-commands-sync.sh` — that validator becomes deletable indirection once the hook reads settings.json directly. Scope: (a) wire `auto-mode-shared-steps.sh` to read `permissions.ask` from `settings.json` at startup; (b) wire `approve-safe-commands.sh` to read `permissions.allow`; (c) delete `validate-safe-commands-sync.sh` after (b) lands; (d) extend `.claude/docs/relevant-toolkit-hooks_config.md` with explicit guidance — JSON registry for record lists (cite `detection-registry.json`), env vars for scalars (cite the `CLAUDE_TOOLKIT_*` registry), `settings.json` for permission-derived data; (e) add config-driven checklist to `/create-hook` skill. Cheapness contract: load via jq once at hook startup, match via pure-bash regex (mirrors `detection-registry.sh`). Stop-event quality gate split out to `hooks-stop-quality-gate` (P99).",
-      "status": "planned",
-      "plan": "output/claude-toolkit/plans/2026-04-29__plan__hooks-config-driven.md"
-    },
-    {
       "id": "eval-claude-mem",
       "priority": "P1",
       "title": "Evaluate persistent memory systems for cross-session context",
@@ -92,16 +76,6 @@
       "status": "idea"
     },
     {
-      "id": "test-runner-reliability",
-      "priority": "P2",
-      "title": "Revisit test suite runner — timing, performance, and output reliability",
-      "scope": [
-        "tests"
-      ],
-      "notes": "Surfaced 2026-04-28 during `log-bash-commands` implementation. Symptom: `?s` timing + `cat: ... No such file` errors in run-all.sh / run-hook-tests.sh aggregation. Original race-condition framing disproven (xargs -P blocks before the aggregation loop reads log files). Real cause is mid-run child kill (SIGINT/SIGKILL) leaving the .log file uncreated. Status: symptom guarded in fix/test-runner-missing-log-guard (existence check + clear \"(no log captured — process likely killed mid-run)\" message). Root cause of the kill itself remains open — needs evidence next time it flakes. Originally also bundled inner-loop UX ideas: (a) make test-fast — rejected (slow files are the critical ones), (b) durations in summary — done, (c) test subset filter — partial (run-all.sh <substring> works but undiscoverable; no make shortcut). Flake observed 2026-04-29 during phase-1 work on hooks-config-driven: test-backlog-query.sh failed expect_output \"filters by P1\" on a 113-test run (got 2 P1 tasks listed in output where the test expected substring match against the first one), then passed cleanly on the immediate re-run. Hypothesis: expect_output substring-match against multi-line stdout is brittle when the fixture has multiple matching tasks and output ordering varies under parallel scheduling — the assertion finds the second task's row first and the substring isn't literally first-line. Worth investigating expect_output semantics + adding a run-many-times harness to surface other latent flakes.\n",
-      "status": "idea"
-    },
-    {
       "id": "prose-cleanup-resource",
       "priority": "P2",
       "title": "Add prose cleanup resource to `write-documentation` + fix `draft-pr` verbosity",
@@ -124,13 +98,14 @@
     },
     {
       "id": "surface-docs-hook",
-      "priority": "P2",
+      "priority": "P3",
       "title": "`surface-docs.sh` hook — context-aware doc surfacing",
       "scope": [
         "hooks"
       ],
       "relates_to": [
-        "session-start-output-too-large:depends-on"
+        "session-start-output-too-large:depends-on",
+        "hooks-ass-resource-rethink:depends-on"
       ],
       "notes": "Promoted P99→P2 2026-04-26 — direct follow-up to `session-start-output-too-large`. The cap fix shrinks `essential-conventions-{code_style,execution}` to Quick Reference (§1) + path nudge; this hook extends the same surfacing pattern to `relevant-*` docs, matching tool context against doc keywords and injecting a one-liner (\"relevant doc available: `.claude/docs/<name>.md` — Read on demand\") when a relevant doc hasn't been loaded. Reuses the §1-extraction primitive landed in the cap fix. Same deterministic algorithm as `surface-lessons.sh` — intra-session dedup (v2.63.6) + 2+ keyword-hit threshold (v2.63.7). Original P99 demotion rationale (\"observe surface-lessons for a few weeks before replicating\") is moot: capacity pressure from the 10KB cap forces the issue earlier than the design-validation timeline anticipated, and the cap fix itself validates the §1-surfacing pattern. Coordinates with `.claude/hooks/` queue item 5.",
       "status": "idea"
@@ -360,28 +335,13 @@
     },
     {
       "id": "backlog-render-priority-flag",
-      "priority": "P3",
+      "priority": "P1",
       "title": "`backlog render` ignores `--priority` filter (writes to literal `--priority` file)",
       "scope": [
         "cli"
       ],
       "status": "idea",
       "notes": "Surfaced 2026-04-29: `claude-toolkit backlog render --priority P1,P2,P3` should filter the rendered BACKLOG.md output, but instead treats `--priority` as the output path argument and writes the rendered backlog into a literal file named `--priority` in the cwd. Also reports \"Rendered 30 tasks to --priority\" — count is the full set, ignoring the intended filter. Root cause likely in cli/backlog/render.sh argument parsing — render does not accept the `--priority` flag, but the dispatcher passes it through as a positional path. Either reject unknown flags or implement priority filtering for render."
-    },
-    {
-      "id": "hooks-stop-quality-gate",
-      "priority": "P99",
-      "title": "Stop-event quality gate hook — auto-lint resource changes at response finalization",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Split out 2026-04-29 from `hooks-config-driven` (was bundled as a Stop hook idea). Inspired by Crosley's blog-quality-gate (12-module linter on modified content at response finalization). We have no Stop hooks today — quality checks are all manual via evaluate-* skills. A lightweight Stop hook could catch oversized skills, broken frontmatter, or prose antipatterns automatically. Connects to `v3-e5-frontmatter-ordering` (token size validator — directly consumable by a Stop gate) and `prose-cleanup-resource` (12-module linter equivalent for prose). Should consume from the config-driven hooks convention once that convention is documented (`hooks-config-driven`). Open questions before promoting: which checks fire (resource files only? all writes?), block-vs-warn semantics, perf budget on Stop event, scope per-resource-type vs global.",
-      "relates_to": [
-        "hooks-config-driven:split-from",
-        "v3-e5-frontmatter-ordering:relates-to",
-        "prose-cleanup-resource:relates-to"
-      ]
     },
     {
       "id": "validate-settings-permissions",
@@ -442,50 +402,35 @@
       "notes": "Fix #4 added a symlink defense (creation + write-through), gated by match_config_edits firing. The match_ predicate fires on settings-shaped paths or a narrow set of write verbs (>, >>, tee, cp, mv) — it does NOT fire on a bare 'echo > /tmp/link' when the link was planted out-of-band. The symlink-creation step is still blocked, so the bypass requires the link to exist before the LLM session — different threat model. Documented gap; revisit if it becomes reachable. Either broaden match_ further (cost: more check_ invocations) or accept and document."
     },
     {
-      "id": "hooks-centralize-dispatcher",
+      "id": "hooks-block-destructive-sql",
       "priority": "P1",
-      "title": "Centralize grouped-hook dispatcher loop into lib/dispatcher.sh",
+      "title": "Hook: block destructive SQL statements via Bash",
       "scope": [
         "hooks"
       ],
-      "status": "planned",
-      "source": "refactor analysis 2026-04-29",
-      "references": [
-        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
-        ".claude/hooks/grouped-bash-guard.sh",
-        ".claude/hooks/grouped-read-guard.sh",
-        ".claude/hooks/lib/hook-utils.sh",
-        ".claude/docs/relevant-toolkit-hooks.md"
+      "status": "idea",
+      "notes": "Surfaced 2026-04-30 during hook-framework-refactor design review — guardrail gap. block-dangerous-commands covers filesystem catastrophes but nothing covers irreversible SQL run via Bash (sqlite3, psql, mysql, duckdb invocations, plus interpreter-body writes via python -c). Pattern: mirror block-dangerous-commands shape — match_ on token presence, check_ on structural conditions (e.g. unconditional row deletion, schema-object teardown). Use _strip_inert_content to avoid matching SQL inside comments / heredocs / string literals. Allowlist for test fixtures via env or per-project settings. Lives at .claude/hooks/block-destructive-sql.sh, dispatched by grouped-bash-guard. Land after hook-framework-refactor so the new hook gets the header grammar + smoke test from the start. Reference test shape: tests/hooks/test-block-dangerous-commands.sh."
+    },
+    {
+      "id": "hooks-implementation-review",
+      "priority": "P0",
+      "title": "Hooks implementation review — clean dead-weight forks, benchmark, evaluate, draft, implement",
+      "scope": [
+        "hooks"
       ],
-      "notes": "grouped-bash-guard.sh:56-135 and grouped-read-guard.sh:40-95 carry the same ~50-line dispatcher loop verbatim (probe-and-source check files, match->check loop, substep emission, post-block skipped tail). Extract into hook_dispatcher_run helper in a new .claude/hooks/lib/dispatcher.sh so each grouped-* entry script becomes ~25-30 lines. Sets precedent for future grouped-<event>-guard hooks (e.g. Edit/Write). Drift risk is real: substep outcome contract (pass/block/skipped/not_applicable) is consumed by analytics in invocations.jsonl. Risks: _BLOCK_REASON must not be shadowed in the helper; hook_block must run in caller shell (no subshell); nameref (local -n, bash 4.3+) is fine since hooks already require bash 5.0+ for EPOCHREALTIME. Validate with golden-file test on invocations.jsonl pre/post. Don't forget to add lib/dispatcher.sh to dist/raiz/MANIFEST and any relevant docs/indexes/*.md entries.",
-      "relates_to": [
-        "hook-framework-refactor:relates-to"
+      "status": "idea",
+      "notes": "Clean dead-weight forks/subshells in hook libs (pattern surfaced by V20 perf warns). Three exemplar fixes shipped in 2.81.1; remaining overruns + measurement-correctness audit captured in the referenced analysis file.",
+      "references": [
+        "design/hooks-implementation-review.md",
+        ".claude/hooks/lib/hook-utils.sh",
+        ".claude/hooks/lib/detection-registry.sh",
+        ".claude/hooks/lib/settings-permissions.sh",
+        ".claude/hooks/lib/hook-logging.sh"
       ]
     },
     {
-      "id": "hooks-extract-logging-lib",
-      "priority": "P1",
-      "title": "Extract JSONL logging from hook-utils.sh into lib/hook-logging.sh",
-      "scope": [
-        "hooks"
-      ],
-      "status": "planned",
-      "source": "refactor analysis 2026-04-29 (follow-up scope expansion: surface-lessons.sh also calls hook_log_context)",
-      "relates_to": [
-        "hook-framework-refactor:relates-to",
-        "hooks-centralize-dispatcher:independent-of"
-      ],
-      "references": [
-        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
-        ".claude/hooks/lib/hook-utils.sh",
-        ".claude/hooks/surface-lessons.sh",
-        ".claude/hooks/session-start.sh"
-      ],
-      "notes": "hook-utils.sh mixes universal framework (hook_init, hook_block, hook_approve, hook_require_tool, etc.) with feature-specific JSONL emitters: hook_log_context (lib/hook-utils.sh:466-492, used by surface-lessons.sh) and hook_log_session_start_context (:501-521, used by session-start.sh). Also general logging (hook_log_section :399-422, hook_log_substep :433-461, _hook_log_jsonl :388-394, _hook_log_timing :530-587) — the whole logging surface is ~200 lines. Extract into .claude/hooks/lib/hook-logging.sh and source it from hook-utils.sh so existing call sites keep working unchanged (compatibility shim — hook-utils stays the public entry point). Improves cohesion: hook-utils.sh becomes pure framework; logging concerns live together. Idempotency guard pattern (_HOOK_LOGGING_SOURCED) mirrors existing libs. Don't forget dist/raiz/MANIFEST + docs/indexes update."
-    },
-    {
       "id": "docs-as-resource-rethink",
-      "priority": "P0",
+      "priority": "P1",
       "title": "Rethink docs as a resource — absorb into rules and knowledge skills",
       "scope": [
         "docs",
@@ -495,47 +440,40 @@
       "notes": "Instead of migrating DOCS.md to JSON-backed render (deferred from feat/json-backed-indexes), step back: docs may be the wrong primitive. Claude Code already has 'rules' as a first-class concept, and knowledge-only skills (e.g. read-json) already cover the 'load on demand' shape. Investigate: which .claude/docs/* belong as rules (always-on conventions), which as knowledge skills (load-on-demand reference), which to remove. Goal is to stop swimming against the current — fewer custom primitives, more leverage of native ones. Reference: .claude/docs/ contents, docs/indexes/DOCS.md, list-docs skill."
     },
     {
-      "id": "hook-framework-refactor",
+      "id": "test-runner-reliability",
       "priority": "P0",
-      "title": "Hook framework refactor — declarative headers as SSOT, precompiled dispatcher, header-derived index",
+      "title": "Revisit test suite runner — timing, performance, and output reliability",
       "scope": [
-        "hooks",
-        "cli",
-        "docs"
+        "tests"
       ],
-      "status": "idea",
-      "source": "brainstorm 2026-04-29 — output/claude-toolkit/brainstorm/20260429_2249__brainstorm-feature__hook-framework.md",
-      "relates_to": [
-        "hooks-json-backed-index:supersedes",
-        "hooks-centralize-dispatcher:relates-to",
-        "hooks-extract-logging-lib:relates-to",
-        "hooks-config-driven:relates-to"
-      ],
-      "references": [
-        "output/claude-toolkit/brainstorm/20260429_2249__brainstorm-feature__hook-framework.md",
-        "output/claude-toolkit/analysis/20260429_1902__refactor__claude-hooks.md",
-        "output/claude-toolkit/analysis/20260429_2234__analyze-idea__hook-framework-prior-art.md",
-        "output/claude-toolkit/analysis/20260429_2235__analyze-idea__hook-framework-prior-art.md",
-        "output/claude-toolkit/analysis/20260429_1012__analyze-idea__hooks-config-driven.md",
-        "output/claude-toolkit/analysis/20260325_1820__analyze-idea__hook-router.md",
-        ".claude/hooks/lib/hook-utils.sh",
-        ".claude/hooks/grouped-bash-guard.sh",
-        ".claude/hooks/grouped-read-guard.sh",
-        ".claude/settings.json",
-        "docs/indexes/HOOKS.md",
-        ".claude/hooks/lib/detection-registry.json"
-      ],
-      "notes": "Bundles four independently-planned P1 tasks (hooks-json-backed-index, hooks-centralize-dispatcher, hooks-extract-logging-lib, hooks-config-driven) into one design — they are symptoms of the same problem (hook truth scattered across script + settings.json + dispatcher source lines + HOOKS.md prose). Promoted to P0: maintainability is the bottleneck even though individual hooks still work. Core idea: declarative bash header per hook (CC-HOOK key:value mini-grammar, one key per line, regex-parseable — NOT YAML-in-comments) is single source of truth. Build-time make step precompiles dispatchers from headers (runtime parse rejected). JSON HOOKS index + per-hook prose .md files derived from headers. Validators: header<->settings.json drift, header<->dispatcher composition, header<->hook_feature_enabled call sites, disk<->index drift, plus per-hook smoke test (Crosley warning: 3 of his first 20 hooks silently failed registration). Each hook gets a testable-at-scale flag (return decision instead of exit) so the test suite can invoke 18 hooks against canned stdin without subprocess gymnastics. Steal from Crosley: JSON file-scope rules read once by dispatcher (pair with detection-registry.json pattern — same shape, different concern). Bash-only justification: keep deps low, avoid Python/Node load cost. Eight concerns to design contracts for: definition, registration, composition, logging, config/scope/opt-in, performance, testing, non-redundancy. Sequencing (provisional): logging extract -> header grammar+parser+validator -> precompiled dispatcher -> JSON index -> config-driven wiring -> path-scope filter (follow-up). Next step: design doc (not further brainstorm) answering the open contract questions in the brainstorm doc."
+      "notes": "First: do we really need to go parallel considering the flakyness? are we gaining enough time if you just go and repeat the full test because of a fail?. Surfaced 2026-04-28 during `log-bash-commands` implementation. Symptom: `?s` timing + `cat: ... No such file` errors in run-all.sh / run-hook-tests.sh aggregation. Original race-condition framing disproven (xargs -P blocks before the aggregation loop reads log files). Real cause is mid-run child kill (SIGINT/SIGKILL) leaving the .log file uncreated. Status: symptom guarded in fix/test-runner-missing-log-guard (existence check + clear \"(no log captured — process likely killed mid-run)\" message). Root cause of the kill itself remains open — needs evidence next time it flakes. Originally also bundled inner-loop UX ideas: (a) make test-fast — rejected (slow files are the critical ones), (b) durations in summary — done, (c) test subset filter — partial (run-all.sh <substring> works but undiscoverable; no make shortcut). Flake observed 2026-04-29 during phase-1 work on hooks-config-driven: test-backlog-query.sh failed expect_output \"filters by P1\" on a 113-test run (got 2 P1 tasks listed in output where the test expected substring match against the first one), then passed cleanly on the immediate re-run. Hypothesis: expect_output substring-match against multi-line stdout is brittle when the fixture has multiple matching tasks and output ordering varies under parallel scheduling — the assertion finds the second task's row first and the substring isn't literally first-line. Worth investigating expect_output semantics + adding a run-many-times harness to surface other latent flakes.\n",
+      "status": "idea"
     },
     {
-      "id": "hooks-block-destructive-sql",
-      "priority": "P1",
-      "title": "Hook: block destructive SQL statements via Bash",
+      "id": "hooks-scope-filter-rollout",
+      "priority": "P3",
+      "title": "Hooks scope-filter rollout (C7) — implement the path/glob pre-filter the framework designed but didn't ship",
       "scope": [
         "hooks"
       ],
       "status": "idea",
-      "notes": "Surfaced 2026-04-30 during hook-framework-refactor design review — guardrail gap. block-dangerous-commands covers filesystem catastrophes but nothing covers irreversible SQL run via Bash (sqlite3, psql, mysql, duckdb invocations, plus interpreter-body writes via python -c). Pattern: mirror block-dangerous-commands shape — match_ on token presence, check_ on structural conditions (e.g. unconditional row deletion, schema-object teardown). Use _strip_inert_content to avoid matching SQL inside comments / heredocs / string literals. Allowlist for test fixtures via env or per-project settings. Lives at .claude/hooks/block-destructive-sql.sh, dispatched by grouped-bash-guard. Land after hook-framework-refactor so the new hook gets the header grammar + smoke test from the start. Reference test shape: tests/hooks/test-block-dangerous-commands.sh."
+      "notes": "Designed in C7 of the referenced design doc but not implemented (no hook uses it). Defer until hooks-implementation-review (P0) finishes — current perf hotspots are fork/subshell waste, not paths-not-filtered. Re-evaluate after that pass: ship the registry + secrets-guard as a worked example if path pre-filtering still helps, otherwise retire as YAGNI.",
+      "references": [
+        "design/hook-framework-refactor.md"
+      ]
+    },
+    {
+      "id": "hooks-validate-v12-hooks-md-drift",
+      "priority": "P2",
+      "title": "Hook validator V12 — generate HOOKS.md from headers, fail on drift",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Add V12 from C4 of the referenced design doc: a render-hooks-index.sh generator that produces docs/indexes/HOOKS.md from CC-HOOK headers, plus a validator check that fails on drift (mirrors the V11 pattern for dispatchers). HOOKS.md is currently hand-maintained — without V12 the SSOT claim is incomplete.",
+      "references": [
+        "design/hook-framework-refactor.md"
+      ]
     }
   ]
 }

@@ -1,0 +1,7 @@
+{
+  "session_id": "smoke",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "curl -H 'Authorization: Bearer sk-test-1234567890abcdefghij' https://example.com"
+  }
+}

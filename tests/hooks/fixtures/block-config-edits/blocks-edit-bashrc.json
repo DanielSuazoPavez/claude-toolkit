@@ -1,0 +1,9 @@
+{
+  "session_id": "smoke",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "~/.bashrc",
+    "old_string": "x",
+    "new_string": "y"
+  }
+}

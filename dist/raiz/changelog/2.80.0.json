@@ -1,0 +1,14 @@
+{
+  "version": "2.80.0",
+  "date": "2026-04-30",
+  "headline": "Dispatcher codegen — grouped-bash/read-guard now source generated lib/dispatcher-*.sh",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "grouped-bash-guard and grouped-read-guard now source generated lib/dispatcher-*.sh files (CHECK_SPECS + sourcing loop). Runtime behavior identical — same checks, same order, same block reasons. Two new files ship: lib/dispatcher-grouped-bash-guard.sh and lib/dispatcher-grouped-read-guard.sh."
+      ]
+    }
+  ]
+}

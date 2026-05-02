@@ -1,0 +1,7 @@
+{
+  "session_id": "smoke",
+  "tool_name": "Read",
+  "tool_input": {
+    "file_path": "/tmp/some-data-file.json"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "session_id": "smoke-session",
+  "tool_name": "EnterPlanMode",
+  "tool_input": {
+    "plan": "do the thing"
+  }
+}

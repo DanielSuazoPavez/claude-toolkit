@@ -1,0 +1,3 @@
+outcome=blocked
+hook_name=block-dangerous-commands
+hook_event=PreToolUse

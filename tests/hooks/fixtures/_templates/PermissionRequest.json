@@ -1,0 +1,7 @@
+{
+  "session_id": "smoke-session",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "ls"
+  }
+}

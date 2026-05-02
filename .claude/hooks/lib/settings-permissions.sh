@@ -47,58 +47,11 @@ _SETTINGS_PERMISSIONS_LOADED=0
 _SETTINGS_PERMISSIONS_DIR="${CLAUDE_TOOLKIT_CLAUDE_DIR:-.claude}"
 _SETTINGS_PERMISSIONS_FILE="${CLAUDE_TOOLKIT_SETTINGS_JSON:-$_SETTINGS_PERMISSIONS_DIR/settings.json}"
 
-# ============================================================
-# _settings_permissions_extract_prefix ENTRY  (internal)
-# ============================================================
-# ENTRY is a settings.json permission string with the Bash() wrapper still
-# attached (e.g. `Bash(git status:*)`, `Bash(./.claude/hooks/*)`).
-# Strips the wrapper and the trailing glob to yield the prefix the hooks
-# need (`git status`, `./.claude/hooks/`). Returns the prefix on stdout.
-#
-# Originally lived in the now-deleted validate-safe-commands-sync.sh —
-# kept here so the loader is self-contained.
-_settings_permissions_extract_prefix() {
-    local entry="$1"
-    # Strip Bash( ... ) wrapper.
-    entry="${entry#Bash(}"
-    entry="${entry%)}"
-    # Collapse trailing glob shapes: ":*", " *", "*". Order matters — the
-    # ":*" form must be tried before bare "*".
-    entry="${entry%:\*}"
-    entry="${entry% \*}"
-    entry="${entry%\*}"
-    # Some entries use ":**" or "/**" (e.g. Bash(.claude/scripts/**)). After
-    # the bare-"*" trim above we may have a trailing "*" left from "**" — trim
-    # again for safety. Path entries like ".claude/scripts/" should keep the
-    # trailing slash; that's already preserved.
-    entry="${entry%\*}"
-    printf '%s' "$entry"
-}
-
-# ============================================================
-# _settings_permissions_escape_for_alt PREFIX  (internal)
-# ============================================================
-# Escapes a prefix for use in a bash ERE alternation. Only `.` is
-# escaped — other ERE metacharacters do not appear in current
-# permissions.{allow,ask} Bash entries, and a metacharacter sneaking in
-# would change semantics silently.
-#
-# Returns the escaped prefix on stdout, or empty string on rejection
-# (caller skips the entry).
-_settings_permissions_escape_for_alt() {
-    local prefix="$1"
-    # Audit: reject prefixes containing unhandled ERE metacharacters.
-    # Using a literal char class avoids the metacharacters themselves.
-    case "$prefix" in
-        *'*'*|*'?'*|*'+'*|*'('*|*')'*|*'['*|*']'*|*'{'*|*'}'*|*'^'*|*'$'*|*'\'*|*'|'*)
-            echo "settings-permissions: prefix contains unhandled ERE metacharacter, skipping: $prefix" >&2
-            return 1
-            ;;
-    esac
-    # Escape literal `.`.
-    local escaped="${prefix//./\\.}"
-    printf '%s' "$escaped"
-}
+# Prefix extraction and ERE-escape logic are inlined into
+# settings_permissions_load below — calling them via $(...) was the dominant
+# cost (~190ms for 45 entries) before that change. Behaviour is unchanged:
+# strip Bash(...) wrapper, collapse trailing glob shapes, escape literal dot,
+# reject prefixes with unhandled ERE metacharacters.
 
 # ============================================================
 # settings_permissions_load
@@ -116,6 +69,10 @@ settings_permissions_load() {
     # Single jq invocation. Each line is "<bucket>\t<entry>" where bucket
     # is "allow" or "ask" and entry is the raw permission string. Filter
     # to Bash() entries in bash — keeps jq dumb and avoids regex in jq.
+    #
+    # Prefix extraction is inlined (was _settings_permissions_extract_prefix)
+    # to avoid 90 subshell forks per load (45 entries × 2 helper calls), which
+    # added ~190ms on WSL2. Same parameter expansions, no logic change.
     local bucket entry prefix
     while IFS=$'\t' read -r bucket entry; do
         [ -z "$bucket" ] && continue
@@ -124,7 +81,14 @@ settings_permissions_load() {
             Bash\(*\)) ;;
             *) continue ;;
         esac
-        prefix=$(_settings_permissions_extract_prefix "$entry")
+        # Inline _settings_permissions_extract_prefix:
+        # strip Bash(...) wrapper and trailing glob shapes (":*", " *", "*", "**").
+        prefix="${entry#Bash(}"
+        prefix="${prefix%)}"
+        prefix="${prefix%:\*}"
+        prefix="${prefix% \*}"
+        prefix="${prefix%\*}"
+        prefix="${prefix%\*}"
         [ -z "$prefix" ] && continue
         case "$bucket" in
             allow) _SETTINGS_PERMISSIONS_ALLOW_PREFIXES+=("$prefix") ;;
@@ -145,10 +109,20 @@ settings_permissions_load() {
     # word-boundary shape matching the existing auto-mode style:
     # `(^|[[:space:];&|])(p1|p2|...)([[:space:]]|$)` — BASH_REMATCH[2]
     # is the matched prefix.
+    #
+    # Escape logic is inlined (was _settings_permissions_escape_for_alt) for
+    # the same fork-cost reason as above.
     local p escaped alt
     alt=""
     for p in "${_SETTINGS_PERMISSIONS_ALLOW_PREFIXES[@]}"; do
-        escaped=$(_settings_permissions_escape_for_alt "$p") || continue
+        # Reject prefixes containing unhandled ERE metacharacters.
+        case "$p" in
+            *'*'*|*'?'*|*'+'*|*'('*|*')'*|*'['*|*']'*|*'{'*|*'}'*|*'^'*|*'$'*|*'\'*|*'|'*)
+                echo "settings-permissions: prefix contains unhandled ERE metacharacter, skipping: $p" >&2
+                continue
+                ;;
+        esac
+        escaped="${p//./\\.}"
         if [ -z "$alt" ]; then
             alt="$escaped"
         else
@@ -159,7 +133,13 @@ settings_permissions_load() {
 
     alt=""
     for p in "${_SETTINGS_PERMISSIONS_ASK_PREFIXES[@]}"; do
-        escaped=$(_settings_permissions_escape_for_alt "$p") || continue
+        case "$p" in
+            *'*'*|*'?'*|*'+'*|*'('*|*')'*|*'['*|*']'*|*'{'*|*'}'*|*'^'*|*'$'*|*'\'*|*'|'*)
+                echo "settings-permissions: prefix contains unhandled ERE metacharacter, skipping: $p" >&2
+                continue
+                ;;
+        esac
+        escaped="${p//./\\.}"
         if [ -z "$alt" ]; then
             alt="$escaped"
         else

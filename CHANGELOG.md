@@ -2,9 +2,86 @@
 
 ## [Unreleased]
 
+## [2.81.1] - 2026-05-02 - Hook perf cleanup + TTY fix
+
+### Fixed
+- **hooks**: `lib/hook-utils.sh` — guard `hook_init`'s stdin `cat` with `[[ -t 0 ]]` so hooks invoked manually from a TTY (debugging, ad-hoc runs) no longer block forever waiting for input.
+
+### Performance
+- **hooks**: `lib/detection-registry.sh` — replace 2 `base64 -d` forks per entry with a single SOH (`\x01`) sentinel through one `jq` call. Saves ~130ms per dispatcher invocation that loads the registry (44 fewer forks for 22 entries). `grouped-bash-guard` smoke 376ms → 254ms; `grouped-read-guard` 168ms → 51ms.
+- **hooks**: `lib/hook-utils.sh` `hook_init` — collapse 4-5 separate `jq` forks (validate + `session_id` + `tool_use_id` + `agent_id` + `source`) into one `jq` call emitting newline-separated values. Cache `tool_name` in `_HOOK_INIT_TOOL_NAME` so `hook_require_tool` no longer re-forks `jq`. V20 bash+jq floor 17ms → ~6-7ms; every hook invocation gets ~10ms back.
+- **hooks**: `lib/settings-permissions.sh` — inline `_settings_permissions_extract_prefix` and `_settings_permissions_escape_for_alt` into the load loops. Calling them via `$(helper "$x")` in a 45-entry loop forked 90 subshells (~190ms on WSL2) for what is pure parameter expansion. Same string transformations, no behavioural change. `approve-safe-commands` smoke 168ms → under its 50ms budget (no longer trips V20). `auto-mode-shared-steps` shares the loader and gets the same speedup.
+
+### Notes
+- V20 warn count dropped 9 → 8. Remaining warnings (`session-start` ~107ms, `grouped-bash-guard` ~140ms, etc.) tracked under new P0 backlog task `hooks-implementation-review` for a structured benchmark → evaluate → draft → implement pass over remaining fork/subshell anti-patterns.
+
+## [2.81.0] - 2026-04-30 - Smoke-test harness (hook-framework-refactor item 6)
+
+### Added
+- **hooks**: `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT` env flag in `lib/hook-utils.sh` — when set, `hook_block`/`hook_approve`/`hook_ask`/`hook_inject` record their decision JSON into `_HOOK_RECORDED_DECISION` and exit without writing to stdout. The EXIT trap in `lib/hook-logging.sh` then emits one `kind:smoketest` row per invocation to `smoketest.jsonl` (separate file from `invocations.jsonl` so analytics consumers are unaffected). Trap branch precedes the `_HOOK_ACTIVE` and traceability guards so hooks that early-exit via `hook_require_tool` still emit a row — needed to verify dispatch shape, not just the success path.
+- **tests**: `tests/hooks/run-smoke.sh` — replays one fixture's stdin through the hook under env-isolated sandbox (`env -i`, `HOME=$tmpdir/fakehome`, all `CLAUDE_*` analytics paths in tmpdir). Reads `<fixture>.expect` line-by-line: `outcome=`, `hook_event=`, `hook_name=`, `tool_name=`, `decision_json_contains=`, `bytes_injected_min=`, `duration_ms_max=`. Exit codes: 0 pass / 1 outcome mismatch / 2 runner error. `--report <path>` copies the JSONL row out so V20 can read `duration_ms` without re-running.
+- **tests**: `tests/hooks/run-smoke-all.sh` — walks every fixture sequentially, sums pass/fail/runner-error.
+- **tests**: `tests/hooks/fixtures/<hook>/<case>.{json,expect}` — one fixture per hook (17 hooks), plus stdin templates under `_templates/`. `_templates/` has no header so V18 ignores it.
+- **scripts**: `validate.sh` V18 (every hook has at least one fixture), V19 (runner replay matches `.expect`), V20 (warn when `duration_ms` exceeds `PERF-BUDGET-MS` for the observed outcome). 18 of the 20 designed checks now ran (was 15). V20 measures a per-machine bash+jq floor (no-op hook `duration_ms`) and reports it in every warning as `hook work ~Nms` — without that anchor, warnings like "took 25ms (budget 5ms)" misread as failures when they're actually 5ms of work plus 20ms of bash startup.
+- **make**: New `make hooks-smoke` target — runs every fixture via `run-smoke-all.sh`. Wired into `make check` after `make validate`.
+- **tests**: `tests/test-hook-utils-smoketest-flag.sh` — covers the four outcome helpers under the flag, the no-helper-called pass path, and the `hook_require_tool` early-exit regression case (15 assertions).
+
+### Changed
+- **scripts**: `validate.sh` summary count 15 → 18. `CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS=1` opts V18/V19/V20 out — used by the V1-V17 synthetic test harness so those minimal hook trees don't need to ship per-hook smoke fixtures.
+- **tests**: `test-validate-hook-headers.sh` sets `CLAUDE_TOOLKIT_SKIP_SMOKE_CHECKS=1` on every synthetic fixture run.
+
+### Notes
+- Closes the silent-fail gap V6/V7 only half-cover (registration shape, but not "does the hook actually fire"). Every hook now has executed proof-of-life on every `make check`.
+- V20 is warn-only by design — local CPU jitter and smoke harness startup overhead make a hard gate flaky. Strict gating deferred to a future `make hooks-perf-strict`.
+- V20 surfaces real overruns above per-hook budgets (notably `grouped-bash-guard` ~440ms, `approve-safe-commands` ~207ms, `session-start` ~97ms hook work on WSL2). These are signal for a follow-up perf pass, not failures of this branch.
+
+## [2.80.0] - 2026-04-30 - Dispatcher codegen (hook-framework-refactor item 5)
+
+### Added
+- **hooks**: `.claude/hooks/lib/dispatch-order.json` — explicit per-dispatcher hook order, single source of truth for which hooks dispatch under `grouped-bash-guard` and `grouped-read-guard` and in what sequence (catastrophic gates first, informative gates after). Order matches the prior hand-maintained `CHECK_SPECS` arrays verbatim.
+- **hooks**: `.claude/hooks/lib/dispatcher-grouped-bash-guard.sh` and `dispatcher-grouped-read-guard.sh` — generated `CHECK_SPECS` arrays + sourcing loop, derived from `dispatch-order.json` and CC-HOOK headers. Committed (not gitignored) so consumers don't need bash to sync. Parent dispatchers source these and run the unchanged dispatch loop.
+- **scripts**: `.claude/scripts/hook-framework/render-dispatcher.sh` — workshop-only codegen tool. `bash render-dispatcher.sh [--check] [target...]`. No args → render every dispatcher; `--check` exits 1 on drift, 2 on inconsistency (order entry with no matching `DISPATCHED-BY` or missing `DISPATCH-FN`). Workshop-only — `.claude/scripts/hook-framework/` is already in `dist/base/EXCLUDE`.
+- **make**: New `make hooks-render` target — regenerates `lib/dispatcher-*.sh` from headers + `dispatch-order.json`. No `check` dependency; V11 catches drift at validate time.
+- **scripts**: `validate.sh` V8 (header / dispatch-order drift) and V11 (stale generated dispatcher) now implemented. V10 pivots to read `CHECK_SPECS` from the generated dispatcher. 15 of the 20 designed checks now ran (was 13).
+- **tests**: `tests/fixtures/hook-validator/v8-missing-from-order/`, `v8-orphan-in-order/`, `v11-stale/` plus three new assertions in `tests/test-validate-hook-headers.sh` (38 tests total, was 32).
+
+### Changed
+- **hooks**: All 9 hooks with `DISPATCHED-BY` carry a new `# CC-HOOK: DISPATCH-FN: <dispatcher>=<fn_stem>` header line — explicit hook → function-stem map, removes the implicit naming-convention link between dispatcher CHECK_SPECS and per-hook `match_<stem>` / `check_<stem>` functions. `secrets-guard` is the only multi-dispatcher case (`grouped-bash-guard=secrets_guard, grouped-read-guard=secrets_guard_read`).
+- **hooks**: `grouped-bash-guard.sh` and `grouped-read-guard.sh` no longer carry the `CHECK_SPECS` array or sourcing loop — both `source` their generated `lib/dispatcher-*.sh` instead. Behavior at runtime is unchanged.
+- **scripts**: `parse-headers.sh` `is_list_key()` recognizes `DISPATCH-FN` as a list-typed key (top-level comma split into JSON array).
+- **dist**: `dist/raiz/MANIFEST` ships the two new generated `lib/dispatcher-*.sh` files (consumers source them at hook runtime).
+
+### Notes
+- Closes the design's SSOT claim for the dispatcher graph (C2 + C4). `dispatch-order.json` is workshop-only — it doesn't ship to consumers; raiz consumers receive the rendered output.
+- Order in `dispatch-order.json` is load-bearing: it determines which `_BLOCK_REASON` fires first when multiple checks would block the same command.
+
+## [2.79.4] - 2026-04-30 - Hook header validator (hook-framework-refactor item 4)
+
+### Added
+- **scripts**: `.claude/scripts/hook-framework/validate.sh` — hook header validator covering V1–V7, V9, V10, V13–V15, V17 from design/hook-framework-refactor.md C4 (13 of the 20 designed checks; the remaining 7 wait on artifacts that don't exist yet — `dispatch-order.json`, generated dispatchers, regenerated `HOOKS.md`, smoke-test fixtures). Each check is an independent function so later branches can plug in without touching scaffolding. Wired into `validate-all.sh` so `make check` now fails on drift between any hook header and `settings.json` / dispatcher source. Workshop-only — lives under `.claude/scripts/hook-framework/` which `dist/base/EXCLUDE` already filters out. Indexed under `scripts.json` (maintenance family). Fourth sequencing item of `hook-framework-refactor` (after logging extract / parser / header migration); next up is dispatcher codegen, which lands the artifacts V8/V11/V12 need.
+- **tests**: `tests/test-validate-hook-headers.sh` + `tests/fixtures/hook-validator/` — fixture-driven tests, one case per check (15 cases, 32 assertions). Includes an integration case that runs the validator against the real `.claude/` tree.
+
+## [2.79.3] - 2026-04-30 - Hook header migration (hook-framework-refactor item 3)
+
+### Changed
+- **hooks**: All 17 hooks under `.claude/hooks/` carry a `# CC-HOOK:` header block at the top — full-shape, not minimum-required-keys-only. Headers consolidate the dispatcher graph (`DISPATCHED-BY`), ship-set (`SHIPS-IN`), and relates-to edges (`RELATES-TO`) that previously lived scattered across `.claude/settings.json`, dispatcher source, and `HOOKS.md` prose. Inert metadata — pure comments — until the validator (V1–V20, next branch) and dispatcher codegen consume them. `parse-headers.sh` produces a real JSON object for every hook now. Conventions across the set: `EVENTS: NONE` sentinel for the 6 dispatched-only hooks (no direct subscription, runs through `DISPATCHED-BY`); `SHIPS-IN: base` declared on the 5 base-only hooks per `dist/raiz/MANIFEST`; `OPT-IN: traceability` on `log-tool-uses`/`log-permission-denied`, `OPT-IN: lessons` on `surface-lessons`, `OPT-IN: none` everywhere else; `RELATES-TO` edges encoded with reciprocals (secrets-guard ↔ block-credential-exfil, session-start ↔ detect-session-start-truncation, enforce-make → enforce-uv, log-tool-uses → surface-lessons). No behavioral change; hook tests unchanged.
+
+## [2.79.2] - 2026-04-30 - Hook header parser (hook-framework-refactor item 2)
+
+### Added
+- **scripts**: `.claude/scripts/hook-framework/parse-headers.sh` — workshop-internal parser for the `# CC-HOOK:` header grammar. Reads one hook file, emits one JSON object on stdout in declaration order; pass-through (no defaults), exits 1 on malformed directives or duplicate keys, exits 0 silently on files with no header. Added to `dist/base/EXCLUDE` so it stays workshop-only. Indexed under `scripts.json` (maintenance family). Second sequencing item of `hook-framework-refactor` (C1) — locks the seam every later contract reads from. Validator (V1–V20), dispatcher codegen, and migration are still ahead.
+
+## [2.79.1] - 2026-04-30 - Hook logging library extraction (hook-framework-refactor item 1)
+
+### Changed
+- **hooks**: Extracted JSONL logging from `.claude/hooks/lib/hook-utils.sh` into `.claude/hooks/lib/hook-logging.sh` (`hook_log_section`, `hook_log_substep`, `hook_log_context`, `hook_log_session_start_context`, `_hook_log_jsonl`, `_hook_log_timing`). `hook-utils.sh` sources the new file after globals; consumer hooks unchanged, JSONL row shape unchanged. First sequencing item of the hook-framework-refactor (C3) — lands the file boundary so later contracts (smoketest `kind` row, `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT` flag) can evolve the logging surface in isolation.
+
+### Fixed
+- **scripts**: `verify-resource-deps.sh` BUILTIN_COMMANDS now includes `review` (the Claude Code built-in `/review` slash command), unblocking the dependency check on `.claude/docs/relevant-toolkit-hooks.md` which references it as an alternative to output-quality hooks.
+
 ### Notes
 - **design**: `design/hook-framework-refactor.md` — design doc for the P0 hook-framework-refactor task. Eight contracts resolved: header grammar (`# CC-HOOK:` prefix, 5 required keys + 5 optional with defaults), dispatcher composition (codegen from explicit `lib/dispatch-order.json`), logging schema (new `kind: smoketest` row + `CLAUDE_TOOLKIT_HOOK_RETURN_OUTPUT=1` flag), 20 validator checks closing Crosley's silent-fail gap and the stale-codegen gap, smoke-test fixtures on disk, two-tier perf budget (5ms scope-miss / 50ms scope-hit defaults), scope-filter format mirroring `detection-registry.json`, `RELATES-TO` closed enum. Worked example: `secrets-guard` end-to-end. New top-level `design/` directory keeps the doc repo-internal (not synced to consumers).
-- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §1 + §10 — added the "two legitimate jobs" principle (guardrails and sensible context injection) and four anti-pattern rows for wrong-tool failure modes (output-quality judgment, multi-hook consensus, PostToolUse formatters that invalidate Edit's freshness cache, multi-turn state machines). One-bit per-session markers stay explicitly fine — those are idempotency assertions, not state machines.
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` §1 + §10 — added the "two legitimate jobs" principle (guardrails and sensible context injection) and four anti-pattern rows for wrong-tool failure modes (output-quality judgment, multi-hook consensus, PostToolUse formatters that invalidate Edit's freshness cache, multi-turn state machines). One-bit per-session markers stay explicitly fine — those are idempotency assertions, not state machines. Plus a one-line pointer to `lib/hook-logging.sh` next to the `_HOOK_UTILS_SOURCED` guard section.
 - **backlog**: Added P1 `hooks-block-destructive-sql` — guardrail gap surfaced during the design review. `block-dangerous-commands` covers filesystem catastrophes but nothing covers irreversible SQL run via Bash. Lands after `hook-framework-refactor` so the new hook gets the header grammar and smoke-test contract from the start.
 
 ## [2.79.0] - 2026-04-29 - JSON-backed resource indexes (skills, agents, scripts) + render-staleness check
