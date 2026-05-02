@@ -200,7 +200,13 @@ _resolve_project_id() {
 hook_init() {
     HOOK_NAME="$1"
     HOOK_EVENT="$2"
-    HOOK_INPUT=$(cat)
+    
+    # Skip stdin read when invoked from a TTY (manual debugging) — otherwise `cat` blocks forever.
+    if [[ -t 0 ]]; then
+        HOOK_INPUT=""
+    else
+        HOOK_INPUT=$(cat)
+    fi
     # shellcheck disable=SC2034  # INPUT is read by sourcing hooks/scripts (statusline-capture.sh, tests)
     INPUT="$HOOK_INPUT"
     # shellcheck disable=SC2034  # INVOCATION_ID/PROJECT/OUTCOME/*BYTES_INJECTED read in hook-logging.sh
