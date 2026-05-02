@@ -1,6 +1,6 @@
 ---
 category: 01-standardized
-status: in progress (inventory + performance + robustness drafted)
+status: drafted (all 4 axes + inventory)
 ---
 
 # Category 01 — Standardized Hooks
