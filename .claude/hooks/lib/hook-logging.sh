@@ -52,6 +52,7 @@ hook_log_section() {
     local bytes=${#content}
     TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     hook_feature_enabled traceability || return 0
+    _ensure_project
     local line
     line=$(jq -c -n \
         --arg kind "section" \
@@ -89,6 +90,7 @@ hook_log_substep() {
         TOTAL_BYTES_INJECTED=$(( TOTAL_BYTES_INJECTED + bytes ))
     fi
     hook_feature_enabled traceability || return 0
+    _ensure_project
     local line
     line=$(jq -c -n \
         --arg kind "substep" \
@@ -119,6 +121,7 @@ hook_log_context() {
     local match_count="$3"
     local matched_ids="$4"
     hook_feature_enabled traceability || return 0
+    _ensure_project
     # Defensive: --argjson requires a clean integer; strip whitespace and
     # default to 0 if upstream produced anything weird.
     match_count="${match_count//[[:space:]]/}"
@@ -153,6 +156,7 @@ hook_log_session_start_context() {
     local main_branch="$2"
     local cwd="$3"
     hook_feature_enabled traceability || return 0
+    _ensure_project
     local line
     line=$(jq -c -n \
         --arg kind "session_start_context" \
@@ -226,6 +230,7 @@ _hook_log_timing() {
     # Skip logging if hook never matched a tool (early exit from hook_require_tool)
     [ "$_HOOK_ACTIVE" = true ] || return 0
     hook_feature_enabled traceability || return 0
+    _ensure_project
     local end_ms ts
     end_ms=$(_now_ms)
     ts=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)

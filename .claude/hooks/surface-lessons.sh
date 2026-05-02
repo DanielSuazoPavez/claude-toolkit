@@ -105,6 +105,7 @@ _hook_perf_probe "seen_lookup"
 # Query matching active lessons (id + text in one query), scope-filtered
 # SQL escaping via single-quote doubling: sqlite3 CLI has no bind-parameter flag,
 # and $PROJECT comes from $PWD (local, user-owned) — not external input.
+_ensure_project
 SAFE_PROJECT="${PROJECT//\'/\'\'}"
 RESULTS=$(sqlite3 -separator '|' "$LESSONS_DB" "
     WITH candidate_tags AS (

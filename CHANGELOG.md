@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2.81.2] - 2026-05-02 - Lazy-resolve PROJECT in hook_init
+
+### Performance
+- **hooks**: `lib/hook-utils.sh` — `hook_init` no longer resolves `PROJECT` eagerly. New `_ensure_project` accessor resolves on first read and caches; logging functions in `lib/hook-logging.sh` and the lessons-aware hooks (`session-start`, `surface-lessons`) call it before reading `$PROJECT`. Hooks that never reference `$PROJECT` skip the resolution entirely. N=50 probe on WSL2: real-session `hook_init` p50 **19.0ms → 9.6ms (−9.4ms)**, p95 **25.2ms → 12.5ms (−12.7ms)**. Two-thirds of the saving is the `sqlite3` fork in `_resolve_project_id` (~4.6ms median); the rest is the `$(...)` subshell that was capturing the function output (~5ms across all modes). Hooks that always log pay the same total cost as before — the resolution moves from `hook_init` to the first logger call. Hooks that early-exit via `hook_require_tool` now skip it entirely.
+
+### Notes
+- Per-machine numbers — variance from normal multi-session load is part of the environment. p95/p50 ratio is ~1.34× in real-session.
+- V20 timing window starts after `HOOK_START_MS`, which is set after `_resolve_project_id` ran in the old code. The saving is invisible to V20 by design — it's pre-`HOOK_START_MS` cost. Real-session users see the wall-clock improvement directly.
+- This is the first concrete output of the `hooks-implementation-review` audit (P0 backlog task). Audit scaffolding under `design/hook-audit/` landed in the same branch as evidence; subsequent category reviews will continue on a follow-up branch.
+
 ## [2.81.1] - 2026-05-02 - Hook perf cleanup + TTY fix
 
 ### Fixed
