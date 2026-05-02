@@ -474,6 +474,36 @@
       "references": [
         "design/hook-framework-refactor.md"
       ]
+    },
+    {
+      "id": "hook-audit-move-strip-inert-content",
+      "priority": "P0",
+      "title": "Move _strip_inert_content from hook-utils.sh to detection-registry.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Localize the dependency to its only consumer. ~70 LoC move, header updates in both files, smoke + lib tests should still pass. Why and tradeoffs in design/hook-audit/00-shared/clarity.md (Proposal 1)."
+    },
+    {
+      "id": "hook-audit-malformed-stdin-fixtures",
+      "priority": "P0",
+      "title": "Add malformed-stdin smoke fixtures per event type",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Lock in the only fail-closed branch hook_init has: PreToolUse=block, SessionStart=warn-and-continue, PostToolUse=silent pass with stdin_raw row, PermissionRequest=fail-open. Behavior verified live but unjustified-by-test. See design/hook-audit/00-shared/robustness.md (Tests / coverage gaps)."
+    },
+    {
+      "id": "hook-audit-shape-a-lib-tests",
+      "priority": "P0",
+      "title": "Add Shape A (in-process) lib tests for _strip_inert_content, hook_feature_enabled, _now_ms, hook_extract_quick_reference",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "These functions have no direct tests today. Shape A pattern (source the lib, call the function, assert) costs ~0ms per case and exists already in test-detection-registry.sh and test-settings-permissions.sh. ~30 cases / ~50 LoC. Pin _strip_inert_content's heuristic boundaries (heredoc, escaped quotes), _now_ms's EPOCHREALTIME-padding fix, hook_feature_enabled's three branches, hook_extract_quick_reference's three paths. See design/hook-audit/00-shared/testability.md (Recommendations)."
     }
   ]
 }
