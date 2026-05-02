@@ -1,0 +1,18 @@
+
+=== Per-dispatcher end-to-end wall-clock (microseconds) ===
+grouped-bash-guard (smoke)                          n=30    min=102505   p50=129919   p90=178346   p95=204499   max=216023 
+grouped-bash-guard (real)                           n=30    min=178864   p50=196726   p90=232450   p95=254608   max=262260 
+grouped-read-guard (smoke)                          n=30    min=52560    p50=61191    p90=66812    p95=74343    max=78642  
+grouped-read-guard (real)                           n=30    min=85152    p50=92961    p90=103090   p95=104042   max=105935 
+
+=== Per-child source cost (microseconds, hook-utils excluded) ===
+grouped-bash-guard / block-dangerous-commands.sh    n=30    min=2872     p50=3123     p90=3640     p95=3658     max=4134   
+grouped-bash-guard / auto-mode-shared-steps.sh      n=30    min=18315    p50=20212    p90=24132    p95=26034    max=26102  
+grouped-bash-guard / block-credential-exfiltration.sh  n=30    min=4777     p50=5278     p90=6588     p95=6751     max=8622   
+grouped-bash-guard / git-safety.sh                  n=30    min=3217     p50=3536     p90=4106     p95=4371     max=5464   
+grouped-bash-guard / secrets-guard.sh               n=30    min=5653     p50=6262     p90=8462     p95=10395    max=11541  
+grouped-bash-guard / block-config-edits.sh          n=30    min=5309     p50=6257     p90=7273     p95=8614     max=9339   
+grouped-bash-guard / enforce-make-commands.sh       n=30    min=3076     p50=3409     p90=4570     p95=5319     max=5900   
+grouped-bash-guard / enforce-uv-run.sh              n=30    min=3115     p50=3512     p90=3848     p95=5020     max=5239   
+grouped-read-guard / secrets-guard.sh               n=30    min=16968    p50=18757    p90=21969    p95=22584    max=23742  
+grouped-read-guard / suggest-read-json.sh           n=30    min=2961     p50=3266     p90=3461     p95=3993     max=4069   
