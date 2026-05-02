@@ -1,6 +1,6 @@
 ---
 category: 01-standardized
-status: not started
+status: in progress (inventory + performance + robustness drafted)
 ---
 
 # Category 01 — Standardized Hooks
