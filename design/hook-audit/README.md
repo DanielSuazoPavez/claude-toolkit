@@ -31,7 +31,7 @@ Every category is reviewed along the same four axes:
 |---|----------|---------|--------|
 | 00 | [Shared libs](00-shared/README.md) | `hook-utils.sh`, `detection-registry.sh`, `settings-permissions.sh`, `hook-logging.sh`, `detection-registry.json`, `dispatch-order.json` | drafted (all 4 axes + inventory) |
 | 01 | [Standardized hooks](01-standardized/README.md) | `approve-safe-commands`, `auto-mode-shared-steps`, `block-config-edits`, `block-credential-exfiltration`, `block-dangerous-commands`, `detect-session-start-truncation`, `enforce-make-commands`, `enforce-uv-run`, `git-safety`, `log-permission-denied`, `log-tool-uses`, `secrets-guard`, `suggest-read-json` | drafted (all 4 axes + inventory) |
-| 02 | [Dispatchers](02-dispatchers/README.md) | `grouped-bash-guard`, `grouped-read-guard` (+ `lib/dispatcher-grouped-*-guard.sh`) | not started |
+| 02 | [Dispatchers](02-dispatchers/README.md) | `grouped-bash-guard`, `grouped-read-guard` (+ `lib/dispatcher-grouped-*-guard.sh`) | inventory + performance + robustness drafted |
 | 03 | [Session-context hooks](03-session-context/README.md) | `session-start`, `surface-lessons` | not started |
 
 ## Cross-cutting: Measurement
@@ -43,6 +43,7 @@ Methodology and harness work that has to land before any category review can pro
 - [`measurement/harness-design.md`](measurement/harness-design.md) **[draft]** — replacement harness spec: microsecond precision, multi-run median/p95, two parity modes (smoke / real-session), bracket-the-hook timing (Option B) over modifying `hook_init`
 - [`measurement/probe-results.md`](measurement/probe-results.md) **[N=50 measured]** — pre-init cost probe across smoke / real / real-no-sqlite modes. Confirms ~4.6ms median sqlite3-fork cost in real-session, ~13ms total pre-`HOOK_START_MS` cost invisible to V20, and ~1.4× p95/p50 variance under normal load.
 - [`measurement/lazy-resolution-experiment.md`](measurement/lazy-resolution-experiment.md) **[N=50 measured]** — applied lazy `_resolve_project_id` to `hook_init`, re-ran the probe. real init p50 dropped from 19ms to 9.6ms; the real-vs-real-no-sqlite gap collapsed from 4.6ms to 0.2ms. Bonus: removing the subshell shape itself saved ~5ms across all modes.
+- `measurement/probe/run-per-dispatcher-probe.sh` + `per-child-source-hook.sh` **[N=30 measured]** — paired smoke/real end-to-end + per-child source-cost isolation for `grouped-bash-guard` and `grouped-read-guard`. Closes the per-child parse-cost open from `00-shared/performance.md`. Results: `per-dispatcher-N30.tsv` / `per-dispatcher-N30.summary`.
 
 ## Origin
 

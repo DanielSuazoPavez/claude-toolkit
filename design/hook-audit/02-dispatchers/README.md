@@ -1,6 +1,6 @@
 ---
 category: 02-dispatchers
-status: not started
+status: inventory + performance + robustness drafted
 ---
 
 # Category 02 — Dispatchers
