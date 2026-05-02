@@ -474,6 +474,281 @@
       "references": [
         "design/hook-framework-refactor.md"
       ]
+    },
+    {
+      "id": "hook-audit-00-move-strip-inert-content",
+      "priority": "P0",
+      "title": "Move _strip_inert_content from hook-utils.sh to detection-registry.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Localize the dependency to its only consumer. ~70 LoC move, header updates in both files, smoke + lib tests should still pass. Why and tradeoffs in design/hook-audit/00-shared/clarity.md (Proposal 1)."
+    },
+    {
+      "id": "hook-audit-00-malformed-stdin-fixtures",
+      "priority": "P0",
+      "title": "Add malformed-stdin smoke fixtures per event type",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Lock in the only fail-closed branch hook_init has: PreToolUse=block, SessionStart=warn-and-continue, PostToolUse=silent pass with stdin_raw row, PermissionRequest=fail-open. Behavior verified live but unjustified-by-test. See design/hook-audit/00-shared/robustness.md (Tests / coverage gaps)."
+    },
+    {
+      "id": "hook-audit-00-shape-a-lib-tests",
+      "priority": "P0",
+      "title": "Add Shape A (in-process) lib tests for _strip_inert_content, hook_feature_enabled, _now_ms, hook_extract_quick_reference",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "These functions have no direct tests today. Shape A pattern (source the lib, call the function, assert) costs ~0ms per case and exists already in test-detection-registry.sh and test-settings-permissions.sh. ~30 cases / ~50 LoC. Pin _strip_inert_content's heuristic boundaries (heredoc, escaped quotes), _now_ms's EPOCHREALTIME-padding fix, hook_feature_enabled's three branches, hook_extract_quick_reference's three paths. See design/hook-audit/00-shared/testability.md (Recommendations)."
+    },
+    {
+      "id": "hook-audit-01-paired-outcome-fixtures",
+      "priority": "P1",
+      "title": "Add paired (block, pass) fixtures per standardized hook for outcome-aware perf measurement",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "01-standardized/performance.md measured per-hook check-body cost from a single fixture per hook (V18 minimum). Block fixtures pay full check work; pass fixtures hit the early-return path. The V20 budget already splits on outcome (scope_miss / scope_hit). Add the second outcome fixture per hook so check-body cost can be reported per-outcome and the budget can be tuned per-hook. Depends on hook-audit-00-shape-a-lib-tests landing first (test-shape conventions). See design/hook-audit/01-standardized/performance.md (Open).",
+      "relates_to": [
+        "hook-audit-00-shape-a-lib-tests:depends-on"
+      ]
+    },
+    {
+      "id": "hook-audit-01-suggest-read-json-nonexistent",
+      "priority": "P1",
+      "title": "suggest-read-json: fail-open on nonexistent files instead of blocking",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "suggest-read-json blocks Read on .json paths that do not exist on disk, redirecting the user to use jq via Bash. Empirically verified in design/hook-audit/01-standardized/robustness.md. The user then runs jq on the same path and gets a confusing second not-found error. One-line fix at suggest-read-json.sh:73-79: short-circuit to return 0 (allow) when [ ! -f \"$FILE_PATH\" ], letting the Read tool itself emit the natural file-not-found error. No safety regression — the hook only redirects to jq for size reasons, and a nonexistent file has no size. See design/hook-audit/01-standardized/robustness.md (Real failure modes found by empirical probing)."
+    },
+    {
+      "id": "hook-audit-01-block-dangerous-quote-predicate",
+      "priority": "P1",
+      "title": "block-dangerous-commands: widen match_dangerous predicate to cover quote-wrapped patterns",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "block-dangerous-commands.sh:46 match_dangerous predicate requires the rm/mkfs/dd/etc. token to be preceded by start-of-line or one of [[:space:];&|`(] — but not by quote characters. So a command like 'echo SINGLEQUOTE rm -rf SLASH SINGLEQUOTE' silently passes the cheap predicate, and check_dangerous (which would catch it after quote-stripping at line 67) is never called. One-line fix: add the single-quote and double-quote characters to the alternation. The hook header documents 'Also detects these patterns when hidden via … shell wrappers' — the fix restores that coverage for quote-wrapping cases. See design/hook-audit/01-standardized/robustness.md."
+    },
+    {
+      "id": "hook-audit-01-test-token-allowlist",
+      "priority": "P2",
+      "title": "block-credential-exfiltration: explicit test-token allowlist for fixture authoring",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "During hook audit, probing block-credential-exfiltration with inline bash commands kept tripping the hook on its own probe payload. Workaround: write fixtures to files via the Edit tool, redirect stdin from the file. Cleaner alternative: add an explicit test-token sentinel (e.g. 'TEST_TOKEN_DO_NOT_FLAG_<hash>') that the hook's regex skips. Tradeoff: any allowlist surface is itself an exfiltration vector if real tokens get prefixed with the sentinel. Probably not worth the complexity unless audit/fixture work scales up — captured as P2 because the workaround is fine for one-off probing. See design/hook-audit/01-standardized/robustness.md."
+    },
+    {
+      "id": "workshop-resources-out-of-dotclaude",
+      "priority": "P1",
+      "title": "Move workshop-authored resources out of .claude/ into a dedicated source dir",
+      "scope": [
+        "toolkit"
+      ],
+      "status": "idea",
+      "notes": "Today .claude/ in this repo plays two roles: (1) the workshop's authored output (skills/agents/hooks/docs that ship via claude-toolkit sync) and (2) the toolkit's own dogfooded Claude Code config. The dual role muddies 'what is this file — artifact or dependency?' Proposal: move workshop-authored sources into a dedicated dir (e.g. resources/), and let .claude/ go back to meaning 'Claude Code's local config for working in this repo' as it does in any consumer project.\n\nKey design points the user sketched:\n- Hooks continue reading from .claude/ wherever they are running (no in-hook path change).\n- Validators are run after a 'sync to workshop .claude/' step — they always see the production layout, not the source layout.\n- Dogfooding is via an explicit step (a `claude-toolkit sync --self`-style command), not via symlink. Trade: lose immediate-feedback when editing a resource, gain principled mirror of the consumer-side workflow.\n\nImplications to think through later:\n- dist/raiz/MANIFEST and dist/base/EXCLUDE are path-anchored at .claude/; they'd need to point at the new source dir or learn the sync-then-bundle flow.\n- validate-resources-indexed.sh, verify-resource-deps.sh, hook-framework/validate.sh all walk .claude/ today.\n- docs/indexes/*.md cross-references use .claude/... paths in dozens of places.\n- The hook audit (feat/hook-audit-categories) takes path stability as a baseline; this move should land after the audit's design phase, not during it.\n\nRecommended next step: run /shape-project on this question before any code moves. Specifically, decide (a) what the new source dir is called and what's inside it, (b) what the dogfood command looks like and when you run it, (c) whether .claude/ in the workshop becomes gitignored output of the dogfood step or stays committed."
+    },
+    {
+      "id": "hook-audit-01-test-log-tool-uses",
+      "priority": "P1",
+      "title": "Add tests/hooks/test-log-tool-uses.sh mirroring log-permission-denied",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "log-tool-uses has no test file beyond its V18-minimum smoke fixture. The hook is 30 LoC of comments + 5 lines of code, but the JSONL row contract (every required field, stdin embedded, outcome=pass) is unjustified-by-test. Mirror tests/hooks/test-log-permission-denied.sh: ~4 Shape B cases for tool-name variety + JSONL field assertions. Cost: 30 min, ~50 LoC. See design/hook-audit/01-standardized/testability.md."
+    },
+    {
+      "id": "hook-audit-01-test-detect-session-start-truncation",
+      "priority": "P1",
+      "title": "Add tests/hooks/test-detect-session-start-truncation.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "detect-session-start-truncation has no test file. Two distinct paths exist (truncation marker present in transcript → hook_inject warning; absent → silent pass) plus the fire-once marker file. None tested. ~4 Shape B cases: truncation present, truncation absent, marker pre-set (fire-once verified), missing transcript_path (silent pass). Cost: 30 min, ~60 LoC. See design/hook-audit/01-standardized/testability.md."
+    },
+    {
+      "id": "hook-audit-01-shape-a-match-check-pairs",
+      "priority": "P1",
+      "title": "Add Shape A test layer for the 9 dual-mode hooks (match_*/check_* in-process)",
+      "scope": [
+        "hooks",
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "9 of 13 standardized hooks expose Shape A-compatible match_*/check_* pairs that the dispatcher already calls in-process. Today these are tested only end-to-end via Shape B (subprocess fork per case). A Shape A test layer (source the hook, call match_<name> and check_<name> with shaped input, assert return + _BLOCK_REASON) would catch predicate-vs-check contract issues at ~0ms per case. The block-dangerous-commands quote-evasion gap (hook-audit-01-block-dangerous-quote-predicate) is exactly the kind of bug Shape A catches faster than Shape B. Cost: 2-3 hours, ~150 LoC. Hooks: auto-mode-shared-steps, block-config-edits, block-credential-exfiltration, block-dangerous-commands, enforce-make-commands, enforce-uv-run, git-safety, secrets-guard, suggest-read-json. See design/hook-audit/01-standardized/testability.md."
+    },
+    {
+      "id": "tests-harness-overhead-investigation",
+      "priority": "P2",
+      "title": "Investigate 19s per-file gap between predicted parallel wall and measured",
+      "scope": [
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "Per-hook-test files measure 5-20s walls but performance.md's per-case fork cost predicts 0.1-0.9s parallel walls. The 5-19s gap per file is unexplained — hypothesis is harness setup overhead in tests/lib/hook-test-setup.sh (mktemp dir creation, env var export, helper sourcing) and xargs -P startup. Worth a separate probe to attribute the gap. If the bulk is per-case I/O (file write + read for batch_run), batching the file writes or using a here-string redirect could compress it. Falls to tests/CLAUDE.md's perf-baseline tracking, not the hook audit. See design/hook-audit/01-standardized/testability.md (Per-hook fork cost)."
+    },
+    {
+      "id": "hook-audit-01-superset-invariant-doc-and-test",
+      "priority": "P1",
+      "title": "Formalize match/check superset invariant in docs + assert via Shape A tests",
+      "scope": [
+        "hooks",
+        "docs",
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "The match_*/check_* superset invariant is already documented in .claude/docs/relevant-toolkit-hooks.md §3 (false-negative-is-a-bug) but not enforced. block-dangerous-commands quote-evasion gap (hook-audit-01-block-dangerous-quote-predicate) is a violation of the documented rule — predicate excludes quote characters, check would block after quote-stripping. Two pieces: (1) update relevant-toolkit-hooks.md §3 to name the invariant explicitly as 'check_acts(x) ⇒ match_returns_true(x)' / 'predicate's true-set is a superset of check's act-set'. (2) Wire the Shape A test layer (hook-audit-01-shape-a-match-check-pairs) to assert it: for each of the 9 dual-mode hooks, generate inputs check would block, assert match returns true on each. This is the highest-leverage clarity recommendation in the 01-standardized audit. See design/hook-audit/01-standardized/clarity.md (Proposal 1).",
+      "relates_to": [
+        "hook-audit-01-shape-a-match-check-pairs:relates-to",
+        "hook-audit-01-block-dangerous-quote-predicate:relates-to"
+      ]
+    },
+    {
+      "id": "hook-audit-01-secrets-guard-registry-policy",
+      "priority": "P2",
+      "title": "Explore registry-driven command-shape policy for secrets-guard",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "secrets-guard's check-body cost (~26ms p50 per per-hook probe) is dominated by inline command-shape policy (env-listing detection, credential-shaped printenv argument detection). The shared registry today handles regex-based pattern matching; the inline policy is positional ('printenv of a credential-shaped name') and doesn't map cleanly to the current registry shape. Speculative proposal: extend the registry to support positional matching, move secrets-guard's inline policy into registry data, shrink the hook to ~150 LoC. Real performance win (~14ms × all-Bash-firings + all-Read-firings is significant), but it's a substantial change to the registry shape — separate design effort, not a clarity-pass call. P2 because the speculation is real but the win depends on a registry redesign whose cost isn't yet scoped. See design/hook-audit/01-standardized/clarity.md (Proposal 6, secrets-guard subsection)."
+    },
+    {
+      "id": "hook-audit-02-perf-budget-headers",
+      "priority": "P1",
+      "title": "Per-dispatcher PERF-BUDGET-MS headers (grouped-bash-guard scope_miss=150 scope_hit=220; grouped-read-guard 75/120)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/performance.md. Both dispatchers warn on every make check because they inherit the framework default scope_miss=5. N=30 probe data backs scope_miss=150/scope_hit=220 for grouped-bash-guard and 75/120 for grouped-read-guard (smoke p95 + ~10%). Cheapest fix: one header line per dispatcher. Stops V20 false-positives without hiding +20% drift regressions."
+    },
+    {
+      "id": "hook-audit-02-substep-batching",
+      "priority": "P2",
+      "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/performance.md and 02-dispatchers/clarity.md Proposal 6. grouped-bash-guard real-mode pays 8x hook_log_substep jq forks per dispatch (~40ms). Buffer (name, duration_ms, outcome, bytes) tuples in bash arrays during the dispatcher loop; emit ALL rows via one jq -c -n --argjson rows [...] invocation at the EXIT trap. Same N rows in JSONL output (schema preserved); one fork instead of N. Save: ~35ms on bash-guard real-mode, ~10ms on read-guard real-mode. Implementation: four bash array globals initialized at hook_init, dispatcher loop appends instead of direct hook_log_substep call, post-block skipped emission also buffers, EXIT-trap path calls a new flush function. EXPLICITLY REJECTED variants: collapsing N substep rows into one dispatch row with nested substeps array (would break downstream JSONL consumers); skipping jq for substep rows by hand-rolling JSON via printf (fragile against schema additions in hook-logging.sh). Re-run run-per-dispatcher-probe.sh after change for before/after numbers."
+    },
+    {
+      "id": "hook-audit-02-source-guarded-cost",
+      "priority": "P3",
+      "title": "Micro-bench cost of guarded source calls (source X when X is already sourced)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/performance.md cost decomposition. Suspected source of the ~35ms (bash-guard) / ~16ms (read-guard) residual after attributing bash startup, hook-utils parse, hook_init, per-child source, match/check, and substep logging. Hypothesis: each child's source lib/hook-utils.sh + source lib/detection-registry.sh lines hit the idempotency guard (no-op for body), but bash still does command lookup + path resolution per call. With 8 children × ~3 source-lines each ≈ 24 guarded source calls; if each costs ~1-2ms, that closes the residual. Probe shape: bash -c 'source X; for i in {1..N}; do source X; done' bracketed."
+    },
+    {
+      "id": "hook-audit-02-block-reason-contract",
+      "priority": "P2",
+      "title": "Enforce _BLOCK_REASON contract: rc=1 from check_<name> implies _BLOCK_REASON is set",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/robustness.md T18. Today's contract is convention-only: a child's check_<name> returning 1 must have set _BLOCK_REASON, but nothing enforces it. A future child writer who forgets the assignment ships a hook that emits decision JSON with empty reason — silent UX defect. Two-part fix: (a) dispatcher-side fallback after the check call (assert _BLOCK_REASON non-empty, otherwise set diagnostic message naming the offending child); (b) validator-side static check (grep for _BLOCK_REASON= near every return 1 in check_<name> functions of dual-mode hooks). Both are cheap. Recorded as P2: T18 reproduces deterministically but no current child violates."
+    },
+    {
+      "id": "hook-audit-02-child-source-rc",
+      "priority": "P3",
+      "title": "Log skipped(source_failed) substep when dispatcher's source  returns non-zero",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/robustness.md T16. Today the dispatcher's generated source-loop runs source  without rc check. A child file whose top-level returns non-zero (dependency error, programmatic abort) is silently skipped: declare -F catches missing functions, but partially-defined functions may register and be invoked on inputs they can't handle. Cheap fix: capture rc of source, emit hook_log_substep check_<name>_source_failed with reason if non-zero, and skip registration even if declare -F passes. Real-world likelihood is low (children define functions atomically) but the contract is brittle."
+    },
+    {
+      "id": "hook-audit-00-empty-stdin-fail-closed",
+      "priority": "P3",
+      "title": "hook_init: treat empty _HOOK_INIT_TOOL_NAME (rc=0 jq, empty input) as malformed for PreToolUse",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/robustness.md empty-stdin edge case. printf '' | jq -r '...' exits rc=0 with empty output, so hook_init's malformed branch (line 267 rc!=0 check) doesn't fire. _HOOK_INIT_TOOL_NAME ends up empty; hook_require_tool returns 0 without setting _HOOK_ACTIVE; PreToolUse safety hooks silent-pass instead of failing closed. Diverges from the documented PreToolUse-fails-closed-on-malformed contract. Lib-level fix in hook-utils.sh: if [ -z  ] under HOOK_EVENT=PreToolUse, hit the malformed branch. No production trigger known (harness always emits valid JSON with tool_name); only probe-surface."
+    },
+    {
+      "id": "hook-audit-02-block-fallout-fixture",
+      "priority": "P2",
+      "title": "Add block-fall-out fixture per dispatcher (substeps after block are all skipped)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/testability.md",
+      "notes": "Today the dispatcher's post-block fall-out loop (grouped-bash-guard.sh:108-114, grouped-read-guard.sh:80-86) has no test coverage. Add a fixture per dispatcher where child #1 blocks (e.g. a catastrophic-pattern command triggers the dangerous child), capture the JSONL row from TEST_INVOCATIONS_JSONL, assert substeps | length matches the dispatcher's child count and all substeps after the block index are skipped. Closes testability gaps #1 and #5. Per-fork cost ~130ms; trivial wall impact. Robustness verified the behavior empirically (T19); this fixture locks it as regression coverage."
+    },
+    {
+      "id": "hook-audit-02-precedence-fixtures",
+      "priority": "P3",
+      "title": "Add precedence fixtures for dispatch-order regressions (secrets_guard before config_edits, etc.)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/testability.md",
+      "notes": "Today only 2 of test-grouped-bash.sh's 7 cases test precedence (credential_exfil winning over git_safety on a force-push with embedded credential). Other ordering decisions (dangerous before everything; auto_mode before credential_exfil; secrets_guard before config_edits) have no precedence assertions. If dispatch-order.json is reshuffled, these silent-pass through. Add 2-3 fixtures sending a command both children would block on, asserting the block reason matches the earlier child. ~3 cases x ~130ms = ~0.4s wall."
+    },
+    {
+      "id": "hook-audit-02-distribution-functions-missing-fixture",
+      "priority": "P3",
+      "title": "Add _missing_match_check fixture per dispatcher (functions-missing distribution branch)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/testability.md",
+      "notes": "The generated dispatcher writes hook_log_substep \"check_${name}_missing_match_check\" 0 \"skipped\" 0 when a child file is present but its match_/check_ functions are missing. Verified empirically (robustness T15) but no test asserts it. Stage a temp HOOKS_DIR (raiz-sim machinery from test-grouped-bash.sh shows the pattern), replace one child's body with a file that does NOT define match_<name>/check_<name>, assert the JSONL row contains the _missing_match_check skipped substep. ~2 fixtures, ~30 min each. Lower defensibility than fall-out fixture but locks in a real generator promise."
+    },
+    {
+      "id": "hook-audit-02-clarity-comments",
+      "priority": "P3",
+      "title": "Document deliberate dispatcher asymmetries (read-guard missing FILE_PATH bail; render file-absent silent)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/clarity.md",
+      "notes": "Two small comment additions, each ~2 lines: (a) grouped-read-guard.sh — explain why no [ -z \"$FILE_PATH\" ] && exit 0 like grouped-bash-guard has (because all current Read children handle empty FILE_PATH in their match_ predicates and not_applicable accumulation is the right shape); (b) scripts/hook-framework/render-dispatcher.sh — explain why the file-absent branch ([ -f \"$src\" ] || continue) doesn't log a substep (file absence is expected for distribution-trimmed deployments like raiz; functions-missing is unexpected and gets a substep row). Locks in deliberate decisions so a future consistency pass doesn't change them without thinking."
+    },
+    {
+      "id": "hook-audit-02-trim-dispatcher-comments",
+      "priority": "P3",
+      "title": "Trim dispatcher entrypoint comment bloat (delete Children enumeration, substep-outcome list, ordering paraphrase)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/clarity.md",
+      "notes": "Audit (2026-05-02) found grouped-bash-guard.sh at 57% comment ratio and grouped-read-guard.sh at 47% — well above the standardized hook band of 25-35%. Three categories of bloat: (1) inline Children enumeration (grouped-bash-guard.sh:16-35 = 20 lines) duplicating dispatch-order.json + each child's CC-HOOK PURPOSE header; (2) substep-outcome enumeration (grouped-bash-guard.sh:41-45) duplicating relevant-toolkit-hooks.md §5; (3) dispatcher-loop ordering paraphrase (grouped-bash-guard.sh:78-81) re-stating #1. Drift already verified empirically: the line 80 paraphrase says 'git_safety next' but git_safety is now position 4 in dispatch-order.json. Action: delete the bloat, replace with one-line pointers to dispatch-order.json + relevant-toolkit-hooks.md §4/§5. Drops grouped-bash-guard.sh from 117 → ~87 LoC; grouped-read-guard.sh from 89 → ~79 LoC. Comment ratio drops into the standardized band. Pure deletion. What stays: CC-HOOK headers, the dispatcher-contract 0/1 return docs, [ -z \"$COMMAND\" ] reasoning, PERMISSION_MODE parsing rationale, the 'CHECK_SPECS + sourcing loop are generated' pointer."
+    },
+    {
+      "id": "make-check-discipline-hook",
+      "priority": "P1",
+      "title": "Suggestion hook for piped/repeated make check (catch the discipline drift)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Surfaced 2026-05-02 during 03-session-context audit wrap-up. Empirical data from ~/.claude/hooks.db.hook_logs (claude-toolkit project, all sessions to date): 574 `make check` invocations total, of which 205 (36%) are piped through head/tail/grep/etc. Top session ran `make check` 38 times; multiple sessions in the 20-30+ range. Cost shape: each `make check` is ~1+ min wall (often longer in CI), and re-runs typically happen near end-of-session where token count is already high — so the discipline drift compounds. Conventions already exist (memory `feedback_make_check_bare.md`; CLAUDE.md `Verification is `make check`, invoked bare`) but Claude does not follow them consistently. Memory + doc-only enforcement is insufficient. Design (suggestion, not block, per discussion): PreToolUse(Bash) hook that detects (a) `make check` followed by a pipe (`|`) and (b) `make check` re-run within N minutes of a previous failed `make check` in the same session. Fires `additionalContext` (not a block) suggesting the right behavior — read the existing output before re-running, or run the command bare to get full output. Block would be too intrusive (sometimes piping is right, e.g. `make check 2>&1 | tee log`); suggestion lets Claude choose but surfaces the convention. Could potentially fold into grouped-bash-guard.sh as a child check (similar to the surface-lessons-fold P99). Reference inputs: 02-dispatchers/clarity.md (dispatcher child shape), feedback_make_check_bare.md (memory), CLAUDE.md `Verification is make check, invoked bare`."
     }
   ]
 }

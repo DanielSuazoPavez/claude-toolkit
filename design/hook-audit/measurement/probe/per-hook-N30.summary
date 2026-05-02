@@ -1,0 +1,28 @@
+
+=== Per-hook total wall-clock (microseconds) ===
+approve-safe-commands (smoke)                       n=30    min=32219    p50=33320    p90=36916    p95=44380    max=1033413
+approve-safe-commands (real)                        n=30    min=45155    p50=47040    p90=51407    p95=53740    max=63834  
+auto-mode-shared-steps (smoke)                      n=30    min=44778    p50=46265    p90=51732    p95=53232    max=56739  
+auto-mode-shared-steps (real)                       n=30    min=59050    p50=62889    p90=73465    p95=83376    max=278419 
+block-config-edits (smoke)                          n=30    min=35505    p50=36645    p90=40419    p95=40958    max=48821  
+block-config-edits (real)                           n=30    min=50464    p50=52195    p90=59014    p95=61417    max=63305  
+block-credential-exfiltration (smoke)               n=30    min=31476    p50=32138    p90=34503    p95=35186    max=37223  
+block-credential-exfiltration (real)                n=30    min=46467    p50=55634    p90=61180    p95=62138    max=63063  
+block-dangerous-commands (smoke)                    n=30    min=41203    p50=43276    p90=47900    p95=49213    max=50168  
+block-dangerous-commands (real)                     n=30    min=55158    p50=59848    p90=63604    p95=67769    max=84193  
+detect-session-start-truncation (smoke)             n=30    min=16287    p50=17819    p90=19534    p95=20335    max=22735  
+detect-session-start-truncation (real)              n=30    min=30432    p50=33706    p90=38637    p95=42237    max=48077  
+enforce-make-commands (smoke)                       n=30    min=21239    p50=22498    p90=26116    p95=28629    max=28950  
+enforce-make-commands (real)                        n=30    min=36926    p50=39060    p90=42778    p95=47881    max=51424  
+enforce-uv-run (smoke)                              n=30    min=23493    p50=24893    p90=27311    p95=28523    max=29496  
+enforce-uv-run (real)                               n=30    min=39560    p50=41517    p90=47071    p95=48759    max=50982  
+git-safety (smoke)                                  n=30    min=35426    p50=38100    p90=41759    p95=42457    max=43274  
+git-safety (real)                                   n=30    min=49683    p50=53261    p90=57606    p95=59815    max=59966  
+log-permission-denied (smoke)                       n=30    min=20842    p50=22087    p90=24497    p95=24914    max=26519  
+log-permission-denied (real)                        n=30    min=35278    p50=38046    p90=41957    p95=43777    max=50519  
+log-tool-uses (smoke)                               n=30    min=20580    p50=22253    p90=25492    p95=28126    max=40881  
+log-tool-uses (real)                                n=30    min=35966    p50=39156    p90=42841    p95=45606    max=45936  
+secrets-guard (smoke)                               n=30    min=45549    p50=47987    p90=50756    p95=53170    max=59502  
+secrets-guard (real)                                n=30    min=62123    p50=67497    p90=71541    p95=78592    max=276520 
+suggest-read-json (smoke)                           n=30    min=23917    p50=27327    p90=35119    p95=38181    max=38811  
+suggest-read-json (real)                            n=30    min=39130    p50=43765    p90=48752    p95=48897    max=51120  

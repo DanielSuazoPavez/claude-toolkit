@@ -1,0 +1,24 @@
+
+=== Source phase (microseconds) ===
+baseline source                           n=50    min=76      p50=94      p90=145     p95=182     max=228   
+hook-utils source                         n=50    min=2404    p50=2526    p90=2783    p95=3100    max=3325  
+detection-registry source                 n=50    min=4080    p50=4247    p90=4862    p95=5371    max=5696  
+detection-registry-loaded source          n=50    min=11844   p50=12318   p90=13590   p95=13966   max=14564 
+settings-permissions source               n=50    min=2642    p50=2808    p90=3140    p95=3486    max=4159  
+settings-permissions-loaded source        n=50    min=11057   p50=11365   p90=12550   p95=12882   max=13711 
+
+=== Total (microseconds) ===
+baseline total                            n=50    min=3848    p50=4608    p90=5635    p95=5936    max=7904  
+hook-utils total                          n=50    min=6224    p50=6472    p90=7468    p95=8145    max=9411  
+detection-registry total                  n=50    min=7906    p50=8201    p90=9362    p95=10471   max=10866 
+detection-registry-loaded total           n=50    min=15600   p50=16247   p90=17861   p95=18771   max=19053 
+settings-permissions total                n=50    min=6477    p50=6795    p90=7773    p95=8218    max=9548  
+settings-permissions-loaded total         n=50    min=14916   p50=15410   p90=17131   p95=17755   max=18852 
+
+=== Bash startup (microseconds) ===
+baseline startup                          n=50    min=3059    p50=3656    p90=4396    p95=5055    max=6773  
+hook-utils startup                        n=50    min=2959    p50=3183    p90=3885    p95=4235    max=5254  
+detection-registry startup                n=50    min=3014    p50=3207    p90=3760    p95=4063    max=4347  
+detection-registry-loaded startup         n=50    min=2978    p50=3161    p90=3551    p95=3687    max=4209  
+settings-permissions startup              n=50    min=3071    p50=3195    p90=3428    p95=3849    max=4888  
+settings-permissions-loaded startup       n=50    min=3004    p50=3200    p90=3673    p95=4114    max=5269  

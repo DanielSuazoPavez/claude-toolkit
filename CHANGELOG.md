@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Notes
+- **hook-audit category 03 drafted** (`design/hook-audit/03-session-context/`). All 6 axes filled for `session-start` and `surface-lessons`, plus a new `context-pollution.md` axis specific to context-injection hooks (replaces the fail-closed/open/soft/loud taxonomy that doesn't apply when there's no decision to make). Audit uses asymmetric depth: full treatment for `session-start`, light-touch for `surface-lessons` (deferred to queued `eval-claude-mem` P1 evaluation). Headline empirical findings from `~/.claude/hooks.db` (17 880 invocations) + `~/.claude/sessions.db` (490 sessions): `surface-lessons` fires on 33% of PreToolUse(Bash|Read|Write|Edit) invocations (44% on Bash); within-session dedup is in place but cross-session recurrence is the visible problem (top 3-lesson tuple touches 261 distinct sessions, ~53% of all claude-toolkit sessions); half of active tags have empty keywords. session-start payload is 5426 B (53% of 10240 B harness cap) with 65% concentrated in one full-injected doc. Real session-length percentiles (p50=8 turns, p95=33 turns) anchor a byte-turn cost framing that's new to this audit. Adds ~17 backlog items, mostly P2/P3 doc + small-fix work; no mechanism refactor of `surface-lessons` because `eval-claude-mem` may replace it. Adds new P1 `make-check-discipline-hook` (suggestion-not-block hook for piped/repeated `make check` — empirically 36% of `make check` invocations in this project are piped; one session ran it 38 times).
+
 ## [2.81.2] - 2026-05-02 - Lazy-resolve PROJECT in hook_init
 
 ### Performance
