@@ -1,0 +1,13 @@
+
+=== Aggregate (microseconds) ===
+smoke total                       n=50    min=17556   p50=21468   p90=25158   p95=27172   max=31030 
+real total                        n=50    min=16703   p50=18234   p90=22930   p95=23706   max=24625 
+real-no-sqlite total              n=50    min=16175   p50=17882   p90=20690   p95=21542   max=23623 
+
+smoke init                        n=50    min=8464    p50=10349   p90=12975   p95=13674   max=17691 
+real init                         n=50    min=8239    p50=9626    p90=11639   p95=12549   max=13036 
+real-no-sqlite init               n=50    min=8171    p50=9433    p90=10444   p95=11716   max=12861 
+
+smoke bash_startup                n=50    min=3120    p50=3939    p90=5434    p95=6051    max=7077  
+real bash_startup                 n=50    min=2056    p50=2449    p90=3220    p95=3398    max=4162  
+real-no-sqlite startup            n=50    min=2047    p50=2405    p90=3099    p95=3366    max=3577  

@@ -421,7 +421,7 @@
       "status": "idea",
       "notes": "Clean dead-weight forks/subshells in hook libs (pattern surfaced by V20 perf warns). Three exemplar fixes shipped in 2.81.1; remaining overruns + measurement-correctness audit captured in the referenced analysis file.",
       "references": [
-        "design/hooks-implementation-review.md",
+        "design/hook-audit/README.md",
         ".claude/hooks/lib/hook-utils.sh",
         ".claude/hooks/lib/detection-registry.sh",
         ".claude/hooks/lib/settings-permissions.sh",

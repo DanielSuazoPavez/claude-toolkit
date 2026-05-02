@@ -173,6 +173,7 @@ elif [ -f "$LESSONS_DB" ]; then
     # flag, and inputs come from $PWD / git refs (local, user-owned) — not
     # external input.
     SAFE_BRANCH="${CURRENT_BRANCH//\'/\'\'}"
+    _ensure_project
     SAFE_PROJECT="${PROJECT//\'/\'\'}"
 
     BRANCH_LESSONS=""

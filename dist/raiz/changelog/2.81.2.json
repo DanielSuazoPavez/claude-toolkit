@@ -1,0 +1,16 @@
+{
+  "version": "2.81.2",
+  "date": "2026-05-02",
+  "headline": "Lazy-resolve PROJECT in hook_init — ~9ms per hook in real-session",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "lib/hook-utils.sh: hook_init no longer resolves PROJECT eagerly. New _ensure_project accessor resolves on first read and caches; logging functions and lessons-aware hooks call it before reading $PROJECT.",
+        "Hooks that never reference $PROJECT skip the resolution entirely. N=50 probe: real-session hook_init p50 19.0ms → 9.6ms (−9.4ms), p95 25.2ms → 12.5ms.",
+        "Two-thirds of the saving is the sqlite3 fork in _resolve_project_id; the rest is the subshell that was capturing the function output. Both costs were paid on every hook invocation, regardless of whether $PROJECT was used."
+      ]
+    }
+  ]
+}

@@ -35,7 +35,8 @@ INVOCATION_ID=""
 SESSION_ID=""
 HOOK_SOURCE=""   # SessionStart source: startup|resume|clear|compact, empty for other events
 CALL_ID=""       # Per-call id: bare tool_use_id (Pre/PostToolUse) or agent_id (SubagentStop), empty otherwise. Tool-vs-agent is derived from hook_event, not a prefix.
-PROJECT=""
+PROJECT=""       # Resolved lazily by _ensure_project on first read. Empty until resolved.
+_PROJECT_RESOLVED=false
 HOOK_START_MS=0
 OUTCOME="pass"
 BYTES_INJECTED=0
@@ -195,6 +196,23 @@ _resolve_project_id() {
 }
 
 # ============================================================
+# _ensure_project
+# ============================================================
+# Resolve PROJECT lazily on first read. Idempotent — subsequent calls
+# are a single boolean check. Hooks that never reference PROJECT skip
+# the sqlite3 fork in _resolve_project_id entirely (~4-5ms median in
+# real-session per the pre-init probe).
+#
+# Call this before any read of $PROJECT. Logging functions in
+# hook-logging.sh call it themselves before emitting JSONL rows.
+_ensure_project() {
+    [ "$_PROJECT_RESOLVED" = true ] && return
+    # shellcheck disable=SC2034  # PROJECT read by hook-logging.sh and lessons hooks
+    PROJECT="$(_resolve_project_id)"
+    _PROJECT_RESOLVED=true
+}
+
+# ============================================================
 # hook_init HOOK_NAME HOOK_EVENT
 # ============================================================
 hook_init() {
@@ -211,8 +229,12 @@ hook_init() {
     INPUT="$HOOK_INPUT"
     # shellcheck disable=SC2034  # INVOCATION_ID/PROJECT/OUTCOME/*BYTES_INJECTED read in hook-logging.sh
     INVOCATION_ID="$$-${EPOCHSECONDS:-$(date +%s)}"
-    # shellcheck disable=SC2034
-    PROJECT="$(_resolve_project_id)"
+    # PROJECT is resolved lazily — first reader calls _ensure_project.
+    # Reset the resolved flag in case hook_init runs twice in the same shell
+    # (dispatcher → child hook). _resolve_project_id is deterministic for the
+    # same $PWD, so re-resolution is safe; the flag just avoids redundant work.
+    # shellcheck disable=SC2034  # _PROJECT_RESOLVED read by _ensure_project
+    _PROJECT_RESOLVED=false
     # Capture timestamp once, reuse in all logging.
     # Millisecond precision — multiple hook rows within a single turn land in
     # the same second, and ms lets us order them chronologically.
