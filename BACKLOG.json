@@ -638,12 +638,12 @@
     {
       "id": "hook-audit-02-substep-batching",
       "priority": "P2",
-      "title": "Batch dispatcher substep rows into one JSONL row per dispatch",
+      "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
       "scope": [
         "hooks"
       ],
       "status": "idea",
-      "notes": "From design/hook-audit/02-dispatchers/performance.md option (a). grouped-bash-guard real-mode pays 8x hook_log_substep jq forks per dispatch (~40ms). Batching into one row at end of dispatcher loop saves ~35ms per Bash dispatch in real mode. Tradeoff: schema change for downstream JSONL consumers (one row per dispatch instead of one per (dispatch, substep)). Coordinate with traceability viewer + analytics before landing. Re-run run-per-dispatcher-probe.sh after change for before/after numbers."
+      "notes": "From design/hook-audit/02-dispatchers/performance.md and 02-dispatchers/clarity.md Proposal 6. grouped-bash-guard real-mode pays 8x hook_log_substep jq forks per dispatch (~40ms). Buffer (name, duration_ms, outcome, bytes) tuples in bash arrays during the dispatcher loop; emit ALL rows via one jq -c -n --argjson rows [...] invocation at the EXIT trap. Same N rows in JSONL output (schema preserved); one fork instead of N. Save: ~35ms on bash-guard real-mode, ~10ms on read-guard real-mode. Implementation: four bash array globals initialized at hook_init, dispatcher loop appends instead of direct hook_log_substep call, post-block skipped emission also buffers, EXIT-trap path calls a new flush function. EXPLICITLY REJECTED variants: collapsing N substep rows into one dispatch row with nested substeps array (would break downstream JSONL consumers); skipping jq for substep rows by hand-rolling JSON via printf (fragile against schema additions in hook-logging.sh). Re-run run-per-dispatcher-probe.sh after change for before/after numbers."
     },
     {
       "id": "hook-audit-02-source-guarded-cost",
@@ -684,6 +684,61 @@
       ],
       "status": "idea",
       "notes": "From design/hook-audit/02-dispatchers/robustness.md empty-stdin edge case. printf '' | jq -r '...' exits rc=0 with empty output, so hook_init's malformed branch (line 267 rc!=0 check) doesn't fire. _HOOK_INIT_TOOL_NAME ends up empty; hook_require_tool returns 0 without setting _HOOK_ACTIVE; PreToolUse safety hooks silent-pass instead of failing closed. Diverges from the documented PreToolUse-fails-closed-on-malformed contract. Lib-level fix in hook-utils.sh: if [ -z  ] under HOOK_EVENT=PreToolUse, hit the malformed branch. No production trigger known (harness always emits valid JSON with tool_name); only probe-surface."
+    },
+    {
+      "id": "hook-audit-02-block-fallout-fixture",
+      "priority": "P2",
+      "title": "Add block-fall-out fixture per dispatcher (substeps after block are all skipped)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/testability.md",
+      "notes": "Today the dispatcher's post-block fall-out loop (grouped-bash-guard.sh:108-114, grouped-read-guard.sh:80-86) has no test coverage. Add a fixture per dispatcher where child #1 blocks (e.g. a catastrophic-pattern command triggers the dangerous child), capture the JSONL row from TEST_INVOCATIONS_JSONL, assert substeps | length matches the dispatcher's child count and all substeps after the block index are skipped. Closes testability gaps #1 and #5. Per-fork cost ~130ms; trivial wall impact. Robustness verified the behavior empirically (T19); this fixture locks it as regression coverage."
+    },
+    {
+      "id": "hook-audit-02-precedence-fixtures",
+      "priority": "P3",
+      "title": "Add precedence fixtures for dispatch-order regressions (secrets_guard before config_edits, etc.)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/testability.md",
+      "notes": "Today only 2 of test-grouped-bash.sh's 7 cases test precedence (credential_exfil winning over git_safety on a force-push with embedded credential). Other ordering decisions (dangerous before everything; auto_mode before credential_exfil; secrets_guard before config_edits) have no precedence assertions. If dispatch-order.json is reshuffled, these silent-pass through. Add 2-3 fixtures sending a command both children would block on, asserting the block reason matches the earlier child. ~3 cases x ~130ms = ~0.4s wall."
+    },
+    {
+      "id": "hook-audit-02-distribution-functions-missing-fixture",
+      "priority": "P3",
+      "title": "Add _missing_match_check fixture per dispatcher (functions-missing distribution branch)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/testability.md",
+      "notes": "The generated dispatcher writes hook_log_substep \"check_${name}_missing_match_check\" 0 \"skipped\" 0 when a child file is present but its match_/check_ functions are missing. Verified empirically (robustness T15) but no test asserts it. Stage a temp HOOKS_DIR (raiz-sim machinery from test-grouped-bash.sh shows the pattern), replace one child's body with a file that does NOT define match_<name>/check_<name>, assert the JSONL row contains the _missing_match_check skipped substep. ~2 fixtures, ~30 min each. Lower defensibility than fall-out fixture but locks in a real generator promise."
+    },
+    {
+      "id": "hook-audit-02-clarity-comments",
+      "priority": "P3",
+      "title": "Document deliberate dispatcher asymmetries (read-guard missing FILE_PATH bail; render file-absent silent)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/clarity.md",
+      "notes": "Two small comment additions, each ~2 lines: (a) grouped-read-guard.sh — explain why no [ -z \"$FILE_PATH\" ] && exit 0 like grouped-bash-guard has (because all current Read children handle empty FILE_PATH in their match_ predicates and not_applicable accumulation is the right shape); (b) scripts/hook-framework/render-dispatcher.sh — explain why the file-absent branch ([ -f \"$src\" ] || continue) doesn't log a substep (file absence is expected for distribution-trimmed deployments like raiz; functions-missing is unexpected and gets a substep row). Locks in deliberate decisions so a future consistency pass doesn't change them without thinking."
+    },
+    {
+      "id": "hook-audit-02-trim-dispatcher-comments",
+      "priority": "P3",
+      "title": "Trim dispatcher entrypoint comment bloat (delete Children enumeration, substep-outcome list, ordering paraphrase)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "design/hook-audit/02-dispatchers/clarity.md",
+      "notes": "Audit (2026-05-02) found grouped-bash-guard.sh at 57% comment ratio and grouped-read-guard.sh at 47% — well above the standardized hook band of 25-35%. Three categories of bloat: (1) inline Children enumeration (grouped-bash-guard.sh:16-35 = 20 lines) duplicating dispatch-order.json + each child's CC-HOOK PURPOSE header; (2) substep-outcome enumeration (grouped-bash-guard.sh:41-45) duplicating relevant-toolkit-hooks.md §5; (3) dispatcher-loop ordering paraphrase (grouped-bash-guard.sh:78-81) re-stating #1. Drift already verified empirically: the line 80 paraphrase says 'git_safety next' but git_safety is now position 4 in dispatch-order.json. Action: delete the bloat, replace with one-line pointers to dispatch-order.json + relevant-toolkit-hooks.md §4/§5. Drops grouped-bash-guard.sh from 117 → ~87 LoC; grouped-read-guard.sh from 89 → ~79 LoC. Comment ratio drops into the standardized band. Pure deletion. What stays: CC-HOOK headers, the dispatcher-contract 0/1 return docs, [ -z \"$COMMAND\" ] reasoning, PERMISSION_MODE parsing rationale, the 'CHECK_SPECS + sourcing loop are generated' pointer."
     }
   ]
 }
