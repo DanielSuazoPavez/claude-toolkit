@@ -31,7 +31,7 @@ Every category is reviewed along the same four axes:
 |---|----------|---------|--------|
 | 00 | [Shared libs](00-shared/README.md) | `hook-utils.sh`, `detection-registry.sh`, `settings-permissions.sh`, `hook-logging.sh`, `detection-registry.json`, `dispatch-order.json` | drafted (all 4 axes + inventory) |
 | 01 | [Standardized hooks](01-standardized/README.md) | `approve-safe-commands`, `auto-mode-shared-steps`, `block-config-edits`, `block-credential-exfiltration`, `block-dangerous-commands`, `detect-session-start-truncation`, `enforce-make-commands`, `enforce-uv-run`, `git-safety`, `log-permission-denied`, `log-tool-uses`, `secrets-guard`, `suggest-read-json` | drafted (all 4 axes + inventory) |
-| 02 | [Dispatchers](02-dispatchers/README.md) | `grouped-bash-guard`, `grouped-read-guard` (+ `lib/dispatcher-grouped-*-guard.sh`) | inventory + performance + robustness drafted |
+| 02 | [Dispatchers](02-dispatchers/README.md) | `grouped-bash-guard`, `grouped-read-guard` (+ `lib/dispatcher-grouped-*-guard.sh`) | drafted (all 4 axes + inventory) |
 | 03 | [Session-context hooks](03-session-context/README.md) | `session-start`, `surface-lessons` | not started |
 
 ## Cross-cutting: Measurement

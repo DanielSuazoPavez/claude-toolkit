@@ -166,15 +166,17 @@ Lazy-resolution is the same patch, same win, applied to dispatchers automaticall
 
 ### 3. Substep-logging fork count is the dispatcher's real-mode amplifier
 
-`grouped-bash-guard` pays 8 `hook_log_substep` jq forks per dispatch when traceability is on. That's 8 × ~5ms = ~40ms per dispatch in the real-mode total. The current shape calls `jq -c -n --arg ... | jq -c '. + {...}' >> file` style under the hood (per `hook-logging.sh:_hook_log_jsonl`). Three plausible compressions:
+`grouped-bash-guard` pays 8 `hook_log_substep` jq forks per dispatch when traceability is on. That's 8 × ~5ms = ~40ms per dispatch in the real-mode total. The current shape calls `jq -c -n --arg ... | jq -c '. + {...}' >> file` style under the hood (per `hook-logging.sh:_hook_log_jsonl`).
 
-a. **Batch substeps into one row at the end of the dispatcher loop.** Build the substep array in bash, write one JSONL row with `jq -c -n --argjson substeps '[…]'`. One fork instead of 8. Saves ~35ms on bash-dispatcher real-mode dispatches.
+**Compression shape (per `02-dispatchers/clarity.md` Proposal 6):** buffer substep tuples in bash arrays during the dispatcher loop; emit *all* substep rows via one `jq -c -n --argjson rows '[…]'` invocation at the EXIT trap. Same N rows in the JSONL output; one jq fork instead of N. Saves ~35ms on bash-dispatcher real-mode dispatches; ~10ms on read-dispatcher real-mode dispatches.
 
-b. **Skip jq for substep rows; emit pre-built JSON via printf.** Sub-step rows have a fixed schema; bash can format them without forking. Saves ~5ms per substep call. Tradeoff: hand-rolled JSON is fragile against the schema additions that `hook-logging.sh` already centralizes.
+**Schema is preserved.** The output stays one `kind:"substep"` row per substep — only the *write timing* moves (per-substep immediate → buffered + single batched flush at exit). Rejected variants: collapsing N substep rows into one dispatch row with a nested `substeps` array (would break downstream consumers that walk the JSONL expecting per-substep rows); skipping jq for substep rows by hand-rolling JSON via `printf` (fragile against schema additions in `hook-logging.sh`).
 
-c. **Move substep emission into the EXIT trap.** The trap already builds one jq invocation; substeps could be appended into that single row's payload. Same save as (a), different shape.
-
-(a) and (c) are equivalent saves; (a) is closer to today's per-substep semantics. Tradeoff: the JSONL consumer (analytics, traceability viewer) gets one row per dispatch instead of one row per (dispatch, substep). That's a schema change downstream — recorded as scope for `clarity.md` to weigh against the per-row consumer assumptions.
+Implementation notes (full design in `clarity.md`):
+- Four bash array globals (`_SUBSTEP_NAMES`, `_SUBSTEP_DURATIONS`, `_SUBSTEP_OUTCOMES`, `_SUBSTEP_BYTES`) initialized at `hook_init` time.
+- Dispatcher loop appends to the arrays instead of calling `hook_log_substep` directly.
+- Post-block skipped-substep emission also buffers (not direct write).
+- EXIT-trap path (today emits `_hook_log_timing`) calls a new flush function that builds the rows array and appends N JSONL lines as a single block-write.
 
 ### 4. `git-safety` `git rev-parse` caching across dispatcher children
 
@@ -233,6 +235,6 @@ Tradeoff: loses the `[ -f "$src" ] || continue` distribution tolerance (children
 ## Open
 
 - **Source-of-already-sourced-file micro-bench.** Suspected source of the ~35ms / ~16ms residual. One probe variant: `bash -c 'source X; for i in $(seq 1 N); do source X; done'` bracketed around the loop. Would close the decomposition. Recorded as `hook-audit-02-source-guarded-cost`.
-- **Substep batching prototype.** Implement option (a) above (one row per dispatch, substeps in an array) and re-run the real-mode probe. Expected save: ~35ms on bash-guard real-mode. Recorded for the implement phase as `hook-audit-02-substep-batching`.
+- **Substep buffer-then-flush prototype.** Implement the buffered-flush shape above (per-substep rows preserved in JSONL output; one jq fork at EXIT trap instead of N) and re-run the real-mode probe. Expected save: ~35ms on bash-guard real-mode, ~10ms on read-guard real-mode. Recorded for the implement phase as `hook-audit-02-substep-batching`.
 - **Per-child cost after lazy-resolution patch.** The lazy-resolution patch from `measurement/lazy-resolution-experiment.md` is not yet on main. Re-running this probe after it lands would give a clean before/after for the implement-phase commit message. Recorded as part of the lazy-resolution rollout.
 - **Block-path dispatcher fixtures.** Pass-fixture only here. Adding a block fixture (e.g. `dispatches-rm-rf-blocked`) would let the probe measure block-vs-pass dispatcher dispersion. Falls to `testability.md` to scope; perf can re-run if asked.
