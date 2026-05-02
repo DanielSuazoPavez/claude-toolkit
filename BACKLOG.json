@@ -476,7 +476,7 @@
       ]
     },
     {
-      "id": "hook-audit-move-strip-inert-content",
+      "id": "hook-audit-00-move-strip-inert-content",
       "priority": "P0",
       "title": "Move _strip_inert_content from hook-utils.sh to detection-registry.sh",
       "scope": [
@@ -486,7 +486,7 @@
       "notes": "Localize the dependency to its only consumer. ~70 LoC move, header updates in both files, smoke + lib tests should still pass. Why and tradeoffs in design/hook-audit/00-shared/clarity.md (Proposal 1)."
     },
     {
-      "id": "hook-audit-malformed-stdin-fixtures",
+      "id": "hook-audit-00-malformed-stdin-fixtures",
       "priority": "P0",
       "title": "Add malformed-stdin smoke fixtures per event type",
       "scope": [
@@ -496,7 +496,7 @@
       "notes": "Lock in the only fail-closed branch hook_init has: PreToolUse=block, SessionStart=warn-and-continue, PostToolUse=silent pass with stdin_raw row, PermissionRequest=fail-open. Behavior verified live but unjustified-by-test. See design/hook-audit/00-shared/robustness.md (Tests / coverage gaps)."
     },
     {
-      "id": "hook-audit-shape-a-lib-tests",
+      "id": "hook-audit-00-shape-a-lib-tests",
       "priority": "P0",
       "title": "Add Shape A (in-process) lib tests for _strip_inert_content, hook_feature_enabled, _now_ms, hook_extract_quick_reference",
       "scope": [
