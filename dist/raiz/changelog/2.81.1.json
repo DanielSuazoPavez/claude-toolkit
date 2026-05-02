@@ -1,0 +1,17 @@
+{
+  "version": "2.81.1",
+  "date": "2026-05-02",
+  "headline": "Hook perf cleanup — every hook starts faster",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "lib/hook-utils.sh hook_init: collapsed 4-5 separate jq calls into one; bash+jq startup floor dropped ~10ms across every hook invocation.",
+        "lib/detection-registry.sh: replaced base64 round-trip with SOH sentinel; saves ~130ms per dispatcher startup (grouped-bash-guard, grouped-read-guard).",
+        "lib/settings-permissions.sh: inlined pure-expansion helpers that were forking 90 subshells per load; approve-safe-commands and auto-mode-shared-steps run ~190ms faster.",
+        "lib/hook-utils.sh: hooks invoked manually from a TTY no longer hang on stdin (skip the cat read when stdin is a terminal)."
+      ]
+    }
+  ]
+}

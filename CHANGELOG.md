@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.81.1] - 2026-05-02 - Hook perf cleanup + TTY fix
+
+### Fixed
+- **hooks**: `lib/hook-utils.sh` — guard `hook_init`'s stdin `cat` with `[[ -t 0 ]]` so hooks invoked manually from a TTY (debugging, ad-hoc runs) no longer block forever waiting for input.
+
+### Performance
+- **hooks**: `lib/detection-registry.sh` — replace 2 `base64 -d` forks per entry with a single SOH (`\x01`) sentinel through one `jq` call. Saves ~130ms per dispatcher invocation that loads the registry (44 fewer forks for 22 entries). `grouped-bash-guard` smoke 376ms → 254ms; `grouped-read-guard` 168ms → 51ms.
+- **hooks**: `lib/hook-utils.sh` `hook_init` — collapse 4-5 separate `jq` forks (validate + `session_id` + `tool_use_id` + `agent_id` + `source`) into one `jq` call emitting newline-separated values. Cache `tool_name` in `_HOOK_INIT_TOOL_NAME` so `hook_require_tool` no longer re-forks `jq`. V20 bash+jq floor 17ms → ~6-7ms; every hook invocation gets ~10ms back.
+- **hooks**: `lib/settings-permissions.sh` — inline `_settings_permissions_extract_prefix` and `_settings_permissions_escape_for_alt` into the load loops. Calling them via `$(helper "$x")` in a 45-entry loop forked 90 subshells (~190ms on WSL2) for what is pure parameter expansion. Same string transformations, no behavioural change. `approve-safe-commands` smoke 168ms → under its 50ms budget (no longer trips V20). `auto-mode-shared-steps` shares the loader and gets the same speedup.
+
+### Notes
+- V20 warn count dropped 9 → 8. Remaining warnings (`session-start` ~107ms, `grouped-bash-guard` ~140ms, etc.) tracked under new P0 backlog task `hooks-implementation-review` for a structured benchmark → evaluate → draft → implement pass over remaining fork/subshell anti-patterns.
+
 ## [2.81.0] - 2026-04-30 - Smoke-test harness (hook-framework-refactor item 6)
 
 ### Added
