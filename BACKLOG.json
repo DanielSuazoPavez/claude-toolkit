@@ -739,6 +739,16 @@
       "status": "idea",
       "source": "design/hook-audit/02-dispatchers/clarity.md",
       "notes": "Audit (2026-05-02) found grouped-bash-guard.sh at 57% comment ratio and grouped-read-guard.sh at 47% — well above the standardized hook band of 25-35%. Three categories of bloat: (1) inline Children enumeration (grouped-bash-guard.sh:16-35 = 20 lines) duplicating dispatch-order.json + each child's CC-HOOK PURPOSE header; (2) substep-outcome enumeration (grouped-bash-guard.sh:41-45) duplicating relevant-toolkit-hooks.md §5; (3) dispatcher-loop ordering paraphrase (grouped-bash-guard.sh:78-81) re-stating #1. Drift already verified empirically: the line 80 paraphrase says 'git_safety next' but git_safety is now position 4 in dispatch-order.json. Action: delete the bloat, replace with one-line pointers to dispatch-order.json + relevant-toolkit-hooks.md §4/§5. Drops grouped-bash-guard.sh from 117 → ~87 LoC; grouped-read-guard.sh from 89 → ~79 LoC. Comment ratio drops into the standardized band. Pure deletion. What stays: CC-HOOK headers, the dispatcher-contract 0/1 return docs, [ -z \"$COMMAND\" ] reasoning, PERMISSION_MODE parsing rationale, the 'CHECK_SPECS + sourcing loop are generated' pointer."
+    },
+    {
+      "id": "make-check-discipline-hook",
+      "priority": "P1",
+      "title": "Suggestion hook for piped/repeated make check (catch the discipline drift)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Surfaced 2026-05-02 during 03-session-context audit wrap-up. Empirical data from ~/.claude/hooks.db.hook_logs (claude-toolkit project, all sessions to date): 574 `make check` invocations total, of which 205 (36%) are piped through head/tail/grep/etc. Top session ran `make check` 38 times; multiple sessions in the 20-30+ range. Cost shape: each `make check` is ~1+ min wall (often longer in CI), and re-runs typically happen near end-of-session where token count is already high — so the discipline drift compounds. Conventions already exist (memory `feedback_make_check_bare.md`; CLAUDE.md `Verification is `make check`, invoked bare`) but Claude does not follow them consistently. Memory + doc-only enforcement is insufficient. Design (suggestion, not block, per discussion): PreToolUse(Bash) hook that detects (a) `make check` followed by a pipe (`|`) and (b) `make check` re-run within N minutes of a previous failed `make check` in the same session. Fires `additionalContext` (not a block) suggesting the right behavior — read the existing output before re-running, or run the command bare to get full output. Block would be too intrusive (sometimes piping is right, e.g. `make check 2>&1 | tee log`); suggestion lets Claude choose but surfaces the convention. Could potentially fold into grouped-bash-guard.sh as a child check (similar to the surface-lessons-fold P99). Reference inputs: 02-dispatchers/clarity.md (dispatcher child shape), feedback_make_check_bare.md (memory), CLAUDE.md `Verification is make check, invoked bare`."
     }
   ]
 }
