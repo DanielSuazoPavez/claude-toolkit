@@ -1,6 +1,7 @@
 ---
 category: 00-shared
-status: not started
+status: drafted
+date: 2026-05-02
 ---
 
 # Category 00 — Shared Libs
