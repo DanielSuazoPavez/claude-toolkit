@@ -624,6 +624,66 @@
       ],
       "status": "idea",
       "notes": "secrets-guard's check-body cost (~26ms p50 per per-hook probe) is dominated by inline command-shape policy (env-listing detection, credential-shaped printenv argument detection). The shared registry today handles regex-based pattern matching; the inline policy is positional ('printenv of a credential-shaped name') and doesn't map cleanly to the current registry shape. Speculative proposal: extend the registry to support positional matching, move secrets-guard's inline policy into registry data, shrink the hook to ~150 LoC. Real performance win (~14ms × all-Bash-firings + all-Read-firings is significant), but it's a substantial change to the registry shape — separate design effort, not a clarity-pass call. P2 because the speculation is real but the win depends on a registry redesign whose cost isn't yet scoped. See design/hook-audit/01-standardized/clarity.md (Proposal 6, secrets-guard subsection)."
+    },
+    {
+      "id": "hook-audit-02-perf-budget-headers",
+      "priority": "P1",
+      "title": "Per-dispatcher PERF-BUDGET-MS headers (grouped-bash-guard scope_miss=150 scope_hit=220; grouped-read-guard 75/120)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/performance.md. Both dispatchers warn on every make check because they inherit the framework default scope_miss=5. N=30 probe data backs scope_miss=150/scope_hit=220 for grouped-bash-guard and 75/120 for grouped-read-guard (smoke p95 + ~10%). Cheapest fix: one header line per dispatcher. Stops V20 false-positives without hiding +20% drift regressions."
+    },
+    {
+      "id": "hook-audit-02-substep-batching",
+      "priority": "P2",
+      "title": "Batch dispatcher substep rows into one JSONL row per dispatch",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/performance.md option (a). grouped-bash-guard real-mode pays 8x hook_log_substep jq forks per dispatch (~40ms). Batching into one row at end of dispatcher loop saves ~35ms per Bash dispatch in real mode. Tradeoff: schema change for downstream JSONL consumers (one row per dispatch instead of one per (dispatch, substep)). Coordinate with traceability viewer + analytics before landing. Re-run run-per-dispatcher-probe.sh after change for before/after numbers."
+    },
+    {
+      "id": "hook-audit-02-source-guarded-cost",
+      "priority": "P3",
+      "title": "Micro-bench cost of guarded source calls (source X when X is already sourced)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/performance.md cost decomposition. Suspected source of the ~35ms (bash-guard) / ~16ms (read-guard) residual after attributing bash startup, hook-utils parse, hook_init, per-child source, match/check, and substep logging. Hypothesis: each child's source lib/hook-utils.sh + source lib/detection-registry.sh lines hit the idempotency guard (no-op for body), but bash still does command lookup + path resolution per call. With 8 children × ~3 source-lines each ≈ 24 guarded source calls; if each costs ~1-2ms, that closes the residual. Probe shape: bash -c 'source X; for i in {1..N}; do source X; done' bracketed."
+    },
+    {
+      "id": "hook-audit-02-block-reason-contract",
+      "priority": "P2",
+      "title": "Enforce _BLOCK_REASON contract: rc=1 from check_<name> implies _BLOCK_REASON is set",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/robustness.md T18. Today's contract is convention-only: a child's check_<name> returning 1 must have set _BLOCK_REASON, but nothing enforces it. A future child writer who forgets the assignment ships a hook that emits decision JSON with empty reason — silent UX defect. Two-part fix: (a) dispatcher-side fallback after the check call (assert _BLOCK_REASON non-empty, otherwise set diagnostic message naming the offending child); (b) validator-side static check (grep for _BLOCK_REASON= near every return 1 in check_<name> functions of dual-mode hooks). Both are cheap. Recorded as P2: T18 reproduces deterministically but no current child violates."
+    },
+    {
+      "id": "hook-audit-02-child-source-rc",
+      "priority": "P3",
+      "title": "Log skipped(source_failed) substep when dispatcher's source  returns non-zero",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/robustness.md T16. Today the dispatcher's generated source-loop runs source  without rc check. A child file whose top-level returns non-zero (dependency error, programmatic abort) is silently skipped: declare -F catches missing functions, but partially-defined functions may register and be invoked on inputs they can't handle. Cheap fix: capture rc of source, emit hook_log_substep check_<name>_source_failed with reason if non-zero, and skip registration even if declare -F passes. Real-world likelihood is low (children define functions atomically) but the contract is brittle."
+    },
+    {
+      "id": "hook-audit-00-empty-stdin-fail-closed",
+      "priority": "P3",
+      "title": "hook_init: treat empty _HOOK_INIT_TOOL_NAME (rc=0 jq, empty input) as malformed for PreToolUse",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/02-dispatchers/robustness.md empty-stdin edge case. printf '' | jq -r '...' exits rc=0 with empty output, so hook_init's malformed branch (line 267 rc!=0 check) doesn't fire. _HOOK_INIT_TOOL_NAME ends up empty; hook_require_tool returns 0 without setting _HOOK_ACTIVE; PreToolUse safety hooks silent-pass instead of failing closed. Diverges from the documented PreToolUse-fails-closed-on-malformed contract. Lib-level fix in hook-utils.sh: if [ -z  ] under HOOK_EVENT=PreToolUse, hit the malformed branch. No production trigger known (harness always emits valid JSON with tool_name); only probe-surface."
     }
   ]
 }
