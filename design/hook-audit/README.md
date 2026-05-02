@@ -38,9 +38,10 @@ Every category is reviewed along the same four axes:
 
 Methodology and harness work that has to land before any category review can produce trustable numbers.
 
-- [`measurement/current-state.md`](measurement/current-state.md) — what V20 measures today, what it misses
-- [`measurement/findings.md`](measurement/findings.md) — `_resolve_project_id` path divergence between real-session and smoke, `_now_ms` ms-truncation, WSL2 wall-clock variance
-- [`measurement/harness-design.md`](measurement/harness-design.md) — replacement harness spec (microsecond precision, multi-run median/p95, V20 replacement not parallel tool)
+- [`measurement/current-state.md`](measurement/current-state.md) **[draft]** — what V20 measures today (pipeline, what `duration_ms` covers, smoke-vs-real divergences, what V20 does well / misses)
+- [`measurement/findings.md`](measurement/findings.md) **[draft]** — corrected from origin notes after reading the code: pre-init cost is broader than just `_resolve_project_id`; `_now_ms` is precision-limited not buggy; smoke env hides feature-gated work; floor and per-hook check sample asymmetrically
+- [`measurement/harness-design.md`](measurement/harness-design.md) **[draft]** — replacement harness spec: microsecond precision, multi-run median/p95, two parity modes (smoke / real-session), bracket-the-hook timing (Option B) over modifying `hook_init`
+- [`measurement/probe-results.md`](measurement/probe-results.md) **[N=50 measured]** — pre-init cost probe across smoke / real / real-no-sqlite modes. Confirms ~4.6ms median sqlite3-fork cost in real-session, ~13ms total pre-`HOOK_START_MS` cost invisible to V20, and ~1.4× p95/p50 variance under normal load.
 
 ## Origin
 

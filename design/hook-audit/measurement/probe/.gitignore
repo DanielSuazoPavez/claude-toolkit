@@ -1,0 +1,3 @@
+# Symlinks created at probe-run time to satisfy the hook's `source lib/...` resolution.
+# Re-created automatically by run-probe.sh; not portable.
+lib/
