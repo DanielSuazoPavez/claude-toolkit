@@ -504,6 +504,59 @@
       ],
       "status": "idea",
       "notes": "These functions have no direct tests today. Shape A pattern (source the lib, call the function, assert) costs ~0ms per case and exists already in test-detection-registry.sh and test-settings-permissions.sh. ~30 cases / ~50 LoC. Pin _strip_inert_content's heuristic boundaries (heredoc, escaped quotes), _now_ms's EPOCHREALTIME-padding fix, hook_feature_enabled's three branches, hook_extract_quick_reference's three paths. See design/hook-audit/00-shared/testability.md (Recommendations)."
+    },
+    {
+      "id": "hook-audit-01-paired-outcome-fixtures",
+      "priority": "P1",
+      "title": "Add paired (block, pass) fixtures per standardized hook for outcome-aware perf measurement",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "01-standardized/performance.md measured per-hook check-body cost from a single fixture per hook (V18 minimum). Block fixtures pay full check work; pass fixtures hit the early-return path. The V20 budget already splits on outcome (scope_miss / scope_hit). Add the second outcome fixture per hook so check-body cost can be reported per-outcome and the budget can be tuned per-hook. Depends on hook-audit-00-shape-a-lib-tests landing first (test-shape conventions). See design/hook-audit/01-standardized/performance.md (Open).",
+      "relates_to": [
+        "hook-audit-00-shape-a-lib-tests:depends-on"
+      ]
+    },
+    {
+      "id": "hook-audit-01-suggest-read-json-nonexistent",
+      "priority": "P1",
+      "title": "suggest-read-json: fail-open on nonexistent files instead of blocking",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "suggest-read-json blocks Read on .json paths that do not exist on disk, redirecting the user to use jq via Bash. Empirically verified in design/hook-audit/01-standardized/robustness.md. The user then runs jq on the same path and gets a confusing second not-found error. One-line fix at suggest-read-json.sh:73-79: short-circuit to return 0 (allow) when [ ! -f \"$FILE_PATH\" ], letting the Read tool itself emit the natural file-not-found error. No safety regression — the hook only redirects to jq for size reasons, and a nonexistent file has no size. See design/hook-audit/01-standardized/robustness.md (Real failure modes found by empirical probing)."
+    },
+    {
+      "id": "hook-audit-01-block-dangerous-quote-predicate",
+      "priority": "P1",
+      "title": "block-dangerous-commands: widen match_dangerous predicate to cover quote-wrapped patterns",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "block-dangerous-commands.sh:46 match_dangerous predicate requires the rm/mkfs/dd/etc. token to be preceded by start-of-line or one of [[:space:];&|`(] — but not by quote characters. So a command like 'echo SINGLEQUOTE rm -rf SLASH SINGLEQUOTE' silently passes the cheap predicate, and check_dangerous (which would catch it after quote-stripping at line 67) is never called. One-line fix: add the single-quote and double-quote characters to the alternation. The hook header documents 'Also detects these patterns when hidden via … shell wrappers' — the fix restores that coverage for quote-wrapping cases. See design/hook-audit/01-standardized/robustness.md."
+    },
+    {
+      "id": "hook-audit-01-test-token-allowlist",
+      "priority": "P2",
+      "title": "block-credential-exfiltration: explicit test-token allowlist for fixture authoring",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "During hook audit, probing block-credential-exfiltration with inline bash commands kept tripping the hook on its own probe payload. Workaround: write fixtures to files via the Edit tool, redirect stdin from the file. Cleaner alternative: add an explicit test-token sentinel (e.g. 'TEST_TOKEN_DO_NOT_FLAG_<hash>') that the hook's regex skips. Tradeoff: any allowlist surface is itself an exfiltration vector if real tokens get prefixed with the sentinel. Probably not worth the complexity unless audit/fixture work scales up — captured as P2 because the workaround is fine for one-off probing. See design/hook-audit/01-standardized/robustness.md."
+    },
+    {
+      "id": "workshop-resources-out-of-dotclaude",
+      "priority": "P1",
+      "title": "Move workshop-authored resources out of .claude/ into a dedicated source dir",
+      "scope": [
+        "toolkit"
+      ],
+      "status": "idea",
+      "notes": "Today .claude/ in this repo plays two roles: (1) the workshop's authored output (skills/agents/hooks/docs that ship via claude-toolkit sync) and (2) the toolkit's own dogfooded Claude Code config. The dual role muddies 'what is this file — artifact or dependency?' Proposal: move workshop-authored sources into a dedicated dir (e.g. resources/), and let .claude/ go back to meaning 'Claude Code's local config for working in this repo' as it does in any consumer project.\n\nKey design points the user sketched:\n- Hooks continue reading from .claude/ wherever they are running (no in-hook path change).\n- Validators are run after a 'sync to workshop .claude/' step — they always see the production layout, not the source layout.\n- Dogfooding is via an explicit step (a `claude-toolkit sync --self`-style command), not via symlink. Trade: lose immediate-feedback when editing a resource, gain principled mirror of the consumer-side workflow.\n\nImplications to think through later:\n- dist/raiz/MANIFEST and dist/base/EXCLUDE are path-anchored at .claude/; they'd need to point at the new source dir or learn the sync-then-bundle flow.\n- validate-resources-indexed.sh, verify-resource-deps.sh, hook-framework/validate.sh all walk .claude/ today.\n- docs/indexes/*.md cross-references use .claude/... paths in dozens of places.\n- The hook audit (feat/hook-audit-categories) takes path stability as a baseline; this move should land after the audit's design phase, not during it.\n\nRecommended next step: run /shape-project on this question before any code moves. Specifically, decide (a) what the new source dir is called and what's inside it, (b) what the dogfood command looks like and when you run it, (c) whether .claude/ in the workshop becomes gitignored output of the dogfood step or stays committed."
     }
   ]
 }
