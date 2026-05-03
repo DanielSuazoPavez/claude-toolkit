@@ -841,17 +841,6 @@
       "notes": "Design doc Proposal 1 (design/hook-audit/00-shared/clarity.md) claims _strip_inert_content has a single consumer (detection_registry_match_kind). Wrong: enforce-uv-run.sh:28,39 and git-safety.sh:51,64 call it directly while sourcing only hook-utils.sh, not detection-registry.sh. A clean move would break both hooks. Options: (a) drop Proposal 1, (b) migrate the two direct callers to detection_registry_match_kind first, (c) ship a shim. None high-value enough for P0 — bumped to P3 pending a clarity.md revision."
     },
     {
-      "id": "hook-audit-01-shape-a-match-check-pairs",
-      "priority": "P0",
-      "title": "Add Shape A test layer for the 9 dual-mode hooks (match_*/check_* in-process)",
-      "scope": [
-        "hooks",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "9 of 13 standardized hooks expose Shape A-compatible match_*/check_* pairs that the dispatcher already calls in-process. Today these are tested only end-to-end via Shape B (subprocess fork per case). A Shape A test layer (source the hook, call match_<name> and check_<name> with shaped input, assert return + _BLOCK_REASON) would catch predicate-vs-check contract issues at ~0ms per case. The block-dangerous-commands quote-evasion gap (hook-audit-01-block-dangerous-quote-predicate) is exactly the kind of bug Shape A catches faster than Shape B. Cost: 2-3 hours, ~150 LoC. Hooks: auto-mode-shared-steps, block-config-edits, block-credential-exfiltration, block-dangerous-commands, enforce-make-commands, enforce-uv-run, git-safety, secrets-guard, suggest-read-json. See design/hook-audit/01-standardized/testability.md."
-    },
-    {
       "id": "hook-audit-01-secrets-guard-allowlist-centralize",
       "priority": "P99",
       "title": "Evaluate centralizing the .example/.template allowlist in secrets-guard",
@@ -925,6 +914,17 @@
       ],
       "status": "idea",
       "notes": "Smoke runner sandboxes $HOME to a fresh tmpdir, so the transcript file at $HOME/.claude/projects/-<derived>/<session>.jsonl that detect-session-start-truncation reads (line 42-52) doesn't exist — hook always falls through to pass. To pair the outcome, extend tests/hooks/run-smoke.sh with optional <name>.transcript.jsonl sidecar that the runner writes into $tmpdir/fakehome/.claude/projects/-<derived>/<session>.jsonl before invoking the hook. Then add injects-on-truncation-marker fixture. Documented skip in hook-audit-01-paired-outcome-fixtures wrap-up (2026-05-03). Direct consumer of the V20 budget per-outcome split when paired with hook-audit-01-perf-rerun-paired."
+    },
+    {
+      "id": "hook-audit-01-block-dangerous-interleaved-quote-predicate",
+      "priority": "P1",
+      "title": "match_dangerous misses interleaved-quote evasion (e.g. 'r'm -rf /)",
+      "scope": [
+        "hooks",
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "Distinct from the hook-audit-01-block-dangerous-quote-predicate fix in 2.81.5, which widened the predicate's preceding-character alternation to admit single/double quotes (catches `echo 'rm -rf /'`). This shape interleaves quotes WITHIN the rm token itself: `'r'm -rf /` — bash collapses the three tokens into a single `rm` only after parsing, but match_dangerous works on the literal string and sees no bare `rm`. check_dangerous's normalization pass strips quotes (sed s/[\"']//g) and would catch it, so this is a textbook superset-invariant violation. Surfaced by the Shape A test layer (tests/hooks/test-match-check-pairs.sh) which carries an xfail probe for this exact input. Once fixed, convert the xfail in the test file to assert_match_hit and update the reference."
     }
   ]
 }

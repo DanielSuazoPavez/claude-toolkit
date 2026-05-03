@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **tests**: `tests/hooks/test-match-check-pairs.sh` — Shape A test layer for the 9 dual-mode hooks (`auto-mode-shared-steps`, `block-config-edits`, `block-credential-exfiltration`, `block-dangerous-commands`, `enforce-make-commands`, `enforce-uv-run`, `git-safety`, `secrets-guard`, `suggest-read-json`). Sources every hook in-process and calls `match_*`/`check_*` directly, asserting on rc + `_BLOCK_REASON`. 76 cases pass + 1 live xfail probe for the still-open interleaved-quote evasion in `match_dangerous` (`'r'm -rf /` shape — see new backlog id below). Wall ~410ms standalone, ~2.1s under the parallel runner — well under any Shape B file. Closes `hook-audit-01-shape-a-match-check-pairs`. Predecessor analysis: `design/hook-audit/01-standardized/testability.md`.
+
+### Notes
+- **Workshop-internal**: the new file lives under `tests/hooks/` and is not in `dist/raiz/MANIFEST` or `dist/base/EXCLUDE` — no consumer behavior change. No version bump, no raiz sidecar.
+- **New backlog item filed during review**: `hook-audit-01-block-dangerous-interleaved-quote-predicate` (P1) — the Shape A xfail probe surfaced an evasion class distinct from the closed `hook-audit-01-block-dangerous-quote-predicate` (2.81.5). Quotes interleaved *within* the `rm` token (`'r'm -rf /`) bypass `match_dangerous` because the predicate works on the literal string before bash parses it; `check_dangerous`'s normalization pass would catch it, so this is a superset-invariant violation. Test file's xfail flips from SKIP to FAIL with a "convert to assert_match_hit" hint when the predicate is fixed.
+- **Shape A vs Shape B**: layer is purely additive. Shape B (subprocess-fork-per-case end-to-end coverage) stays unchanged. Wall budgets in `tests/.logs/test-*.dur` for existing Shape B files are unaffected; `make test` overall wall stays bounded by the slowest Shape B file (~14.7s for `test-auto-mode-shared-steps`).
+
 ## [2.81.7] - 2026-05-03 - per-hook PERF-BUDGET-MS headers stop V20 false-positives
 
 ### Added
