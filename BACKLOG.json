@@ -841,17 +841,6 @@
       "notes": "Design doc Proposal 1 (design/hook-audit/00-shared/clarity.md) claims _strip_inert_content has a single consumer (detection_registry_match_kind). Wrong: enforce-uv-run.sh:28,39 and git-safety.sh:51,64 call it directly while sourcing only hook-utils.sh, not detection-registry.sh. A clean move would break both hooks. Options: (a) drop Proposal 1, (b) migrate the two direct callers to detection_registry_match_kind first, (c) ship a shim. None high-value enough for P0 — bumped to P3 pending a clarity.md revision."
     },
     {
-      "id": "hook-audit-01-shape-a-match-check-pairs",
-      "priority": "P0",
-      "title": "Add Shape A test layer for the 9 dual-mode hooks (match_*/check_* in-process)",
-      "scope": [
-        "hooks",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "9 of 13 standardized hooks expose Shape A-compatible match_*/check_* pairs that the dispatcher already calls in-process. Today these are tested only end-to-end via Shape B (subprocess fork per case). A Shape A test layer (source the hook, call match_<name> and check_<name> with shaped input, assert return + _BLOCK_REASON) would catch predicate-vs-check contract issues at ~0ms per case. The block-dangerous-commands quote-evasion gap (hook-audit-01-block-dangerous-quote-predicate) is exactly the kind of bug Shape A catches faster than Shape B. Cost: 2-3 hours, ~150 LoC. Hooks: auto-mode-shared-steps, block-config-edits, block-credential-exfiltration, block-dangerous-commands, enforce-make-commands, enforce-uv-run, git-safety, secrets-guard, suggest-read-json. See design/hook-audit/01-standardized/testability.md."
-    },
-    {
       "id": "hook-audit-01-secrets-guard-allowlist-centralize",
       "priority": "P99",
       "title": "Evaluate centralizing the .example/.template allowlist in secrets-guard",
