@@ -14,6 +14,7 @@
 #   - No duplicate task ids
 #   - relates_to tokens match <id>:<kind> with kind in the schema enum
 #   - Scope values exist in the scopes object
+#   - Warns on priority inversion: A depends-on B where B is lower priority
 
 set -euo pipefail
 
@@ -99,6 +100,11 @@ validate() {
     local defined_scopes
     defined_scopes=$(jq -r '.scopes | keys[]' "$file")
 
+    # Map id -> priority for priority-inversion checks (depends-on a lower-priority task).
+    # Filter null/missing ids — those are caught separately as missing-field errors.
+    local id_to_priority_json
+    id_to_priority_json=$(jq '[.tasks[] | select(.id != null and .priority != null) | {key: .id, value: .priority}] | from_entries' "$file")
+
     # Validate each task
     local i=0
     while [[ $i -lt $task_count ]]; do
@@ -154,6 +160,20 @@ validate() {
             token=$(echo "$task" | jq -r ".relates_to[$k]")
             if ! echo "$token" | grep -qE "^[a-z0-9-]+:($_VALID_KINDS)$"; then
                 err "$task_label: malformed relates_to token '$token' (expected '<id>:<kind>'; kinds: ${_VALID_KINDS//|/, })"
+            elif [[ "$token" == *":depends-on" && -n "$tpriority" ]]; then
+                # Priority-inversion check: depends-on a lower-priority task is a smell.
+                # Lower-priority = higher P-number (P0 most urgent, P99 least).
+                local dep_id dep_prio
+                dep_id="${token%:depends-on}"
+                dep_prio=$(echo "$id_to_priority_json" | jq -r --arg id "$dep_id" '.[$id] // empty')
+                if [[ -n "$dep_prio" ]]; then
+                    local self_rank dep_rank
+                    self_rank="${tpriority#P}"
+                    dep_rank="${dep_prio#P}"
+                    if [[ "$self_rank" =~ ^[0-9]+$ && "$dep_rank" =~ ^[0-9]+$ && "$dep_rank" -gt "$self_rank" ]]; then
+                        warn "$task_label ($tpriority): depends-on '$dep_id' which is lower priority ($dep_prio) — bump dependency or downgrade dependent"
+                    fi
+                fi
             fi
             ((k++)) || true
         done
