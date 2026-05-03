@@ -7,6 +7,13 @@
 #
 # Plan: backlog hook-audit-01-shape-a-match-check-pairs.
 # Background: design/hook-audit/01-standardized/testability.md.
+#
+# Note for future contributors: this layer does NOT call hook_init on any
+# sourced hook. main() in production calls it; the match_/check_ functions
+# themselves don't depend on HOOK_INPUT / SESSION_ID / _HOOK_INIT_TOOL_NAME.
+# If you add a check_ that reads any hook_init-populated global, this layer
+# will exercise a different code path than production — add a fixture for
+# those globals here OR keep the new check_ free of init dependencies.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -77,43 +84,49 @@ declare -A CHECK_FN=(
 assert_match_hit() {
     local label="$1" desc="$2"
     local fn="${MATCH_FN[$label]}"
+    local rc
     TESTS_RUN=$((TESTS_RUN + 1))
-    if "$fn"; then
+    "$fn"; rc=$?
+    if [ "$rc" -eq 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$desc"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
         report_fail "$desc"
-        report_detail "Expected $fn rc=0 (match), got rc=$?"
+        report_detail "Expected $fn rc=0 (match), got rc=$rc"
     fi
 }
 
 assert_match_miss() {
     local label="$1" desc="$2"
     local fn="${MATCH_FN[$label]}"
+    local rc
     TESTS_RUN=$((TESTS_RUN + 1))
-    if ! "$fn"; then
+    "$fn"; rc=$?
+    if [ "$rc" -ne 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$desc"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
         report_fail "$desc"
-        report_detail "Expected $fn rc=1 (no match), got rc=0"
+        report_detail "Expected $fn rc!=0 (no match), got rc=0"
     fi
 }
 
 assert_check_pass() {
     local label="$1" desc="$2"
     local fn="${CHECK_FN[$label]}"
+    local rc
     TESTS_RUN=$((TESTS_RUN + 1))
     _BLOCK_REASON=""
-    if "$fn"; then
+    "$fn"; rc=$?
+    if [ "$rc" -eq 0 ]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$desc"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
         report_fail "$desc"
-        report_detail "Expected $fn rc=0 (pass), got rc=1"
+        report_detail "Expected $fn rc=0 (pass), got rc=$rc"
         report_detail "_BLOCK_REASON: ${_BLOCK_REASON:-<empty>}"
     fi
 }
@@ -121,12 +134,14 @@ assert_check_pass() {
 assert_check_block() {
     local label="$1" reason_substr="$2" desc="$3"
     local fn="${CHECK_FN[$label]}"
+    local rc
     TESTS_RUN=$((TESTS_RUN + 1))
     _BLOCK_REASON=""
-    if "$fn"; then
+    "$fn"; rc=$?
+    if [ "$rc" -eq 0 ]; then
         TESTS_FAILED=$((TESTS_FAILED + 1))
         report_fail "$desc"
-        report_detail "Expected $fn rc=1 (block), got rc=0"
+        report_detail "Expected $fn rc!=0 (block), got rc=0"
         return
     fi
     if [[ "$_BLOCK_REASON" == *"$reason_substr"* ]]; then
@@ -154,9 +169,45 @@ report_skip() {
     fi
 }
 
+# Reset every input-var the predicates and checks consume, so a stale value
+# from one section can't false-positive in the next. Call at the top of each
+# per-hook section (cheap; just clears six variables).
+_reset_inputs() {
+    COMMAND=""
+    FILE_PATH=""
+    GREP_PATH=""
+    GREP_GLOB=""
+    PERMISSION_MODE=""
+    _BLOCK_REASON=""
+}
+
+# xfail probe: run an assertion that we EXPECT to fail today (the bug exists).
+# When the bug is fixed the assertion will start "succeeding" → flip the SKIP
+# to a FAIL with a note, alerting the contributor that the xfail must be
+# converted to a real assert_match_hit (or whatever the now-correct shape is)
+# and the backlog item closed. Same dispatch table as the real assertions.
+xfail_match_hit() {
+    local label="$1" backlog_id="$2" desc="$3"
+    local fn="${MATCH_FN[$label]}"
+    local rc
+    "$fn"; rc=$?
+    if [ "$rc" -ne 0 ]; then
+        # Bug still present (predicate misses where it should hit) — expected.
+        report_skip "$desc (xfail)" "see backlog: $backlog_id"
+    else
+        # Bug fixed — flag so contributor converts xfail into a real assertion.
+        TESTS_RUN=$((TESTS_RUN + 1))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "XFAIL UNEXPECTEDLY PASSED: $desc"
+        report_detail "$fn returned 0 (predicate now hits) — convert to assert_match_hit"
+        report_detail "and close backlog: $backlog_id"
+    fi
+}
+
 # ============================================================
 # enforce-make-commands
 # ============================================================
+_reset_inputs
 report_section "enforce-make-commands"
 
 COMMAND="ls -la"
@@ -179,6 +230,7 @@ assert_check_block enforce-make-commands "make lint" "check_make blocks pre-comm
 # ============================================================
 # enforce-uv-run
 # ============================================================
+_reset_inputs
 report_section "enforce-uv-run"
 
 COMMAND="ls -la"
@@ -209,6 +261,7 @@ assert_check_block enforce-uv-run "uv run python" "check_uv blocks bare python3 
 # ============================================================
 # suggest-read-json
 # ============================================================
+_reset_inputs
 report_section "suggest-read-json"
 
 # Predicate fires only on .json suffix
@@ -247,6 +300,7 @@ rm -f "$_big_json"
 # ============================================================
 # block-credential-exfiltration
 # ============================================================
+_reset_inputs
 report_section "block-credential-exfiltration"
 
 COMMAND="ls -la"
@@ -280,6 +334,7 @@ assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on
 # settings-derived permissions.ask regex on the stripped command.
 # Tests assume settings.json contains `Bash(git push:*)` (loaded at
 # source-time by settings_permissions_load).
+_reset_inputs
 report_section "auto-mode-shared-steps"
 
 PERMISSION_MODE="default"
@@ -312,6 +367,7 @@ assert_check_pass auto-mode-shared-steps "check_ does not block git push mention
 # ============================================================
 # Write/Edit branches run inline in main() — out of scope here, tracked as
 # hook-audit-01-block-config-edits-write-edit-pair.
+_reset_inputs
 report_section "block-config-edits"
 
 COMMAND="ls -la"
@@ -342,6 +398,7 @@ assert_check_block block-config-edits ".claude/settings" "check_config_edits blo
 # ============================================================
 # EnterPlanMode branch runs inline in main() — out of scope here, tracked as
 # hook-audit-01-git-safety-enterplanmode-pair.
+_reset_inputs
 report_section "git-safety"
 
 COMMAND="ls -la"
@@ -374,6 +431,7 @@ assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks :main d
 # ============================================================
 # block-dangerous-commands
 # ============================================================
+_reset_inputs
 report_section "block-dangerous-commands"
 
 COMMAND="ls -la"
@@ -398,13 +456,19 @@ assert_check_block block-dangerous-commands "sudo" "check_dangerous blocks sudo"
 COMMAND="chmod -R 777 /"
 assert_check_block block-dangerous-commands "chmod -R 777" "check_dangerous blocks chmod -R 777 /"
 
-# xfail: quote-evasion. The robustness probe in 01-standardized/robustness.md
-# showed that `'r'm -rf /` evades both match_dangerous and check_dangerous
-# because the predicate's token regex looks for a bare `rm`. Tracked as
-# hook-audit-01-block-dangerous-quote-predicate. Keep the gap visible here
-# so the work is rediscovered, not lost.
-report_skip "match_dangerous on quote-evaded 'r'm -rf / (xfail)" \
-            "see backlog: hook-audit-01-block-dangerous-quote-predicate"
+# xfail: interleaved-quote evasion. Distinct from the closed
+# hook-audit-01-block-dangerous-quote-predicate (2.81.5), which widened
+# the predicate's *preceding-character* alternation so it admits
+# `echo 'rm -rf /'`. THIS shape interleaves quotes WITHIN the token
+# (`'r'm -rf /`): bash parses it as `rm` only after collapsing the
+# three quoted segments, but match_dangerous works on the literal string
+# and sees no bare `rm`. xfail_match_hit runs the predicate; today it
+# returns 1 (miss) → SKIP. Once fixed, it will return 0 → FAIL with a
+# note to convert this to assert_match_hit and close the new backlog id.
+COMMAND="'r'm -rf /"
+xfail_match_hit block-dangerous-commands \
+                hook-audit-01-block-dangerous-interleaved-quote-predicate \
+                "match_dangerous on quote-evaded 'r'm -rf /"
 
 # ============================================================
 # secrets-guard  (3 pairs: _read, _grep, base Bash)
@@ -415,6 +479,7 @@ report_skip "match_dangerous on quote-evaded 'r'm -rf / (xfail)" \
 # covers it via a temp git repo fixture; running it from Shape A would
 # either need a stub or a fork to mutate cwd, which defeats the purpose of
 # the layer. Resolves the second Open item in the plan.
+_reset_inputs
 report_section "secrets-guard (Read pair)"
 
 # Read pair contract: dispatcher sets FILE_PATH before match_/check_.
@@ -436,6 +501,7 @@ assert_check_block secrets-guard-read "SSH private key" "check_secrets_guard_rea
 FILE_PATH="$HOME/.ssh/id_ed25519.pub"
 assert_check_pass secrets-guard-read "check_secrets_guard_read allows ~/.ssh/id_ed25519.pub"
 
+_reset_inputs
 report_section "secrets-guard (Grep pair)"
 
 # Grep pair contract: dispatcher sets GREP_PATH and/or GREP_GLOB.
@@ -449,10 +515,8 @@ assert_check_block secrets-guard-grep ".env files" "check_secrets_guard_grep blo
 GREP_PATH=""; GREP_GLOB=".env.template"
 assert_check_pass secrets-guard-grep "check_secrets_guard_grep allows .env.template glob (allowlist)"
 
+_reset_inputs
 report_section "secrets-guard (Bash pair)"
-
-# Reset Read/Grep inputs so they don't leak into the Bash check_.
-FILE_PATH=""; GREP_PATH=""; GREP_GLOB=""
 
 COMMAND="ls -la"
 assert_match_miss secrets-guard "match_secrets_guard misses on ls (no read verb, no path hint)"
