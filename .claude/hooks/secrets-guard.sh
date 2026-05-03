@@ -127,12 +127,6 @@ _match_path_registry() {
         return 0
     done
 
-    # SSH config — not in the registry as its own entry; keep the explicit check.
-    if [[ "$input" == "$HOME/.ssh/config" ]]; then
-        echo "ssh-config"
-        return 0
-    fi
-
     return 1
 }
 
@@ -429,20 +423,17 @@ main() {
     hook_init "secrets-guard" "PreToolUse"
     hook_require_tool "Read" "Grep" "Bash"
 
-    # --- Handler: Read tool ---
+    # --- Read branch — delegate to match_/check_ ---
     if [ "$TOOL_NAME" = "Read" ]; then
-        local FILE_PATH
         FILE_PATH=$(hook_get_input '.tool_input.file_path')
         [ -z "$FILE_PATH" ] && exit 0
 
-        local NORM
-        NORM=$(normalize_path "$FILE_PATH")
-        check_path "$NORM" "Reading"
-        # .git/config — block only when an embedded credential is present.
-        if [[ "$NORM" =~ \.git/config$ ]] && _git_dir_has_credential_remote "$NORM"; then
-            hook_block "BLOCKED: This repository's remote URL embeds a credential. Reading .git/config would put a token in your context. Use \`git branch --show-current\` for the branch, the push-output hint for PR URLs, or ask the user."
+        _BLOCK_REASON=""
+        if match_secrets_guard_read; then
+            if ! check_secrets_guard_read; then
+                hook_block "$_BLOCK_REASON"
+            fi
         fi
-
         exit 0
     fi
 

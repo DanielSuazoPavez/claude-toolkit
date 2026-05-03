@@ -92,6 +92,13 @@
       "notes": "Hook must allow *.pub variants."
     },
     {
+      "id": "ssh-config",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.ssh/config$",
+      "message": "SSH config path referenced."
+    },
+    {
       "id": "aws-credentials-file",
       "kind": "path",
       "target": "stripped",
