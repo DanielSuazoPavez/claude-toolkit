@@ -1,0 +1,16 @@
+{
+  "version": "2.81.3",
+  "date": "2026-05-03",
+  "headline": "secrets-guard branch alignment + ssh-config registry entry",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "secrets-guard.sh: standalone main() Read and Grep handlers now route through their existing match/check pairs (the Bash branch and dispatched paths already did). Pre-cleanup the Read pair was bypassed by inline logic and the Grep pair was orphaned with no caller at all.",
+        "Surfaced and closed a superset-invariant violation on the Read branch: ~/.ssh/config was admitted by check (via an explicit fallback) but not by match. Promoted ssh-config to a first-class detection-registry.json entry (anchored pattern \\.ssh/config$ to preserve exact-match behavior) so the predicate and the check derive from the same alternation.",
+        "Behavior unchanged for consumers in normal use — ~/.ssh/config always blocked in standalone mode and always blocked in dispatched mode; both modes are now uniformly aligned. 89/89 secrets-guard Shape B tests continue to pass."
+      ]
+    }
+  ]
+}
