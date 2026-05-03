@@ -134,6 +134,14 @@ So the dual-mode list is actually **9 hooks**, not 7. Re-counting from `inventor
 
 **9 hooks expose Shape A-compatible match/check pairs.** The dispatcher already drives them this way. The Shape A test layer is essentially "test what the dispatcher already invokes."
 
+**Caveat on Shape A coverage (added post-secrets-guard alignment, May 2026).** "Exposes match/check functions" is the right test-surface check for the *dispatched* path — the dispatcher always goes through the pair. It is not the same as "every `main()` branch routes through the pair." Pre-alignment:
+
+- `secrets-guard` exposed three pairs (Read, Grep, Bash) but `main()` only invoked the Bash one; the Read pair was bypassed for an inline `check_path` + `.git/config` test, and the Grep pair was orphaned (no caller at all — no Grep dispatcher exists).
+- `block-config-edits` exposes one pair (Bash); Write and Edit branches in `main()` inline `is_blocked_config`/`is_blocked_settings` with no pair to test.
+- `git-safety` exposes one pair (Bash); EnterPlanMode runs the protected-branch check inline.
+
+Implication for the Shape A test layer: testing `match_<name>`/`check_<name>` covers what the dispatcher invokes, but a Shape B end-to-end test is still required for the inline `main()` branches (Write/Edit on block-config-edits, EnterPlanMode on git-safety) until those land their own pairs. `secrets-guard` is now uniformly aligned (all three branches route through pairs) post-`refactor/secrets-guard-align-branches`. The other two are tracked as P1 follow-ups (`hook-audit-01-block-config-edits-write-edit-pair`, `hook-audit-01-git-safety-enterplanmode-pair`).
+
 ## Per-hook recommendations
 
 | Hook | Coverage gap | Recommended addition |
