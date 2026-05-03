@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **tests**: paired (block, pass) outcome fixtures for 10 standardized hooks. Each hook previously had a single fixture that only exercised one decision branch — block-fixture hooks paid the full check + decision-JSON build, pass-fixture hooks hit the early-return path. The V18 perf doc's per-hook check-body column mixed the two costs (flagged at `design/hook-audit/01-standardized/performance.md:150`). New fixtures land in `tests/hooks/fixtures/<hook>/`: `approve-safe-commands/passes-non-allowlist-bash`, `auto-mode-shared-steps/blocks-git-push-under-auto-mode`, `block-config-edits/passes-edit-non-config-file`, `block-credential-exfiltration/passes-curl-no-credentials`, `block-dangerous-commands/passes-benign-ls`, `enforce-make-commands/passes-make-test`, `enforce-uv-run/passes-uv-run-python`, `git-safety/passes-git-status`, `log-permission-denied/passes-on-malformed-stdin`, `secrets-guard/passes-grep-non-secret-path`. Smoke walk now reports 31/31 (was 21/21). `log-tool-uses` and `suggest-read-json` already had pairs; `detect-session-start-truncation`'s `injected` outcome is sandbox-incompatible and skipped (filed as P3 follow-up). Closes `hook-audit-01-paired-outcome-fixtures`.
+
+### Notes
+- Test-only change. New files are under `tests/hooks/fixtures/`, which is not in `dist/raiz/MANIFEST` and not in `dist/base/EXCLUDE` (base ships `.claude/` only). No raiz consumer behavior change. No version bump.
+- Direct consumer of this change: `hook-audit-01-perf-rerun-paired` (P1 follow-up) — re-runs the per-hook probe against the new fixture set and updates `01-standardized/performance.md` to split the check-body column by outcome.
+
 ## [2.81.6] - 2026-05-03 - backlog CLI quick-wins — next/update, --json, filter validation, priority-inversion warn
 
 ### Added

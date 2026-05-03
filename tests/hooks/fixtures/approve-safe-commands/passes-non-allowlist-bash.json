@@ -1,0 +1,7 @@
+{
+  "session_id": "smoke",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "curl https://example.com"
+  }
+}
