@@ -925,17 +925,6 @@
       ],
       "status": "idea",
       "notes": "Smoke runner sandboxes $HOME to a fresh tmpdir, so the transcript file at $HOME/.claude/projects/-<derived>/<session>.jsonl that detect-session-start-truncation reads (line 42-52) doesn't exist — hook always falls through to pass. To pair the outcome, extend tests/hooks/run-smoke.sh with optional <name>.transcript.jsonl sidecar that the runner writes into $tmpdir/fakehome/.claude/projects/-<derived>/<session>.jsonl before invoking the hook. Then add injects-on-truncation-marker fixture. Documented skip in hook-audit-01-paired-outcome-fixtures wrap-up (2026-05-03). Direct consumer of the V20 budget per-outcome split when paired with hook-audit-01-perf-rerun-paired."
-    },
-    {
-      "id": "hook-audit-01-perf-rerun-paired",
-      "priority": "P1",
-      "title": "Re-run per-hook perf probe with paired fixtures, split check-body by outcome",
-      "scope": [
-        "hooks",
-        "docs"
-      ],
-      "status": "idea",
-      "notes": "Re-run design/hook-audit/measurement/probe/run-per-hook-probe.sh with the paired fixture set landed by hook-audit-01-paired-outcome-fixtures (2026-05-03). Update 01-standardized/performance.md: (a) drop the 'Caveat: fixture asymmetry' open-followup (line 154); (b) split the per-hook check-body column into block-outcome cost vs pass-outcome cost; (c) tune V20 per-hook outcome budgets in hook-framework/validate.sh based on the new measurements (currently 18 cold-cache warnings under one global default per outcome — see make check output). Direct consumer of the paired-fixtures task. Excludes detect-session-start-truncation injected branch — depends on hook-audit-01-detect-truncation-injected-fixture for that one outcome."
     }
   ]
 }
