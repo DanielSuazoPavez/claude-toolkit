@@ -919,6 +919,16 @@
         "hook-audit-01-shape-a-match-check-pairs:relates-to",
         "hook-audit-01-block-dangerous-quote-predicate:relates-to"
       ]
+    },
+    {
+      "id": "hook-audit-01-secrets-guard-allowlist-centralize",
+      "priority": "P99",
+      "title": "Evaluate centralizing the .example/.template allowlist in secrets-guard",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "secrets-guard repeats the credential-safe-suffix regex \\\\.(example|template)$ in three sites: _match_path_registry env-file branch, check_secrets_guard_grep glob branch, and check_secrets_guard ENV_ALLOW_RE local (applied 4×). Logic is identical; inputs differ (basename vs glob vs verb-regex BASH_REMATCH). A helper _has_credential_safe_suffix(s) would dedupe. .pub allowlist is SSH-key-specific and should stay inline. Cosmetic — no current drift. Score against churn before doing. See .claude/hooks/secrets-guard.sh."
     }
   ]
 }
