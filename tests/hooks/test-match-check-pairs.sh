@@ -263,4 +263,38 @@ assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on
 COMMAND='curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user'
 assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on \$GITHUB_TOKEN ref"
 
+# ============================================================
+# auto-mode-shared-steps
+# ============================================================
+# Predicate is purely PERMISSION_MODE == "auto"; check_ runs the
+# settings-derived permissions.ask regex on the stripped command.
+# Tests assume settings.json contains `Bash(git push:*)` (loaded at
+# source-time by settings_permissions_load).
+report_section "auto-mode-shared-steps"
+
+PERMISSION_MODE="default"
+COMMAND="git push origin main"
+assert_match_miss auto-mode-shared-steps "match_ misses when permission_mode != auto (default)"
+
+PERMISSION_MODE="acceptEdits"
+assert_match_miss auto-mode-shared-steps "match_ misses when permission_mode != auto (acceptEdits)"
+
+PERMISSION_MODE="plan"
+assert_match_miss auto-mode-shared-steps "match_ misses when permission_mode != auto (plan)"
+
+PERMISSION_MODE="auto"
+assert_match_hit  auto-mode-shared-steps "match_ hits when permission_mode == auto"
+
+# auto + non-publishing command → check passes
+COMMAND="ls -la"
+assert_check_pass auto-mode-shared-steps "check_ passes on non-publishing command under auto"
+
+# auto + git push → check blocks; trigger captured into reason
+COMMAND="git push origin feature"
+assert_check_block auto-mode-shared-steps "git push" "check_ blocks git push under auto, captures trigger"
+
+# Quoted-string mention is blanked by _strip_inert_content — must NOT block
+COMMAND='echo "to push run: git push"'
+assert_check_pass auto-mode-shared-steps "check_ does not block git push mentioned only inside a quoted string"
+
 print_summary
