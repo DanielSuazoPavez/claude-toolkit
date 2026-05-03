@@ -476,16 +476,6 @@
       ]
     },
     {
-      "id": "hook-audit-00-move-strip-inert-content",
-      "priority": "P0",
-      "title": "Move _strip_inert_content from hook-utils.sh to detection-registry.sh",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Localize the dependency to its only consumer. ~70 LoC move, header updates in both files, smoke + lib tests should still pass. Why and tradeoffs in design/hook-audit/00-shared/clarity.md (Proposal 1)."
-    },
-    {
       "id": "hook-audit-01-paired-outcome-fixtures",
       "priority": "P1",
       "title": "Add paired (block, pass) fixtures per standardized hook for outcome-aware perf measurement",
@@ -919,6 +909,16 @@
       ],
       "status": "idea",
       "notes": "DEFER (out-of-scope for hook-audit). Idea from performance.md Cross-cutting observations. Track cumulative bytes-injected across all hooks in a session; warn when projected forward exceeds a threshold (e.g. 20 KB across 100 turns). Depends on the analytics ecosystem (sessions.db, hooks.db) for the data, not on hook-framework-internal changes. Reopen if cross-hook saturation surfaces in real sessions."
+    },
+    {
+      "id": "hook-audit-00-move-strip-inert-content",
+      "priority": "P3",
+      "title": "Move _strip_inert_content from hook-utils.sh to detection-registry.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Design doc Proposal 1 (design/hook-audit/00-shared/clarity.md) claims _strip_inert_content has a single consumer (detection_registry_match_kind). Wrong: enforce-uv-run.sh:28,39 and git-safety.sh:51,64 call it directly while sourcing only hook-utils.sh, not detection-registry.sh. A clean move would break both hooks. Options: (a) drop Proposal 1, (b) migrate the two direct callers to detection_registry_match_kind first, (c) ship a shim. None high-value enough for P0 — bumped to P3 pending a clarity.md revision."
     }
   ]
 }
