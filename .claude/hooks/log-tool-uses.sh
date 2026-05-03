@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Log every tool invocation to invocations.jsonl
 # CC-HOOK: EVENTS: PostToolUse
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=45, scope_hit=45
 # CC-HOOK: OPT-IN: traceability
 # CC-HOOK: SHIPS-IN: base
 # CC-HOOK: RELATES-TO: surface-lessons(informs)

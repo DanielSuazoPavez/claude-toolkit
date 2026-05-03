@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=auto_mode_shared_steps
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=68, scope_hit=83
 # CC-HOOK: OPT-IN: none
 #
 # Hook: auto-mode-shared-steps

@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Detect truncation of SessionStart attachment and warn the user once
 # CC-HOOK: EVENTS: UserPromptSubmit
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=26, scope_hit=26
 # CC-HOOK: OPT-IN: none
 # CC-HOOK: SHIPS-IN: base
 # CC-HOOK: RELATES-TO: session-start(informs)

@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Log auto-mode classifier denials to invocations.jsonl
 # CC-HOOK: EVENTS: PermissionDenied
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=50, scope_hit=50
 # CC-HOOK: OPT-IN: traceability
 #
 # PermissionDenied hook: log auto-mode classifier denials for analytics

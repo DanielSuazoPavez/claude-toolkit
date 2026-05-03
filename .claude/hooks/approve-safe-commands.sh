@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Auto-approve chained Bash commands when every subcommand is safe
 # CC-HOOK: EVENTS: PermissionRequest(Bash)
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=114, scope_hit=114
 # CC-HOOK: OPT-IN: none
 #
 # PermissionRequest hook: auto-approve chained commands where all subcommands are safe

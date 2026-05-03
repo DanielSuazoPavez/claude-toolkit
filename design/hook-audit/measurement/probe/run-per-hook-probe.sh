@@ -9,15 +9,20 @@
 #            (one sqlite3 fork in _resolve_project_id; one jq -c fork in
 #             _hook_log_timing EXIT trap; JSONL row written to tmp dir)
 #
-# Output (stdout, TSV): hook  mode  run  total_us
-# Aggregate report (stderr): min / p50 / p90 / p95 / max per (hook, mode).
+# Output (stdout, TSV): hook  outcome  mode  run  total_us
+# Aggregate report (stderr): min / p50 / p90 / p95 / max per (hook, outcome, mode).
 #
 # Usage:
 #   bash design/hook-audit/measurement/probe/run-per-hook-probe.sh [N]
 #   N defaults to 30 (audit guidance: N≥30).
 #
-# The runner reuses each hook's existing tests/hooks/fixtures/<hook>/<case>.json
-# (V18 minimum coverage = one fixture per hook).
+# Paired outcome fixtures (V21+): each hook is sampled with both a pass-outcome
+# fixture and a non-pass-outcome (block/approve/error) fixture where the pair
+# exists. Three exceptions ship pass-only fixtures (see HOOKS_AND_FIXTURES
+# below): detect-session-start-truncation (block fixture deferred — depends on
+# smoke-runner $HOME injection), log-permission-denied and log-tool-uses
+# (logger hooks have no decision body — second fixture is malformed-stdin
+# error path, treated as the non-pass outcome).
 #
 # Note: log-tool-uses, log-permission-denied, and detect-session-start-truncation
 # are pure-logger / fire-once hooks. The EXIT trap row is the entirety of their
@@ -32,22 +37,38 @@ FIXTURES_DIR="$REPO_ROOT/tests/hooks/fixtures"
 SESSIONS_DB_REAL="${CLAUDE_TOOLKIT_PROBE_SESSIONS_DB:-$HOME/.claude/sessions.db}"
 N="${1:-30}"
 
-# (hook fixture) pairs — one per hook (V18 minimum). Skip dispatchers and
-# session-context hooks; those are categories 02 and 03.
+# (hook outcome fixture) triples — paired (block, pass) coverage where both
+# fixtures exist. Skip dispatchers and session-context hooks; those are
+# categories 02 and 03. Three exceptions are pass-only (see header note).
+#
+# Outcome label mirrors V20's branching: 'pass' selects the scope_miss budget;
+# any other label (blocked/approved/error) selects scope_hit.
 HOOKS_AND_FIXTURES=(
-    "approve-safe-commands approves-ls"
-    "auto-mode-shared-steps passes-noop-bash"
-    "block-config-edits blocks-edit-bashrc"
-    "block-credential-exfiltration blocks-curl-with-token"
-    "block-dangerous-commands blocks-rm-rf-root"
-    "detect-session-start-truncation passes-untruncated"
-    "enforce-make-commands blocks-bare-pytest"
-    "enforce-uv-run blocks-bare-python"
-    "git-safety blocks-force-push-main"
-    "log-permission-denied logs-denied"
-    "log-tool-uses logs-bash"
-    "secrets-guard blocks-dotenv-grep"
-    "suggest-read-json blocks-on-large-json"
+    "approve-safe-commands           approved approves-ls"
+    "approve-safe-commands           pass     passes-non-allowlist-bash"
+    "auto-mode-shared-steps          blocked  blocks-git-push-under-auto-mode"
+    "auto-mode-shared-steps          pass     passes-noop-bash"
+    "block-config-edits              blocked  blocks-edit-bashrc"
+    "block-config-edits              pass     passes-edit-non-config-file"
+    "block-credential-exfiltration   blocked  blocks-curl-with-token"
+    "block-credential-exfiltration   pass     passes-curl-no-credentials"
+    "block-dangerous-commands        blocked  blocks-rm-rf-root"
+    "block-dangerous-commands        pass     passes-benign-ls"
+    "detect-session-start-truncation pass     passes-untruncated"
+    "enforce-make-commands           blocked  blocks-bare-pytest"
+    "enforce-make-commands           pass     passes-make-test"
+    "enforce-uv-run                  blocked  blocks-bare-python"
+    "enforce-uv-run                  pass     passes-uv-run-python"
+    "git-safety                      blocked  blocks-force-push-main"
+    "git-safety                      pass     passes-git-status"
+    "log-permission-denied           pass     logs-denied"
+    "log-permission-denied           error    passes-on-malformed-stdin"
+    "log-tool-uses                   pass     logs-bash"
+    "log-tool-uses                   error    passes-on-malformed-stdin"
+    "secrets-guard                   blocked  blocks-dotenv-grep"
+    "secrets-guard                   pass     passes-grep-non-secret-path"
+    "suggest-read-json               blocked  blocks-on-large-json"
+    "suggest-read-json               pass     passes-on-nonexistent-json"
 )
 
 MODES=(smoke real)
@@ -100,35 +121,35 @@ run_one() {
     echo $(( wall_end - wall_start ))
 }
 
-# Warmup — one iteration per (hook, mode) pair, results discarded.
-for pair in "${HOOKS_AND_FIXTURES[@]}"; do
-    read -r hook fixture <<<"$pair"
+# Warmup — one iteration per (hook, outcome, mode) triple, results discarded.
+for triple in "${HOOKS_AND_FIXTURES[@]}"; do
+    read -r hook outcome fixture <<<"$triple"
     for mode in "${MODES[@]}"; do
         run_one "$hook" "$fixture" "$mode" >/dev/null || {
-            echo "warmup failed for $hook/$mode" >&2
+            echo "warmup failed for $hook/$outcome/$mode" >&2
             exit 1
         }
     done
 done
 
 # Header.
-printf 'hook\tmode\trun\ttotal_us\n'
+printf 'hook\toutcome\tmode\trun\ttotal_us\n'
 
 declare -A SAMPLES
-for pair in "${HOOKS_AND_FIXTURES[@]}"; do
-    read -r hook fixture <<<"$pair"
+for triple in "${HOOKS_AND_FIXTURES[@]}"; do
+    read -r hook outcome fixture <<<"$triple"
     for mode in "${MODES[@]}"; do
-        SAMPLES["$hook|$mode"]=""
+        SAMPLES["$hook|$outcome|$mode"]=""
     done
 done
 
-for pair in "${HOOKS_AND_FIXTURES[@]}"; do
-    read -r hook fixture <<<"$pair"
+for triple in "${HOOKS_AND_FIXTURES[@]}"; do
+    read -r hook outcome fixture <<<"$triple"
     for mode in "${MODES[@]}"; do
         for ((i=1; i<=N; i++)); do
             us=$(run_one "$hook" "$fixture" "$mode") || exit 1
-            printf '%s\t%s\t%d\t%d\n' "$hook" "$mode" "$i" "$us"
-            SAMPLES["$hook|$mode"]+="$us "
+            printf '%s\t%s\t%s\t%d\t%d\n' "$hook" "$outcome" "$mode" "$i" "$us"
+            SAMPLES["$hook|$outcome|$mode"]+="$us "
         done
     done
 done
@@ -158,10 +179,10 @@ stats() {
 
 echo "" >&2
 echo "=== Per-hook total wall-clock (microseconds) ===" >&2
-for pair in "${HOOKS_AND_FIXTURES[@]}"; do
-    read -r hook fixture <<<"$pair"
+for triple in "${HOOKS_AND_FIXTURES[@]}"; do
+    read -r hook outcome fixture <<<"$triple"
     for mode in "${MODES[@]}"; do
         # shellcheck disable=SC2086
-        stats "$hook ($mode)" ${SAMPLES["$hook|$mode"]}
+        stats "$hook/$outcome ($mode)" ${SAMPLES["$hook|$outcome|$mode"]}
     done
 done

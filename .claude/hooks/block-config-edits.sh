@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=config_edits
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=58, scope_hit=76
 # CC-HOOK: OPT-IN: none
 #
 # PreToolUse hook: block writes to shell config, SSH files, and Claude settings
