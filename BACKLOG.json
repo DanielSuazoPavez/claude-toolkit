@@ -749,6 +749,196 @@
       ],
       "status": "idea",
       "notes": "Surfaced 2026-05-02 during 03-session-context audit wrap-up. Empirical data from ~/.claude/hooks.db.hook_logs (claude-toolkit project, all sessions to date): 574 `make check` invocations total, of which 205 (36%) are piped through head/tail/grep/etc. Top session ran `make check` 38 times; multiple sessions in the 20-30+ range. Cost shape: each `make check` is ~1+ min wall (often longer in CI), and re-runs typically happen near end-of-session where token count is already high — so the discipline drift compounds. Conventions already exist (memory `feedback_make_check_bare.md`; CLAUDE.md `Verification is `make check`, invoked bare`) but Claude does not follow them consistently. Memory + doc-only enforcement is insufficient. Design (suggestion, not block, per discussion): PreToolUse(Bash) hook that detects (a) `make check` followed by a pipe (`|`) and (b) `make check` re-run within N minutes of a previous failed `make check` in the same session. Fires `additionalContext` (not a block) suggesting the right behavior — read the existing output before re-running, or run the command bare to get full output. Block would be too intrusive (sometimes piping is right, e.g. `make check 2>&1 | tee log`); suggestion lets Claude choose but surfaces the convention. Could potentially fold into grouped-bash-guard.sh as a child check (similar to the surface-lessons-fold P99). Reference inputs: 02-dispatchers/clarity.md (dispatcher child shape), feedback_make_check_bare.md (memory), CLAUDE.md `Verification is make check, invoked bare`."
+    },
+    {
+      "id": "hook-audit-03-session-start-perf-budget",
+      "priority": "P2",
+      "title": "session-start: PERF-BUDGET-MS scope_miss=200 scope_hit=300 (one-shot loader)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/03-session-context/performance.md. Add `# CC-HOOK: PERF-BUDGET-MS: scope_miss=200, scope_hit=300` header to .claude/hooks/session-start.sh. Numbers backed by perf-session-start.sh n=10 (TOTAL=112ms inside hook, WALL=136ms). 200ms scope_miss covers V20 measured 49ms with ~4× headroom; 300ms scope_hit covers conditional growth paths (lessons block, toolkit version mismatch, ACTIONABLE_ITEMS items). Add 1-2 line comment alongside header explaining `firing_rate=session` rationale. Stops the recurring V20 false-positive on every make check. Pattern matches 02-dispatchers/clarity.md Proposal 1 (already on backlog as hook-audit-02-perf-budget-headers)."
+    },
+    {
+      "id": "hook-audit-03-surface-lessons-perf-budget",
+      "priority": "P2",
+      "title": "surface-lessons: PERF-BUDGET-MS scope_miss=20 scope_hit=60 (per-call path)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/03-session-context/performance.md. Add `# CC-HOOK: PERF-BUDGET-MS: scope_miss=20, scope_hit=60` header to .claude/hooks/surface-lessons.sh. Numbers backed by perf-surface-lessons.sh n=10. Path decomposition: pass (no SQL match) ~17ms inside-hook, hit (SQL fires + inject) ~47ms inside-hook. Tighter than session-start because surface-lessons is on the per-call hot path (PreToolUse Bash|Read|Write|Edit). The asymmetric scope_miss/scope_hit split (20/60) is meaningful: 67% of invocations take cheap path, 33% take expensive path. Stops V20 false-positive on every dispatch."
+    },
+    {
+      "id": "hook-audit-03-document-lessons-limitations",
+      "priority": "P2",
+      "title": "Document surface-lessons known limitations in relevant-toolkit-lessons.md",
+      "scope": [
+        "docs"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/03-session-context/context-pollution.md Section B + B7. Add a Known Limitations subsection to .claude/docs/relevant-toolkit-lessons.md documenting: (1) 33% hit rate on PreToolUse(Bash|Read|Write|Edit), 44% on Bash specifically; (2) within-session dedup is in place (surface-lessons.sh:79-102) and bounds intra-session repetition; (3) cross-session recurrence is the visible problem — top 3-lesson tuple touches 261 distinct sessions, ~53% of all claude-toolkit sessions; (4) concept-tag false positives (concept tags like convention/pattern/gotcha reach the 2-hit threshold via coincidental token overlap); (5) cross-project leakage on globals (lessons saved in sibling projects fire in this project because scope=global has no project-relevance gate); (6) half the active tags have empty keywords and silently never match. Sets expectations and motivates eval-claude-mem (P1). Empirical data sourced from ~/.claude/hooks.db.surface_lessons_context (17 880 invocations) and ~/.claude/sessions.db (490 sessions)."
+    },
+    {
+      "id": "hook-audit-03-surface-lessons-relevance-sample",
+      "priority": "P2",
+      "title": "Manually label 50 surface-lessons firings for relevance precision",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From design/hook-audit/03-session-context/testability.md Section B Relevance + context-pollution.md B7. Manually label 50 (context, surfaced_lessons) pairs sampled from ~/.claude/hooks.db.surface_lessons_context (claude-toolkit project, match_count > 0) for relevance: relevant / tangential / not relevant. Compute precision. Direct input to eval-claude-mem (P1) — gives candidate systems (claude-mem, agentmemory) a concrete baseline to compete against. ~25min of manual work for 50 samples; could expand to 200 if first 50 do not paint a clear picture. Output: short writeup in output/claude-toolkit/analysis/ with the precision number + a few representative false-positive examples for the eval task."
+    },
+    {
+      "id": "hook-audit-03-document-byte-turn-framing",
+      "priority": "P3",
+      "title": "Add byte-turn cost framing + context-injector failure-mode taxonomy to relevant-toolkit-hooks.md",
+      "scope": [
+        "docs"
+      ],
+      "status": "idea",
+      "notes": "From performance.md + clarity.md (finding C1 option 2). Add a Context cost amortization subsection to .claude/docs/relevant-toolkit-hooks.md covering: (1) byte-turn cost model (bytes injected × turns remaining in session) for context-injection hooks vs the per-call cost model for safety dispatchers; (2) context-injector failure-mode taxonomy (total failure / partial payload / stale data / cap exceeded / source unavailable / wrong relevance) — replaces fail-closed/open/soft/loud which doesnt apply to no-decision hooks; (3) implicit policy session-start uses for section ordering (essential foundation → guidance → situational → conditional → lessons → ACK at the end so it survives partial truncation least). Real session-length anchors (claude-toolkit p50=8 turns, p95=33 turns from sessions.db) for the byte-turn arithmetic. Future context-injection hook authors inherit the framing."
+    },
+    {
+      "id": "hook-audit-03-cap-validator-breakdown",
+      "priority": "P3",
+      "title": "Extend validate-session-start-cap.sh to emit per-section bytes (drift visibility)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From robustness.md + testability.md. Extend .claude/scripts/validate-session-start-cap.sh to emit per-section bytes alongside the total. session-start already emits section banners (=== ESSENTIAL CONTEXT ===, === GIT CONTEXT ===, etc.), so the validator can parse the output. Drift visibility: anyone making session-start grow can see exactly which section is doing the growing. Cross-axis leverage — supports robustness (per-section growth alarm), performance (per-section byte cost data for byte-turn projection), context-pollution (per-doc soft-cap policy enforcement), testability (the breakdown IS regression coverage). Recommended: combine with hook-audit-03-essential-full-inject-discipline into one PR (same file, mutually reinforcing)."
+    },
+    {
+      "id": "hook-audit-03-essential-full-inject-discipline",
+      "priority": "P3",
+      "title": "Per-doc soft cap for ESSENTIAL_FULL_INJECT members + warning comment at session-start.sh:39",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From context-pollution.md Finding A1 + clarity.md Finding C3. Two parts: (1) per-doc soft cap in validate-session-start-cap.sh — warn if any single full-injected doc (member of ESSENTIAL_FULL_INJECT) exceeds 4000 B; (2) expand the comment at session-start.sh:39-41 with the byte-turn cost framing (e.g. ~3500 B doc costs ~350K byte-turns over 100-turn session). Prevents silent growth of single-source concentration: essential-preferences-communication_style is currently 65% of session-starts payload by byte share. Future maintainers adding a doc to ESSENTIAL_FULL_INJECT need to see the cost. Combine with hook-audit-03-cap-validator-breakdown."
+    },
+    {
+      "id": "hook-audit-03-empty-keyword-tags",
+      "priority": "P3",
+      "title": "Investigate half-empty active tag vocabulary in lessons.db (populate, deactivate, or document)",
+      "scope": [
+        "toolkit"
+      ],
+      "status": "idea",
+      "notes": "From context-pollution.md B3. Half the active tags in lessons.db have empty `keywords` and silently never satisfy the surface-lessons.sh:116 HAVING(CASE_SUM)>=2 gate. Sample query: `SELECT name, keywords FROM tags WHERE status=active AND (keywords IS NULL OR keywords=)`. Investigate whether these are deliberately disabled (set status=inactive) or accidentally orphaned (populate keywords). If neither, document the convention. Affected tags this session: communication, conventions, docs, resources, scripts, testing."
+    },
+    {
+      "id": "hook-audit-03-session-start-negative-fixtures",
+      "priority": "P3",
+      "title": "Add fixtures for the three documented negative cases in session-start.sh:20-34",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From robustness.md Source unavailable. session-start.sh:20-34 documents three negative cases: (1) no docs dir (CLAUDE_DOCS_DIR=/nonexistent → warn + exit 0); (2) empty docs dir (no essential-*.md files → 0 essential docs loaded); (3) no git repo (Branch shows unknown, Main shows main fallback). All three lack regression fixtures under tests/hooks/fixtures/session-start/. Add 3 fixtures + 3 .expect files. Cheap; locks in the documented behavior."
+    },
+    {
+      "id": "hook-audit-03-essential-full-inject-test",
+      "priority": "P3",
+      "title": "Regression test asserting ESSENTIAL_FULL_INJECT policy (full vs Quick Reference)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From testability.md Section A Correctness. Test that asserts the ESSENTIAL_FULL_INJECT policy holds: essential-preferences-communication_style content appears in full in session-starts output; other essential-*.md content appears as Quick Reference (§1) + path nudge. Locks in the policy decision from context-pollution.md A1. Today it works but is not regression-protected."
+    },
+    {
+      "id": "hook-audit-03-perf-session-start-variance",
+      "priority": "P3",
+      "title": "Extend perf-session-start.sh with cold-cache mode + ACTIONABLE_ITEMS scenario flags",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From testability.md Section A Input variance. Extend tests/perf-session-start.sh: -c flag for cold-cache mode (drop file caches between runs OR unique tmpdir per run); -s flag for ACTIONABLE_ITEMS scenarios (toolkit version mismatch, lessons.db missing, opt-in nudge, settings-integrity drift). Today the harness measures only the baseline happy path and would not catch cost regressions on the conditional paths."
+    },
+    {
+      "id": "hook-audit-03-perf-session-start-bytes",
+      "priority": "P3",
+      "title": "Emit per-section bytes-injected from perf-session-start.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From testability.md Section A Token cost. Have tests/perf-session-start.sh emit per-section bytes-injected alongside the timing breakdown. Combined with the byte-turn framing (hook-audit-03-document-byte-turn-framing), gives direct visualization of `section X costs N ms wall-clock and M bytes-per-session of context`. Same data the cap validator emits in aggregate (hook-audit-03-cap-validator-breakdown), just in the perf harness output."
+    },
+    {
+      "id": "hook-audit-03-perf-surface-lessons-bytes",
+      "priority": "P3",
+      "title": "Emit bytes-injected per fire from perf-surface-lessons.sh",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From testability.md Section B Token cost. Have tests/perf-surface-lessons.sh emit bytes-injected per fire (the LESSONS variables length). Combined with hit-rate from surface-lessons-context.jsonl, gives cumulative-bytes-injected projections per session for the byte-turn framing."
+    },
+    {
+      "id": "hook-audit-03-surface-lessons-edge-fixtures",
+      "priority": "P3",
+      "title": "Edge-case fixtures: LIMIT 3, scope filter, 3-char filter, JSON-escape (single test file)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From testability.md Section B Correctness. Single new test file tests/hooks/test-surface-lessons-edge-cases.sh covering four mechanism gaps: (1) LIMIT 3 cap (fixture with 5+ matching lessons asserting only 3 surface); (2) scope filter (l.scope=global vs l.scope=project AND l.project_id=current); (3) 3-character word filter (line 64 `[ ${#word} -lt 3 ] && continue`); (4) JSON-escape edge cases for lesson texts containing control chars (newlines, tabs). Uses stubbed lessons.db like the existing test-surface-lessons-*.sh files."
+    },
+    {
+      "id": "hook-audit-03-surface-lessons-json-escape",
+      "priority": "P3",
+      "title": "Audit JSON-escape correctness for lesson texts containing control characters",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "From robustness.md Partial payload. The hooks current JSON escape via sed at surface-lessons.sh:145 covers `\\` and `\"` only. Lesson texts containing literal newlines, tabs, or other JSON-control characters may produce malformed `additionalContext` strings. Audit: does hook_inject (in lib/hook-utils.sh) add escaping on top of the hooks sed? If not, what does the harness do with malformed JSON? Add escape for control chars if needed. Pairs with hook-audit-03-surface-lessons-edge-fixtures (escape fixture is one of the four edge cases)."
+    },
+    {
+      "id": "hook-audit-03-perf-surface-lessons-variance",
+      "priority": "P3",
+      "title": "[idea] Extend perf-surface-lessons.sh with lessons.db-size + tag-density scenarios (defer)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "DEFER. Idea from testability.md Section B Input variance. Extend tests/perf-surface-lessons.sh with lessons.db-size and tag-keyword-density scenarios. Only worth doing if a baseline-comparison need surfaces during eval-claude-mem. Today the synthetic + replay modes are well-shaped for current mechanism."
+    },
+    {
+      "id": "hook-audit-03-quickref-extract-edge-cases",
+      "priority": "P3",
+      "title": "[watch] Investigate hook_extract_quick_reference truncation behavior if real session produces malformed output",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "WATCH-ITEM. From robustness.md Partial payload. hook_extract_quick_reference (used by session-start) may return truncated content if awk script errors partway. Placeholder fallback only fires on empty return, not truncated. Only investigate if a real session ever produces malformed Quick Reference output. No reports today."
+    },
+    {
+      "id": "hook-audit-03-firing-rate-budget",
+      "priority": "P3",
+      "title": "[idea] Extend PERF-BUDGET-MS schema with firing_rate=session|per_call annotation (defer until 2nd one-shot hook)",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "DEFER. Idea from performance.md Cross-cutting observations. Add `firing_rate=session|per_call|per_event` annotation to PERF-BUDGET-MS header schema. V20 would scale aggregate-budget calculations using the rate. Premature today (only one one-shot hook in the toolkit). Reopen if a second one-shot hook joins the family or if a consumer requests it."
+    },
+    {
+      "id": "hook-audit-03-cumulative-context-budget",
+      "priority": "P3",
+      "title": "[idea] Track cumulative bytes-injected per session; warn over threshold (out of scope; analytics dependency)",
+      "scope": [
+        "toolkit"
+      ],
+      "status": "idea",
+      "notes": "DEFER (out-of-scope for hook-audit). Idea from performance.md Cross-cutting observations. Track cumulative bytes-injected across all hooks in a session; warn when projected forward exceeds a threshold (e.g. 20 KB across 100 turns). Depends on the analytics ecosystem (sessions.db, hooks.db) for the data, not on hook-framework-internal changes. Reopen if cross-hook saturation surfaces in real sessions."
     }
   ]
 }
