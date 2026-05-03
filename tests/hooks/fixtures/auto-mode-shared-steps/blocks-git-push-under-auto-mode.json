@@ -1,0 +1,8 @@
+{
+  "session_id": "smoke",
+  "permission_mode": "auto",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "git push origin main"
+  }
+}
