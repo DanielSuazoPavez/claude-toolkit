@@ -32,40 +32,37 @@ source "$HOOKS_DIR/suggest-read-json.sh"
 # Hook-label → match_/check_ function-name dispatch table
 # ============================================================
 # Function names don't all match `match_<hook-label>` (e.g. credential_exfil,
-# secrets_guard_read). The label is the test-facing identifier; the table
-# resolves it to the real function names exposed by the sourced hook.
-_match_fn_for() {
-    case "$1" in
-        auto-mode-shared-steps)        echo match_auto_mode_shared_steps ;;
-        block-config-edits)            echo match_config_edits ;;
-        block-credential-exfiltration) echo match_credential_exfil ;;
-        block-dangerous-commands)      echo match_dangerous ;;
-        enforce-make-commands)         echo match_make ;;
-        enforce-uv-run)                echo match_uv ;;
-        git-safety)                    echo match_git_safety ;;
-        secrets-guard)                 echo match_secrets_guard ;;
-        secrets-guard-read)            echo match_secrets_guard_read ;;
-        secrets-guard-grep)            echo match_secrets_guard_grep ;;
-        suggest-read-json)             echo match_suggest_read_json ;;
-        *) echo "ERR_NO_MATCH_FN_FOR_$1" ;;
-    esac
-}
-_check_fn_for() {
-    case "$1" in
-        auto-mode-shared-steps)        echo check_auto_mode_shared_steps ;;
-        block-config-edits)            echo check_config_edits ;;
-        block-credential-exfiltration) echo check_credential_exfil ;;
-        block-dangerous-commands)      echo check_dangerous ;;
-        enforce-make-commands)         echo check_make ;;
-        enforce-uv-run)                echo check_uv ;;
-        git-safety)                    echo check_git_safety ;;
-        secrets-guard)                 echo check_secrets_guard ;;
-        secrets-guard-read)            echo check_secrets_guard_read ;;
-        secrets-guard-grep)            echo check_secrets_guard_grep ;;
-        suggest-read-json)             echo check_suggest_read_json ;;
-        *) echo "ERR_NO_CHECK_FN_FOR_$1" ;;
-    esac
-}
+# secrets_guard_read). Tables resolve a label to the real function names
+# exposed by the sourced hook. Associative arrays are used so callers can
+# read the value as ${MATCH_FN[label]} — direct variable read, no command
+# substitution and no fork (~3× faster than echo $(_fn_for label) at the
+# scale of ~80 cases × 2 lookups each).
+declare -A MATCH_FN=(
+    [auto-mode-shared-steps]=match_auto_mode_shared_steps
+    [block-config-edits]=match_config_edits
+    [block-credential-exfiltration]=match_credential_exfil
+    [block-dangerous-commands]=match_dangerous
+    [enforce-make-commands]=match_make
+    [enforce-uv-run]=match_uv
+    [git-safety]=match_git_safety
+    [secrets-guard]=match_secrets_guard
+    [secrets-guard-read]=match_secrets_guard_read
+    [secrets-guard-grep]=match_secrets_guard_grep
+    [suggest-read-json]=match_suggest_read_json
+)
+declare -A CHECK_FN=(
+    [auto-mode-shared-steps]=check_auto_mode_shared_steps
+    [block-config-edits]=check_config_edits
+    [block-credential-exfiltration]=check_credential_exfil
+    [block-dangerous-commands]=check_dangerous
+    [enforce-make-commands]=check_make
+    [enforce-uv-run]=check_uv
+    [git-safety]=check_git_safety
+    [secrets-guard]=check_secrets_guard
+    [secrets-guard-read]=check_secrets_guard_read
+    [secrets-guard-grep]=check_secrets_guard_grep
+    [suggest-read-json]=check_suggest_read_json
+)
 
 # ============================================================
 # Local assertion helpers
@@ -79,7 +76,7 @@ _check_fn_for() {
 
 assert_match_hit() {
     local label="$1" desc="$2"
-    local fn; fn=$(_match_fn_for "$label")
+    local fn="${MATCH_FN[$label]}"
     TESTS_RUN=$((TESTS_RUN + 1))
     if "$fn"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -93,7 +90,7 @@ assert_match_hit() {
 
 assert_match_miss() {
     local label="$1" desc="$2"
-    local fn; fn=$(_match_fn_for "$label")
+    local fn="${MATCH_FN[$label]}"
     TESTS_RUN=$((TESTS_RUN + 1))
     if ! "$fn"; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -107,7 +104,7 @@ assert_match_miss() {
 
 assert_check_pass() {
     local label="$1" desc="$2"
-    local fn; fn=$(_check_fn_for "$label")
+    local fn="${CHECK_FN[$label]}"
     TESTS_RUN=$((TESTS_RUN + 1))
     _BLOCK_REASON=""
     if "$fn"; then
@@ -123,7 +120,7 @@ assert_check_pass() {
 
 assert_check_block() {
     local label="$1" reason_substr="$2" desc="$3"
-    local fn; fn=$(_check_fn_for "$label")
+    local fn="${CHECK_FN[$label]}"
     TESTS_RUN=$((TESTS_RUN + 1))
     _BLOCK_REASON=""
     if "$fn"; then
