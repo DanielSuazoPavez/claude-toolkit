@@ -1,0 +1,4 @@
+outcome=blocked
+hook_name=git-safety
+hook_event=PreToolUse
+decision_json_contains=received malformed stdin
