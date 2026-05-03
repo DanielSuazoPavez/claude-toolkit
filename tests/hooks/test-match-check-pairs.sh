@@ -297,4 +297,34 @@ assert_check_block auto-mode-shared-steps "git push" "check_ blocks git push und
 COMMAND='echo "to push run: git push"'
 assert_check_pass auto-mode-shared-steps "check_ does not block git push mentioned only inside a quoted string"
 
+# ============================================================
+# block-config-edits  (Bash branch only)
+# ============================================================
+# Write/Edit branches run inline in main() — out of scope here, tracked as
+# hook-audit-01-block-config-edits-write-edit-pair.
+report_section "block-config-edits"
+
+COMMAND="ls -la"
+assert_match_miss block-config-edits "match_config_edits misses on ls"
+
+COMMAND="echo hello world"
+assert_match_miss block-config-edits "match_config_edits misses on echo"
+
+# Append to ~/.bashrc — block
+COMMAND='echo "alias ll=ls" >> ~/.bashrc'
+assert_match_hit   block-config-edits "match_config_edits hits on >> ~/.bashrc"
+assert_check_block block-config-edits "shell/SSH/git config" "check_config_edits blocks append to ~/.bashrc"
+
+# sed -i on ~/.zshrc — block
+COMMAND='sed -i s/foo/bar/ ~/.zshrc'
+assert_check_block block-config-edits "shell/SSH/git config" "check_config_edits blocks sed -i on ~/.zshrc"
+
+# mv into ~/.gitconfig — block
+COMMAND='mv /tmp/cfg ~/.gitconfig'
+assert_check_block block-config-edits "shell/SSH/git config" "check_config_edits blocks mv into ~/.gitconfig"
+
+# Bare write to .claude/settings.json — block
+COMMAND='echo {} > .claude/settings.json'
+assert_check_block block-config-edits ".claude/settings" "check_config_edits blocks bare write to .claude/settings.json"
+
 print_summary
