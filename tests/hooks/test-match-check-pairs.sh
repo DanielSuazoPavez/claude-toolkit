@@ -196,4 +196,42 @@ assert_check_block enforce-uv-run "uv run python" "check_uv blocks bare python w
 COMMAND="python3 -m pytest"
 assert_check_block enforce-uv-run "uv run python" "check_uv blocks bare python3 with uv-run hint"
 
+# ============================================================
+# suggest-read-json
+# ============================================================
+report_section "suggest-read-json"
+
+# Predicate fires only on .json suffix
+FILE_PATH="/tmp/data.txt"
+assert_match_miss suggest-read-json "match_suggest_read_json misses on .txt"
+
+# Allowlisted basename — predicate fires, check passes
+FILE_PATH="/tmp/package.json"
+assert_match_hit  suggest-read-json "match_suggest_read_json hits on .json"
+assert_check_pass suggest-read-json "check_suggest_read_json allows allowlisted package.json"
+
+# *.config.json pattern is allowlisted
+FILE_PATH="/tmp/eslint.config.json"
+assert_check_pass suggest-read-json "check_suggest_read_json allows *.config.json pattern"
+
+# Nonexistent file — fail-open (the robustness-flagged behavior; lock it in
+# so any future tightening of this branch lands as a deliberate change).
+FILE_PATH="/tmp/this-file-definitely-does-not-exist-$$.json"
+assert_check_pass suggest-read-json "check_suggest_read_json fail-opens on nonexistent file"
+
+# Small file under threshold — pass through
+_smol_json=$(mktemp --suffix=.json)
+printf '{"x":1}' > "$_smol_json"
+FILE_PATH="$_smol_json"
+assert_check_pass suggest-read-json "check_suggest_read_json passes on small json under threshold"
+rm -f "$_smol_json"
+
+# Large file over threshold (default 50 KB) — block with jq hint
+_big_json=$(mktemp --suffix=.json)
+# 60 KB of payload
+printf '{"data":"%s"}' "$(head -c 61440 /dev/urandom | base64 | tr -d '\n' | head -c 61440)" > "$_big_json"
+FILE_PATH="$_big_json"
+assert_check_block suggest-read-json "jq via Bash" "check_suggest_read_json blocks oversized json with jq hint"
+rm -f "$_big_json"
+
 print_summary
