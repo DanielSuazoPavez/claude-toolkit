@@ -235,8 +235,9 @@ test_help() {
     setup_test_env
     create_test_backlog
 
-    expect_output "shows usage with --help" "Usage:" --help
-    expect_output "shows usage with -h" "Usage:" -h
+    expect_output "shows help with --help" "claude-toolkit backlog" --help
+    expect_output "shows help with -h" "Read:" -h
+    expect_output "help lists workflows" "Common workflows" --help
 
     teardown_test_env
 }
@@ -481,6 +482,88 @@ ENDJSON
     teardown_test_env
 }
 
+# === Filter validation ===
+
+test_filter_validation() {
+    report_section "=== filter arg validation ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_failure "rejects invalid priority value" priority P7
+    expect_output "explains valid priorities" "valid: P0" priority P7
+
+    expect_failure "rejects invalid status value" status garbage
+    expect_output "explains valid statuses" "valid: idea" status garbage
+
+    expect_failure "rejects unknown scope" scope nonexistent
+    expect_output "explains valid scopes" "valid:" scope nonexistent
+
+    expect_failure "rejects invalid relates-to kind" relates-to bogus
+    expect_output "explains valid kinds" "depends-on" relates-to bogus
+
+    teardown_test_env
+}
+
+# === id command exit code ===
+
+test_id_exit_code() {
+    report_section "=== id non-zero exit on miss ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_success "id exits 0 when found" id critical-test-task
+    expect_failure "id exits non-zero when missing" id no-such-task
+    expect_output "id reports missing task" "not found" id no-such-task
+
+    teardown_test_env
+}
+
+# === --json flag ===
+
+test_json_flag() {
+    report_section "=== --json output ==="
+    setup_test_env
+    create_test_backlog
+
+    local output
+    output=$(run_query --json priority P0)
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if echo "$output" | jq -e . >/dev/null 2>&1; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "--json emits valid JSON"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "--json emits valid JSON"
+        report_detail "Got: ${output:-<empty>}"
+    fi
+
+    expect_not_output "--json suppresses count footer" "Found" --json priority P0
+    expect_not_output "--json suppresses formatted brackets" "[planned" --json priority P0
+    expect_output "--json emits id" "critical-test-task" --json priority P0
+
+    teardown_test_env
+}
+
+# === next command ===
+
+test_next() {
+    report_section "=== next subcommand ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_output "next returns top P0 task" "Critical test task" next
+    expect_count "next defaults to 1" "1" next
+    expect_count "next 3 returns 3 unblocked" "3" next 3
+    expect_not_output "next skips blocked tasks" "Blocked agent task" next 5
+    expect_failure "next rejects non-numeric arg" next abc
+    expect_failure "next rejects zero" next 0
+
+    expect_output "next composes with --exclude-priority" "High priority skill" next --exclude-priority P0
+
+    teardown_test_env
+}
+
 # === Mutation tests ===
 
 test_add() {
@@ -510,6 +593,32 @@ test_move() {
 
     expect_failure "move rejects unknown task" move nonexistent P1
     expect_failure "move rejects invalid priority" move critical-test-task P7
+
+    teardown_test_env
+}
+
+test_update() {
+    report_section "=== update subcommand ==="
+    setup_test_env
+    create_test_backlog
+
+    expect_output "update changes status" "Updated task" update high-priority-skill --status planned
+    expect_output "status was updated" "planned" id high-priority-skill
+    expect_output "update sets branch" "Updated task" update high-priority-skill --branch fix/x
+    expect_output "branch was set" "branch: fix/x" id high-priority-skill
+    expect_output "update accepts multiple fields" "Updated task" update high-priority-skill --notes "hello" --plan plan/x.md
+    expect_output "notes was set" "notes: hello" id high-priority-skill
+    expect_output "plan was set" "plan: plan/x.md" id high-priority-skill
+
+    # Empty value deletes the field
+    expect_output "empty branch deletes field" "Updated task" update high-priority-skill --branch ""
+    expect_not_output "branch field is gone" "branch: fix/x" id high-priority-skill
+
+    expect_failure "update rejects unknown task" update nonexistent --status planned
+    expect_failure "update rejects invalid status" update high-priority-skill --status garbage
+    expect_failure "update rejects unknown field" update high-priority-skill --bogus value
+    expect_failure "update requires at least one field" update high-priority-skill
+    expect_failure "update requires id" update
 
     teardown_test_env
 }
@@ -728,6 +837,42 @@ ENDJSON
     teardown_test_env
 }
 
+test_validate_priority_inversion() {
+    report_section "=== validation: priority inversion warn ==="
+    setup_test_env
+    cat > "$TEMP_DIR/BACKLOG.json" << 'ENDJSON'
+{
+  "scopes": {"a": "A"},
+  "current_goal": "Test",
+  "tasks": [
+    {"id": "urgent", "priority": "P0", "title": "Urgent", "scope": ["a"], "status": "planned",
+     "relates_to": ["lazy:depends-on"]},
+    {"id": "lazy", "priority": "P3", "title": "Lazy", "scope": ["a"], "status": "idea"},
+    {"id": "ok", "priority": "P2", "title": "OK", "scope": ["a"], "status": "planned",
+     "relates_to": ["urgent:depends-on"]}
+  ]
+}
+ENDJSON
+
+    expect_validator_output "warns on inversion" "depends-on 'lazy' which is lower priority"
+    expect_validator_output "names dependent priority" "urgent (P0)"
+
+    # The OK task (P2 -> depends-on P0) should NOT trigger a warn
+    local output
+    output=$(run_validate)
+    TESTS_RUN=$((TESTS_RUN + 1))
+    if ! echo "$output" | grep -qF "ok (P2): depends-on 'urgent'"; then
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        report_pass "no warn when depending on higher priority"
+    else
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        report_fail "no warn when depending on higher priority"
+        report_detail "Output unexpectedly contains the warn"
+    fi
+
+    teardown_test_env
+}
+
 test_validate_unknown_scope() {
     report_section "=== validation: unknown scope ==="
     setup_test_env
@@ -799,9 +944,16 @@ test_relates_to_filter
 test_source_filter
 test_references_field
 
+# Filter validation + new read commands
+test_filter_validation
+test_id_exit_code
+test_json_flag
+test_next
+
 # Mutations
 test_add
 test_move
+test_update
 test_remove
 test_render
 
@@ -813,6 +965,7 @@ test_validate_invalid_status
 test_validate_missing_status
 test_validate_missing_required
 test_validate_malformed_relates_to
+test_validate_priority_inversion
 test_validate_unknown_scope
 
 # Summary sort fix

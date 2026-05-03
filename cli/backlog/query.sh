@@ -1,30 +1,7 @@
 #!/usr/bin/env bash
 #
-# CLI to query and mutate BACKLOG.json
-#
-# Usage:
-#     backlog-query.sh                # List all tasks
-#     backlog-query.sh id <task-id>   # Find task by id
-#     backlog-query.sh status planned # Filter by status
-#     backlog-query.sh unblocked      # Planned/idea + no :depends-on relations
-#     backlog-query.sh blocked        # Has :depends-on relation or status blocked
-#     backlog-query.sh priority P1    # Filter by priority
-#     backlog-query.sh scope cli      # Filter by scope
-#     backlog-query.sh branch         # Tasks with branches
-#     backlog-query.sh relates-to <kind>  # Filter by relates-to kind
-#     backlog-query.sh source <pat>   # Filter by source pattern
-#     backlog-query.sh schema         # Show metadata schema
-#     backlog-query.sh summary        # Counts by priority and status
-#     backlog-query.sh validate       # Validate backlog format
-#     backlog-query.sh render         # Render BACKLOG.md from BACKLOG.json
-#     backlog-query.sh add --id ID --priority P0 --title "..." --scope cli[,hooks]
-#     backlog-query.sh move <id> <priority>
-#     backlog-query.sh remove <id>
-#     backlog-query.sh -v ...         # Verbose output (shows all fields)
-#     backlog-query.sh --path FILE    # Use specific backlog file
-#     backlog-query.sh --exclude-priority P99,P3  # Hide listed priorities
-#
-# For the full vocabulary, run `claude-toolkit backlog schema`.
+# CLI to query and mutate BACKLOG.json. Help text lives in print_help() below
+# so it can use the loaded schema to print live enums.
 
 set -euo pipefail
 
@@ -32,6 +9,84 @@ set -euo pipefail
 # shellcheck disable=SC1091
 . "$(dirname "${BASH_SOURCE[0]}")/lib/schema.sh"
 bsl_load_schema
+
+# --- Help ---
+print_help() {
+    local statuses priorities kinds
+    statuses=$(bsl_status_values | paste -sd, - | sed 's/,/, /g')
+    priorities=$(bsl_priority_values | paste -sd, - | sed 's/,/, /g')
+    kinds=$(bsl_relates_to_kinds | paste -sd, - | sed 's/,/, /g')
+
+    cat <<EOF
+claude-toolkit backlog — query and mutate BACKLOG.json
+
+Read:
+    backlog                         List all tasks
+    backlog id <task-id>            Find task by id (exits non-zero if missing)
+    backlog next [N]                Top N unblocked tasks by priority (default 1)
+    backlog status <value>          Filter by status ($statuses)
+    backlog priority <value>        Filter by priority ($priorities)
+    backlog scope <name>            Filter by scope (must exist in scopes)
+    backlog unblocked               Planned/idea tasks with no :depends-on
+    backlog blocked                 Has :depends-on or status blocked
+    backlog branch                  Tasks with a branch field set
+    backlog relates-to <kind>       Filter by relation kind ($kinds)
+    backlog source <pattern>        Filter by source substring
+    backlog summary                 Counts by priority and status
+
+Mutate:
+    backlog add --id ID --priority P0 --title "..." --scope a[,b] [--notes ...] [--status ...] [--branch ...]
+    backlog update <id> --field value [--field value ...]
+    backlog move <id> <priority>    Change a task's priority
+    backlog remove <id>             Delete a task
+
+Tools:
+    backlog schema                  Show task metadata schema
+    backlog validate                Validate BACKLOG.json against schema
+    backlog render [out.md]         Render BACKLOG.md from BACKLOG.json
+
+Flags:
+    -v, --verbose                   Show all task fields
+    --json                          Emit raw JSONL (no formatting, no count)
+    --path FILE                     Use specific backlog file
+    --exclude-priority P99[,P3]     Hide listed priorities
+
+Common workflows:
+    # What should I work on next?
+    claude-toolkit backlog next
+
+    # Just the urgent stuff
+    claude-toolkit backlog unblocked --exclude-priority P99,P3
+
+    # What's blocking progress?
+    claude-toolkit backlog blocked -v
+
+    # Mark a task in-progress on a branch
+    claude-toolkit backlog update my-task --status in-progress --branch fix/my-task
+
+    # Pipe into another tool
+    claude-toolkit backlog priority P0 --json | jq -r '.id'
+EOF
+}
+
+# --- Validation helpers (filter args) ---
+
+# Echo a sorted list of scopes from the backlog file.
+list_scopes() {
+    jq -r '.scopes | keys[]' "$1" | paste -sd, - | sed 's/,/, /g'
+}
+
+# Validate that $value is in the schema enum produced by $accessor_fn.
+# On failure: prints diagnostic to stderr and exits 1.
+validate_enum_value() {
+    local accessor_fn="$1" value="$2" label="$3"
+    if ! "$accessor_fn" | grep -qx "$value"; then
+        local valid
+        valid=$("$accessor_fn" | paste -sd, - | sed 's/,/, /g')
+        echo "Error: invalid $label '$value' (valid: $valid)" >&2
+        exit 1
+    fi
+}
 
 # Find BACKLOG.json in the current directory.
 find_backlog() {
@@ -44,11 +99,19 @@ find_backlog() {
 }
 
 # Display tasks with count footer. Reads JSON lines from $1 (file path).
+# $3 (optional): "1" => emit raw JSONL, no formatting, no banners.
 display_tasks_from_file() {
     local json_file="$1"
     local verbose="$2"
+    local json_mode="${3:-0}"
     local count
     count=$(jq -s 'length' "$json_file")
+
+    if [[ "$json_mode" == "1" ]]; then
+        # Raw JSONL pass-through (already what's in tmpfile).
+        cat "$json_file"
+        return
+    fi
 
     if [[ "$count" -eq 0 ]]; then
         echo "No tasks found"
@@ -350,9 +413,119 @@ cmd_remove() {
     echo "Removed task '$id'"
 }
 
+# --- Mutation: update ---
+# Updates simple scalar fields on an existing task. Array fields (scope,
+# relates_to, references) are intentionally not handled here — use jq directly
+# for those. Priority moves go through `move`.
+cmd_update() {
+    local backlog="$1"
+    local id="${2:-}"
+    if [[ -z "$id" ]]; then
+        echo "Usage: backlog update <id> --field value [--field value ...]" >&2
+        echo "Fields: --status, --branch, --notes, --plan, --source, --title" >&2
+        exit 1
+    fi
+    shift 2
+
+    if ! jq -e --arg id "$id" '.tasks[] | select(.id == $id)' "$backlog" >/dev/null 2>&1; then
+        echo "Error: task '$id' not found" >&2
+        exit 1
+    fi
+
+    # Collect updates as parallel arrays of keys/values.
+    local -a keys=() vals=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --status)  shift; keys+=("status");  vals+=("${1:-}") ;;
+            --branch)  shift; keys+=("branch");  vals+=("${1:-}") ;;
+            --notes)   shift; keys+=("notes");   vals+=("${1:-}") ;;
+            --plan)    shift; keys+=("plan");    vals+=("${1:-}") ;;
+            --source)  shift; keys+=("source");  vals+=("${1:-}") ;;
+            --title)   shift; keys+=("title");   vals+=("${1:-}") ;;
+            *) echo "Unknown field for update: $1 (valid: --status, --branch, --notes, --plan, --source, --title)" >&2; exit 1 ;;
+        esac
+        shift
+    done
+
+    if [[ ${#keys[@]} -eq 0 ]]; then
+        echo "Error: no fields to update — pass --status/--branch/--notes/--plan/--source/--title" >&2
+        exit 1
+    fi
+
+    # Validate status enum if present.
+    local i
+    for i in "${!keys[@]}"; do
+        if [[ "${keys[$i]}" == "status" ]]; then
+            validate_enum_value bsl_status_values "${vals[$i]}" "status"
+        fi
+    done
+
+    # Build jq updates object. Empty string means "unset the field" (delete it).
+    local updates_json="{}"
+    for i in "${!keys[@]}"; do
+        updates_json=$(jq -n \
+            --argjson cur "$updates_json" \
+            --arg k "${keys[$i]}" \
+            --arg v "${vals[$i]}" \
+            '$cur + {($k): $v}')
+    done
+
+    local new_json
+    new_json=$(jq --arg id "$id" --argjson up "$updates_json" '
+        .tasks |= map(
+            if .id == $id then
+                . as $task
+                | reduce ($up | to_entries[]) as $kv ($task;
+                    if $kv.value == "" then del(.[$kv.key])
+                    else .[$kv.key] = $kv.value end)
+            else . end
+        )' "$backlog")
+
+    write_backlog "$backlog" "$new_json"
+    local fields
+    fields=$(printf '%s ' "${keys[@]}" | sed 's/ $//')
+    echo "Updated task '$id' ($fields)"
+}
+
+# --- Read: next ---
+# Top N unblocked tasks ordered by priority (P0 → P99). N defaults to 1.
+cmd_next() {
+    local backlog="$1"
+    local n="${2:-1}"
+    local exclude_jq="$3"
+    local verbose="$4"
+    local json_mode="$5"
+    local tmpfile="$6"
+
+    if ! [[ "$n" =~ ^[0-9]+$ ]] || [[ "$n" -lt 1 ]]; then
+        echo "Error: next count must be a positive integer (got '$n')" >&2
+        exit 1
+    fi
+
+    local exclude_filter
+    exclude_filter=$(build_exclude_filter "$exclude_jq")
+
+    # Priority rank: lower number == more urgent.
+    jq -c --argjson n "$n" "
+        [.tasks[]
+         | select((.status == \"planned\" or .status == \"idea\")
+                  and ((.relates_to // []) | any(endswith(\":depends-on\")) | not))
+         $exclude_filter
+         | . + {_rank: ({\"P0\":0,\"P1\":1,\"P2\":2,\"P3\":3,\"P99\":4}[.priority] // 99)}
+        ]
+        | sort_by(._rank)
+        | .[0:\$n]
+        | .[]
+        | del(._rank)
+    " "$backlog" > "$tmpfile"
+
+    display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
+}
+
 # Main
 main() {
     local verbose=0
+    local json_mode=0
     local backlog_path=""
     local exclude_priority=""
     local args=()
@@ -361,8 +534,9 @@ main() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -v|--verbose) verbose=1 ;;
+            --json) json_mode=1 ;;
             -h|--help|help)
-                head -28 "$0" | tail -n +3 | sed 's/^# //' | sed 's/^#//'
+                print_help
                 exit 0
                 ;;
             --path)
@@ -418,75 +592,96 @@ main() {
     case "${args[0]:-}" in
         "")
             jq -c ".tasks[] $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         id)
             local task_id="${args[1]:-}"
             if [[ -z "$task_id" ]]; then
-                echo "Usage: $0 id <task-id>" >&2
+                echo "Usage: backlog id <task-id>" >&2
                 exit 1
             fi
             jq -c --arg id "$task_id" ".tasks[] | select(.id == \$id) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            verbose=1
-            display_tasks_from_file "$tmpfile" "$verbose"
+            local found
+            found=$(wc -l < "$tmpfile")
+            if [[ "$found" -eq 0 ]]; then
+                echo "Error: task '$task_id' not found" >&2
+                exit 1
+            fi
+            display_tasks_from_file "$tmpfile" "1" "$json_mode"
+            ;;
+        next)
+            cmd_next "$backlog" "${args[1]:-1}" "$exclude_jq" "$verbose" "$json_mode" "$tmpfile"
             ;;
         status)
             local status="${args[1]:-}"
             if [[ -z "$status" ]]; then
-                echo "Usage: $0 status <status-value>" >&2
+                local valid
+                valid=$(bsl_status_values | paste -sd, - | sed 's/,/, /g')
+                echo "Usage: backlog status <value>  (valid: $valid)" >&2
                 exit 1
             fi
+            validate_enum_value bsl_status_values "$status" "status"
             jq -c --arg s "$status" ".tasks[] | select(.status == \$s) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         unblocked)
             jq -c ".tasks[] | select((.status == \"planned\" or .status == \"idea\") and ((.relates_to // []) | any(endswith(\":depends-on\")) | not)) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         blocked)
             jq -c ".tasks[] | select(((.relates_to // []) | any(endswith(\":depends-on\"))) or .status == \"blocked\") $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         priority)
             local prio="${args[1]:-}"
             if [[ -z "$prio" ]]; then
-                echo "Usage: $0 priority <P0|P1|P2|P3|P99>" >&2
+                local valid
+                valid=$(bsl_priority_values | paste -sd, - | sed 's/,/, /g')
+                echo "Usage: backlog priority <value>  (valid: $valid)" >&2
                 exit 1
             fi
             prio="${prio^^}"
+            validate_enum_value bsl_priority_values "$prio" "priority"
             jq -c --arg p "$prio" ".tasks[] | select(.priority == \$p) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         scope)
             local scope="${args[1]:-}"
             if [[ -z "$scope" ]]; then
-                echo "Usage: $0 scope <scope-value>" >&2
+                echo "Usage: backlog scope <name>  (valid: $(list_scopes "$backlog"))" >&2
+                exit 1
+            fi
+            if ! jq -e --arg s "$scope" '.scopes[$s]' "$backlog" >/dev/null 2>&1; then
+                echo "Error: unknown scope '$scope' (valid: $(list_scopes "$backlog"))" >&2
                 exit 1
             fi
             jq -c --arg s "$scope" ".tasks[] | select(.scope | index(\$s)) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         branch)
             jq -c ".tasks[] | select(.branch != null and .branch != \"\") $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         relates-to)
             local kind="${args[1]:-}"
             if [[ -z "$kind" ]]; then
-                echo "Usage: $0 relates-to <kind>" >&2
+                local valid
+                valid=$(bsl_relates_to_kinds | paste -sd, - | sed 's/,/, /g')
+                echo "Usage: backlog relates-to <kind>  (valid: $valid)" >&2
                 exit 1
             fi
+            validate_enum_value bsl_relates_to_kinds "$kind" "relates-to kind"
             jq -c --arg k ":$kind" ".tasks[] | select((.relates_to // []) | any(endswith(\$k))) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         source)
             local src_pattern="${args[1]:-}"
             if [[ -z "$src_pattern" ]]; then
-                echo "Usage: $0 source <pattern>" >&2
+                echo "Usage: backlog source <pattern>" >&2
                 exit 1
             fi
             jq -c --arg p "$src_pattern" ".tasks[] | select((.source // \"\") | contains(\$p)) $(build_exclude_filter "$exclude_jq")" "$backlog" > "$tmpfile"
-            display_tasks_from_file "$tmpfile" "$verbose"
+            display_tasks_from_file "$tmpfile" "$verbose" "$json_mode"
             ;;
         summary)
             display_summary "$backlog" "$exclude_jq"
@@ -502,6 +697,9 @@ main() {
             ;;
         add)
             cmd_add "$backlog" "${args[@]:1}"
+            ;;
+        update)
+            cmd_update "$backlog" "${args[@]:1}"
             ;;
         move)
             cmd_move "$backlog" "${args[1]:-}" "${args[2]:-}"

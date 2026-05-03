@@ -17,7 +17,7 @@ claude-toolkit backlog id <task-id>             # Query specific backlog task by
 
 `claude-toolkit` is the toolkit's own CLI — used here for backlog/lessons/docs queries. Run `claude-toolkit <cmd> --help` for details.
 
-- `claude-toolkit backlog <cmd>` — query/mutate backlog (e.g. `backlog summary`, `backlog id <task-id>`, `backlog status`, `backlog priority`, `backlog scope`, `backlog add`, `backlog move`, `backlog remove`, `backlog render`)
+- `claude-toolkit backlog <cmd>` — query/mutate backlog (e.g. `backlog summary`, `backlog id <task-id>`, `backlog next`, `backlog status`, `backlog priority`, `backlog scope`, `backlog add`, `backlog update`, `backlog move`, `backlog remove`, `backlog render`)
 - `claude-toolkit lessons <cmd>` — manage lessons (e.g. `lessons search <query>`, `lessons list`, `lessons health`)
 - `claude-toolkit docs [name]` — list or emit workshop agent-facing contracts
 - `claude-toolkit eval <cmd>` — query evaluation status (`stale`, `unevaluated`, `above`, `type`)

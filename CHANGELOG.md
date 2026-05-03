@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.81.6] - 2026-05-03 - backlog CLI quick-wins — next/update, --json, filter validation, priority-inversion warn
+
+### Added
+- **cli**: `claude-toolkit backlog next [N]` — top N unblocked tasks ordered by priority (P0 → P99). Default N=1. Composes with `--exclude-priority`. Maps directly to the "what should I work on next?" workflow that previously required `unblocked --exclude-priority P99,P3` plus eyeballing.
+- **cli**: `claude-toolkit backlog update <id> --field value [--field value ...]` — setter for the simple scalar fields (`--status`, `--branch`, `--notes`, `--plan`, `--source`, `--title`). Empty value deletes the field. Validates `--status` against the schema enum; rejects unknown fields with a list of valid ones. Closes the most common edit gap (status/branch flips that previously dropped to `jq`). Array fields (`scope`, `relates_to`, `references`) are intentionally not handled — those still go through `jq` directly.
+- **cli**: `--json` flag — emit raw JSONL (one task per line) with no formatting and no count footer. Lets the backlog CLI compose with `jq` and other tooling without screen-scraping the rendered output.
+- **cli**: filter-arg validation against the schema. `backlog priority P5`, `backlog status garbage`, `backlog scope foo`, `backlog relates-to bogus` previously printed "No tasks found" (indistinguishable from an empty result). Now they fail fast with the valid values listed: `Error: invalid priority 'P5' (valid: P0, P1, P2, P3, P99)`.
+- **cli**: `backlog id <task-id>` exits non-zero when the task isn't found (was exit 0 with empty output, indistinguishable from a generic empty filter). The id command is an exact lookup — missing-id is an error condition, not an empty result set.
+- **cli**: restructured `backlog --help`. Now sectioned (Read / Mutate / Tools / Flags) and includes a "Common workflows" block with real recipes (`next`, `unblocked --exclude-priority …`, `blocked -v`, `update --status in-progress --branch …`, `priority P0 --json | jq`). Help text is rendered live from the schema, so enum values stay in sync.
+- **cli**: validator warns on priority inversion — when A `depends-on` B and B's priority is lower than A's, that's a smell (you can't ship the urgent task until the less-urgent dependency lands, so the dependency is effectively as urgent as A). Warn, not error — the inversion is sometimes intentional, the user fixes it by bumping the dependency or downgrading the dependent.
+- **tests**: `tests/test-backlog-query.sh` — +24 assertions across 5 new blocks (filter-arg validation, `id` exit code, `--json` output, `next` command, `update` command, priority-inversion warn). 153/153 pass.
+
+### Changed
+- **docs**: `CLAUDE.md` — added `next` and `update` to the backlog CLI verb examples (line 20). The "use the CLI for all queries and mutations" principle on line 32 was already there; `update` materially expands what the CLI covers, so dropping to `jq` is now rarer.
+
+### Notes
+- All workshop-internal: the backlog CLI lives under `cli/`, which is not in `dist/raiz/MANIFEST` and not in `dist/base/EXCLUDE` (base ships `.claude/` only — `cli/` is workshop-internal tooling for the toolkit itself). No raiz consumer behavior change.
+- Raiz sidecar: `skip: true` — none of the four touched paths (`cli/backlog/query.sh`, `cli/backlog/validate.sh`, `tests/test-backlog-query.sh`, `CLAUDE.md` at repo root) ship to consumers.
+
 ## [2.81.5] - 2026-05-03 - hook-audit-01 P0 quick-wins bundle
 
 ### Fixed
