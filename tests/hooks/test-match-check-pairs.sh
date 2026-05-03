@@ -144,6 +144,19 @@ assert_check_block() {
     fi
 }
 
+# xfail-style skip: announce a known-deferred case with a note pointing at
+# the backlog id that would resolve it. No assertion, no counter touch — the
+# case is here to make the gap visible in test output, not to fail/pass.
+TESTS_SKIPPED=0
+report_skip() {
+    local desc="$1" note="$2"
+    TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
+    if [ "$QUIET" != "1" ]; then
+        echo -e "  ${YELLOW}SKIP${NC}: $desc"
+        echo "    ($note)"
+    fi
+}
+
 # ============================================================
 # enforce-make-commands
 # ============================================================
@@ -360,5 +373,47 @@ assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks --delet
 # Delete protected branch via :branch syntax
 COMMAND="git push origin :main"
 assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks :main delete syntax"
+
+# ============================================================
+# block-dangerous-commands
+# ============================================================
+report_section "block-dangerous-commands"
+
+COMMAND="ls -la"
+assert_match_miss block-dangerous-commands "match_dangerous misses on ls"
+
+COMMAND="rm -rf /"
+assert_match_hit   block-dangerous-commands "match_dangerous hits on rm -rf /"
+assert_check_block block-dangerous-commands "rm -rf on root" "check_dangerous blocks rm -rf /"
+
+COMMAND="mkfs.ext4 /dev/sda1"
+assert_check_block block-dangerous-commands "mkfs" "check_dangerous blocks mkfs.ext4"
+
+COMMAND="dd if=/dev/zero of=/dev/sda bs=1M"
+assert_check_block block-dangerous-commands "dd to disk device" "check_dangerous blocks dd to /dev/sda"
+
+COMMAND=':(){ :|:& };:'
+assert_check_block block-dangerous-commands "Fork bomb" "check_dangerous blocks fork bomb"
+
+COMMAND="sudo apt-get install foo"
+assert_check_block block-dangerous-commands "sudo" "check_dangerous blocks sudo"
+
+COMMAND="chmod -R 777 /"
+assert_check_block block-dangerous-commands "chmod -R 777" "check_dangerous blocks chmod -R 777 /"
+
+# xfail: quote-evasion. The robustness probe in 01-standardized/robustness.md
+# showed that `'r'm -rf /` evades both match_dangerous and check_dangerous
+# because the predicate's token regex looks for a bare `rm`. Tracked as
+# hook-audit-01-block-dangerous-quote-predicate. Keep the gap visible here
+# so the work is rediscovered, not lost.
+report_skip "match_dangerous on quote-evaded 'r'm -rf / (xfail)" \
+            "see backlog: hook-audit-01-block-dangerous-quote-predicate"
+
+# Surface skipped count alongside the helper's run/passed/failed lines.
+# print_summary exits, so this echo must come before it.
+if [ "$TESTS_SKIPPED" -gt 0 ]; then
+    echo ""
+    echo "Skipped: $TESTS_SKIPPED  (xfail / known-deferred)"
+fi
 
 print_summary
