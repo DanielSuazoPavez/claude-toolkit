@@ -30,6 +30,7 @@
 #   - Subshells: $(rm -rf /), `rm -rf /`
 #   - Eval: eval "rm -rf /"
 #   - Shell wrappers: bash -c "rm -rf /", sh -c "rm -rf /"
+#   - Quote-wrapped strings: echo 'rm -rf /', echo "rm -rf /"
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 
@@ -43,7 +44,7 @@ match_dangerous() {
     # Token hints covering: rm, mkfs, dd, chmod, sudo, /dev/, fork-bomb
     # operator `(){`, shell-wrapper obfuscators, and redirect/pipe patterns
     # that could carry hidden destructive commands.
-    local re='(^|[[:space:];&|`(])(rm|mkfs|mkfs\.[a-z0-9]+|dd|chmod|sudo|eval|bash|sh)([[:space:]]|$)|/dev/(sd[a-z]|hd[a-z]|nvme[0-9]|vd[a-z]|xvd[a-z])|:\(\)|\.\(\)|bomb\(\)|\$\(|`'
+    local re='(^|[[:space:];&|`('"'"'"])(rm|mkfs|mkfs\.[a-z0-9]+|dd|chmod|sudo|eval|bash|sh)([[:space:]]|$)|/dev/(sd[a-z]|hd[a-z]|nvme[0-9]|vd[a-z]|xvd[a-z])|:\(\)|\.\(\)|bomb\(\)|\$\(|`'
     [[ "$COMMAND" =~ $re ]]
 }
 

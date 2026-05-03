@@ -2,6 +2,6 @@
   "session_id": "smoke",
   "tool_name": "Read",
   "tool_input": {
-    "file_path": "tests/hooks/fixtures/suggest-read-json/big.json"
+    "file_path": "/tmp/no-such-file-claude-smoke.json"
   }
 }

@@ -854,46 +854,6 @@
       ]
     },
     {
-      "id": "hook-audit-01-suggest-read-json-nonexistent",
-      "priority": "P0",
-      "title": "suggest-read-json: fail-open on nonexistent files instead of blocking",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "suggest-read-json blocks Read on .json paths that do not exist on disk, redirecting the user to use jq via Bash. Empirically verified in design/hook-audit/01-standardized/robustness.md. The user then runs jq on the same path and gets a confusing second not-found error. One-line fix at suggest-read-json.sh:73-79: short-circuit to return 0 (allow) when [ ! -f \"$FILE_PATH\" ], letting the Read tool itself emit the natural file-not-found error. No safety regression — the hook only redirects to jq for size reasons, and a nonexistent file has no size. See design/hook-audit/01-standardized/robustness.md (Real failure modes found by empirical probing)."
-    },
-    {
-      "id": "hook-audit-01-block-dangerous-quote-predicate",
-      "priority": "P0",
-      "title": "block-dangerous-commands: widen match_dangerous predicate to cover quote-wrapped patterns",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "block-dangerous-commands.sh:46 match_dangerous predicate requires the rm/mkfs/dd/etc. token to be preceded by start-of-line or one of [[:space:];&|`(] — but not by quote characters. So a command like 'echo SINGLEQUOTE rm -rf SLASH SINGLEQUOTE' silently passes the cheap predicate, and check_dangerous (which would catch it after quote-stripping at line 67) is never called. One-line fix: add the single-quote and double-quote characters to the alternation. The hook header documents 'Also detects these patterns when hidden via … shell wrappers' — the fix restores that coverage for quote-wrapping cases. See design/hook-audit/01-standardized/robustness.md."
-    },
-    {
-      "id": "hook-audit-01-test-log-tool-uses",
-      "priority": "P0",
-      "title": "Add tests/hooks/test-log-tool-uses.sh mirroring log-permission-denied",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "log-tool-uses has no test file beyond its V18-minimum smoke fixture. The hook is 30 LoC of comments + 5 lines of code, but the JSONL row contract (every required field, stdin embedded, outcome=pass) is unjustified-by-test. Mirror tests/hooks/test-log-permission-denied.sh: ~4 Shape B cases for tool-name variety + JSONL field assertions. Cost: 30 min, ~50 LoC. See design/hook-audit/01-standardized/testability.md."
-    },
-    {
-      "id": "hook-audit-01-test-detect-session-start-truncation",
-      "priority": "P0",
-      "title": "Add tests/hooks/test-detect-session-start-truncation.sh",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "detect-session-start-truncation has no test file. Two distinct paths exist (truncation marker present in transcript → hook_inject warning; absent → silent pass) plus the fire-once marker file. None tested. ~4 Shape B cases: truncation present, truncation absent, marker pre-set (fire-once verified), missing transcript_path (silent pass). Cost: 30 min, ~60 LoC. See design/hook-audit/01-standardized/testability.md."
-    },
-    {
       "id": "hook-audit-01-shape-a-match-check-pairs",
       "priority": "P0",
       "title": "Add Shape A test layer for the 9 dual-mode hooks (match_*/check_* in-process)",
@@ -957,6 +917,16 @@
       "relates_to": [
         "hook-audit-01-shape-a-match-check-pairs:depends-on"
       ]
+    },
+    {
+      "id": "rework-enforce-make-include-make-check-bare",
+      "priority": "P1",
+      "title": "Rework enforce-make-commands hook to also enforce 'make check' bare invocation",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Today enforce-make-commands.sh blocks bare `pytest`/`uv run pytest`/etc. and redirects to `make test` (CLAUDE.md rule). It does not enforce that `make check` is run bare — without piping through head/tail/grep/etc. The `make check` bare rule is documented in feedback memory and CLAUDE.md ('Verification is make check, invoked bare') but lives only as a soft convention; agents drift back to piping under context pressure.\n\nProposal: extend enforce-make-commands (or pair a sibling hook in the same dispatcher slot) to detect `make check` invocations whose command string contains a downstream pipe / redirect / chained filter (`make check | tail`, `make check 2>&1 | head`, `make check > /tmp/x`, etc.) and either soft-block with a redirect message ('run make check bare; the full output is what you need') or surface a loud reminder.\n\nEdge cases worth thinking about during design:\n  - `make check` chained with `&&`/`||` to subsequent commands (`make check && git commit`) is fine — the bare rule is about not filtering make check's output, not about not chaining.\n  - Background runs (`make check &`) should also be allowed; the agent typically only does this when intentionally backgrounding a long verification.\n  - Process-substitution / tee for splitting output (`make check 2>&1 | tee /tmp/check.log`) is a gray area — full output is preserved on disk, but stdout is still filtered. Probably block by default with an opt-out env var if anyone has a real workflow need.\n  - Rule should likely apply only to bare `make check`, not other make targets (`make test | tail` is still useful for narrow sanity checks).\n\nEmpirical signal motivating this: in this session alone the agent ran `make check` non-bare 4 times after being explicitly corrected once — feedback_make_check_bare.md exists, CLAUDE.md says it, and the drift still happened. A hook is the only enforcement layer the agent can't ignore."
     }
   ]
 }

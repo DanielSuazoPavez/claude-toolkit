@@ -1,2 +1,5 @@
+# NOTE: file_path is relative; resolves against the smoke runner's CWD.
+# Designed for `make check` (repo root). From other CWDs, big.json won't be found
+# and the hook fail-opens — a known limitation, not a bug in the hook itself.
 outcome=blocked
 hook_name=suggest-read-json

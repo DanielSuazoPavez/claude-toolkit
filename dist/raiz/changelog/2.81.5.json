@@ -1,0 +1,15 @@
+{
+  "version": "2.81.5",
+  "date": "2026-05-03",
+  "headline": "block-dangerous quote-evasion fix + suggest-read-json fail-open on missing files",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "block-dangerous-commands now blocks quoted dangerous tokens like `echo 'rm -rf /'` and `echo \"mkfs.ext4 /dev/sda\"`. Previously the predicate excluded quote characters from its preceding-character check, so quoted inputs were silently skipped at the dispatcher path even though the quote-stripping check would have blocked them.",
+        "suggest-read-json now fail-opens on nonexistent files: Read on a missing .json path passes through so the natural not-found error surfaces, instead of redirecting to jq (which would also fail not-found, confusingly)."
+      ]
+    }
+  ]
+}

@@ -78,6 +78,16 @@ batch_add block "$(jq -n --arg cmd 'bash -c "rm -rf /"' '{tool_name:"Bash",tool_
 batch_add block "$(jq -n --arg cmd 'sh -c "rm -rf ~"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
     "blocks sh -c rm -rf ~"
 
+# Quote-wrapped strings (single- and double-quoted dangerous tokens)
+batch_add block "$(jq -n --arg cmd "echo 'rm -rf /'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    "blocks single-quoted rm -rf /"
+batch_add block "$(jq -n --arg cmd 'echo "rm -rf /"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    "blocks double-quoted rm -rf /"
+batch_add block "$(jq -n --arg cmd "echo 'mkfs.ext4 /dev/sda'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    "blocks quoted mkfs"
+batch_add block "$(jq -n --arg cmd 'echo "dd if=/dev/zero of=/dev/sda"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    "blocks quoted dd to disk"
+
 batch_run
 
 print_summary

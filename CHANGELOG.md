@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.81.5] - 2026-05-03 - hook-audit-01 P0 quick-wins bundle
+
+### Fixed
+- **hooks**: `block-dangerous-commands.sh` `match_dangerous` — added `'` and `"` to the preceding-character alternation. `check_dangerous` strips quotes (the body's normalization step), so quoted dangerous tokens like `echo 'rm -rf /'` were `check_acts(x)` inputs the predicate rejected — a silent dispatcher-path skip and the canonical violation of the match/check superset invariant just named in 2.81.4. Header comment expanded to include "Quote-wrapped strings" alongside the other obfuscation patterns. Closes `hook-audit-01-block-dangerous-quote-predicate`.
+- **hooks**: `suggest-read-json.sh` — fail-open on nonexistent files. Previously the size check assumed missing → must be huge; the user was redirected to jq, ran jq on the same path, and got a confusing not-found error from jq. Now returns 0 if the file doesn't exist so Read itself surfaces the natural error. Header comment gains an explicit "Allows (fail-open): nonexistent files" line so future readers don't mistake the new branch for a bug. Closes `hook-audit-01-suggest-read-json-nonexistent`.
+
+### Added
+- **tests**: `tests/hooks/test-log-tool-uses.sh` — net-new file mirroring `test-log-permission-denied.sh`. Covers silent-stdout for several `tool_name` values (Bash/Write/Edit/Read/Grep), JSONL field assertions when traceability=1 (hook_event=PostToolUse, hook_name, tool_name, outcome, call_id, session_id), stdin-payload assertions including PostToolUse-specific `tool_response` and `duration_ms`, traceability gate, malformed-stdin tolerance. Closes `hook-audit-01-test-log-tool-uses`.
+- **tests**: `tests/hooks/test-detect-session-start-truncation.sh` — net-new file with strict isolation (per-test `$HOME` via `mktemp -d`, per-case unique `SESSION_ID` so markers at `/tmp/claude-truncation-check/` never collide). Cases: (a) truncation present → loud warning + marker created; (b) truncation absent → "no truncation" message; (c) marker pre-exists → silent pass (fire-once); (d) transcript missing → silent pass. Closes `hook-audit-01-test-detect-session-start-truncation`.
+- **tests**: `tests/hooks/test-block-dangerous.sh` — 4 new `batch_add block` cases for single- and double-quoted dangerous tokens (`rm`, `mkfs`, `dd`).
+- **tests**: `tests/hooks/test-suggest-json.sh` + `test-grouped-read.sh` — flips the two existing block cases on nonexistent paths to allow (per the hook fix) and adds one new block case backed by a real `mktemp` ~60 KiB JSON file.
+- **tests**: `tests/hooks/fixtures/suggest-read-json/big.json` (~55 KiB checked-in fixture) + `passes-on-nonexistent-json.{json,expect}` (new smoke fixture) + `blocks-on-large-json.{json,expect}` repointed at `big.json` with a comment flagging the relative-path CWD assumption (`make check` from repo root is the load-bearing case).
+
+### Changed
+- **hooks**: `block-dangerous-commands.sh`, `suggest-read-json.sh`, `log-tool-uses.sh`, `detect-session-start-truncation.sh` — restored the `+x` bit on the latter two. settings.json invokes via `bash <hook>` so the missing exec bit was latent in production, but the test layer fork-execs and surfaced the drift. `surface-lessons.sh` is also missing `+x`; not touched in this bundle (no test-layer change for it here) — flagged for follow-up.
+
+### Notes
+- Closes four P0 backlog tasks: `hook-audit-01-block-dangerous-quote-predicate`, `hook-audit-01-suggest-read-json-nonexistent`, `hook-audit-01-test-log-tool-uses`, `hook-audit-01-test-detect-session-start-truncation`. Each was independent of the (unbuilt) Shape A test layer and ≤60 LoC; bundled into one branch but split into separate commits per fix to preserve `git bisect` granularity.
+- Behavior change ripple: two existing test cases in `test-suggest-json.sh` and one in `test-grouped-read.sh` flipped from `block` to `allow`. Anyone bisecting through history will see this — calling it out so the change isn't surprising.
+- Raiz sidecar: `skip: false`. `block-dangerous-commands.sh` and `suggest-read-json.sh` are in `dist/raiz/MANIFEST` (raiz ships the 9 guardrail hooks), so the two behavior fixes reach raiz consumers. Test additions are workshop-internal only.
+
 ## [2.81.4] - 2026-05-03 - Name the match/check superset invariant in hook authoring doc
 
 ### Changed
