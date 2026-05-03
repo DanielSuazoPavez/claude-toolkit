@@ -145,12 +145,25 @@ assert_check_block() {
 }
 
 # ============================================================
-# Smoke: enforce-make-commands match_make wires correctly
+# enforce-make-commands
 # ============================================================
-report_section "smoke (helpers wire correctly)"
-COMMAND="pytest"
-assert_match_hit  enforce-make-commands "match_make hits on bare pytest"
-COMMAND="ls"
+report_section "enforce-make-commands"
+
+COMMAND="ls -la"
 assert_match_miss enforce-make-commands "match_make misses on ls"
+
+COMMAND="echo hello"
+assert_match_miss enforce-make-commands "match_make misses on echo"
+
+COMMAND="uv run pytest tests/foo.py"
+assert_match_hit  enforce-make-commands "match_make hits on targeted pytest"
+assert_check_pass enforce-make-commands "check_make passes on targeted pytest run"
+
+COMMAND="pytest"
+assert_match_hit   enforce-make-commands "match_make hits on bare pytest"
+assert_check_block enforce-make-commands "make test" "check_make blocks bare pytest with make-test hint"
+
+COMMAND="pre-commit run --all-files"
+assert_check_block enforce-make-commands "make lint" "check_make blocks pre-commit with make-lint hint"
 
 print_summary
