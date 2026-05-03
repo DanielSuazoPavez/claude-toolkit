@@ -929,6 +929,36 @@
       ],
       "status": "idea",
       "notes": "secrets-guard repeats the credential-safe-suffix regex \\\\.(example|template)$ in three sites: _match_path_registry env-file branch, check_secrets_guard_grep glob branch, and check_secrets_guard ENV_ALLOW_RE local (applied 4×). Logic is identical; inputs differ (basename vs glob vs verb-regex BASH_REMATCH). A helper _has_credential_safe_suffix(s) would dedupe. .pub allowlist is SSH-key-specific and should stay inline. Cosmetic — no current drift. Score against churn before doing. See .claude/hooks/secrets-guard.sh."
+    },
+    {
+      "id": "hook-audit-01-block-config-edits-write-edit-pair",
+      "priority": "P1",
+      "title": "block-config-edits: route Write/Edit branches through a match/check pair",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "block-config-edits.sh exposes match_config_edits/check_config_edits but only invokes them in main() for Bash. The Write and Edit branches inline is_blocked_config + is_blocked_settings + _settings_decision (lines ~287-318). For uniformity with the post-cleanup secrets-guard (where all three branches route through their match/check pairs) and so the Shape A test layer covers all paths, refactor: introduce match_config_edits_write/check_config_edits_write (or a single match_config_edits_path/check_config_edits_path covering both Write and Edit), route main() through them, leave the registry-driven detection in place. Surfaced during hook-audit-01 secrets-guard alignment; the audit (clarity.md Proposal 4, inventory.md) classified block-config-edits as dual-mode without flagging the per-branch asymmetry. See design/hook-audit/01-standardized/inventory.md and testability.md (caveats added in branch docs/hook-audit-01-secrets-guard-alignment)."
+    },
+    {
+      "id": "hook-audit-01-git-safety-enterplanmode-pair",
+      "priority": "P1",
+      "title": "git-safety: route EnterPlanMode branch through a match/check pair",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "git-safety.sh exposes match_git_safety/check_git_safety but only invokes them in main() for Bash. The EnterPlanMode branch inlines the protected-branch check (lines ~178-196). Smaller scope than block-config-edits — one extra branch, simpler logic — but the same asymmetry: a Shape A test of the existing pair covers Bash but not EnterPlanMode. Refactor: introduce match_git_safety_planmode/check_git_safety_planmode (or fold protected-branch logic under a unified match/check that branches on $TOOL_NAME), route main() through them. Note: EnterPlanMode forks `git rev-parse` per inventory.md:138, so the predicate split has perf shape implications worth measuring. Surfaced during hook-audit-01 secrets-guard alignment. See design/hook-audit/01-standardized/inventory.md and testability.md (caveats added in branch docs/hook-audit-01-secrets-guard-alignment)."
+    },
+    {
+      "id": "hook-audit-01-secrets-guard-grep-git-config",
+      "priority": "P2",
+      "title": "secrets-guard Grep branch: investigate .git/config credential-remote coverage gap",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Read and Bash branches both invoke _git_dir_has_credential_remote against $HOME/.git/config (Read) or $PWD (Bash) when the path/command pattern matches .git/config — blocks only when an embedded user:pass@host credential is present. The Grep branch does not: check_secrets_guard_grep handles path patterns via _path_block_reason and glob patterns inline, but never runs the credential-remote check. Path-shape detection still catches `Grep -e secret .git/config` via the git-config registry entry, but the registry entry has continue (deferred) in _match_path_registry — so .git/config greps fall through and pass. Investigate whether this is intentional (Grep on .git/config is rare, and the wider grep-into-token-strings problem is owned by block-credential-exfiltration) or worth closing for parity. If closing: extend check_secrets_guard_grep with the same _git_dir_has_credential_remote dispatch the other two branches use. Surfaced during hook-audit-01 secrets-guard alignment."
     }
   ]
 }
