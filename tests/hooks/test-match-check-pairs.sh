@@ -409,6 +409,67 @@ assert_check_block block-dangerous-commands "chmod -R 777" "check_dangerous bloc
 report_skip "match_dangerous on quote-evaded 'r'm -rf / (xfail)" \
             "see backlog: hook-audit-01-block-dangerous-quote-predicate"
 
+# ============================================================
+# secrets-guard  (3 pairs: _read, _grep, base Bash)
+# ============================================================
+# The _git_dir_has_credential_remote branch (called from check_secrets_guard
+# and check_secrets_guard_read) is intentionally NOT exercised here — it
+# requires a real git config with an embedded user:pass URL. Shape B already
+# covers it via a temp git repo fixture; running it from Shape A would
+# either need a stub or a fork to mutate cwd, which defeats the purpose of
+# the layer. Resolves the second Open item in the plan.
+report_section "secrets-guard (Read pair)"
+
+# Read pair contract: dispatcher sets FILE_PATH before match_/check_.
+FILE_PATH="/some/random/file.txt"
+assert_match_miss secrets-guard-read "match_secrets_guard_read misses on unrelated path"
+
+FILE_PATH="$HOME/project/.env"
+assert_match_hit  secrets-guard-read "match_secrets_guard_read hits on .env"
+assert_check_block secrets-guard-read ".env file" "check_secrets_guard_read blocks .env read"
+
+# Allowlist: .env.example must pass even though predicate hits
+FILE_PATH="$HOME/project/.env.example"
+assert_match_hit  secrets-guard-read "match_secrets_guard_read hits on .env.example (allowlist enforced in check_)"
+assert_check_pass secrets-guard-read "check_secrets_guard_read allows .env.example"
+
+# SSH private key — block; .pub allowed
+FILE_PATH="$HOME/.ssh/id_ed25519"
+assert_check_block secrets-guard-read "SSH private key" "check_secrets_guard_read blocks ~/.ssh/id_ed25519"
+FILE_PATH="$HOME/.ssh/id_ed25519.pub"
+assert_check_pass secrets-guard-read "check_secrets_guard_read allows ~/.ssh/id_ed25519.pub"
+
+report_section "secrets-guard (Grep pair)"
+
+# Grep pair contract: dispatcher sets GREP_PATH and/or GREP_GLOB.
+GREP_PATH=""; GREP_GLOB=""
+assert_match_miss secrets-guard-grep "match_secrets_guard_grep misses when no path or glob"
+
+GREP_PATH=""; GREP_GLOB=".env"
+assert_match_hit   secrets-guard-grep "match_secrets_guard_grep hits on .env glob"
+assert_check_block secrets-guard-grep ".env files" "check_secrets_guard_grep blocks .env glob"
+
+GREP_PATH=""; GREP_GLOB=".env.template"
+assert_check_pass secrets-guard-grep "check_secrets_guard_grep allows .env.template glob (allowlist)"
+
+report_section "secrets-guard (Bash pair)"
+
+# Reset Read/Grep inputs so they don't leak into the Bash check_.
+FILE_PATH=""; GREP_PATH=""; GREP_GLOB=""
+
+COMMAND="ls -la"
+assert_match_miss secrets-guard "match_secrets_guard misses on ls (no read verb, no path hint)"
+
+COMMAND="cat $HOME/.aws/credentials"
+assert_match_hit   secrets-guard "match_secrets_guard hits on cat ~/.aws/credentials"
+assert_check_block secrets-guard "AWS credentials" "check_secrets_guard blocks cat ~/.aws/credentials"
+
+COMMAND="gpg --export-secret-keys mykey"
+assert_check_block secrets-guard "GPG secret keys" "check_secrets_guard blocks gpg --export-secret-keys"
+
+COMMAND="cat README.md"
+assert_check_pass secrets-guard "check_secrets_guard passes on cat README.md (no credential path)"
+
 # Surface skipped count alongside the helper's run/passed/failed lines.
 # print_summary exits, so this echo must come before it.
 if [ "$TESTS_SKIPPED" -gt 0 ]; then
