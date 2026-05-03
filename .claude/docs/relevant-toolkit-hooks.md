@@ -31,6 +31,8 @@ Hooks split into three parts:
 - `check_<name>` — the actual guard; runs only when `match_` returned 0; sets `_BLOCK_REASON` on block
 - `main` — standalone entry point (runs when the script is executed directly, not sourced)
 
+**Superset invariant** (§4): every input `check_<name>` would act on must be an input `match_<name>` returns true on. False positives in the predicate are fine; false negatives are bugs.
+
 The grouped dispatcher sources hook files as libraries and iterates match → check across a `CHECKS` array. Hooks stay standalone-capable via the dual-mode trigger — same file, two entry paths, single source of truth.
 
 For credential / path / capability detection, **consume the shared registry** instead of inlining regexes — see §11.
@@ -104,6 +106,22 @@ check_<name>() {
 | **False negative** | `match_` says no, `check_` is skipped, a guard that should have fired didn't | **Bug** — safety regression |
 
 So when a check needs normalization that the match can't cheaply replicate (example: `block-config-edits` normalizes `~` to `$HOME` before comparing paths), the match stays deliberately broad. Correctness beats optimization.
+
+### The superset invariant
+
+The "false negative is a bug" row above is the load-bearing rule. Stated explicitly:
+
+> **`check_acts(x) ⇒ match_returns_true(x)`** for every input `x`.
+>
+> Equivalently: the predicate's true-set must be a *superset* of the check's act-set. Every input that `check_<name>` would block (or approve, or inject on) must be an input that `match_<name>` returns true on.
+
+The asymmetry is deliberate. `match_` may say yes on inputs `check_` will pass on (false positive — acceptable, just costs a `check_` call). `match_` may **never** say no on inputs `check_` would have acted on (false negative — the dispatched path silently skips a guard that should have fired).
+
+Practical consequence when authoring or modifying a dual-mode hook: any normalization, quote-stripping, or pattern broadening done inside `check_<name>` must also be reflected — at least loosely — in `match_<name>`'s predicate. The match doesn't have to do the same work; it just has to admit every input the check could act on.
+
+**Canonical violation.** `block-dangerous-commands`'s `match_dangerous` predicate at one point required `rm`/`mkfs`/`dd`/etc. to be preceded by start-of-line or `[[:space:];&|`(]` — quote characters were not in the alternation. `check_dangerous` strips quotes before matching, so `echo 'rm -rf /'` is a `check_acts(x)` input, but `match_returns_true(x)` was false. Predicate too narrow → dispatched path skipped a guard that the standalone path would catch via the post-strip pattern. Fixing the predicate to admit quote-wrapped tokens restores the invariant.
+
+The Shape A test layer (`tests/hooks/test-match-check-pairs.sh`, when it lands) is the natural place to enforce this: for each dual-mode hook, generate inputs `check_<name>` would block and assert `match_<name>` returns true on each. Until then, the invariant is a doc-only convention authors hold themselves to.
 
 Forbidden in `match_`:
 - Forked subshells (`$(...)`, pipes, backticks)
@@ -197,7 +215,7 @@ Analytics queries that want "hooks that ran to completion" should filter out bot
 
 1. **Pick the event and matcher.** `PreToolUse` for gating tool calls, `SessionStart` for context injection, `PermissionRequest` for approval flows.
 2. **Decide grouping eligibility.** If the matcher overlaps an existing dispatcher's matcher (e.g., Bash), the hook is grouping-eligible.
-3. **Write `match_` and `check_`.** Keep `match_` cheap per §4. Put all expensive work in `check_`.
+3. **Write `match_` and `check_`.** Keep `match_` cheap per §4 and respect the superset invariant — every input `check_` would act on must be an input `match_` returns true on. Put all expensive work in `check_`.
 4. **Write `main`.** Thin wrapper: `hook_init` → parse inputs → call `match_ && check_` → emit decision.
 5. **Add the dual-mode trigger** at the bottom.
 6. **Register** in `settings.json` (standalone) or add to the dispatcher's `CHECKS` array (grouped). Never both.

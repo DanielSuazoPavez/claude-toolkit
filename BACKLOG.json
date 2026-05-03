@@ -905,22 +905,6 @@
       "notes": "9 of 13 standardized hooks expose Shape A-compatible match_*/check_* pairs that the dispatcher already calls in-process. Today these are tested only end-to-end via Shape B (subprocess fork per case). A Shape A test layer (source the hook, call match_<name> and check_<name> with shaped input, assert return + _BLOCK_REASON) would catch predicate-vs-check contract issues at ~0ms per case. The block-dangerous-commands quote-evasion gap (hook-audit-01-block-dangerous-quote-predicate) is exactly the kind of bug Shape A catches faster than Shape B. Cost: 2-3 hours, ~150 LoC. Hooks: auto-mode-shared-steps, block-config-edits, block-credential-exfiltration, block-dangerous-commands, enforce-make-commands, enforce-uv-run, git-safety, secrets-guard, suggest-read-json. See design/hook-audit/01-standardized/testability.md."
     },
     {
-      "id": "hook-audit-01-superset-invariant-doc-and-test",
-      "priority": "P0",
-      "title": "Formalize match/check superset invariant in docs + assert via Shape A tests",
-      "scope": [
-        "hooks",
-        "docs",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "The match_*/check_* superset invariant is already documented in .claude/docs/relevant-toolkit-hooks.md §3 (false-negative-is-a-bug) but not enforced. block-dangerous-commands quote-evasion gap (hook-audit-01-block-dangerous-quote-predicate) is a violation of the documented rule — predicate excludes quote characters, check would block after quote-stripping. Two pieces: (1) update relevant-toolkit-hooks.md §3 to name the invariant explicitly as 'check_acts(x) ⇒ match_returns_true(x)' / 'predicate's true-set is a superset of check's act-set'. (2) Wire the Shape A test layer (hook-audit-01-shape-a-match-check-pairs) to assert it: for each of the 9 dual-mode hooks, generate inputs check would block, assert match returns true on each. This is the highest-leverage clarity recommendation in the 01-standardized audit. See design/hook-audit/01-standardized/clarity.md (Proposal 1).",
-      "relates_to": [
-        "hook-audit-01-shape-a-match-check-pairs:relates-to",
-        "hook-audit-01-block-dangerous-quote-predicate:relates-to"
-      ]
-    },
-    {
       "id": "hook-audit-01-secrets-guard-allowlist-centralize",
       "priority": "P99",
       "title": "Evaluate centralizing the .example/.template allowlist in secrets-guard",
@@ -959,6 +943,20 @@
       ],
       "status": "idea",
       "notes": "Read and Bash branches both invoke _git_dir_has_credential_remote against $HOME/.git/config (Read) or $PWD (Bash) when the path/command pattern matches .git/config — blocks only when an embedded user:pass@host credential is present. The Grep branch does not: check_secrets_guard_grep handles path patterns via _path_block_reason and glob patterns inline, but never runs the credential-remote check. Path-shape detection still catches `Grep -e secret .git/config` via the git-config registry entry, but the registry entry has continue (deferred) in _match_path_registry — so .git/config greps fall through and pass. Investigate whether this is intentional (Grep on .git/config is rare, and the wider grep-into-token-strings problem is owned by block-credential-exfiltration) or worth closing for parity. If closing: extend check_secrets_guard_grep with the same _git_dir_has_credential_remote dispatch the other two branches use. Surfaced during hook-audit-01 secrets-guard alignment."
+    },
+    {
+      "id": "hook-audit-01-superset-invariant-shape-a-assertion",
+      "priority": "P1",
+      "title": "Wire superset-invariant assertion into Shape A test layer",
+      "scope": [
+        "hooks",
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "The superset invariant (check_acts(x) implies match_returns_true(x)) is now documented in .claude/docs/relevant-toolkit-hooks.md §1 (Quick Reference) and §4 (named subsection 'The superset invariant'). It is currently a doc-only convention. Once the Shape A test layer (hook-audit-01-shape-a-match-check-pairs) lands, add an enforcement pass: for each of the 9 dual-mode hooks, generate inputs check_<name> would block and assert match_<name> returns true on each. Per-hook input sources: registry-driven hooks (block-credential-exfiltration, secrets-guard registry branch, block-config-edits) — pull the registry pattern alternation and synthesize matching strings. Inline-policy hooks (block-dangerous-commands, git-safety, enforce-make-commands, enforce-uv-run, suggest-read-json, auto-mode-shared-steps) — curate a small list of 'known acts' inputs per hook. Cost when Shape A exists: ~50 LoC + per-hook input lists. See design/hook-audit/01-standardized/clarity.md Proposal 1.",
+      "relates_to": [
+        "hook-audit-01-shape-a-match-check-pairs:depends-on"
+      ]
     }
   ]
 }
