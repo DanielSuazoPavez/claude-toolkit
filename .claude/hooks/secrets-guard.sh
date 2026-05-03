@@ -55,7 +55,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/hook-utils.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/detection-registry.sh"
 detection_registry_load
 
-# --- Shared data and helpers (used by Read and Grep handlers in main) ---
+# --- Shared data and helpers (used by the Read/Grep/Bash check_ functions) ---
 
 # Normalize a literal leading "~/" typed by the user to $HOME.
 normalize_path() {
@@ -136,14 +136,6 @@ _path_block_reason() {
     local norm_path="$1" verb="$2" id
     id=$(_match_path_registry "$norm_path") || return 0
     [ -n "$id" ] && _path_message "$id" "$verb"
-}
-
-# Thin wrappers preserving the pre-existing exit-on-block contract used by main().
-# WARNING: May call exit 0 or hook_block() — must run in main shell, not a subshell.
-check_path() {
-    local reason
-    reason=$(_path_block_reason "$1" "$2")
-    [ -n "$reason" ] && hook_block "$reason"
 }
 
 # ============================================================
@@ -437,31 +429,17 @@ main() {
         exit 0
     fi
 
-    # --- Handler: Grep tool ---
+    # --- Grep branch — delegate to match_/check_ ---
     if [ "$TOOL_NAME" = "Grep" ]; then
-        local GREP_PATH GREP_GLOB
         GREP_PATH=$(hook_get_input '.tool_input.path')
         GREP_GLOB=$(hook_get_input '.tool_input.glob')
 
-        if [ -n "$GREP_PATH" ]; then
-            check_path "$(normalize_path "$GREP_PATH")" "Searching"
-        fi
-
-        # Check if glob pattern targets .env files
-        if [ -n "$GREP_GLOB" ]; then
-            # Allow .example/.template globs first
-            if [[ "$GREP_GLOB" =~ \.(example|template)$ ]]; then
-                exit 0
-            fi
-            # Block globs that target .env files
-            if [[ "$GREP_GLOB" == ".env" ]] || \
-               [[ "$GREP_GLOB" == ".env*" ]] || \
-               [[ "$GREP_GLOB" == ".env.*" ]] || \
-               [[ "$GREP_GLOB" == "*.env" ]]; then
-                hook_block "BLOCKED: Grep glob pattern targets .env files which may expose secrets."
+        _BLOCK_REASON=""
+        if match_secrets_guard_grep; then
+            if ! check_secrets_guard_grep; then
+                hook_block "$_BLOCK_REASON"
             fi
         fi
-
         exit 0
     fi
 
