@@ -917,6 +917,16 @@
       "relates_to": [
         "hook-audit-01-shape-a-match-check-pairs:depends-on"
       ]
+    },
+    {
+      "id": "rework-enforce-make-include-make-check-bare",
+      "priority": "P1",
+      "title": "Rework enforce-make-commands hook to also enforce 'make check' bare invocation",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Today enforce-make-commands.sh blocks bare `pytest`/`uv run pytest`/etc. and redirects to `make test` (CLAUDE.md rule). It does not enforce that `make check` is run bare — without piping through head/tail/grep/etc. The `make check` bare rule is documented in feedback memory and CLAUDE.md ('Verification is make check, invoked bare') but lives only as a soft convention; agents drift back to piping under context pressure.\n\nProposal: extend enforce-make-commands (or pair a sibling hook in the same dispatcher slot) to detect `make check` invocations whose command string contains a downstream pipe / redirect / chained filter (`make check | tail`, `make check 2>&1 | head`, `make check > /tmp/x`, etc.) and either soft-block with a redirect message ('run make check bare; the full output is what you need') or surface a loud reminder.\n\nEdge cases worth thinking about during design:\n  - `make check` chained with `&&`/`||` to subsequent commands (`make check && git commit`) is fine — the bare rule is about not filtering make check's output, not about not chaining.\n  - Background runs (`make check &`) should also be allowed; the agent typically only does this when intentionally backgrounding a long verification.\n  - Process-substitution / tee for splitting output (`make check 2>&1 | tee /tmp/check.log`) is a gray area — full output is preserved on disk, but stdout is still filtered. Probably block by default with an opt-out env var if anyone has a real workflow need.\n  - Rule should likely apply only to bare `make check`, not other make targets (`make test | tail` is still useful for narrow sanity checks).\n\nEmpirical signal motivating this: in this session alone the agent ran `make check` non-bare 4 times after being explicitly corrected once — feedback_make_check_bare.md exists, CLAUDE.md says it, and the drift still happened. A hook is the only enforcement layer the agent can't ignore."
     }
   ]
 }
