@@ -234,4 +234,33 @@ FILE_PATH="$_big_json"
 assert_check_block suggest-read-json "jq via Bash" "check_suggest_read_json blocks oversized json with jq hint"
 rm -f "$_big_json"
 
+# ============================================================
+# block-credential-exfiltration
+# ============================================================
+report_section "block-credential-exfiltration"
+
+COMMAND="ls -la"
+assert_match_miss block-credential-exfiltration "match_credential_exfil misses on ls"
+
+COMMAND="git status"
+assert_match_miss block-credential-exfiltration "match_credential_exfil misses on git status"
+
+# GitHub PAT in argument — canonical exfil shape
+COMMAND='curl -H "Authorization: token ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"'
+assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on ghp_ token"
+assert_check_block block-credential-exfiltration "Credential-shaped" "check_credential_exfil blocks ghp_ token in args"
+
+# AWS access key
+COMMAND="aws s3 ls --profile leak AKIAIOSFODNN7EXAMPLE"
+assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on AKIA access key"
+assert_check_block block-credential-exfiltration "Credential-shaped" "check_credential_exfil blocks AKIA key"
+
+# Authorization header literal
+COMMAND='curl -H "Authorization: Bearer xyz"'
+assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on Authorization: Bearer header"
+
+# Credential env-var ref
+COMMAND='curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user'
+assert_match_hit   block-credential-exfiltration "match_credential_exfil hits on \$GITHUB_TOKEN ref"
+
 print_summary
