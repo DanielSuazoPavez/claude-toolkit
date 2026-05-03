@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.81.4] - 2026-05-03 - Name the match/check superset invariant in hook authoring doc
+
+### Changed
+- **docs**: `.claude/docs/relevant-toolkit-hooks.md` — name the dual-mode pattern's load-bearing rule explicitly. §4 gains a new "The superset invariant" subsection stating `check_acts(x) ⇒ match_returns_true(x)`: every input `check_<name>` would block (or approve, or inject on) must be an input `match_<name>` returns true on. Cites `block-dangerous-commands` quote-evasion (`hook-audit-01-block-dangerous-quote-predicate`) as the canonical violation — the predicate excluded quote characters, the check stripped them, so `echo 'rm -rf /'` was a check-act-input that the dispatched-path predicate rejected. §1 Quick Reference Structure subsection gains a one-line callout. §6 step 3 ("Write match_ and check_") tightened to reference the invariant by name.
+
+### Notes
+- Doc-only change — the rule itself was already documented as "false negative is a bug" (§4 cheapness contract table) and was the basis for the pre-existing guidance ("the match stays deliberately broad"). The change names the rule and gives it a citable shorthand so future hook reviews can reference it directly.
+- Test enforcement deferred: filed as P1 follow-up `hook-audit-01-superset-invariant-shape-a-assertion`, depends-on the Shape A test layer (`hook-audit-01-shape-a-match-check-pairs`) landing first. Until then, the invariant is a doc-only convention.
+- Closes the doc piece of the (now-removed) P0 `hook-audit-01-superset-invariant-doc-and-test`. Highest-leverage clarity recommendation from `design/hook-audit/01-standardized/clarity.md` Proposal 1.
+- Raiz sidecar: `skip: true` — the hook-authoring doc isn't in `dist/raiz/MANIFEST` (raiz consumers ship the 9 hooks but not the authoring guide).
+
 ## [2.81.3] - 2026-05-03 - secrets-guard branch alignment + ssh-config registry entry
 
 ### Fixed
