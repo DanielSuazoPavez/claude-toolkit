@@ -486,16 +486,6 @@
       "notes": "Localize the dependency to its only consumer. ~70 LoC move, header updates in both files, smoke + lib tests should still pass. Why and tradeoffs in design/hook-audit/00-shared/clarity.md (Proposal 1)."
     },
     {
-      "id": "hook-audit-00-malformed-stdin-fixtures",
-      "priority": "P0",
-      "title": "Add malformed-stdin smoke fixtures per event type",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Lock in the only fail-closed branch hook_init has: PreToolUse=block, SessionStart=warn-and-continue, PostToolUse=silent pass with stdin_raw row, PermissionRequest=fail-open. Behavior verified live but unjustified-by-test. See design/hook-audit/00-shared/robustness.md (Tests / coverage gaps)."
-    },
-    {
       "id": "hook-audit-01-paired-outcome-fixtures",
       "priority": "P1",
       "title": "Add paired (block, pass) fixtures per standardized hook for outcome-aware perf measurement",
