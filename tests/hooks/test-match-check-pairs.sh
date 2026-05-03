@@ -166,4 +166,34 @@ assert_check_block enforce-make-commands "make test" "check_make blocks bare pyt
 COMMAND="pre-commit run --all-files"
 assert_check_block enforce-make-commands "make lint" "check_make blocks pre-commit with make-lint hint"
 
+# ============================================================
+# enforce-uv-run
+# ============================================================
+report_section "enforce-uv-run"
+
+COMMAND="ls -la"
+assert_match_miss enforce-uv-run "match_uv misses on ls"
+
+# Heredoc body containing `python` is blanked by _strip_inert_content,
+# so the predicate must NOT fire — protects against false positives on
+# heredoc/quoted bodies.
+COMMAND='cat <<EOF
+this is python code
+EOF'
+assert_match_miss enforce-uv-run "match_uv misses when python is only inside a heredoc body"
+
+COMMAND='echo "running python script"'
+assert_match_miss enforce-uv-run "match_uv misses when python is only inside double-quoted string"
+
+COMMAND="uv run python script.py"
+assert_match_hit  enforce-uv-run "match_uv hits on uv run python"
+assert_check_pass enforce-uv-run "check_uv passes when uv run is present"
+
+COMMAND="python script.py"
+assert_match_hit   enforce-uv-run "match_uv hits on bare python"
+assert_check_block enforce-uv-run "uv run python" "check_uv blocks bare python with uv-run hint"
+
+COMMAND="python3 -m pytest"
+assert_check_block enforce-uv-run "uv run python" "check_uv blocks bare python3 with uv-run hint"
+
 print_summary
