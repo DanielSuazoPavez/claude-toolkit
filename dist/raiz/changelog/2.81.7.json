@@ -1,0 +1,15 @@
+{
+  "version": "2.81.7",
+  "date": "2026-05-03",
+  "headline": "Per-hook PERF-BUDGET-MS headers stop V20 false-positives",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "Standardized guardrail hooks (approve-safe-commands, auto-mode-shared-steps, block-config-edits, block-credential-exfiltration, block-dangerous-commands, git-safety, log-permission-denied, secrets-guard, suggest-read-json) gain a `PERF-BUDGET-MS` header line per hook. The default `scope_miss=5, scope_hit=50` budget was tuned for a hypothetical 5ms standardized hook; reality is 14–60ms `duration_ms` per fixture (structural floor: bash startup + lib parse + EXIT-trap row build). V20 was warning on every `make check` for the structural floor — this lands per-hook budgets calibrated against the real distribution so V20 keeps flagging genuine regressions without crying wolf.",
+        "Metadata-only change. Hook runtime behavior is unchanged; only `validate.sh` V20 reads the new headers."
+      ]
+    }
+  ]
+}

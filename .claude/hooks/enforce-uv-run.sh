@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=uv
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=43, scope_hit=50
 # CC-HOOK: OPT-IN: none
 # CC-HOOK: SHIPS-IN: base
 #

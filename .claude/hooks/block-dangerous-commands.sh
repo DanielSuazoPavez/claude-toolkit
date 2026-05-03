@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=dangerous
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=45, scope_hit=98
 # CC-HOOK: OPT-IN: none
 #
 # PreToolUse hook: block dangerous bash commands

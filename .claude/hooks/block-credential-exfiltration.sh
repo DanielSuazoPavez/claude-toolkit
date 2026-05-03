@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=credential_exfil
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=46, scope_hit=58
 # CC-HOOK: OPT-IN: none
 # CC-HOOK: RELATES-TO: secrets-guard(complement-direction)
 #

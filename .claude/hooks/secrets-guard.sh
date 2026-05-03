@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-bash-guard(Bash), grouped-read-guard(Read)
 # CC-HOOK: DISPATCH-FN: grouped-bash-guard=secrets_guard, grouped-read-guard=secrets_guard_read
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=55, scope_hit=87
 # CC-HOOK: OPT-IN: none
 # CC-HOOK: RELATES-TO: block-credential-exfiltration(complement-direction)
 #

@@ -5,6 +5,7 @@
 # CC-HOOK: DISPATCHED-BY: grouped-read-guard(Read)
 # CC-HOOK: DISPATCH-FN: grouped-read-guard=suggest_read_json
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=62, scope_hit=62
 # CC-HOOK: OPT-IN: none
 #
 # PreToolUse hook: block Read on large JSON files, point at the read-json jq reference
