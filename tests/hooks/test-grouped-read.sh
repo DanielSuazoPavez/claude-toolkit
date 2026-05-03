@@ -33,8 +33,8 @@ batch_add allow "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.
 # suggest_read_json — allowlist + size threshold
 batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/package.json"}}' \
     "[base] allows package.json (allowlist)"
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' \
-    "[base] blocks unknown .json (non-existent file treated as large)"
+batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' \
+    "[base] allows nonexistent .json (Read will surface the natural error)"
 batch_add allow "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$small_json\"}}" \
     "[base] allows small .json (under threshold)"
 batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$large_json\"}}" \

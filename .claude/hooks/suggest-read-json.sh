@@ -19,6 +19,10 @@
 #   - Large .json files (> threshold)
 #   - Excludes common config files by default
 #
+# Allows (fail-open):
+#   - Nonexistent files — Read will surface the natural not-found error.
+#     Prevents the confusing redirect-to-jq-then-jq-also-not-found loop.
+#
 # Reason:
 #   JSON files can be large; jq via Bash is more efficient than loading into context
 #
@@ -68,14 +72,19 @@ check_suggest_read_json() {
         return 0
     fi
 
-    # Check file size if file exists
+    # Fail-open on nonexistent files: let Read surface the natural not-found
+    # error instead of redirecting to jq (which would also fail not-found,
+    # confusingly).
+    if [ ! -f "$FILE_PATH" ]; then
+        return 0
+    fi
+
+    # Check file size
     local size_threshold_kb="${CLAUDE_TOOLKIT_JSON_SIZE_THRESHOLD_KB:-50}"
-    if [ -f "$FILE_PATH" ]; then
-        local file_size_kb
-        file_size_kb=$(( $(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
-        if [ "$file_size_kb" -lt "$size_threshold_kb" ]; then
-            return 0
-        fi
+    local file_size_kb
+    file_size_kb=$(( $(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
+    if [ "$file_size_kb" -lt "$size_threshold_kb" ]; then
+        return 0
     fi
 
     _BLOCK_REASON="Use jq via Bash for this JSON file instead of the Read tool — it avoids loading the entire file into context. See .claude/skills/read-json/SKILL.md for shell-quoting and malformed-JSON recipes."
