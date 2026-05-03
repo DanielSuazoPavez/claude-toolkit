@@ -327,4 +327,38 @@ assert_check_block block-config-edits "shell/SSH/git config" "check_config_edits
 COMMAND='echo {} > .claude/settings.json'
 assert_check_block block-config-edits ".claude/settings" "check_config_edits blocks bare write to .claude/settings.json"
 
+# ============================================================
+# git-safety  (Bash branch only)
+# ============================================================
+# EnterPlanMode branch runs inline in main() — out of scope here, tracked as
+# hook-audit-01-git-safety-enterplanmode-pair.
+report_section "git-safety"
+
+COMMAND="ls -la"
+assert_match_miss git-safety "match_git_safety misses on ls"
+
+COMMAND="git status"
+assert_match_miss git-safety "match_git_safety misses on git status (only push|commit gate)"
+
+# Normal push to a feature branch — predicate hits, check passes
+COMMAND="git push origin feature"
+assert_match_hit  git-safety "match_git_safety hits on git push"
+assert_check_pass git-safety "check_git_safety passes on plain feature-branch push"
+
+# Force push to main — severe block
+COMMAND="git push --force origin main"
+assert_check_block git-safety "Force push to 'main'" "check_git_safety blocks force push to main"
+
+# git push --mirror — severe block (overwrites remote)
+COMMAND="git push --mirror origin"
+assert_check_block git-safety "--mirror" "check_git_safety blocks git push --mirror"
+
+# Delete protected branch via --delete
+COMMAND="git push --delete origin main"
+assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks --delete on main"
+
+# Delete protected branch via :branch syntax
+COMMAND="git push origin :main"
+assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks :main delete syntax"
+
 print_summary
