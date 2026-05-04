@@ -13,6 +13,7 @@
 # Read:  mk_pre_tool_use_payload Read  <file_path>        [session_id]
 # Write: mk_pre_tool_use_payload Write <file_path> <content> [permission_mode] [session_id]
 # Edit:  mk_pre_tool_use_payload Edit  <file_path> <old> <new> [permission_mode] [session_id]
+# Grep:  mk_pre_tool_use_payload Grep  <pattern> <field> <value> [session_id]   # field: path|glob
 mk_pre_tool_use_payload() {
     local tool="$1"; shift
     case "$tool" in
@@ -50,6 +51,23 @@ mk_pre_tool_use_payload() {
                 jq -nc --arg p "$path" --arg o "$old" --arg n "$new" --arg s "$sid" \
                     '{tool_name:"Edit",tool_input:{file_path:$p,old_string:$o,new_string:$n},session_id:$s}'
             fi
+            ;;
+        Grep)
+            local pattern="$1" field="$2" value="$3" sid="${4-test}"
+            case "$field" in
+                path)
+                    jq -nc --arg pat "$pattern" --arg v "$value" --arg s "$sid" \
+                        '{tool_name:"Grep",tool_input:{pattern:$pat,path:$v},session_id:$s}'
+                    ;;
+                glob)
+                    jq -nc --arg pat "$pattern" --arg v "$value" --arg s "$sid" \
+                        '{tool_name:"Grep",tool_input:{pattern:$pat,glob:$v},session_id:$s}'
+                    ;;
+                *)
+                    echo "mk_pre_tool_use_payload Grep: unknown field '$field' (want path|glob)" >&2
+                    return 2
+                    ;;
+            esac
             ;;
         *)
             echo "mk_pre_tool_use_payload: unknown tool '$tool'" >&2

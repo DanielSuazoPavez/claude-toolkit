@@ -143,6 +143,32 @@ assert_jq_eq "Edit with pm+sid: permission_mode" "$out" '.permission_mode' 'plan
 assert_jq_eq "Edit with pm+sid: session_id" "$out" '.session_id' 'sess-4'
 
 # ============================================================
+report_section "=== mk_pre_tool_use_payload Grep ==="
+
+out=$(mk_pre_tool_use_payload Grep 'SECRET' path '/project/.env')
+assert_valid_json "Grep path: valid JSON" "$out"
+assert_jq_eq "Grep path: tool_name" "$out" '.tool_name' 'Grep'
+assert_jq_eq "Grep path: pattern" "$out" '.tool_input.pattern' 'SECRET'
+assert_jq_eq "Grep path: path" "$out" '.tool_input.path' '/project/.env'
+assert_jq_absent "Grep path: glob absent" "$out" '.tool_input.glob'
+assert_jq_eq "Grep path: session_id default" "$out" '.session_id' 'test'
+
+out=$(mk_pre_tool_use_payload Grep 'TODO' glob '*.js' sess-g)
+assert_valid_json "Grep glob: valid JSON" "$out"
+assert_jq_eq "Grep glob: glob" "$out" '.tool_input.glob' '*.js'
+assert_jq_absent "Grep glob: path absent" "$out" '.tool_input.path'
+assert_jq_eq "Grep glob: session_id explicit" "$out" '.session_id' 'sess-g'
+
+TESTS_RUN=$((TESTS_RUN + 1))
+if mk_pre_tool_use_payload Grep 'p' bogus 'v' >/dev/null 2>&1; then
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "Grep with unknown field returns non-zero"
+else
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "Grep with unknown field returns non-zero"
+fi
+
+# ============================================================
 report_section "=== mk_pre_tool_use_payload errors ==="
 
 TESTS_RUN=$((TESTS_RUN + 1))

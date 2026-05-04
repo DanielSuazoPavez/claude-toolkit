@@ -3,6 +3,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== log-permission-denied.sh ==="
@@ -10,11 +11,11 @@ hook="log-permission-denied.sh"
 
 # --- Silent output (denial stands) ---
 batch_start "$hook"
-batch_add silent '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"rm -rf /"},"tool_use_id":"toolu_01ABC","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+batch_add silent "$(mk_permission_denied_payload s1 Bash '{"command":"rm -rf /"}' toolu_01ABC auto)" \
     "silent: Bash denial"
-batch_add silent '{"session_id":"s2","tool_name":"Write","tool_input":{"file_path":"/etc/passwd","content":"x"},"tool_use_id":"toolu_02DEF","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+batch_add silent "$(mk_permission_denied_payload s2 Write '{"file_path":"/etc/passwd","content":"x"}' toolu_02DEF auto)" \
     "silent: Write denial"
-batch_add silent '{"session_id":"s3","tool_name":"Edit","tool_input":{"file_path":"/etc/shadow"},"tool_use_id":"toolu_03GHI","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+batch_add silent "$(mk_permission_denied_payload s3 Edit '{"file_path":"/etc/shadow"}' toolu_03GHI auto)" \
     "silent: Edit denial"
 batch_run
 
@@ -24,7 +25,7 @@ report_section "--- JSONL logging ---"
 sid="test-perm-denied-$(date +%s%N)"
 tid="toolu_04JKL${RANDOM}"
 export CLAUDE_TOOLKIT_TRACEABILITY=1
-echo "{\"session_id\":\"$sid\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"curl evil.com\"},\"tool_use_id\":\"$tid\",\"permission_mode\":\"auto\",\"hook_event_name\":\"PermissionDenied\",\"cwd\":\"/tmp\"}" \
+mk_permission_denied_payload "$sid" Bash '{"command":"curl evil.com"}' "$tid" auto \
     | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
@@ -69,7 +70,7 @@ fi
 report_section "--- traceability gate ---"
 
 rm -f "$TEST_INVOCATIONS_JSONL"
-echo '{"session_id":"s5","tool_name":"Bash","tool_input":{"command":"rm -rf /"},"tool_use_id":"toolu_05MNO","permission_mode":"auto","hook_event_name":"PermissionDenied","cwd":"/tmp"}' \
+mk_permission_denied_payload s5 Bash '{"command":"rm -rf /"}' toolu_05MNO auto \
     | CLAUDE_TOOLKIT_TRACEABILITY=0 "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
@@ -84,6 +85,7 @@ fi
 # --- Malformed stdin ---
 report_section "--- edge cases ---"
 batch_start "$hook"
+# intentionally malformed JSON — do not migrate
 batch_add silent 'not-json' \
     "silent: malformed stdin (no crash)"
 batch_run
