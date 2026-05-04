@@ -8,6 +8,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== surface-lessons.sh 2+ keyword-hit threshold ==="
@@ -43,7 +44,7 @@ run_hook() {
     # Fresh session each call so intra-session dedup never interferes.
     local cmd="$1" session="two-hit-$$-$RANDOM-$(date +%N)"
     local payload
-    payload="{\"session_id\":\"$session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"$cmd\"}}"
+    payload=$(mk_pre_tool_use_payload Bash "$cmd" '' "$session")
     echo "$payload" | bash "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
     if [ -f "$TEST_SURFACE_LESSONS_JSONL" ]; then
         grep -F "$session" "$TEST_SURFACE_LESSONS_JSONL" 2>/dev/null \
