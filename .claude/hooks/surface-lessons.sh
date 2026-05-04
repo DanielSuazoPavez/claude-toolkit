@@ -26,7 +26,7 @@
 #   echo '{"tool_name":"Read","tool_input":{"file_path":"/project/.claude/hooks/foo.sh"}}' | bash .claude/hooks/surface-lessons.sh
 #   # Expected: additionalContext with hooks-tagged lessons
 
-LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
+LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/claude-analytics/lessons.db}"
 [ -f "$LESSONS_DB" ] || exit 0
 
 source "$(dirname "$0")/lib/hook-utils.sh"
@@ -82,7 +82,7 @@ _hook_perf_probe "build_sql"
 # the same ingestion window is the accepted tradeoff for standardizing data
 # ingestion downstream. Empty on first invocation or if hooks.db is absent,
 # which degrades gracefully to "no dedup".
-HOOKS_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/.claude/hooks.db}"
+HOOKS_DB="${CLAUDE_ANALYTICS_HOOKS_DB:-$HOME/claude-analytics/hooks.db}"
 NOT_IN_CLAUSE=""
 if [ -f "$HOOKS_DB" ] && [ -n "$SESSION_ID" ] && [ "$SESSION_ID" != "unknown" ]; then
     SAFE_SESSION="${SESSION_ID//\'/\'\'}"

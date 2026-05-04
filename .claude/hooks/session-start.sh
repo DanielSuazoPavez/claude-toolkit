@@ -158,7 +158,7 @@ _hook_perf_probe "toolkit_version"
 # CLAUDE_TOOLKIT_PROTECTED_BRANCHES. Key/Recent are intentionally not session-start-surfaced
 # (relevant-toolkit-lessons.md §4 + §7). Output label still reads "LESSONS"
 # because the /manage-lessons nudge belongs to the same surface.
-LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/.claude/lessons.db}"
+LESSONS_DB="${CLAUDE_ANALYTICS_LESSONS_DB:-$HOME/claude-analytics/lessons.db}"
 LEARNED_FILE=".claude/learned.json"
 # Same regex convention as git-safety.sh — duplicated rather than sourced to
 # keep session-start.sh self-contained.

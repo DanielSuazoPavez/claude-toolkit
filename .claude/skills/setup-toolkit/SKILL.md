@@ -82,11 +82,11 @@ Ask each in turn. Present the tradeoff plainly — both ecosystems store data lo
 
 **Lessons ecosystem:**
 
-> Enable the lessons ecosystem? It stores learned corrections in `~/.claude/lessons.db`, surfaces relevant lessons at session start, and injects matches before Bash/Read/Write/Edit calls. Local SQLite only — nothing leaves the machine. Disabled by default. [y/N]
+> Enable the lessons ecosystem? It stores learned corrections in `~/claude-analytics/lessons.db`, surfaces relevant lessons at session start, and injects matches before Bash/Read/Write/Edit calls. Local SQLite only — nothing leaves the machine. Disabled by default. [y/N]
 
 **Traceability ecosystem:**
 
-> Enable traceability? Logs hook executions to `~/.claude/hooks.db` for debugging/observability. If you use the statusline capture wrapper, it also appends usage snapshots to `~/.claude/usage-snapshots/`. Local only. Disabled by default. [y/N]
+> Enable traceability? Logs hook executions to `~/claude-analytics/hooks.db` for debugging/observability. If you use the statusline capture wrapper, it also appends usage snapshots to `~/.claude/usage-snapshots/`. Local only. Disabled by default. [y/N]
 
 ### Apply
 
@@ -114,7 +114,7 @@ There are four paths, split across two storage models:
 
 **Why here and not `.claude/settings.json`:** Claude Code passes JSON `env` values through literally — `"$HOME/..."` is not expanded. So the paths must be fully resolved. `settings.local.json` is per-user and gitignored, which is the right place for fully-resolved user-specific paths (avoids leaking `/home/alice/...` into shared repos).
 
-**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/.claude/lessons.db`, `$HOME/.claude/sessions.db`, `$HOME/claude-analytics/hook-logs`, and `$HOME/.claude/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
+**Scripts have a fallback.** If these env vars are unset, hooks/scripts default to `$HOME/claude-analytics/lessons.db`, `$HOME/claude-analytics/sessions.db`, `$HOME/claude-analytics/hook-logs`, and `$HOME/claude-analytics/hooks.db` at runtime. This phase is about centralizing the override surface, not plugging a missing default.
 
 For the full env-var registry (every var the toolkit reads, including non-analytics ones), see `.claude/docs/relevant-toolkit-env_vars.md`.
 
@@ -133,11 +133,11 @@ Resolve `$HOME` to a real path first (`echo "$HOME"`). Offer it as the default i
 
 **Lessons DB path:**
 
-> Where should the lessons DB live? Stores learned corrections across all your projects (global, not per-project). [$HOME/.claude/lessons.db]
+> Where should the lessons DB live? Stores learned corrections across all your projects (global, not per-project). [$HOME/claude-analytics/lessons.db]
 
 **Sessions DB path (read-only):**
 
-> Where does the sessions DB live? Read-only — `session-start.sh` queries it for context. Owned and populated by the claude-sessions indexer, not the toolkit. Leave the default if you don't run claude-sessions. [$HOME/.claude/sessions.db]
+> Where does the sessions DB live? Read-only — `session-start.sh` queries it for context. Owned and populated by the claude-sessions indexer, not the toolkit. Leave the default if you don't run claude-sessions. [$HOME/claude-analytics/sessions.db]
 
 **Hook-logs JSONL directory:**
 
@@ -145,7 +145,7 @@ Resolve `$HOME` to a real path first (`echo "$HOME"`). Offer it as the default i
 
 **Hooks DB path (read-only):**
 
-> Where does `hooks.db` live? Read-only — `surface-lessons.sh` queries it for intra-session dedup. Owned and populated by the claude-sessions indexer, not the toolkit. Leave the default if you don't run claude-sessions. [$HOME/.claude/hooks.db]
+> Where does `hooks.db` live? Read-only — `surface-lessons.sh` queries it for intra-session dedup. Owned and populated by the claude-sessions indexer, not the toolkit. Leave the default if you don't run claude-sessions. [$HOME/claude-analytics/hooks.db]
 
 Empty input → accept default. Any non-empty input → use verbatim (don't re-expand — the user is giving a resolved path).
 

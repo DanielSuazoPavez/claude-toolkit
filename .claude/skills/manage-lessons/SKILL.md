@@ -109,7 +109,7 @@ When promoting to Key, decide *with the user* which crystallization path applies
 
 - **→ essential doc** — the rule is general and should always be loaded. Open `.claude/docs/essential-*.md` (or propose a new one) and write the rule. Then deactivate the source lesson.
 - **→ fix the problem** — the lesson points at a missing hook, skill, or code defect. Open a backlog entry to fix it. The lesson stays Key until the fix lands, then absorb.
-- **→ demote** — on second look, this isn't always-relevant. Set tier back to recent. (No `demote` CLI subcommand exists yet; use `sqlite3 ~/.claude/lessons.db "UPDATE lessons SET tier='recent' WHERE id='<ID>';"`.)
+- **→ demote** — on second look, this isn't always-relevant. Set tier back to recent. (No `demote` CLI subcommand exists yet; use `sqlite3 ~/claude-analytics/lessons.db "UPDATE lessons SET tier='recent' WHERE id='<ID>';"`.)
 
 Promoting to Key without picking one of these paths is the anti-pattern this skill exists to prevent. Key is a crystallization holding state — not session-start-surfaced, not "more important." See `relevant-toolkit-lessons` doc §4.
 

@@ -37,8 +37,8 @@ from cli.lessons.formatting import _c
 # Constants
 # ---------------------------------------------------------------------------
 
-LESSONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_LESSONS_DB") or (Path.home() / ".claude" / "lessons.db"))
-SESSIONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_SESSIONS_DB") or (Path.home() / ".claude" / "sessions.db"))
+LESSONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_LESSONS_DB") or (Path.home() / "claude-analytics" / "lessons.db"))
+SESSIONS_DB_PATH = Path(os.environ.get("CLAUDE_ANALYTICS_SESSIONS_DB") or (Path.home() / "claude-analytics" / "sessions.db"))
 LEARNED_JSON_PATH = Path(".claude/learned.json")
 
 # ---------------------------------------------------------------------------

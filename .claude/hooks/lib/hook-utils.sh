@@ -176,7 +176,7 @@ _strip_inert_content() {
 # An empty PROJECT means project-scoped scope filters won't match (global
 # lessons still surface).
 _resolve_project_id() {
-    local sessions_db="${CLAUDE_ANALYTICS_SESSIONS_DB:-$HOME/.claude/sessions.db}"
+    local sessions_db="${CLAUDE_ANALYTICS_SESSIONS_DB:-$HOME/claude-analytics/sessions.db}"
     if [ ! -f "$sessions_db" ]; then
         basename "$PWD"
         return

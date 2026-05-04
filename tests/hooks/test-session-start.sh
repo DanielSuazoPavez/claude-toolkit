@@ -21,7 +21,7 @@ rm -f "$TEST_LESSONS_DB"
 counters_file=$(mktemp)
 echo "0 0 0" > "$counters_file"   # run passed failed
 
-# Schema mirrors live ~/.claude/lessons.db. project_id is declared INTEGER
+# Schema mirrors live ~/claude-analytics/lessons.db. project_id is declared INTEGER
 # but stores TEXT in practice (TEXT-keyed projects dimension since v2.68.2);
 # sqlite type-affinity allows the TEXT seed values below.
 sqlite3 "$TEST_LESSONS_DB" <<SQL

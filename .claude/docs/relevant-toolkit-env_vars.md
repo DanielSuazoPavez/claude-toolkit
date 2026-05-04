@@ -68,9 +68,9 @@ Cross-project surface — these are settings the toolkit shares with claude-sess
 
 | Var | Default | Scope | Readers | Purpose |
 |---|---|---|---|---|
-| `CLAUDE_ANALYTICS_LESSONS_DB` | `$HOME/.claude/lessons.db` | consumer | `hooks/session-start.sh:129`, `hooks/surface-lessons.sh:22`, `cli/lessons/db.py:40` | Global lessons SQLite DB. Read+write by the toolkit |
-| `CLAUDE_ANALYTICS_SESSIONS_DB` | `$HOME/.claude/sessions.db` | consumer | `hooks/session-start.sh:167`, `cli/lessons/db.py:41` | Global sessions SQLite DB. Owned by the claude-sessions indexer; the toolkit reads it for session-start context |
-| `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/.claude/hooks.db` | consumer | `hooks/surface-lessons.sh:78` | Read-only path to `hooks.db`, used by `surface-lessons.sh` for intra-session dedup. Owned and populated by the claude-sessions indexer |
+| `CLAUDE_ANALYTICS_LESSONS_DB` | `$HOME/claude-analytics/lessons.db` | consumer | `hooks/session-start.sh:129`, `hooks/surface-lessons.sh:22`, `cli/lessons/db.py:40` | Global lessons SQLite DB. Read+write by the toolkit |
+| `CLAUDE_ANALYTICS_SESSIONS_DB` | `$HOME/claude-analytics/sessions.db` | consumer | `hooks/session-start.sh:167`, `cli/lessons/db.py:41` | Global sessions SQLite DB. Owned by the claude-sessions indexer; the toolkit reads it for session-start context |
+| `CLAUDE_ANALYTICS_HOOKS_DB` | `$HOME/claude-analytics/hooks.db` | consumer | `hooks/surface-lessons.sh:78` | Read-only path to `hooks.db`, used by `surface-lessons.sh` for intra-session dedup. Owned and populated by the claude-sessions indexer |
 | `CLAUDE_ANALYTICS_HOOKS_DIR` | `$HOME/claude-analytics/hook-logs` | consumer | `hooks/lib/hook-utils.sh:43`, `tests/perf-detection-registry.sh:43`, `tests/perf-surface-lessons.sh:18`, `tests/lib/hook-test-setup.sh:13` | Directory for hook-logs JSONL files (`invocations.jsonl`, `surface-lessons-context.jsonl`, `session-start-context.jsonl`). Write-only from the toolkit's perspective; the claude-sessions indexer projects rows into `hooks.db` |
 
 ### 3.3 Toolkit internals (other / bare)
