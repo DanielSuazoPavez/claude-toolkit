@@ -56,4 +56,26 @@ else
     report_detail "Got: $got"
 fi
 
+# PermissionRequest with sub-agent stdin (agent_id present, tool_use_id empty)
+# → empty call_id. The agent_id-as-CALL_ID fallback is gated to SubagentStop;
+# leaking it into PermissionRequest contaminates hooks.hook_logs.call_id whose
+# semantics are "Anthropic block id (toolu_…) or empty".
+sid3="test-callid-permreq-agent-$(date +%s%N)"
+aid="abcdef0123456789a"  # 17-char hex, shape of real sub-agent agent_id
+echo "{\"session_id\":\"$sid3\",\"agent_id\":\"$aid\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
+    | "$HOOKS_DIR/approve-safe-commands.sh" > /dev/null 2>&1 || true
+
+TESTS_RUN=$((TESTS_RUN + 1))
+got=$(grep -F "$sid3" "$TEST_INVOCATIONS_JSONL" 2>/dev/null \
+    | jq -r --arg sid "$sid3" 'select(.session_id == $sid) | .call_id' 2>/dev/null \
+    | head -n1)
+if [ -z "$got" ]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "PermissionRequest call_id empty when only agent_id present"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "PermissionRequest call_id should not absorb agent_id"
+    report_detail "Got: $got"
+fi
+
 print_summary
