@@ -918,6 +918,17 @@
       ],
       "notes": "Surfaced 2026-04-26. The toolkit ships ~34 skills, 7 agents, 14 hooks, 17 docs to consumer projects via `claude-toolkit sync`, but a downstream user landing on a freshly-synced project has no clear entry point — `README.md` and `docs/` are the only signals, and `claude-toolkit --help` is currently a thin wrapper over its argparse subcommands. Two distinct gaps to address: (1) **CLI help quality** — `claude-toolkit <subcommand> --help` is mostly auto-generated argparse text; could land harder with examples per subcommand and a top-level `claude-toolkit help` that organizes subcommands by purpose (sync resources, query backlog/docs/lessons, send suggestions, version checks). (2) **Guided introduction** — possibly a `/welcome-toolkit` or `/tour-toolkit` skill that walks a downstream user through \"here are the resources you got, here's how skills/agents/hooks differ, here's how to discover what's available, here's how `claude-toolkit sync` works, here's how to send feedback.\" Audience is a Claude Code user opening a project that already has the toolkit synced, not someone setting up the workshop. Open questions: skill vs doc vs both; whether the tour reads `docs/indexes/` directly or has its own narrative; how it stays fresh as resources are added. Inputs: `cli/` module (current help text), `docs/getting-started.md` if it exists, `README.md`, the existing `setup-toolkit` skill (which is workshop-side, not consumer-side). Output: brainstorm doc proposing scope + shape; implementation likely staged.",
       "status": "idea"
+    },
+    {
+      "id": "test-helper-fixture-standardization",
+      "priority": "P0",
+      "title": "Standardize hook-test fixture builders into shared json-fixtures.sh",
+      "scope": [
+        "tests"
+      ],
+      "status": "in-progress",
+      "branch": "refactor/hook-test-fixture-helpers",
+      "notes": "Plan: output/claude-toolkit/plans/zesty-marinating-moler.md. Supersedes test-fork-jq-mk-helper (printf-replacement framing dropped after clarity-over-perf decision)."
     }
   ]
 }
