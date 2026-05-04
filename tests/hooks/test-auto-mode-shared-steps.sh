@@ -3,16 +3,16 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== auto-mode-shared-steps.sh ==="
 hook="auto-mode-shared-steps.sh"
 
-# Helper: build payload with permission_mode set
+# Local wrapper: bind permission_mode + command to mk_pre_tool_use_payload Bash
 mk() {
     local mode="$1" cmd="$2"
-    jq -n --arg m "$mode" --arg c "$cmd" \
-        '{tool_name:"Bash",tool_input:{command:$c},permission_mode:$m,session_id:"test"}'
+    mk_pre_tool_use_payload Bash "$cmd" "$mode"
 }
 
 batch_start "$hook"

