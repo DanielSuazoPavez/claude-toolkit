@@ -43,6 +43,14 @@ _settings_integrity_head_hash() {
     git show "HEAD:$file" 2>/dev/null | sha256sum 2>/dev/null | awk '{print $1}'
 }
 
+# Returns 0 if the path is tracked by git (in the index), 1 otherwise. Also
+# returns 1 when git is unavailable or the path is outside a repo.
+_settings_integrity_is_tracked() {
+    local file="$1"
+    command -v git >/dev/null 2>&1 || return 1
+    git ls-files --error-unmatch -- "$file" >/dev/null 2>&1
+}
+
 # Read the stored hash for a path from the state file. Empty if absent.
 _settings_integrity_load_stored() {
     local file="$1"
@@ -102,7 +110,13 @@ _settings_integrity_check_one() {
     # Drift without a covering commit — surface the warning loud, but do NOT
     # update the stored hash. Subsequent sessions keep warning until the user
     # either commits the change or restores the file.
-    echo "⚠ ${file} changed since last session without a commit. Review with: git diff -- ${file}"
+    if _settings_integrity_is_tracked "$file"; then
+        echo "⚠ ${file} changed since last session without a commit. Review with: git diff -- ${file}"
+    else
+        # Untracked (e.g. gitignored .claude/settings.local.json) — `git diff`
+        # would print nothing, so point the user at the file directly.
+        echo "⚠ ${file} changed since last session (untracked, no committed baseline). Review the file directly: ${file}"
+    fi
 }
 
 # Public entry point. Iterates the two settings files. No-op when opt-out.
