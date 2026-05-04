@@ -284,9 +284,13 @@ hook_init() {
     fi
 
     # shellcheck disable=SC2034  # CALL_ID read in hook-logging.sh
+    # tool_use_id wins when present (Pre/PostToolUse). agent_id is only a
+    # CALL_ID source for SubagentStop — other events (e.g. PermissionRequest
+    # with sub-agent stdin) must fall through to empty so downstream
+    # hooks.hook_logs.call_id stays "Anthropic block id (toolu_…) or empty".
     if [ -n "$_tid" ]; then
         CALL_ID="$_tid"
-    elif [ -n "$_aid" ]; then
+    elif [ -n "$_aid" ] && [ "$HOOK_EVENT" = "SubagentStop" ]; then
         CALL_ID="$_aid"
     else
         CALL_ID=""

@@ -1,0 +1,14 @@
+{
+  "version": "2.81.12",
+  "date": "2026-05-04",
+  "headline": "PermissionRequest call_id no longer absorbs sub-agent agent_id",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "Tightened `hook_init` in `.claude/hooks/lib/hook-utils.sh`: the `agent_id`-as-`call_id` fallback now requires `hook_event = SubagentStop`. PermissionRequest hooks running under sub-agent Bash (where stdin carries `agent_id` but no `tool_use_id`) used to leak the agent_id into the `call_id` column of `hooks.hook_logs`, contaminating a column whose intended values are `toolu_…` block ids or empty. After this change, those rows write empty `call_id` and the agent_id stays out of the slot. If you've been carrying a projector-side strip (e.g. claude-sessions 0.72.0+), it now serves as defense-in-depth rather than the sole guard."
+      ]
+    }
+  ]
+}

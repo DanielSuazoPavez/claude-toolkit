@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.81.12] - 2026-05-04 - gate CALL_ID agent_id fallback on SubagentStop
+
+### Fixed
+- **hooks**: `.claude/hooks/lib/hook-utils.sh` `hook_init` no longer routes `agent_id` into `CALL_ID` for non-`SubagentStop` events. Previously, `PermissionRequest` stdin from a sub-agent (which carries `agent_id` but no `tool_use_id`) fell through to the `_aid` branch and contaminated downstream `hooks.hook_logs.call_id` — a column whose semantics are "Anthropic block id (`toolu_…`) or empty". The writer-side comment at `hook-utils.sh:37` already constrained the agent-id-as-call-id case to `SubagentStop`; the implementation now matches the contract. Source: suggestions-box issue from claude-sessions; the projector-side strip in claude-sessions 0.72.0 becomes defense-in-depth rather than the only line.
+
+### Added
+- **tests**: `tests/hooks/test-call-id.sh` gains a third case driving `approve-safe-commands.sh` (a `PermissionRequest` hook) with stdin carrying `agent_id` and empty `tool_use_id` — asserts `call_id` lands empty in the JSONL.
+
+### Notes
+- Consumed: `.claude/hooks/lib/hook-utils.sh` ships in base sync (and is in `dist/raiz/MANIFEST`), so the fix reaches all consumers including raiz. Raiz sidecar carries a real entry.
+
 ## [2.81.11] - 2026-05-04 - settings-integrity warning branches on tracked vs untracked
 
 ### Fixed
