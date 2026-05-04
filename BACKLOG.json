@@ -920,17 +920,6 @@
       "status": "idea"
     },
     {
-      "id": "test-helper-fixture-standardization",
-      "priority": "P0",
-      "title": "Standardize hook-test fixture builders into shared json-fixtures.sh",
-      "scope": [
-        "tests"
-      ],
-      "status": "in-progress",
-      "branch": "refactor/hook-test-fixture-helpers",
-      "notes": "Plan: output/claude-toolkit/plans/zesty-marinating-moler.md. Supersedes test-fork-jq-mk-helper (printf-replacement framing dropped after clarity-over-perf decision)."
-    },
-    {
       "id": "make-check-summarize-output",
       "priority": "P0",
       "title": "Summarize 'make check' output — write full log to file, surface only failures + counts in console",
@@ -949,6 +938,16 @@
       ],
       "status": "idea",
       "notes": "Goal: pass over the entire bash test suite (tests/test-*.sh, tests/hooks/test-*.sh, tests/lib/) and bring it to one coherent shape. Focus areas: (1) consolidate repeated assertion/setup patterns into named helpers in tests/lib/ — every file currently re-derives SCRIPT_DIR, manually increments TESTS_RUN/TESTS_PASSED/TESTS_FAILED in a few specific shapes, hand-rolls 'echo $payload | hook | grep decision'; centralize what fits. (2) Centralize fixture/expectation definitions where the same constant (HOOK names, sentinel session IDs, malformed-JSON test inputs, fixture paths) appears across files. (3) Mark special cases explicitly with structured comments (e.g. # special-case: malformed JSON exercises parser-error path / # special-case: negative-shape session_id absence — helper can't produce / # special-case: -carrying Bash payload / # special-case: EnterPlanMode single-key payload) — current ad-hoc 'do not migrate' style works but isn't searchable. Consider a small lint script that enumerates and reports them. (4) Standardize file shape: every test starts with the same 4-line preamble (set -uo pipefail, SCRIPT_DIR, source helpers, parse_test_args) — make it one helper or a documented snippet. (5) Audit which tests still hand-roll inline JSON for non-payload purposes (response shapes, fixtures on disk, etc.) and decide whether they belong in json-fixtures.sh or a sibling lib/. (6) Document the resulting standard in tests/CLAUDE.md so future tests are added in shape. Owner constraint: don't break wall-clock perf (current 45-50s baseline) and don't expand scope into fixing flakes (test-runner-reliability owns that). Source: 2026-05-04 fixture-standardization branch made json-fixtures.sh the first centralized helper for hook payloads — extending the same hygiene to the rest of the suite is the natural follow-up."
+    },
+    {
+      "id": "session-start-integrity-check-untracked-file-bad-guidance",
+      "priority": "P0",
+      "title": "session-start integrity check tells user to git diff untracked .claude/settings.local.json",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "settings-integrity.sh:105 emits 'Review with: git diff -- <file>' when the hash drifts from the stored baseline, but .claude/settings.local.json is gitignored / untracked, so 'git diff' produces empty output. Guidance is wrong for that file. The settings.json branch is fine (tracked); only the .local case needs different wording (e.g. show the file directly, or compare against a stored copy)."
     }
   ]
 }

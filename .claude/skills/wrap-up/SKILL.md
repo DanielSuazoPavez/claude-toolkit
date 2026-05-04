@@ -32,23 +32,26 @@ Commit code changes separately from version/changelog updates because:
 ### 3. Analyze the branch
 Review commits since branching from main to understand what was done.
 
-### 4. Determine version bump
+### 4. Propose a version bump (user decides)
 
-Quick decision — pick the first row that matches:
+Analyze the branch and **propose** a bump using the table below. Then state the proposal explicitly and **wait for the user to confirm or override** before editing version/changelog files. The bump is the user's call — your job is the suggestion and the reasoning, not the decision.
 
-| Change | Action | Changelog target |
-|--------|--------|------------------|
-| Breaking (existing user code must change) | **Major** (X.0.0) | New version section |
+| Change | Suggest | Changelog target |
+|--------|---------|------------------|
+| Breaking — existing consumer code/config must change | **Major** (X.0.0) | New version section |
 | New feature / new capability / new option | **Minor** (0.X.0) | New version section |
-| Bug fix, code refactor with user-visible effect, perf fix | **Patch** (0.0.X) | New version section |
-| Docs-only (BACKLOG, README, design notes, CHANGELOG prose) | **No bump** | `[Unreleased]` — `### Notes` |
-| Pure CI/CD, internal refactor with zero user-facing change | **No bump** | `[Unreleased]` — `### Notes` (or skip changelog) |
+| Any other code change — bug fix, refactor, perf, internal-only code, test changes | **Patch** (0.0.X) | New version section |
+| Docs-only — BACKLOG, design notes, exploration, prose-only README/CHANGELOG edits | **No bump** | `[Unreleased]` — `### Notes` |
 
-**Breaking change test:** Does existing user code need to change? If yes → Major.
+**Breaking change test:** does existing consumer code/config need to change? If yes → Major.
 
 **Pre-release (0.x.y):** breaking changes can be Minor instead of Major until 1.0.0.
 
-**When in doubt between Patch and no-bump:** if the change touches code that ships to users (skills, agents, hooks, CLI), lean Patch. If it only touches docs/backlog/design files, stay `[Unreleased]`.
+**Code rule:** internal/refactor-only code is still code. Tests, internal scripts, CI logic — all bump Patch by default even when no consumer sees the change. Whether the change is consumer-visible is a separate question (it shapes the changelog body and any release-notes mechanism the project uses); it does not gate the bump.
+
+**Docs-only test:** the change touches *only* prose / data files (BACKLOG, design notes, README, CHANGELOG narrative). One executable line changed → it's a code change.
+
+**Format the proposal as one short line** — e.g. `Proposing Patch (2.81.9 → 2.81.10): tests/ refactor, no consumer-visible change. Confirm?` Then stop. Don't proceed to step 5 until the user confirms or names a different bump.
 
 **Merge vs Squash considerations:**
 - If branch will be **squashed**: Single changelog entry for all work
