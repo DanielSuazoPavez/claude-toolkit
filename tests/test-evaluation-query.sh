@@ -191,7 +191,7 @@ expect_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
 
-    if echo "$output" | grep -qF -- "$expected"; then
+    if [[ "$output" == *"$expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output contains: $expected"
@@ -213,7 +213,7 @@ expect_not_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
 
-    if ! echo "$output" | grep -qF -- "$not_expected"; then
+    if [[ "$output" != *"$not_expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output does not contain: $not_expected"
@@ -235,7 +235,7 @@ expect_count() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
 
-    if echo "$output" | grep -qF -- "Found $expected_count "; then
+    if [[ "$output" == *"Found $expected_count "* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Found $expected_count"
