@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.81.11] - 2026-05-04 - settings-integrity warning branches on tracked vs untracked
+
+### Fixed
+- **hooks**: `scripts/lib/settings-integrity.sh` no longer suggests `git diff -- <file>` for `.claude/settings.local.json`. That file is gitignored / untracked in consumers, so the suggested diff produced empty output and misled the user. The warning now checks whether the path is tracked: tracked files (e.g. `.claude/settings.json`) keep the `git diff` hint; untracked files get pointed at the file directly with an explicit "no committed baseline" note.
+
+### Changed
+- **tests**: `tests/hooks/test-session-start-integrity.sh` Case 4 tightened to assert the tracked-file `git diff` phrasing; added Case 6 covering the untracked-drift path.
+
+### Notes
+- Consumed: `scripts/lib/settings-integrity.sh` ships in base sync (and is in `dist/raiz/MANIFEST`), so the fix reaches all consumers including raiz. Raiz sidecar carries a real entry.
+
 ## [2.81.10] - 2026-05-04 - wrap-up proposes the bump (user confirms) + standardize hook-test JSON fixtures
 
 ### Changed

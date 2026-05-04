@@ -105,12 +105,13 @@ run_check "$repo4" >/dev/null   # baseline
     # No commit — simulates an LLM rewrite that bypassed runtime hooks.
 )
 out=$(run_check "$repo4")
-if [[ "$out" == *"changed since last session without a commit"* ]]; then
+if [[ "$out" == *"changed since last session without a commit"* ]] \
+   && [[ "$out" == *"git diff -- .claude/settings.json"* ]]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    report_pass "uncommitted drift: warning surfaced"
+    report_pass "uncommitted drift (tracked): warning + git diff guidance"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    report_fail "uncommitted drift: warning surfaced"
+    report_fail "uncommitted drift (tracked): warning + git diff guidance"
     report_detail "stdout: ${out:-<empty>}"
 fi
 rm -rf "$repo4"
@@ -134,5 +135,31 @@ else
     report_detail "stdout: $out"
 fi
 rm -rf "$repo5"
+
+# === Case 6: untracked .local file drift — warning points at file, not git diff ===
+TESTS_RUN=$((TESTS_RUN + 1))
+repo6=$(mk_repo)
+(
+    cd "$repo6"
+    # settings.local.json is gitignored / untracked in real consumers.
+    echo '{"permissions":{"allow":[]}}' > .claude/settings.local.json
+)
+run_check "$repo6" >/dev/null   # baseline both files
+(
+    cd "$repo6"
+    echo '{"permissions":{"allow":["Bash(rm:*)"]}}' > .claude/settings.local.json
+)
+out=$(run_check "$repo6")
+if [[ "$out" == *"changed since last session (untracked, no committed baseline)"* ]] \
+   && [[ "$out" == *"Review the file directly: .claude/settings.local.json"* ]] \
+   && [[ "$out" != *"git diff -- .claude/settings.local.json"* ]]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "untracked drift: file-direct guidance, no git diff"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "untracked drift: file-direct guidance, no git diff"
+    report_detail "stdout: ${out:-<empty>}"
+fi
+rm -rf "$repo6"
 
 print_summary

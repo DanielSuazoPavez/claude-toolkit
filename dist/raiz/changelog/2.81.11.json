@@ -1,0 +1,14 @@
+{
+  "version": "2.81.11",
+  "date": "2026-05-04",
+  "headline": "settings-integrity warning gives correct guidance for untracked .claude/settings.local.json",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "settings-integrity: when the SessionStart drift warning fires for .claude/settings.local.json (gitignored, untracked), it no longer tells you to run 'git diff -- .claude/settings.local.json' — that produced empty output and misled you. The warning now checks whether the file is tracked by git: tracked files keep the git-diff hint; untracked files get pointed at the file directly with a 'no committed baseline' note."
+      ]
+    }
+  ]
+}
