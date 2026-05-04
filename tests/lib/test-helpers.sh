@@ -208,7 +208,7 @@ expect_contains() {
     local output
     output=$(echo "$input" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
 
-    if echo "$output" | grep -q "$expected"; then
+    if [[ "$output" == *"$expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output contains: $expected"
@@ -326,7 +326,7 @@ RUNNER_EOF
                 fi
                 ;;
             contains)
-                if echo "$output" | grep -q "$extra"; then
+                if [[ "$output" == *"$extra"* ]]; then
                     passed=true
                 fi
                 ;;

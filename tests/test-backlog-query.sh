@@ -169,7 +169,7 @@ expect_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
 
-    if echo "$output" | grep -qF -- "$expected"; then
+    if [[ "$output" == *"$expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output contains: $expected"
@@ -192,7 +192,7 @@ expect_not_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
 
-    if ! echo "$output" | grep -qF -- "$not_expected"; then
+    if [[ "$output" != *"$not_expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output does not contain: $not_expected"
@@ -215,7 +215,7 @@ expect_count() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_query "$@") && exit_code=0 || exit_code=$?
 
-    if echo "$output" | grep -qF -- "Found $expected_count task"; then
+    if [[ "$output" == *"Found $expected_count task"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Found $expected_count task(s)"
@@ -702,7 +702,7 @@ expect_validator_output() {
     local output
     output=$(run_validate)
 
-    if echo "$output" | grep -qF -- "$expected"; then
+    if [[ "$output" == *"$expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output contains: $expected"
@@ -861,7 +861,7 @@ ENDJSON
     local output
     output=$(run_validate)
     TESTS_RUN=$((TESTS_RUN + 1))
-    if ! echo "$output" | grep -qF "ok (P2): depends-on 'urgent'"; then
+    if [[ "$output" != *"ok (P2): depends-on 'urgent'"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "no warn when depending on higher priority"
     else

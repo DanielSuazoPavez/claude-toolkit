@@ -163,7 +163,7 @@ expect_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_validate "$@") && exit_code=0 || exit_code=$?
 
-    if echo "$output" | grep -qF -- "$expected"; then
+    if [[ "$output" == *"$expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output contains: $expected"
@@ -185,7 +185,7 @@ expect_not_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_validate "$@") && exit_code=0 || exit_code=$?
 
-    if ! echo "$output" | grep -qF -- "$not_expected"; then
+    if [[ "$output" != *"$not_expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output does not contain: $not_expected"

@@ -151,7 +151,7 @@ expect_output() {
     TESTS_RUN=$((TESTS_RUN + 1))
     output=$(run_toolkit_capture "$@") && exit_code=0 || exit_code=$?
 
-    if echo "$output" | grep -qF -- "$expected"; then
+    if [[ "$output" == *"$expected"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "$description"
         log_verbose "    Output contains: $expected"
@@ -275,7 +275,7 @@ test_sync_dry_run() {
 
     TESTS_RUN=$((TESTS_RUN + 1))
     # Dry run should show files but not copy them
-    if echo "$output" | grep -qF "Run without --dry-run" && \
+    if [[ "$output" == *"Run without --dry-run"* ]] && \
        [[ ! -f "$TEMP_DIR/project/.claude/skills/test-skill/SKILL.md" ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "dry run shows changes without applying"
@@ -445,7 +445,7 @@ test_validate_indexed_manifest_mode() {
 
     # Verify no red errors about unindexed resources (MANIFEST mode suppresses index-check errors)
     TESTS_RUN=$((TESTS_RUN + 1))
-    if ! echo "$output" | grep -q "Not indexed in"; then
+    if [[ "$output" != *"Not indexed in"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "no unindexed-resource errors in MANIFEST mode"
     else
@@ -456,7 +456,7 @@ test_validate_indexed_manifest_mode() {
 
     # Verify MANIFEST mode indicator
     TESTS_RUN=$((TESTS_RUN + 1))
-    if echo "$output" | grep -q "MANIFEST mode"; then
+    if [[ "$output" == *"MANIFEST mode"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
         report_pass "shows MANIFEST mode indicator"
     else
