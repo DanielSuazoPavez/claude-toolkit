@@ -9,7 +9,7 @@
 
 Reference for the lessons system: database schema, tiers, tags, skills, hooks, CLI, and lifecycle.
 
-**Opt-in:** The lessons ecosystem is opt-in per project via `CLAUDE_TOOLKIT_LESSONS` in the `env` block of `.claude/settings.json` (`"1"` to enable, `"0"` or absent to disable). Disabled means `session-start.sh` skips the lessons block and ack count, and `surface-lessons.sh` skips injection (context logging still runs, gated separately by `CLAUDE_TOOLKIT_TRACEABILITY`). `lessons.db` always lives globally at `~/.claude/lessons.db` — the flag gates *reading from it* in hooks, not its existence. CLI (`claude-toolkit lessons`) and skills (`/learn`, `/manage-lessons`) are not gated — they operate on the db regardless.
+**Opt-in:** The lessons ecosystem is opt-in per project via `CLAUDE_TOOLKIT_LESSONS` in the `env` block of `.claude/settings.json` (`"1"` to enable, `"0"` or absent to disable). Disabled means `session-start.sh` skips the lessons block and ack count, and `surface-lessons.sh` skips injection (context logging still runs, gated separately by `CLAUDE_TOOLKIT_TRACEABILITY`). `lessons.db` always lives globally at `~/claude-analytics/lessons.db` — the flag gates *reading from it* in hooks, not its existence. CLI (`claude-toolkit lessons`) and skills (`/learn`, `/manage-lessons`) are not gated — they operate on the db regardless.
 
 **See also:** `/learn` skill, `/manage-lessons` skill, `relevant-toolkit-hooks_config` for hook triggers and the full env block schema
 
@@ -31,7 +31,7 @@ Lessons are actionable rules captured during sessions and surfaced contextually 
 
 ## 3. Database
 
-**Location:** `~/.claude/lessons.db` (global, shared across projects)
+**Location:** `~/claude-analytics/lessons.db` (global, shared across projects)
 
 **Engine:** SQLite with WAL mode and foreign keys enabled.
 

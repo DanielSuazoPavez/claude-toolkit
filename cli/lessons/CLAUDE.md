@@ -28,7 +28,7 @@ Deletions are intentionally **not** exposed as a CLI subcommand — real deletio
 
 ## DB Path
 
-Default: `~/.claude/lessons.db` (global, not per-project).
+Default: `~/claude-analytics/lessons.db` (global, not per-project).
 
 Override via env var: `CLAUDE_ANALYTICS_LESSONS_DB=/path/to/lessons.db` (picked up at module import in `db.py:37`).
 

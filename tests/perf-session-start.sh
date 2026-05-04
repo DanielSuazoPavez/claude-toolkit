@@ -13,7 +13,7 @@ set -uo pipefail
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
 DOCS_DIR="${CLAUDE_DOCS_DIR:-.claude/docs}"
-LESSONS_DB="$HOME/.claude/lessons.db"
+LESSONS_DB="$HOME/claude-analytics/lessons.db"
 ITERATIONS=5
 
 # --- Args ---

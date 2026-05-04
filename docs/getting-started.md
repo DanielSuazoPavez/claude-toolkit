@@ -108,9 +108,9 @@ The toolkit reads a small set of env vars to control behavior. The full registry
 
 **Must set** (paths — written by `/setup-toolkit` Phase 1.6 to `.claude/settings.local.json`):
 
-- `CLAUDE_ANALYTICS_LESSONS_DB` — global lessons SQLite DB (default: `$HOME/.claude/lessons.db`)
-- `CLAUDE_ANALYTICS_SESSIONS_DB` — global sessions SQLite DB (default: `$HOME/.claude/sessions.db`)
-- `CLAUDE_ANALYTICS_HOOKS_DB` — read-only `hooks.db` for surface-lessons dedup (default: `$HOME/.claude/hooks.db`)
+- `CLAUDE_ANALYTICS_LESSONS_DB` — global lessons SQLite DB (default: `$HOME/claude-analytics/lessons.db`)
+- `CLAUDE_ANALYTICS_SESSIONS_DB` — global sessions SQLite DB (default: `$HOME/claude-analytics/sessions.db`)
+- `CLAUDE_ANALYTICS_HOOKS_DB` — read-only `hooks.db` for surface-lessons dedup (default: `$HOME/claude-analytics/hooks.db`)
 - `CLAUDE_ANALYTICS_HOOKS_DIR` — directory for hook-logs JSONL (default: `$HOME/claude-analytics/hook-logs`)
 
 These can't live in `settings.json` because Claude Code doesn't expand `$HOME` in that file's values; `settings.local.json` is gitignored, so per-machine paths don't leak.

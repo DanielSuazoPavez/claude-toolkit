@@ -7,7 +7,7 @@
 #   - auto-mode-shared-steps
 # across a fixed corpus of 20 sample commands (mix of hits / misses, raw and
 # stripped paths). Each hook is invoked N times per command; durations land in
-# ~/.claude/hooks.db via the EXIT-trap instrumentation in hook-utils.sh. The
+# ~/claude-analytics/hooks.db via the EXIT-trap instrumentation in hook-utils.sh. The
 # script captures the starting hook_logs.id and queries rows after that, so
 # multiple runs in the same DB don't interfere.
 #

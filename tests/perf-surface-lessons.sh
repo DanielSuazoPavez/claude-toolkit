@@ -14,7 +14,7 @@
 set -uo pipefail
 
 HOOKS_DIR="${HOOKS_DIR:-.claude/hooks}"
-LESSONS_DB="$HOME/.claude/lessons.db"
+LESSONS_DB="$HOME/claude-analytics/lessons.db"
 HOOKS_LOG_DIR="${CLAUDE_ANALYTICS_HOOKS_DIR:-$HOME/claude-analytics/hook-logs}"
 SURFACE_JSONL="$HOOKS_LOG_DIR/surface-lessons-context.jsonl"
 ITERATIONS=5
