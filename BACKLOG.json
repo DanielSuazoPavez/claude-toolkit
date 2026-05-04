@@ -929,6 +929,26 @@
       "status": "in-progress",
       "branch": "refactor/hook-test-fixture-helpers",
       "notes": "Plan: output/claude-toolkit/plans/zesty-marinating-moler.md. Supersedes test-fork-jq-mk-helper (printf-replacement framing dropped after clarity-over-perf decision)."
+    },
+    {
+      "id": "make-check-summarize-output",
+      "priority": "P0",
+      "title": "Summarize 'make check' output — write full log to file, surface only failures + counts in console",
+      "scope": [
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "Symptom: 'make check' currently prints ~150 lines on success (per-file durations, every validator section header, every smoke-test row). Verbose-by-default output trains agents to pipe through head/tail/grep to skim, which violates the 'make check bare' rule (memory: feedback_make_check_bare.md) AND drops crucial failure context when something does break. Goal: console output stays minimal on green ('21/21 files passed', '✓ 31/31 smoke', any warnings, total wall) and zooms into failures only — per-file logs already land in tests/.logs/ for tests, but validators and smoke runs print verbosely live. Proposed shape: tee everything to a single output/claude-toolkit/test-runs/<timestamp>.log, console gets a summary block with red-highlighted failures and a 'full log: <path>' footer. On failure, dump the failed file/validator's section inline (already done for run-all.sh files). Don't lose the per-file durations — keep them in the summary. Owner constraint: must keep 'make check' bare-runnable (no flags); the summarized form is the default. Source: 2026-05-04 fixture-standardization branch session — agents kept reaching for tail/grep on make check output."
+    },
+    {
+      "id": "test-suite-consolidation",
+      "priority": "P0",
+      "title": "General revision of test suite — consolidate patterns, centralize definitions, mark special cases explicitly",
+      "scope": [
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "Goal: pass over the entire bash test suite (tests/test-*.sh, tests/hooks/test-*.sh, tests/lib/) and bring it to one coherent shape. Focus areas: (1) consolidate repeated assertion/setup patterns into named helpers in tests/lib/ — every file currently re-derives SCRIPT_DIR, manually increments TESTS_RUN/TESTS_PASSED/TESTS_FAILED in a few specific shapes, hand-rolls 'echo $payload | hook | grep decision'; centralize what fits. (2) Centralize fixture/expectation definitions where the same constant (HOOK names, sentinel session IDs, malformed-JSON test inputs, fixture paths) appears across files. (3) Mark special cases explicitly with structured comments (e.g. # special-case: malformed JSON exercises parser-error path / # special-case: negative-shape session_id absence — helper can't produce / # special-case: -carrying Bash payload / # special-case: EnterPlanMode single-key payload) — current ad-hoc 'do not migrate' style works but isn't searchable. Consider a small lint script that enumerates and reports them. (4) Standardize file shape: every test starts with the same 4-line preamble (set -uo pipefail, SCRIPT_DIR, source helpers, parse_test_args) — make it one helper or a documented snippet. (5) Audit which tests still hand-roll inline JSON for non-payload purposes (response shapes, fixtures on disk, etc.) and decide whether they belong in json-fixtures.sh or a sibling lib/. (6) Document the resulting standard in tests/CLAUDE.md so future tests are added in shape. Owner constraint: don't break wall-clock perf (current 45-50s baseline) and don't expand scope into fixing flakes (test-runner-reliability owns that). Source: 2026-05-04 fixture-standardization branch made json-fixtures.sh the first centralized helper for hook payloads — extending the same hygiene to the rest of the suite is the natural follow-up."
     }
   ]
 }
