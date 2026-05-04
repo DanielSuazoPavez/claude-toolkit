@@ -3,6 +3,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== git-safety.sh ==="
@@ -25,13 +26,15 @@ counters_file=$(mktemp)
     git checkout -q -b main 2>/dev/null || git checkout -q main
 
     batch_start "$hook"
+    # EnterPlanMode payloads stay inline — single-key shape not in the
+    # standard mk_pre_tool_use_payload dispatch.
     batch_add block '{"tool_name":"EnterPlanMode"}' \
         "blocks EnterPlanMode on main"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git commit -m "test"')" \
         "blocks git commit on main"
-    batch_add allow "$(jq -n --arg cmd 'echo "run: git commit -m foo"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'echo "run: git commit -m foo"')" \
         "allows git commit word inside double-quoted string on main"
-    batch_add allow "$(jq -n --arg cmd $'cat <<EOF\nremember: git commit works on feature branches\nEOF' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+    batch_add allow "$(mk_pre_tool_use_payload Bash $'cat <<EOF\nremember: git commit works on feature branches\nEOF')" \
         "allows git commit inside heredoc body on main"
     batch_run
 
@@ -41,89 +44,89 @@ counters_file=$(mktemp)
     batch_start "$hook"
     batch_add allow '{"tool_name":"EnterPlanMode"}' \
         "allows EnterPlanMode on feature branch"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git commit -m "test"')" \
         "allows git commit on feature branch"
 
     # Severe: force push to protected
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --force origin main')" \
         "blocks force push to main (--force)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --force origin main')" \
         "not reversible" "severe: force push to protected (--force)"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push -f origin main"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push -f origin main')" \
         "blocks force push to main (-f)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push -f origin main"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push -f origin main')" \
         "not reversible" "severe: force push to protected (-f)"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push origin main --force"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push origin main --force')" \
         "blocks force push to main (trailing --force)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push origin main --force"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push origin main --force')" \
         "not reversible" "severe: force push to protected (trailing)"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --force-with-lease origin main"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --force-with-lease origin main')" \
         "blocks force-with-lease to main"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --force-with-lease origin main"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --force-with-lease origin main')" \
         "not reversible" "severe: force-with-lease to protected"
 
     # Severe: git push --mirror
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --mirror"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --mirror')" \
         "blocks git push --mirror"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --mirror"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --mirror')" \
         "not reversible" "severe: mirror push"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --mirror origin"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --mirror origin')" \
         "blocks git push --mirror with remote"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --mirror origin"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --mirror origin')" \
         "not reversible" "severe: mirror push with remote"
 
     # Severe: delete protected branch on remote
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin main"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --delete origin main')" \
         "blocks delete main (--delete)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin main"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --delete origin main')" \
         "not reversible" "severe: delete protected (--delete main)"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push origin :main"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push origin :main')" \
         "blocks delete main (colon syntax)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push origin :main"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push origin :main')" \
         "not reversible" "severe: delete protected (colon main)"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin master"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --delete origin master')" \
         "blocks delete master (--delete)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin master"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --delete origin master')" \
         "not reversible" "severe: delete protected (--delete master)"
 
     # Soft: force push to non-protected branch
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push -f origin feature-branch"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push -f origin feature-branch')" \
         "blocks force push to non-protected branch"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push -f origin feature-branch"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push -f origin feature-branch')" \
         "rewrites remote history" "soft: force push non-protected"
 
     # Soft: delete any remote branch
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin feature-branch"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push --delete origin feature-branch')" \
         "blocks delete non-protected remote branch (--delete)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push --delete origin feature-branch"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push --delete origin feature-branch')" \
         "removes it for all" "soft: delete non-protected (--delete)"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push origin :feature-branch"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push origin :feature-branch')" \
         "blocks delete non-protected remote branch (colon)"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push origin :feature-branch"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push origin :feature-branch')" \
         "removes it for all" "soft: delete non-protected (colon)"
 
     # Soft: cross-branch push
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git push origin HEAD:other-branch"}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git push origin HEAD:other-branch')" \
         "blocks cross-branch push"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git push origin HEAD:other-branch"}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git push origin HEAD:other-branch')" \
         "accidentally overwrite" "soft: cross-branch push"
 
     # Allow: safe operations (run on feature/test branch — matches original behavior)
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git push"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git push')" \
         "allows simple push"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git push origin main"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git push origin main')" \
         "allows non-force push to main"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git push -u origin feature"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git push -u origin feature')" \
         "allows push -u (not -f)"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git push origin feature/test"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git push origin feature/test')" \
         "allows normal push to feature branch"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git push origin feature/test:feature/test"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git push origin feature/test:feature/test')" \
         "allows refspec push to same branch"
 
     # Passthrough
-    batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"test.txt"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Read test.txt)" \
         "allows non-Bash/non-EnterPlanMode tools"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'ls -la')" \
         "allows non-git bash commands"
     batch_run
 
@@ -135,9 +138,9 @@ counters_file=$(mktemp)
         "blocks EnterPlanMode in detached HEAD"
     batch_add contains '{"tool_name":"EnterPlanMode"}' \
         "detached HEAD" "detached HEAD: EnterPlanMode"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git commit -m "test"')" \
         "blocks git commit in detached HEAD"
-    batch_add contains '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
+    batch_add contains "$(mk_pre_tool_use_payload Bash 'git commit -m "test"')" \
         "detached HEAD" "detached HEAD: git commit"
     batch_run
 
@@ -147,7 +150,7 @@ counters_file=$(mktemp)
     batch_start "$hook"
     batch_add block '{"tool_name":"EnterPlanMode"}' \
         "blocks EnterPlanMode on master"
-    batch_add block '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
+    batch_add block "$(mk_pre_tool_use_payload Bash 'git commit -m "test"')" \
         "blocks git commit on master"
     batch_run
 
@@ -172,7 +175,7 @@ nogit_counters=$(mktemp)
     batch_start "$hook"
     batch_add allow '{"tool_name":"EnterPlanMode"}' \
         "allows EnterPlanMode outside git repo"
-    batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"test\""}}' \
+    batch_add allow "$(mk_pre_tool_use_payload Bash 'git commit -m "test"')" \
         "allows git commit outside git repo"
     batch_run
 

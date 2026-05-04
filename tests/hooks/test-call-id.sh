@@ -6,6 +6,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 # Hook-utils JSONL writes are gated on traceability — make sure it's on
@@ -15,6 +16,9 @@ export CLAUDE_TOOLKIT_TRACEABILITY=1
 report_section "=== call_id capture ==="
 
 # Bash PreToolUse with tool_use_id → tool:<id>
+# Note: this test exercises hook-utils' tool_use_id capture, which the
+# standard mk_pre_tool_use_payload helper doesn't surface. Inline JSON
+# is intentional here — see tests/CLAUDE.md.
 sid="test-callid-bash-$(date +%s%N)"
 tid="toolu_01TESTBASHCALLID${RANDOM}"
 echo "{\"session_id\":\"$sid\",\"tool_use_id\":\"$tid\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
@@ -36,7 +40,7 @@ fi
 
 # SessionStart (no tool_use_id / agent_id) → empty call_id
 sid2="test-callid-sessionstart-$(date +%s%N)"
-echo "{\"session_id\":\"$sid2\",\"source\":\"startup\"}" \
+mk_session_start_payload startup "$sid2" \
     | "$HOOKS_DIR/session-start.sh" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
