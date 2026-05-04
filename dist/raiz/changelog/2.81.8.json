@@ -1,0 +1,20 @@
+{
+  "version": "2.81.8",
+  "date": "2026-05-03",
+  "headline": "CLAUDE_ANALYTICS_* defaults moved to ~/claude-analytics/",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "Hook fallbacks for `CLAUDE_ANALYTICS_LESSONS_DB`, `CLAUDE_ANALYTICS_SESSIONS_DB`, and `CLAUDE_ANALYTICS_HOOKS_DB` now default to `$HOME/claude-analytics/<name>.db` instead of `$HOME/.claude/<name>.db`. `CLAUDE_ANALYTICS_HOOKS_DIR` was already at `$HOME/claude-analytics/hook-logs` and is unchanged. If you set these env vars explicitly, nothing changes. If you relied on the old fallback, your DBs will appear to be missing — set the env var (or move the files) to recover."
+      ]
+    },
+    {
+      "kind": "docs",
+      "bullets": [
+        "`relevant-toolkit-env_vars.md` and `getting-started.md` updated to show the new `~/claude-analytics/` defaults. `setup-toolkit` skill prompts now suggest the new paths."
+      ]
+    }
+  ]
+}
