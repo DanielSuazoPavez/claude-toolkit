@@ -1,0 +1,7 @@
+{
+  "version": "2.81.9",
+  "date": "2026-05-04",
+  "headline": "fix flaky test substring matchers (workshop-internal)",
+  "skip": true,
+  "sections": []
+}

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.81.9] - 2026-05-04 - fix flaky test substring matchers (subshell/pipe race)
+
+### Fixed
+- **tests**: `tests/lib/test-helpers.sh` (`expect_contains` + the inline `contains` runner branch) and the per-file `expect_output` / `expect_not_output` / `expect_count` helpers in `tests/test-backlog-query.sh`, `tests/test-cli.sh`, `tests/test-evaluation-query.sh`, `tests/test-validate-resources-indexed.sh` swapped from `echo "$output" | grep -qF -- "$expected"` to bash native `[[ "$output" == *"$expected"* ]]`. The pipeline form occasionally returned non-zero even when the captured `Got:` line clearly contained the expected substring — a subshell/pipe race that produced ~14% flake rate in `make check` (1 failure across 7 default-parallel runs) and was unreproducible in isolation. After the swap: 10/10 clean. Scope is fixed-string substring matchers only — hook-test regex matchers against JSON keys are left alone (they did not flake).
+
+### Notes
+- **Workshop-internal**: `tests/` is not declared in `dist/raiz/MANIFEST` and is outside the trees that base sync copies, so the change reaches no consumer. Raiz sidecar marked `skip: true`.
+
 ## [2.81.8] - 2026-05-03 - relocate CLAUDE_ANALYTICS_* defaults to ~/claude-analytics/
 
 ### Changed
