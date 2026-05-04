@@ -15,6 +15,7 @@ TOOLKIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOOKS_LIB_DIR="$TOOLKIT_DIR/.claude/hooks/lib"
 
 source "$SCRIPT_DIR/lib/test-helpers.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 # Build a minimal "hook" script that sources the lib and calls a single helper.
@@ -106,9 +107,9 @@ assert_field() {
     fi
 }
 
-STDIN_BASH='{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}'
-STDIN_READ='{"session_id":"s1","tool_name":"Read","tool_input":{"file_path":"/tmp/x"}}'
-STDIN_SS='{"session_id":"s1","source":"startup"}'
+STDIN_BASH=$(mk_pre_tool_use_payload Bash 'ls' '' s1)
+STDIN_READ=$(mk_pre_tool_use_payload Read /tmp/x s1)
+STDIN_SS=$(mk_session_start_payload startup s1)
 
 # === flag unset preserves stdout decision JSON ===
 report_section "=== flag unset → stdout decision unchanged ==="

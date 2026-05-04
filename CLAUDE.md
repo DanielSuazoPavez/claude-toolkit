@@ -67,10 +67,21 @@ Summary and status of all resources:
 
 ## Changelog
 
-- Docs-only changes (backlog, design docs, exploration): `[Unreleased]` section, no version bump
-- Resource changes (skills, agents, hooks, shipped docs in `.claude/docs/` or `docs/`): version bump + changelog entry under version
-- When adding a version entry, fold any existing `[Unreleased]` changes into it
-- **Write the raiz sidecar on every version bump**: create `dist/raiz/changelog/<new-version>.json` (or set `skip: true` for workshop-internal-only versions). The publish-raiz workflow reads it to build the Telegram notification. See `dist/raiz/CLAUDE.md` for the schema, skip check, `kind` selection, and worked examples.
+The version bump is the user's call. `/wrap-up` analyzes the branch, proposes a bump, and waits for confirmation before editing version/changelog files. Two orthogonal dimensions inform the proposal:
+
+1. **Code vs docs-only** — drives the bump suggestion.
+   - Code change (anything under `cli/`, `.claude/hooks/`, `.claude/skills/`, `.claude/agents/`, `.claude/scripts/`, `tests/`, etc. — including workshop-internal code): suggest a bump (Patch default; Minor for new features; Major for breaking) + changelog entry under that version.
+   - Docs-only (BACKLOG, design notes, exploration, prose-only edits to CHANGELOG/README): suggest no bump, fold into `[Unreleased]` → `### Notes`.
+2. **Consumed vs workshop-internal** — shapes the changelog body and release-notes channels (does not gate the bump).
+   - Consumed = anything reachable by a downstream project via `claude-toolkit sync` (base manifest), or via any other distribution profile, or via `claude-toolkit send`. Resources, shipped docs, CLI behavior, etc. — all forms of "leaves the workshop".
+   - Workshop-internal = stays in this repo (e.g., `tests/`, `design/`, `output/`, internal scripts not declared in any dist).
+3. **Raiz sidecar** — a specific consumer cut. Required on every version bump:
+   - Change reaches raiz consumers (in `dist/raiz/MANIFEST` or covered by base sync that raiz inherits) → write `dist/raiz/changelog/<version>.json` describing the user-visible change.
+   - Otherwise (consumed by other dists but not raiz, or workshop-internal only) → write the sidecar with `skip: true`.
+
+Workshop-internal code is still code — it bumps. "Consumed" is broader than "raiz consumers"; the sidecar speaks only for the raiz subset.
+
+When adding a version entry, fold any existing `[Unreleased]` content into it and clear `[Unreleased]`.
 
 ## When You're Done
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.81.10] - 2026-05-04 - wrap-up proposes the bump (user confirms) + standardize hook-test JSON fixtures
+
+### Changed
+- **skills**: `/wrap-up` step 4 reframed from "determine the bump" to "propose a bump, user decides". The skill now states the suggested bump on a single line and waits for confirm/override before editing version/changelog files. Decision table itself tightened: any code change suggests a bump (Patch by default; Minor for new features; Major for breaking — still subject to user confirmation). The previous "no bump for internal refactor with zero user-facing change" row is gone — internal/refactor-only code is still code. Docs-only narrowed to BACKLOG / design notes / prose-only README/CHANGELOG edits.
+- **docs**: `CLAUDE.md` Changelog section rewritten around two orthogonal axes — (a) code-vs-docs drives the bump suggestion, (b) consumed-vs-internal shapes the changelog body and any release-notes mechanism. Removes the prior phrasing that implied "ships to consumers" was the bump trigger.
+- **tests**: 21 hook-test files migrated from per-file inline `jq` invocations to a single shared helper. New `tests/lib/json-fixtures.sh` exposes builders (`mk_pretooluse_bash`, `mk_pretooluse_edit`, `mk_pretooluse_write`, `mk_posttooluse_bash`, `mk_session_start`, `mk_user_prompt_submit`, `mk_stop`, `mk_malformed`) plus a generic `mk_payload` for cases the named builders don't cover. Migrated files: `test-approve-safe.sh`, `test-auto-mode-shared-steps.sh`, `test-block-config.sh`, `test-block-credential-exfil.sh`, `test-block-dangerous.sh`, `test-call-id.sh`, `test-detect-session-start-truncation.sh`, `test-enforce-make.sh`, `test-enforce-uv.sh`, `test-git-safety.sh`, `test-grouped-bash.sh`, `test-grouped-read.sh`, `test-log-permission-denied.sh`, `test-log-tool-uses.sh`, `test-secrets-guard.sh`, `test-session-id.sh`, `test-suggest-json.sh`, `test-surface-lessons-dedup.sh`, `test-surface-lessons-two-hit.sh`, plus the standalone `test-hook-utils-smoketest-flag.sh`. Net `-356 / +820` (helper + validator account for the +; per-file diffs are net-negative). Behavior identical — same payload bytes on the wire.
+- **tests**: `tests/CLAUDE.md` documents the helper, the supported builders, and the migration convention; refreshed perf baseline references.
+
+### Added
+- **tests**: `tests/test-validate-json-fixtures.sh` — guard test that asserts each builder produces well-formed PreToolUse / PostToolUse / SessionStart / UserPromptSubmit / Stop payloads conforming to hook-input shape, and that `mk_malformed` produces the expected non-JSON sentinel. Runs under `make test`.
+- **backlog**: P0 `session-start-integrity-check-untracked-file-bad-guidance` — `settings-integrity.sh:105` instructs `git diff -- <file>`, but `.claude/settings.local.json` is gitignored, so the diff is empty and the guidance misleads. Discovered during this session's startup ack. Plus follow-up backlog entries surfaced during the migration (covered in `b28176a`).
+
+### Notes
+- **Workshop-internal**: `tests/` is not declared in `dist/raiz/MANIFEST` and is outside the trees that base sync copies, so the change reaches no consumer. Raiz sidecar marked `skip: true`.
+- Predecessor: this branch supersedes the older `jq-mk-helper` task; see `BACKLOG.json` for the closure note.
+
 ## [2.81.9] - 2026-05-04 - fix flaky test substring matchers (subshell/pipe race)
 
 ### Fixed

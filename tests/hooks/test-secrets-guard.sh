@@ -3,6 +3,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== secrets-guard.sh ==="
@@ -11,179 +12,179 @@ hook="secrets-guard.sh"
 batch_start "$hook"
 
 # --- Read: .env variants block, examples allow ---
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /project/.env)" \
     "blocks reading .env"
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.local"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /project/.env.local)" \
     "blocks reading .env.local"
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.production"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /project/.env.production)" \
     "blocks reading .env.production"
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/prod.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /project/prod.env)" \
     "blocks reading prod.env (*.env pattern)"
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/project/staging.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /project/staging.env)" \
     "blocks reading staging.env (*.env pattern)"
 
 # --- Bash: .env reads / sources / env listings ---
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat .env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat .env')" \
     "blocks cat .env"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat .env.local"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat .env.local')" \
     "blocks cat .env.local"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat .env.production"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat .env.production')" \
     "blocks cat .env.production"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat prod.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat prod.env')" \
     "blocks cat prod.env (*.env pattern)"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat staging.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat staging.env')" \
     "blocks cat staging.env (*.env pattern)"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"grep SECRET prod.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'grep SECRET prod.env')" \
     "blocks grep prod.env (*.env pattern)"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"source .env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'source .env')" \
     "blocks source .env"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"source .env.local"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'source .env.local')" \
     "blocks source .env.local"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"env | grep"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'env | grep')" \
     "blocks env command"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"printenv"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'printenv')" \
     "blocks printenv"
 
 # --- Bash: .env.example/.env.template allow ---
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"cat .env.example"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'cat .env.example')" \
     "allows cat .env.example"
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"source .env.template"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'source .env.template')" \
     "allows source .env.template"
 
 # --- Bash: .env tokens inside quoted/heredoc content must not trigger ---
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"remove .env.local references\""}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'git commit -m "remove .env.local references"')" \
     "allows .env.local inside commit message (double quotes)"
-batch_add allow "$(jq -n --arg cmd $'git commit -m "$(cat <<EOF\nfix: update hook\n\nRemoved .env.local references.\nEOF\n)"' '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+batch_add allow "$(mk_pre_tool_use_payload Bash $'git commit -m "$(cat <<EOF\nfix: update hook\n\nRemoved .env.local references.\nEOF\n)"')" \
     "allows cat+.env.local inside heredoc commit message"
-batch_add allow "$(jq -n --arg cmd "echo 'the .env file is ignored'" '{tool_name:"Bash",tool_input:{command:$cmd}}')" \
+batch_add allow "$(mk_pre_tool_use_payload Bash "echo 'the .env file is ignored'")" \
     "allows .env word inside single-quoted string"
 
 # --- Read: credential files block ---
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_rsa\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.ssh/id_rsa")" \
     "blocks reading SSH private key (id_rsa)"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_ed25519\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.ssh/id_ed25519")" \
     "blocks reading SSH private key (id_ed25519)"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/config\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.ssh/config")" \
     "blocks reading SSH config"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.gnupg/private-keys-v1.d/key.key\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.gnupg/private-keys-v1.d/key.key")" \
     "blocks reading GPG private key (subpath)"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.gnupg\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.gnupg")" \
     "blocks reading GPG directory (no trailing slash)"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.aws/credentials\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.aws/credentials")" \
     "blocks reading AWS credentials"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.config/gh/hosts.yml\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.config/gh/hosts.yml")" \
     "blocks reading GitHub CLI tokens"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.docker/config.json\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.docker/config.json")" \
     "blocks reading Docker config"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.kube/config\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.kube/config")" \
     "blocks reading kubeconfig"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.npmrc\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.npmrc")" \
     "blocks reading .npmrc"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.pypirc\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.pypirc")" \
     "blocks reading .pypirc"
 
 # --- Bash: credential file reads ---
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat ~/.ssh/id_rsa"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat ~/.ssh/id_rsa')" \
     "blocks cat ~/.ssh/id_rsa"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"cat ~/.aws/credentials"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat ~/.aws/credentials')" \
     "blocks cat ~/.aws/credentials"
 
 # --- Allows: examples, non-secret, env with assignment, known_hosts, non-home ssh ---
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.example"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /project/.env.example)" \
     "allows .env.example"
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/.env.template"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /project/.env.template)" \
     "allows .env.template"
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/config.yaml"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /project/config.yaml)" \
     "allows non-.env files"
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"env VAR=value command"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'env VAR=value command')" \
     "allows env with assignment (not listing)"
-batch_add allow "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/known_hosts\"}}" \
+batch_add allow "$(mk_pre_tool_use_payload Read "$HOME/.ssh/known_hosts")" \
     "allows reading known_hosts"
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/ssh/config"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /project/ssh/config)" \
     "allows reading non-home ssh/config"
 
 # --- Grep: .env via path / glob ---
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","path":"/project/.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep SECRET path /project/.env)" \
     "blocks grep targeting .env"
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"KEY","path":"/project/.env.local"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep KEY path /project/.env.local)" \
     "blocks grep targeting .env.local"
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"KEY","path":"/project/.env.production"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep KEY path /project/.env.production)" \
     "blocks grep targeting .env.production"
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"KEY","path":"/project/prod.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep KEY path /project/prod.env)" \
     "blocks grep targeting prod.env (*.env)"
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","glob":".env*"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep SECRET glob '.env*')" \
     "blocks grep with .env* glob"
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","glob":".env.*"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep SECRET glob '.env.*')" \
     "blocks grep with .env.* glob"
-batch_add block '{"tool_name":"Grep","tool_input":{"pattern":"SECRET","glob":"*.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Grep SECRET glob '*.env')" \
     "blocks grep with *.env glob"
 
 # --- Grep: credential files block ---
-batch_add block "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.gnupg\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Grep key path "$HOME/.gnupg")" \
     "blocks grep targeting GPG directory (no trailing slash)"
-batch_add block "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.gnupg/trustdb.gpg\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Grep key path "$HOME/.gnupg/trustdb.gpg")" \
     "blocks grep targeting GPG subpath"
-batch_add block "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.aws/credentials\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Grep key path "$HOME/.aws/credentials")" \
     "blocks grep targeting AWS credentials"
-batch_add block "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.ssh/id_rsa\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Grep key path "$HOME/.ssh/id_rsa")" \
     "blocks grep targeting SSH private key"
-batch_add block "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"key\",\"path\":\"$HOME/.ssh/config\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Grep key path "$HOME/.ssh/config")" \
     "blocks grep targeting SSH config"
 
 # --- Grep: safe targets allow ---
-batch_add allow '{"tool_name":"Grep","tool_input":{"pattern":"KEY","path":"/project/.env.example"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Grep KEY path /project/.env.example)" \
     "allows grep targeting .env.example"
-batch_add allow '{"tool_name":"Grep","tool_input":{"pattern":"KEY","path":"/project/.env.template"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Grep KEY path /project/.env.template)" \
     "allows grep targeting .env.template"
-batch_add allow '{"tool_name":"Grep","tool_input":{"pattern":"TODO","path":"/project/src"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Grep TODO path /project/src)" \
     "allows grep targeting normal directory"
-batch_add allow '{"tool_name":"Grep","tool_input":{"pattern":"TODO","glob":"*.js"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Grep TODO glob '*.js')" \
     "allows grep with safe glob"
-batch_add allow "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"host\",\"path\":\"$HOME/.ssh/known_hosts\"}}" \
+batch_add allow "$(mk_pre_tool_use_payload Grep host path "$HOME/.ssh/known_hosts")" \
     "allows grep targeting known_hosts"
-batch_add allow "{\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"host\",\"path\":\"$HOME/.ssh/id_rsa.pub\"}}" \
+batch_add allow "$(mk_pre_tool_use_payload Grep host path "$HOME/.ssh/id_rsa.pub")" \
     "allows grep targeting SSH public key"
 
 # --- Bash: grep/rg/awk/sed reading .env files block ---
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"grep SECRET .env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'grep SECRET .env')" \
     "blocks grep .env"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"grep -r password .env.local"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'grep -r password .env.local')" \
     "blocks grep .env.local"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"rg password .env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'rg password .env')" \
     "blocks rg .env"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"awk -F= \"{print}\" .env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'awk -F= "{print}" .env')" \
     "blocks awk .env"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"sed -n \"s/KEY=//p\" .env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'sed -n "s/KEY=//p" .env')" \
     "blocks sed .env"
 
 # --- Bash: grep/rg with safe targets allow ---
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"grep TODO src/main.js"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'grep TODO src/main.js')" \
     "allows grep on normal files"
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"grep KEY .env.example"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'grep KEY .env.example')" \
     "allows grep .env.example"
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"rg pattern src/"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'rg pattern src/')" \
     "allows rg on normal directory"
 
 # --- Bash: grep/rg reading credential files ---
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"grep key ~/.aws/credentials"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'grep key ~/.aws/credentials')" \
     "blocks grep ~/.aws/credentials"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"rg token ~/.config/gh/hosts.yml"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'rg token ~/.config/gh/hosts.yml')" \
     "blocks rg ~/.config/gh/hosts.yml"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"grep key ~/.ssh/id_rsa"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'grep key ~/.ssh/id_rsa')" \
     "blocks grep ~/.ssh/id_rsa"
 
 # --- Env-listing capabilities (credential-shaped names) ---
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"printenv GITHUB_TOKEN"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'printenv GITHUB_TOKEN')" \
     "blocks printenv GITHUB_TOKEN"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"env | grep -i token"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'env | grep -i token')" \
     "blocks env | grep -i token"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"printenv | grep -iE \"secret|key\""}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'printenv | grep -iE "secret|key"')" \
     "blocks printenv | grep -iE secret|key"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"env | grep API_KEY"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'env | grep API_KEY')" \
     "blocks env | grep API_KEY"
 # env | grep is blocked by the pre-existing standalone-env rule (any pipe into env list);
 # this is intentional — the env list itself is the secret surface.
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"env | grep PATH"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'env | grep PATH')" \
     "still blocks env | grep PATH (existing standalone-env rule)"
 
 batch_run
@@ -233,42 +234,42 @@ assert_allow_in_dir() {
 }
 
 # Bash: git remote / config commands — block ONLY when URL embeds creds
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote -v"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git remote -v')" \
     "blocks git remote -v on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote show origin"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git remote show origin')" \
     "blocks git remote show on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote get-url origin"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git remote get-url origin')" \
     "blocks git remote get-url on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --get remote.origin.url"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git config --get remote.origin.url')" \
     "blocks git config --get remote.origin.url on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --list"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git config --list')" \
     "blocks git config --list on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config -l"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git config -l')" \
     "blocks git config -l on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"cat .git/config"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'cat .git/config')" \
     "blocks cat .git/config on tokenized repo"
-assert_block_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"grep url .git/config"}}' \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'grep url .git/config')" \
     "blocks grep .git/config on tokenized repo"
 
-assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote -v"}}' \
+assert_allow_in_dir "$CLEAN_REPO" "$(mk_pre_tool_use_payload Bash 'git remote -v')" \
     "allows git remote -v on clean repo"
-assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --get remote.origin.url"}}' \
+assert_allow_in_dir "$CLEAN_REPO" "$(mk_pre_tool_use_payload Bash 'git config --get remote.origin.url')" \
     "allows git config --get on clean repo"
-assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git config --list"}}' \
+assert_allow_in_dir "$CLEAN_REPO" "$(mk_pre_tool_use_payload Bash 'git config --list')" \
     "allows git config --list on clean repo"
-assert_allow_in_dir "$CLEAN_REPO" '{"tool_name":"Bash","tool_input":{"command":"cat .git/config"}}' \
+assert_allow_in_dir "$CLEAN_REPO" "$(mk_pre_tool_use_payload Bash 'cat .git/config')" \
     "allows cat .git/config on clean repo"
 
 # Writes (set-url, add) must always pass — they're how the user fixes the leak
-assert_allow_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote set-url origin https://github.com/foo/bar.git"}}' \
+assert_allow_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git remote set-url origin https://github.com/foo/bar.git')" \
     "allows git remote set-url even on tokenized repo (write)"
-assert_allow_in_dir "$TOKEN_REPO" '{"tool_name":"Bash","tool_input":{"command":"git remote add upstream https://github.com/baz/qux.git"}}' \
+assert_allow_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Bash 'git remote add upstream https://github.com/baz/qux.git')" \
     "allows git remote add even on tokenized repo (write)"
 
 # Read tool: .git/config — block ONLY when URL embeds creds
-assert_block_in_dir "$TOKEN_REPO" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$TOKEN_REPO/.git/config\"}}" \
+assert_block_in_dir "$TOKEN_REPO" "$(mk_pre_tool_use_payload Read "$TOKEN_REPO/.git/config")" \
     "blocks Read of tokenized .git/config"
-assert_allow_in_dir "$CLEAN_REPO" "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$CLEAN_REPO/.git/config\"}}" \
+assert_allow_in_dir "$CLEAN_REPO" "$(mk_pre_tool_use_payload Read "$CLEAN_REPO/.git/config")" \
     "allows Read of clean .git/config"
 
 print_summary

@@ -3,6 +3,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== log-tool-uses.sh ==="
@@ -10,15 +11,15 @@ hook="log-tool-uses.sh"
 
 # --- Silent stdout (pure logger — no decision output for any tool) ---
 batch_start "$hook"
-batch_add silent '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls -la"},"tool_response":{"output":"file1\nfile2","exit_code":0},"duration_ms":12,"tool_use_id":"toolu_01ABC","hook_event_name":"PostToolUse","cwd":"/tmp"}' \
+batch_add silent "$(mk_post_tool_use_payload s1 Bash  '{"command":"ls -la"}'                            '{"output":"file1\nfile2","exit_code":0}' toolu_01ABC 12 /tmp)" \
     "silent: Bash log"
-batch_add silent '{"session_id":"s2","tool_name":"Write","tool_input":{"file_path":"/tmp/x","content":"x"},"tool_response":{"output":"ok"},"duration_ms":5,"tool_use_id":"toolu_02DEF","hook_event_name":"PostToolUse","cwd":"/tmp"}' \
+batch_add silent "$(mk_post_tool_use_payload s2 Write '{"file_path":"/tmp/x","content":"x"}'            '{"output":"ok"}'                         toolu_02DEF 5  /tmp)" \
     "silent: Write log"
-batch_add silent '{"session_id":"s3","tool_name":"Edit","tool_input":{"file_path":"/tmp/x","old_string":"a","new_string":"b"},"tool_response":{"output":"ok"},"duration_ms":7,"tool_use_id":"toolu_03GHI","hook_event_name":"PostToolUse","cwd":"/tmp"}' \
+batch_add silent "$(mk_post_tool_use_payload s3 Edit  '{"file_path":"/tmp/x","old_string":"a","new_string":"b"}' '{"output":"ok"}'                toolu_03GHI 7  /tmp)" \
     "silent: Edit log"
-batch_add silent '{"session_id":"s4","tool_name":"Read","tool_input":{"file_path":"/tmp/x"},"tool_response":{"output":"contents"},"duration_ms":3,"tool_use_id":"toolu_04JKL","hook_event_name":"PostToolUse","cwd":"/tmp"}' \
+batch_add silent "$(mk_post_tool_use_payload s4 Read  '{"file_path":"/tmp/x"}'                          '{"output":"contents"}'                   toolu_04JKL 3  /tmp)" \
     "silent: Read log"
-batch_add silent '{"session_id":"s5","tool_name":"Grep","tool_input":{"pattern":"foo"},"tool_response":{"output":""},"duration_ms":2,"tool_use_id":"toolu_05MNO","hook_event_name":"PostToolUse","cwd":"/tmp"}' \
+batch_add silent "$(mk_post_tool_use_payload s5 Grep  '{"pattern":"foo"}'                               '{"output":""}'                           toolu_05MNO 2  /tmp)" \
     "silent: Grep log"
 batch_run
 
@@ -28,7 +29,7 @@ report_section "--- JSONL logging ---"
 sid="test-log-tool-uses-$(date +%s%N)"
 tid="toolu_06PQR${RANDOM}"
 export CLAUDE_TOOLKIT_TRACEABILITY=1
-echo "{\"session_id\":\"$sid\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo hi\"},\"tool_response\":{\"output\":\"hi\",\"exit_code\":0},\"duration_ms\":42,\"tool_use_id\":\"$tid\",\"hook_event_name\":\"PostToolUse\",\"cwd\":\"/tmp\"}" \
+mk_post_tool_use_payload "$sid" Bash '{"command":"echo hi"}' '{"output":"hi","exit_code":0}' "$tid" 42 /tmp \
     | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
@@ -75,7 +76,7 @@ fi
 report_section "--- traceability gate ---"
 
 rm -f "$TEST_INVOCATIONS_JSONL"
-echo '{"session_id":"s9","tool_name":"Bash","tool_input":{"command":"ls"},"tool_response":{"output":""},"duration_ms":1,"tool_use_id":"toolu_07STU","hook_event_name":"PostToolUse","cwd":"/tmp"}' \
+mk_post_tool_use_payload s9 Bash '{"command":"ls"}' '{"output":""}' toolu_07STU 1 /tmp \
     | CLAUDE_TOOLKIT_TRACEABILITY=0 "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 TESTS_RUN=$((TESTS_RUN + 1))
@@ -90,6 +91,7 @@ fi
 # --- Malformed stdin ---
 report_section "--- edge cases ---"
 batch_start "$hook"
+# intentionally malformed JSON — do not migrate
 batch_add silent 'not-json' \
     "silent: malformed stdin (no crash)"
 batch_run

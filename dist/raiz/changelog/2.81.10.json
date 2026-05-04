@@ -1,0 +1,15 @@
+{
+  "version": "2.81.10",
+  "date": "2026-05-04",
+  "headline": "wrap-up proposes the bump, user confirms (was: skill decided)",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "skills",
+      "bullets": [
+        "wrap-up: step 4 now proposes a bump on a single line and waits for the user to confirm or override before editing version/changelog files. The skill no longer commits to a bump on its own — the user owns the call.",
+        "wrap-up: decision table tightened. Any code change suggests a bump (Patch by default; Minor for new features; Major for breaking). The old 'no bump for refactor with no user-visible effect' row is gone — internal/refactor-only code is still code. Docs-only narrowed to BACKLOG / design notes / prose-only README/CHANGELOG edits."
+      ]
+    }
+  ]
+}

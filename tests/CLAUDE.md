@@ -65,24 +65,46 @@ When adding a new validator, add **both** a `test-validate-*.sh` (fixture tests)
 
 `lib/hook-test-setup.sh` — sourced by `hooks/test-*.sh`. Sets `HOOKS_DIR` and redirects `CLAUDE_ANALYTICS_HOOKS_DIR` to a per-process temp directory so production hook-logs JSONL files are never touched. Exports `TEST_INVOCATIONS_JSONL`, `TEST_SURFACE_LESSONS_JSONL`, `TEST_SESSION_START_JSONL` for assertions. Each sourcing process gets its own dir, so the parallel runner has no contention.
 
+`lib/json-fixtures.sh` — sourced by hook tests that build hook-input payloads. One helper per hook event, all `jq -nc --arg`-backed so embedded quotes/backticks/newlines/`$()`/heredocs round-trip safely:
+- `mk_pre_tool_use_payload <tool> <args...>` — dispatches on tool name (`Bash`/`Read`/`Write`/`Edit`/`Grep`) to shape `tool_input`. Unknown tool → returns 2.
+- `mk_post_tool_use_payload <sid> <tool> <input_json> <response_json> <tool_use_id> <duration_ms> <cwd>` — all 7 args required; pass `""` for fields you don't care about (except `*_json`/`duration_ms` which must be valid JSON values).
+- `mk_session_start_payload [source] [sid]` — `source` only emitted when non-empty.
+- `mk_permission_denied_payload <sid> <tool> <input_json> <tool_use_id> <pm> [cwd=/tmp]`.
+- `mk_user_prompt_submit_payload <sid> <prompt> [cwd=$(pwd)]`.
+
+Migration exceptions kept inline (do not migrate): payloads exercising parser-error paths (`'not-json'`, `"not valid json at all"`), one-off `EnterPlanMode` single-key payloads, and the negative-shape session_id cases (missing key / explicit JSON null) that the helper can't produce. Each carries a `# do not migrate` comment.
+
 ## Hook tests layout
 
 ```
 tests/hooks/
-├── test-approve-safe.sh            # approve-safe-commands.sh
-├── test-block-config.sh            # block-config-edits.sh
-├── test-block-dangerous.sh         # block-dangerous-commands.sh
-├── test-call-id.sh                 # call_id capture (hook-utils.sh)
-├── test-enforce-make.sh            # enforce-make-commands.sh
-├── test-enforce-uv.sh              # enforce-uv-run.sh
-├── test-git-safety.sh              # git-safety.sh
-├── test-grouped-bash.sh            # grouped-bash-guard.sh dispatcher
-├── test-grouped-read.sh            # grouped-read-guard.sh dispatcher
-├── test-secrets-guard.sh           # secrets-guard.sh
-├── test-session-id.sh              # session_id propagation (hook-utils.sh)
-├── test-session-start.sh           # session-start.sh lesson surfacing (Key/Recent dropped, branch-lesson protected-branch gate, ack suffix)
-├── test-session-start-source.sh    # SessionStart .source capture
-└── test-suggest-json.sh            # suggest-read-json.sh
+├── test-approve-safe.sh                    # approve-safe-commands.sh
+├── test-auto-mode-shared-steps.sh          # auto-mode shared-step machinery (hook-utils.sh)
+├── test-block-config.sh                    # block-config-edits.sh
+├── test-block-credential-exfil.sh          # block-credential-exfiltration.sh
+├── test-block-dangerous.sh                 # block-dangerous-commands.sh
+├── test-call-id.sh                         # call_id capture (hook-utils.sh)
+├── test-detect-session-start-truncation.sh # detect-session-start-truncation.sh
+├── test-detection-registry.sh              # detection-registry.json schema/integrity
+├── test-ecosystems-opt-in.sh               # ecosystem opt-in registry
+├── test-enforce-make.sh                    # enforce-make-commands.sh
+├── test-enforce-uv.sh                      # enforce-uv-run.sh
+├── test-git-safety.sh                      # git-safety.sh
+├── test-grouped-bash.sh                    # grouped-bash-guard.sh dispatcher
+├── test-grouped-read.sh                    # grouped-read-guard.sh dispatcher
+├── test-hook-utils.sh                      # lib/hook-utils.sh shared library
+├── test-log-permission-denied.sh           # log-permission-denied.sh
+├── test-log-tool-uses.sh                   # log-tool-uses.sh
+├── test-match-check-pairs.sh               # matcher↔check-spec pairing invariants
+├── test-secrets-guard.sh                   # secrets-guard.sh
+├── test-session-id.sh                      # session_id propagation (hook-utils.sh)
+├── test-session-start.sh                   # session-start.sh lesson surfacing
+├── test-session-start-integrity.sh         # session-start integrity check (settings.local.json drift)
+├── test-session-start-source.sh            # SessionStart .source capture
+├── test-settings-permissions.sh            # settings.json permission rules
+├── test-suggest-json.sh                    # suggest-read-json.sh
+├── test-surface-lessons-dedup.sh           # surface-lessons.sh intra-session dedup
+└── test-surface-lessons-two-hit.sh         # surface-lessons.sh 2+ keyword-hit threshold
 ```
 
 Each file is standalone: source helpers + setup, run assertions at top level, call `print_summary`.
@@ -109,14 +131,14 @@ Runner aggregation relies on per-file exit codes only. Each failing file's full 
 
 ## Perf Baseline
 
-`make test` wall is bounded by **the slowest single hook test file** — parallel runner saturates a 4-core box, so wall ≈ max(per-file). Baseline as of 2026-04-27 (post `tests-perf-review`):
+`make test` wall is bounded by **the slowest single hook test file** — parallel runner saturates a 4-core box, so wall ≈ max(per-file). Baseline as of 2026-05-04 (post `test-helper-fixture-standardization`):
 
-- `make test` wall: ~65–75s
+- `make test` wall: ~45–50s (3-run sample: 48.8s / 49.2s / 49.8s, sequential)
 - Pytest standalone (`uv run pytest`): ~7s wall (88 tests)
 - `test_lesson_db.py` standalone: ~3s pytest / ~4s wall (40 tests, was ~7s before fixture-scope tightening)
 - Hook-test ceiling: slowest file ~40s wall under parallel load
 
-Drift signals to watch: pytest standalone > 12s, slowest hook file > 50s, total wall > 90s. See `output/claude-toolkit/analysis/20260426_1702__analyze-idea__tests-perf-review.md` for the full breakdown.
+Drift signals to watch: pytest standalone > 12s, slowest hook file > 50s, total wall > 70s. See `output/claude-toolkit/analysis/20260426_1702__analyze-idea__tests-perf-review.md` for the original perf-review breakdown.
 
 ## Perf Benchmarks
 

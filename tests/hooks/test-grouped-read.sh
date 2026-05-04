@@ -6,6 +6,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== grouped-read-guard.sh (dispatcher) ==="
@@ -21,27 +22,27 @@ head -c 102400 /dev/zero | tr '\0' 'a' > "$large_json"
 batch_start "$hook"
 
 # secrets_guard_read — env/credential blocks
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/tmp/.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /tmp/.env)" \
     "[base] blocks .env via secrets_guard_read"
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/tmp/.env.example"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /tmp/.env.example)" \
     "[base] allows .env.example"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_rsa\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.ssh/id_rsa")" \
     "[base] blocks SSH private key"
-batch_add allow "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/id_rsa.pub\"}}" \
+batch_add allow "$(mk_pre_tool_use_payload Read "$HOME/.ssh/id_rsa.pub")" \
     "[base] allows SSH public key"
 
 # suggest_read_json — allowlist + size threshold
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/package.json"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /project/package.json)" \
     "[base] allows package.json (allowlist)"
-batch_add allow '{"tool_name":"Read","tool_input":{"file_path":"/project/data.json"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Read /project/data.json)" \
     "[base] allows nonexistent .json (Read will surface the natural error)"
-batch_add allow "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$small_json\"}}" \
+batch_add allow "$(mk_pre_tool_use_payload Read "$small_json")" \
     "[base] allows small .json (under threshold)"
-batch_add block "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$large_json\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Read "$large_json")" \
     "[base] blocks large .json (over threshold)"
 
 # Grep matcher should be ignored by this dispatcher (Read-only).
-batch_add allow '{"tool_name":"Grep","tool_input":{"path":"/project/.env"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Grep '' path '/project/.env')" \
     "[base] Grep passes through (not this dispatcher's matcher)"
 
 batch_run
@@ -61,9 +62,9 @@ head -c 102400 /dev/zero | tr '\0' 'a' > "$large_json"
 
 batch_start "$hook"
 
-batch_add block '{"tool_name":"Read","tool_input":{"file_path":"/tmp/.env"}}' \
+batch_add block "$(mk_pre_tool_use_payload Read /tmp/.env)" \
     "[sim] secrets_guard_read still blocks .env"
-batch_add allow "{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"$large_json\"}}" \
+batch_add allow "$(mk_pre_tool_use_payload Read "$large_json")" \
     "[sim] large .json passes (suggest-read-json absent)"
 
 batch_run

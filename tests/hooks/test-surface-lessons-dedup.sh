@@ -9,6 +9,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== surface-lessons.sh intra-session dedup ==="
@@ -49,7 +50,7 @@ export CLAUDE_TOOLKIT_LESSONS=1
 export CLAUDE_TOOLKIT_TRACEABILITY=1
 
 test_session="test-dedup-$(date +%s%N)"
-payload="{\"session_id\":\"$test_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git rebase -i HEAD~3\"}}"
+payload=$(mk_pre_tool_use_payload Bash 'git rebase -i HEAD~3' '' "$test_session")
 
 # 1) First invocation: nothing in surface_lessons_context yet → lesson should
 #    surface, and the hook writes a row into surface-lessons-context.jsonl.
@@ -92,7 +93,7 @@ fi
 
 # 4) Cross-session sanity: a fresh session_id should NOT be deduped.
 other_session="test-dedup-other-$(date +%s%N)"
-other_payload="{\"session_id\":\"$other_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git rebase -i HEAD~3\"}}"
+other_payload=$(mk_pre_tool_use_payload Bash 'git rebase -i HEAD~3' '' "$other_session")
 output=$(echo "$other_payload" | bash "$HOOKS_DIR/$hook" 2>/dev/null) || true
 
 TESTS_RUN=$((TESTS_RUN + 1))

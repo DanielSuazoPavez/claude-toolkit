@@ -16,6 +16,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== detect-session-start-truncation.sh ==="
@@ -45,7 +46,7 @@ mkdir -p "$TRANSCRIPT_DIR"
 
 run_hook() {
     local sid="$1"
-    echo "{\"session_id\":\"$sid\",\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"hi\",\"cwd\":\"$(pwd)\"}" \
+    mk_user_prompt_submit_payload "$sid" hi "$(pwd)" \
         | "$HOOKS_DIR/$hook" 2>/dev/null
 }
 

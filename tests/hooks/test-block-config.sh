@@ -3,25 +3,24 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 report_section "=== block-config-edits.sh ==="
 hook="block-config-edits.sh"
 
-# Helper: build payload with permission_mode set (for Write/Edit ask-vs-block routing)
+# Local wrappers preserve historical payload-literal content/old/new,
+# so test outcomes don't depend on shared-helper defaults.
 mk_write() {
     local mode="$1" path="$2"
-    jq -nc --arg m "$mode" --arg p "$path" \
-        '{tool_name:"Write",tool_input:{file_path:$p,content:"x"},permission_mode:$m,session_id:"t"}'
+    mk_pre_tool_use_payload Write "$path" x "$mode"
 }
 mk_edit() {
     local mode="$1" path="$2"
-    jq -nc --arg m "$mode" --arg p "$path" \
-        '{tool_name:"Edit",tool_input:{file_path:$p,old_string:"a",new_string:"b"},permission_mode:$m,session_id:"t"}'
+    mk_pre_tool_use_payload Edit "$path" a b "$mode"
 }
 mk_bash() {
-    local cmd="$1"
-    jq -nc --arg c "$cmd" '{tool_name:"Bash",tool_input:{command:$c},session_id:"t"}'
+    mk_pre_tool_use_payload Bash "$1"
 }
 
 # ============================================================
@@ -31,29 +30,29 @@ mk_bash() {
 batch_start "$hook"
 
 # Should block Write
-batch_add block "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.bashrc\",\"content\":\"test\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Write "$HOME/.bashrc" test)" \
     "blocks writing ~/.bashrc"
-batch_add block "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.zshrc\",\"content\":\"test\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Write "$HOME/.zshrc" test)" \
     "blocks writing ~/.zshrc"
-batch_add block "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.ssh/authorized_keys\",\"content\":\"test\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Write "$HOME/.ssh/authorized_keys" test)" \
     "blocks writing ~/.ssh/authorized_keys"
-batch_add block "{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$HOME/.gitconfig\",\"content\":\"test\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Write "$HOME/.gitconfig" test)" \
     "blocks writing ~/.gitconfig"
 
 # Should block Edit
-batch_add block "{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"$HOME/.bashrc\",\"old_string\":\"a\",\"new_string\":\"b\"}}" \
+batch_add block "$(mk_pre_tool_use_payload Edit "$HOME/.bashrc" a b)" \
     "blocks editing ~/.bashrc"
 
 # Should block Bash write commands
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"echo \"export FOO=bar\" >> ~/.bashrc"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'echo "export FOO=bar" >> ~/.bashrc')" \
     "blocks appending to ~/.bashrc"
-batch_add block '{"tool_name":"Bash","tool_input":{"command":"tee -a ~/.zshrc"}}' \
+batch_add block "$(mk_pre_tool_use_payload Bash 'tee -a ~/.zshrc')" \
     "blocks tee -a to ~/.zshrc"
 
 # Should allow
-batch_add allow '{"tool_name":"Write","tool_input":{"file_path":"/project/.bashrc","content":"test"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Write /project/.bashrc test)" \
     "allows writing project-level .bashrc"
-batch_add allow '{"tool_name":"Bash","tool_input":{"command":"echo hello"}}' \
+batch_add allow "$(mk_pre_tool_use_payload Bash 'echo hello')" \
     "allows normal bash commands"
 
 # ============================================================

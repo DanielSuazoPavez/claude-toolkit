@@ -3,6 +3,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$SCRIPT_DIR/lib/test-helpers.sh"
 source "$SCRIPT_DIR/lib/hook-test-setup.sh"
+source "$SCRIPT_DIR/lib/json-fixtures.sh"
 parse_test_args "$@"
 
 export CLAUDE_TOOLKIT_TRACEABILITY=1
@@ -13,23 +14,27 @@ hook="block-dangerous-commands.sh"
 # --- session_id present in JSON: drive a hook call so DB assertions
 # below can verify propagation. ---
 test_session="test-session-$(date +%s%N)"
-echo "{\"session_id\":\"$test_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
+mk_pre_tool_use_payload Bash 'ls' '' "$test_session" \
     | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
-# --- session_id missing from JSON → falls back to "unknown" (verified via DB below) ---
+# --- session_id missing from JSON → falls back to "unknown" (verified via DB below).
+# Helper always emits session_id, so this case is built inline by hand to keep the
+# negative shape (key absent, not empty-string).
 echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' \
     | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
-# --- session_id=null in JSON → falls back to "unknown" (verified via DB below) ---
+# --- session_id=null in JSON → falls back to "unknown" (verified via DB below).
+# Same reason as above — helper emits a string session_id, not JSON null.
 echo '{"session_id":null,"tool_name":"Bash","tool_input":{"command":"ls"}}' \
     | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 # --- session_id with UUID format (realistic) ---
 uuid_session="a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-echo "{\"session_id\":\"$uuid_session\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"ls\"}}" \
+mk_pre_tool_use_payload Bash 'ls' '' "$uuid_session" \
     | "$HOOKS_DIR/$hook" > /dev/null 2>&1 || true
 
 # --- malformed stdin → PreToolUse hooks block (fail-closed) ---
+# intentionally malformed JSON — do not migrate
 TESTS_RUN=$((TESTS_RUN + 1))
 malformed_output=$(echo "not valid json at all" | "$HOOKS_DIR/$hook" 2>/dev/null) || true
 if echo "$malformed_output" | grep -q '"decision"[[:space:]]*:[[:space:]]*"block"'; then
@@ -42,6 +47,7 @@ else
 fi
 
 # --- malformed stdin → PermissionRequest hooks exit 0 (fail-open → user prompted) ---
+# intentionally malformed JSON — do not migrate
 TESTS_RUN=$((TESTS_RUN + 1))
 perm_hook="approve-safe-commands.sh"
 perm_output=$(echo "not valid json" | "$HOOKS_DIR/$perm_hook" 2>/dev/null) || true
