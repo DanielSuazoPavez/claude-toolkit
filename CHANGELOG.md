@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.82.1] - 2026-05-04 - rebaseline settings-integrity on untracked drift
+
+### Fixed
+- **hooks**: `scripts/lib/settings-integrity.sh` no longer ratchets warnings forever on `.claude/settings.local.json` drift. Tracked settings files (`.claude/settings.json`) have a real recovery path — commit or restore — so the warning persists across sessions until the user resolves it. Untracked files (gitignored by design) have no commit-or-restore target, so leaving the stored hash stale meant a single drift would warn every session forever. Now: untracked drift warns once and rebaselines silently. Tracked drift behavior unchanged.
+
+### Changed
+- **tests**: `tests/hooks/test-session-start-integrity.sh` adds Case 7 (untracked drift warns once, then rebaselines silent) and Case 8 (tracked drift keeps warning across invocations) to lock in the asymmetry.
+
+### Notes
+- Consumed: `scripts/lib/settings-integrity.sh` ships in base sync (and is in `dist/raiz/MANIFEST`), so the fix reaches all consumers including raiz. Raiz sidecar carries a real entry.
+
 ## [2.82.0] - 2026-05-04 - summarize make check output, add check-full escape hatch
 
 ### Added
