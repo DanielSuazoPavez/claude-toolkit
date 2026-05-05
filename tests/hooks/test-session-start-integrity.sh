@@ -162,4 +162,58 @@ else
 fi
 rm -rf "$repo6"
 
+# === Case 7: untracked drift warns once, then rebaselines (no infinite ratchet) ===
+# Untracked files (settings.local.json) have no commit-or-restore recovery path,
+# so the integrity check rebaselines after the first warning. Otherwise a single
+# drift would warn every session forever.
+TESTS_RUN=$((TESTS_RUN + 1))
+repo7=$(mk_repo)
+(
+    cd "$repo7"
+    echo '{"permissions":{"allow":[]}}' > .claude/settings.local.json
+)
+run_check "$repo7" >/dev/null   # baseline both files
+(
+    cd "$repo7"
+    echo '{"permissions":{"allow":["Bash(rm:*)"]}}' > .claude/settings.local.json
+)
+out1=$(run_check "$repo7")   # first drift detection — should warn
+out2=$(run_check "$repo7")   # second invocation, file unchanged — should be silent
+if [[ "$out1" == *"changed since last session (untracked, no committed baseline)"* ]] \
+   && [ -z "$out2" ]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "untracked drift: warns once, then rebaselines silent"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "untracked drift: warns once, then rebaselines silent"
+    report_detail "first invocation: ${out1:-<empty>}"
+    report_detail "second invocation: ${out2:-<empty>}"
+fi
+rm -rf "$repo7"
+
+# === Case 8: tracked drift keeps warning across invocations (no rebaseline) ===
+# Tracked files have a real recovery path (commit or restore), so the warning
+# must persist across sessions until the user resolves it.
+TESTS_RUN=$((TESTS_RUN + 1))
+repo8=$(mk_repo)
+run_check "$repo8" >/dev/null   # baseline
+(
+    cd "$repo8"
+    echo '{"permissions":{"allow":["Bash(rm:*)"]}}' > .claude/settings.json
+    # No commit — uncommitted drift on a tracked file.
+)
+out1=$(run_check "$repo8")   # first drift detection — warns
+out2=$(run_check "$repo8")   # second invocation, still uncommitted — must still warn
+if [[ "$out1" == *"changed since last session without a commit"* ]] \
+   && [[ "$out2" == *"changed since last session without a commit"* ]]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    report_pass "tracked drift: keeps warning until committed/restored"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    report_fail "tracked drift: keeps warning until committed/restored"
+    report_detail "first invocation: ${out1:-<empty>}"
+    report_detail "second invocation: ${out2:-<empty>}"
+fi
+rm -rf "$repo8"
+
 print_summary

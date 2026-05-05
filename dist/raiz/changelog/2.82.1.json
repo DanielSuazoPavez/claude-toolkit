@@ -1,0 +1,14 @@
+{
+  "version": "2.82.1",
+  "date": "2026-05-04",
+  "headline": "settings-integrity no longer warns forever on .claude/settings.local.json drift",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "settings-integrity: when the SessionStart drift warning fires for .claude/settings.local.json (gitignored, untracked), it now warns once and rebaselines silently. Previously the stored hash was never updated for untracked files, so a single drift would warn every session forever — there's no commit-or-restore recovery path for a gitignored file. Tracked files (.claude/settings.json) keep ratcheting until you commit or restore."
+      ]
+    }
+  ]
+}
