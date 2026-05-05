@@ -107,15 +107,17 @@ _settings_integrity_check_one() {
         return 0
     fi
 
-    # Drift without a covering commit — surface the warning loud, but do NOT
-    # update the stored hash. Subsequent sessions keep warning until the user
-    # either commits the change or restores the file.
+    # Drift without a covering commit — surface the warning.
     if _settings_integrity_is_tracked "$file"; then
+        # Tracked: keep the stored hash unchanged so the warning persists until
+        # the user commits or restores the file (a real recovery path exists).
         echo "⚠ ${file} changed since last session without a commit. Review with: git diff -- ${file}"
     else
-        # Untracked (e.g. gitignored .claude/settings.local.json) — `git diff`
-        # would print nothing, so point the user at the file directly.
+        # Untracked (e.g. gitignored .claude/settings.local.json) — there is no
+        # commit-or-restore path, so leaving the stored hash stale would warn
+        # forever. Surface once, then rebaseline: the user got the signal.
         echo "⚠ ${file} changed since last session (untracked, no committed baseline). Review the file directly: ${file}"
+        _settings_integrity_store "$file" "$current"
     fi
 }
 
