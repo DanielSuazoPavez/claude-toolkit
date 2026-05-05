@@ -910,16 +910,6 @@
       "status": "idea"
     },
     {
-      "id": "make-check-summarize-output",
-      "priority": "P0",
-      "title": "Summarize 'make check' output — write full log to file, surface only failures + counts in console",
-      "scope": [
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "Symptom: 'make check' currently prints ~150 lines on success (per-file durations, every validator section header, every smoke-test row). Verbose-by-default output trains agents to pipe through head/tail/grep to skim, which violates the 'make check bare' rule (memory: feedback_make_check_bare.md) AND drops crucial failure context when something does break. Goal: console output stays minimal on green ('21/21 files passed', '✓ 31/31 smoke', any warnings, total wall) and zooms into failures only — per-file logs already land in tests/.logs/ for tests, but validators and smoke runs print verbosely live. Proposed shape: tee everything to a single output/claude-toolkit/test-runs/<timestamp>.log, console gets a summary block with red-highlighted failures and a 'full log: <path>' footer. On failure, dump the failed file/validator's section inline (already done for run-all.sh files). Don't lose the per-file durations — keep them in the summary. Owner constraint: must keep 'make check' bare-runnable (no flags); the summarized form is the default. Source: 2026-05-04 fixture-standardization branch session — agents kept reaching for tail/grep on make check output."
-    },
-    {
       "id": "test-suite-consolidation",
       "priority": "P0",
       "title": "General revision of test suite — consolidate patterns, centralize definitions, mark special cases explicitly",

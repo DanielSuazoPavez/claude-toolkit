@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.82.0] - 2026-05-04 - summarize make check output, add check-full escape hatch
+
+### Added
+- **scripts**: `.claude/scripts/check-runner.sh` (workshop-internal, excluded from base sync) — wrapper that runs the four `make check` phases (`test`, `lint-bash`, `validate`, `hooks-smoke`), captures each to a per-phase log, and prints a 6-line summary block. On any phase failure, dumps the failing phase's full log inline and exits 1. Combined log lands at `output/claude-toolkit/test-runs/<timestamp>.log` (ANSI-stripped, viewable in `less`). V20 perf-budget warnings (and any `WARN`-prefixed validator output) surface in the summary with a count and log line ref. Phase commands are overridable via `CHECK_PHASE_*_CMD` env vars for testing.
+- **make**: `make check-full` runs the wrapper with `-v`, streaming all phase output live (replaces the old verbose-by-default `make check`). `make test-check-runner` runs the new fixture-driven test suite (30 cases). `make help` and `.PHONY` updated.
+- **tests**: `tests/test-check-runner.sh` — 30 assertions covering green-path summary, single-phase failure dump, multi-phase failure dump, warning surfacing, verbose pass-through, and per-phase log creation. Drives the wrapper through env-var phase stubs (no real `make check` invocation).
+
+### Changed
+- **make**: `make check` is now summarized by default — green runs print 6 lines (one per phase + total + log path) instead of ~184. Bare-runnable rule preserved (no flags required). `make hooks-smoke` now runs with `-q` (the wrapper still gets the count from the always-printed summary line).
+- **scripts**: `.claude/scripts/validate-all.sh` now captures `verify-external-deps.sh`'s exit code. Previously, every other sub-validator's failure incremented `FAILURES` but external-deps' did not — a `verify-external-deps.sh` failure would be printed but `validate-all.sh` would still report green and exit 0. Pre-existing latent bug; fix lands in this branch because the new wrapper depends on `validate-all.sh` reporting accurate exit status.
+- **indexes**: `docs/indexes/scripts.json` registers `check-runner.sh` under the `maintenance` family (workshop-only, excluded from sync via `dist/base/EXCLUDE`); `SCRIPTS.md` re-rendered.
+
+### Notes
+- Consumed: the wrapper itself is workshop-internal (downstream consumers don't have this `Makefile` or its `make check` target). The `validate-all.sh` exit-code fix ships in base sync and is in `dist/raiz/MANIFEST`, so it reaches all consumers including raiz. Raiz sidecar carries a real entry for the `scripts` kind.
+- Source: backlog item `make-check-summarize-output` (P0). Captured baseline (184 lines on green); after this change ~6 lines on green, 64s wall ≈ unchanged.
+
 ## [2.81.12] - 2026-05-04 - gate CALL_ID agent_id fallback on SubagentStop
 
 ### Fixed

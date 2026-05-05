@@ -53,6 +53,7 @@ Excluded from sync via `dist/base/EXCLUDE` (`validate-dist-manifests.sh`). `vali
 | Path | Status | Ships | Description |
 |--------|--------|-------|-------------|
 | `validate-dist-manifests.sh` | stable | no | Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only |
+| `check-runner.sh` | stable | no | Wrapper for `make check` — orchestrates the four phases (test, lint-bash, validate, hooks-smoke), prints a compact summary, and dumps failing-phase logs inline; workshop-only |
 | `hook-framework/parse-headers.sh` | stable | no | Parses a hook file's `# CC-HOOK:` header block into one JSON object on stdout (declaration order, pass-through, no defaults); workshop-only build-time tool feeding the future hook validator and dispatcher codegen |
 | `hook-framework/validate.sh` | stable | no | Validates `# CC-HOOK:` headers across `.claude/hooks/` against `settings.json`, dispatch-order.json, and the generated dispatchers — covers V1–V11, V13–V15, V17 (see design/hook-framework-refactor.md C4); workshop-only |
 | `hook-framework/render-dispatcher.sh` | stable | no | Generates `lib/dispatcher-grouped-bash-guard.sh` and `dispatcher-grouped-read-guard.sh` from CC-HOOK headers + `lib/dispatch-order.json`; supports `--check` for V11 drift detection; workshop-only build-time tool |

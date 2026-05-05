@@ -1,4 +1,4 @@
-.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest lint-bash validate check backlog render hooks-render hooks-smoke tag help
+.PHONY: install test test-hooks test-cli test-backlog test-raiz test-raiz-changelog test-eval test-validate-indexed test-validate-hook-utils test-verify-ext-deps test-verify-res-deps test-setup-diag test-validate-settings-template test-validate-session-start-cap test-pytest test-check-runner lint-bash validate check check-full backlog render hooks-render hooks-smoke tag help
 
 install:
 	@uv sync --dev
@@ -26,7 +26,9 @@ help:
 	@echo "  make render            - Render JSON-backed indexes (BACKLOG.md, docs/indexes/*.md) from JSON sources"
 	@echo "  make hooks-render      - Regenerate lib/dispatcher-*.sh from headers + dispatch-order.json"
 	@echo "  make hooks-smoke       - Run smoke tests for every hook fixture"
-	@echo "  make check             - Run everything (tests + lint-bash + validate + hooks-smoke)"
+	@echo "  make check             - Run everything (tests + lint-bash + validate + hooks-smoke), summarized"
+	@echo "  make check-full        - Run check with full verbose output (no summary filter)"
+	@echo "  make test-check-runner - Test the check-runner wrapper"
 
 test:
 	@bash tests/run-all.sh -q
@@ -92,7 +94,7 @@ hooks-render:
 	@bash .claude/scripts/hook-framework/render-dispatcher.sh
 
 hooks-smoke:
-	@bash tests/hooks/run-smoke-all.sh
+	@bash tests/hooks/run-smoke-all.sh -q
 
 lint-bash:
 	@command -v shellcheck >/dev/null || { \
@@ -108,4 +110,11 @@ lint-bash:
 validate:
 	@bash .claude/scripts/validate-all.sh
 
-check: test lint-bash validate hooks-smoke
+check:
+	@bash .claude/scripts/check-runner.sh
+
+check-full:
+	@bash .claude/scripts/check-runner.sh -v
+
+test-check-runner:
+	@bash tests/test-check-runner.sh -q

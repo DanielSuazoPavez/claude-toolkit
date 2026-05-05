@@ -49,6 +49,9 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Running: verify-external-deps.sh"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 bash "$SCRIPTS_DIR/verify-external-deps.sh"
+if [ $? -ne 0 ]; then
+    FAILURES=$((FAILURES + 1))
+fi
 echo ""
 
 # --- Settings template ---
