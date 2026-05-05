@@ -1,0 +1,14 @@
+{
+  "version": "2.82.0",
+  "date": "2026-05-04",
+  "headline": "validate-all.sh now fails when verify-external-deps fails",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "scripts",
+      "bullets": [
+        "Fix latent bug in validate-all.sh: a verify-external-deps.sh failure no longer slips through as green. Previously the orchestrator printed the failure but didn't increment its failure counter, so make validate exited 0. Every other sub-validator's exit code was already captured — verify-external-deps was the lone outlier. If your CI ever expected validate to catch a missing tool, it now does."
+      ]
+    }
+  ]
+}
