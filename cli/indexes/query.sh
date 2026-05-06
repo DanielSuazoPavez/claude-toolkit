@@ -19,6 +19,10 @@ INDEXES_DIR="$TOOLKIT_DIR/docs/indexes"
 SKILLS_DIR="$TOOLKIT_DIR/.claude/skills"
 AGENTS_DIR="$TOOLKIT_DIR/.claude/agents"
 SCRIPTS_DIR="$TOOLKIT_DIR/.claude/scripts"
+HOOKS_DIR="${CLAUDE_TOOLKIT_HOOKS_DIR:-$TOOLKIT_DIR/.claude/hooks}"
+HOOKS_ORDER_FILE="$HOOKS_DIR/lib/dispatch-order.json"
+HOOKS_PARSER="$TOOLKIT_DIR/.claude/scripts/hook-framework/parse-headers.sh"
+HOOKS_INDEX_MD="${CLAUDE_TOOLKIT_HOOKS_INDEX_MD:-$INDEXES_DIR/HOOKS.md}"
 DIST_BASE_EXCLUDE="$TOOLKIT_DIR/dist/base/EXCLUDE"
 DIST_RAIZ_MANIFEST="$TOOLKIT_DIR/dist/raiz/MANIFEST"
 
@@ -28,7 +32,7 @@ err()  { echo -e "${RED}Error: $1${NC}" >&2; exit 1; }
 warn() { echo -e "${YELLOW}$1${NC}" >&2; }
 ok()   { echo -e "${GREEN}$1${NC}" >&2; }
 
-KNOWN_TYPES=(skills agents scripts)
+KNOWN_TYPES=(skills agents scripts hooks)
 
 usage() {
     cat <<'EOF'
@@ -549,6 +553,209 @@ list_skills() {
     ' "$json"
 }
 
+# === build_hooks_headers_json: parse all hook CC-HOOK headers ===
+# Emits a JSON array (one entry per hook with a parseable header).
+build_hooks_headers_json() {
+    local f
+    for f in "$HOOKS_DIR"/*.sh; do
+        [ -f "$f" ] || continue
+        bash "$HOOKS_PARSER" "$f" 2>/dev/null || true
+    done | jq -s '.'
+}
+
+# === render_hooks_table: emit the markdown table body to stdout ===
+# Reads index_order from dispatch-order.json and merges with parsed headers.
+# Header row + separator + one row per hook, in index_order.
+render_hooks_table() {
+    [ -f "$HOOKS_ORDER_FILE" ] || err "dispatch-order.json not found at $HOOKS_ORDER_FILE"
+    [ -f "$HOOKS_PARSER" ]    || err "parse-headers.sh not found at $HOOKS_PARSER"
+
+    local headers_json
+    headers_json=$(build_hooks_headers_json)
+
+    jq -nr \
+        --argjson headers "$headers_json" \
+        --slurpfile order "$HOOKS_ORDER_FILE" '
+        # Build the Trigger cell from EVENTS + DISPATCHED-BY.
+        def fmt_event(ev):
+            if ev | test("\\(") then
+                # "PreToolUse(Tool|Tool)" → "PreToolUse (Tool\|Tool)"
+                (ev | capture("^(?<e>[A-Za-z]+)\\((?<t>[^)]+)\\)$"))
+                | "\(.e) (\(.t | gsub("[|]"; "\\|")))"
+            else
+                ev
+            end;
+        def fmt_dispatched(d):
+            # "<dispatcher>(Tool)" → "Tool via dispatcher"
+            (d | capture("^(?<n>[a-z0-9-]+)\\((?<t>[^)]+)\\)$"))
+            | "\(.t) via dispatcher";
+        def trigger_cell(h):
+            (h.EVENTS // []) as $evs
+            | (h."DISPATCHED-BY" // []) as $dis
+            | ($evs | map(select(. != "NONE"))) as $real_evs
+            | (
+                if ($real_evs | length) > 0 then
+                    ($real_evs | map(fmt_event(.)) | join(" + "))
+                    + (
+                        if ($dis | length) > 0 then
+                            " + " + ($dis | map(fmt_dispatched(.)) | join(" + "))
+                        else ""
+                        end
+                    )
+                else
+                    # NONE EVENTS — DISPATCHED-BY entries become the head.
+                    ($dis | map(fmt_dispatched(.)) | join(" + "))
+                end
+              );
+        def optin_cell(h):
+            (h."OPT-IN" // "none") as $v
+            | if $v == "none" then "—" else $v end;
+        # Index headers by NAME for lookup.
+        ($headers | map({key: .NAME, value: .}) | from_entries) as $by_name
+        | $order[0].index_order as $names
+        | (
+            "| Hook | Status | Trigger | Opt-in | Description |",
+            "|------|--------|---------|--------|-------------|",
+            ( $names[]
+              | . as $n
+              | $by_name[$n]
+              | if . == null then
+                    error("hook \($n) listed in index_order but no CC-HOOK header found")
+                else
+                    "| `\(.NAME).sh` | \(.STATUS) | \(trigger_cell(.)) | \(optin_cell(.)) | \(.PURPOSE) |"
+                end
+            )
+          )
+    '
+}
+
+# === splice_hooks_table: write a new HOOKS.md with the table region replaced ===
+# Args: <source_md> <table_file> <out_path>
+# Errors if BEGIN/END sentinels are absent in source_md.
+splice_hooks_table() {
+    local src="$1" table_file="$2" out="$3"
+    local begin_re='<!-- BEGIN: hooks-table -->'
+    local end_re='<!-- END: hooks-table -->'
+    if ! grep -qF "$begin_re" "$src" || ! grep -qF "$end_re" "$src"; then
+        err "HOOKS.md missing <!-- BEGIN: hooks-table --> / <!-- END: hooks-table --> sentinels — add them before re-rendering"
+    fi
+    # Pass the table as a file (FILENAME=src takes precedence; we use ARGV ordering).
+    # awk reads $src as input. The table file is read line-by-line via getline at BEGIN sentinel.
+    awk -v table_file="$table_file" '
+        /<!-- BEGIN: hooks-table -->/ {
+            print
+            print "<!-- Auto-generated. Run `make hooks-render` after editing .claude/hooks/*.sh CC-HOOK headers. -->"
+            print ""
+            while ((getline line < table_file) > 0) print line
+            close(table_file)
+            in_block = 1
+            next
+        }
+        /<!-- END: hooks-table -->/ {
+            in_block = 0
+            print
+            next
+        }
+        !in_block { print }
+    ' "$src" > "$out"
+}
+
+# === render_hooks: regenerate HOOKS.md summary table from CC-HOOK headers ===
+# Honors RENDER_OUT (default: in-place edit of docs/indexes/HOOKS.md).
+# CHECK_MODE=1 → render to tmp and `diff -q` against on-disk file (exit 1 on drift).
+render_hooks() {
+    local md="$HOOKS_INDEX_MD"
+    local out="${RENDER_OUT:-$md}"
+    [[ -f "$md" ]] || err "HOOKS.md not found at $md"
+
+    local table_file
+    table_file=$(mktemp)
+    render_hooks_table > "$table_file"
+
+    if [[ "${CHECK_MODE:-0}" == "1" ]]; then
+        local tmp
+        tmp=$(mktemp)
+        splice_hooks_table "$md" "$table_file" "$tmp"
+        if ! diff -q "$tmp" "$md" >/dev/null 2>&1; then
+            echo "render_hooks: drift detected in $md" >&2
+            rm -f "$tmp" "$table_file"
+            return 1
+        fi
+        rm -f "$tmp" "$table_file"
+        ok "HOOKS.md: table in sync with CC-HOOK headers"
+        return 0
+    fi
+
+    if [[ "$out" == "$md" ]]; then
+        local tmp
+        tmp=$(mktemp)
+        splice_hooks_table "$md" "$table_file" "$tmp"
+        mv "$tmp" "$md"
+    else
+        splice_hooks_table "$md" "$table_file" "$out"
+    fi
+    rm -f "$table_file"
+
+    local count
+    count=$(jq '.index_order | length' "$HOOKS_ORDER_FILE")
+    ok "Rendered $count hooks to ${out#$TOOLKIT_DIR/}"
+}
+
+# === validate_hooks: structural checks on dispatch-order.json#index_order ===
+validate_hooks() {
+    [[ -f "$HOOKS_ORDER_FILE" ]] || err "dispatch-order.json not found at $HOOKS_ORDER_FILE"
+
+    local errors=0
+
+    # 1. index_order is an array of strings.
+    if ! jq -e '.index_order | type == "array"' "$HOOKS_ORDER_FILE" >/dev/null; then
+        warn "dispatch-order.json: .index_order must be an array"
+        errors=$((errors + 1))
+        return 1
+    fi
+    if ! jq -e '.index_order | all(type == "string")' "$HOOKS_ORDER_FILE" >/dev/null; then
+        warn "dispatch-order.json: .index_order entries must all be strings"
+        errors=$((errors + 1))
+    fi
+
+    # 2. No duplicates.
+    local dupes
+    dupes=$(jq -r '.index_order | group_by(.) | map(select(length > 1)) | .[] | .[0]' "$HOOKS_ORDER_FILE")
+    if [[ -n "$dupes" ]]; then
+        warn "dispatch-order.json: duplicate entries in index_order:"
+        echo "$dupes" | sed 's/^/  - /' >&2
+        errors=$((errors + 1))
+    fi
+
+    # 3. Disk vs index_order: each .sh in HOOKS_DIR is in index_order, vice-versa.
+    if [[ -d "$HOOKS_DIR" ]]; then
+        local disk_hooks index_hooks missing_from_index stale_in_index
+        disk_hooks=$(find "$HOOKS_DIR" -maxdepth 1 -name '*.sh' -printf '%f\n' | sed 's/\.sh$//' | sort)
+        index_hooks=$(jq -r '.index_order[]' "$HOOKS_ORDER_FILE" | sort)
+
+        missing_from_index=$(comm -23 <(echo "$disk_hooks") <(echo "$index_hooks"))
+        if [[ -n "$missing_from_index" ]]; then
+            warn "Not in dispatch-order.json#index_order (disk has .sh but no entry):"
+            echo "$missing_from_index" | sed 's/^/  - /' >&2
+            errors=$((errors + $(echo "$missing_from_index" | wc -l)))
+        fi
+
+        stale_in_index=$(comm -13 <(echo "$disk_hooks") <(echo "$index_hooks"))
+        if [[ -n "$stale_in_index" ]]; then
+            warn "Stale in dispatch-order.json#index_order (entry but no .sh on disk):"
+            echo "$stale_in_index" | sed 's/^/  - /' >&2
+            errors=$((errors + $(echo "$stale_in_index" | wc -l)))
+        fi
+    fi
+
+    if [[ $errors -eq 0 ]]; then
+        ok "dispatch-order.json: index_order checks passed ($(jq '.index_order | length' "$HOOKS_ORDER_FILE") hooks)"
+        return 0
+    else
+        return 1
+    fi
+}
+
 # === Dispatcher ===
 cmd="${1:-}"
 [[ -z "$cmd" ]] && { usage; exit 1; }
@@ -557,15 +764,28 @@ shift || true
 case "$cmd" in
     -h|--help|help) usage ;;
     render)
-        type="${1:-}"
+        type=""
+        export CHECK_MODE=0
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                --check) CHECK_MODE=1; shift ;;
+                -*) err "Unknown flag: $1" ;;
+                *)  type="$1"; shift ;;
+            esac
+        done
+        if [[ "$CHECK_MODE" == "1" && -z "$type" ]]; then
+            err "--check requires a type (e.g. 'render hooks --check')"
+        fi
+        rc=0
         if [[ -z "$type" ]]; then
-            for t in "${KNOWN_TYPES[@]}"; do "render_$t"; done
+            for t in "${KNOWN_TYPES[@]}"; do "render_$t" || rc=1; done
         else
             in_known=false
             for t in "${KNOWN_TYPES[@]}"; do [[ "$t" == "$type" ]] && in_known=true; done
             $in_known || err "Unknown type: $type (known: ${KNOWN_TYPES[*]})"
-            "render_$type"
+            "render_$type" || rc=1
         fi
+        exit $rc
         ;;
     validate)
         type="${1:-}"

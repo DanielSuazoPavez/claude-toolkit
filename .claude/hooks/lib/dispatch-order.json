@@ -16,5 +16,25 @@
       "secrets-guard",
       "suggest-read-json"
     ]
-  }
+  },
+  "index_order": [
+    "session-start",
+    "detect-session-start-truncation",
+    "git-safety",
+    "auto-mode-shared-steps",
+    "block-credential-exfiltration",
+    "block-dangerous-commands",
+    "block-destructive-sql",
+    "secrets-guard",
+    "block-config-edits",
+    "suggest-read-json",
+    "enforce-uv-run",
+    "enforce-make-commands",
+    "surface-lessons",
+    "approve-safe-commands",
+    "log-tool-uses",
+    "log-permission-denied",
+    "grouped-bash-guard",
+    "grouped-read-guard"
+  ]
 }
