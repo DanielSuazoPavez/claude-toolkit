@@ -25,6 +25,7 @@
 .claude/docs/relevant-toolkit-resource_naming.md
 .claude/docs/relevant-project-identity.md
 .claude/docs/relevant-toolkit-resource_frontmatter.md
+.claude/docs/relevant-workflow-ab_worktrees.md
 
 # Toolkit maintenance scripts
 .claude/scripts/validate-dist-manifests.sh
