@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.83.0] - 2026-05-06 - timestamp standard: YYYYMMDDTHHMM__source__slug.md
+
+### Added
+- **convention**: project-wide artifact timestamp standard `YYYYMMDDTHHMM__<source>__<slug>.md` (ISO-flavored — literal `T` between date and time). The legacy form `YYYYMMDD_HHMM__source__slug` was visually ambiguous next to the `__` field separator (runs of underscores at varying widths, awkward for both eyes and regex); under the new format, the only `_` runs of length ≥ 2 in a filename are the `__` field boundaries, so a strict reader can split a basename on `__` into exactly `[timestamp, source, slug]` even when slugs contain single underscores internally. Documented in `.claude/docs/relevant-toolkit-artifacts.md` (components, why-this-format, gotchas, full example). Date-only artifacts use `T0000`. Unblocks the upcoming `plan-name-normalization-hook`, which needed a single settled format to match against.
+- **scripts**: `.claude/scripts/normalize-artifact-timestamps.sh` — bash, idempotent, dry-run by default. Walks `output/claude-toolkit/` and recognizes 5 legacy patterns: `YYYYMMDD_HHMM`, `YYYYMMDD_HHMMSS` (drops seconds), `YYYYMMDD` (date-only → `T0000`), `YYYY-MM-DD_HHMM`, `YYYY-MM-DD`. Uses `git mv` for tracked files, plain `mv` otherwise. Refuses to clobber existing targets. Validation pass at end lists any non-conforming basenames, excluding known exceptions (`BACKLOG.md`, `TEMPLATE.md`). Pre-convention whimsy plan names (e.g., `dapper-sparking-torvalds.md`) are out of scope here — the future plan-name normalization hook handles them. Indexed in `scripts.json` under the `migration` family.
+
+### Changed
+- **skills/agents**: 14 references updated to the new format token and `date +%Y%m%dT%H%M` invocation — `analyze-idea`, `brainstorm-idea`, `brainstorm-feature`, `draft-pr`, `refactor`, `review-plan`, `shape-proposal`, `write-handoff`, `create-agent` TEMPLATE, plus agents `code-reviewer`, `code-debugger`, `goal-verifier`, `implementation-checker`, `proposal-reviewer`. Examples in skill prose (`20260121_1430__...`) refreshed alongside.
+- **artifacts**: ran the backfill in this branch — 208 filenames under `output/claude-toolkit/` renamed in place. The directory is gitignored so the renames don't appear in the diff, but the script is idempotent (a second run is a no-op) so consumers can safely run it on their own trees post-sync.
+- **indexes**: `docs/indexes/scripts.json` registers `normalize-artifact-timestamps.sh` under the `migration` family; `SCRIPTS.md` re-rendered.
+
+### Notes
+- Consumed: `.claude/docs/relevant-toolkit-artifacts.md`, the new normalize script, and most edited skills/agents are in `dist/raiz/MANIFEST` (or covered by base sync that raiz inherits), so this reaches all consumers including raiz. Raiz sidecar carries a real entry.
+- Backlog: removed `timestamp-standard-define-and-backfill` (P1, completed in this version). `plan-name-normalization-hook` (P0) is now unblocked.
+
 ## [2.82.3] - 2026-05-06 - backlog CLI rejects unknown flags
 
 ### Fixed

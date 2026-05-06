@@ -1,0 +1,21 @@
+{
+  "version": "2.83.0",
+  "date": "2026-05-06",
+  "headline": "timestamp standard: YYYYMMDDTHHMM__source__slug.md (ISO-flavored T separator)",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "convention",
+      "bullets": [
+        "Artifact filenames under output/claude-toolkit/ now follow YYYYMMDDTHHMM__<source>__<slug>.md — a literal T separates date from time so the only underscore runs of length ≥ 2 in a filename are the __ field boundaries. Full convention is in .claude/docs/relevant-toolkit-artifacts.md (components, why-this-format, gotchas, full example). Date-only artifacts use T0000.",
+        "14 skills/agents that emit dated artifacts now reference the new format and use `date +%Y%m%dT%H%M`: analyze-idea, brainstorm-idea, brainstorm-feature, draft-pr, refactor, review-plan, shape-proposal, write-handoff, code-reviewer, code-debugger, goal-verifier, implementation-checker, proposal-reviewer (plus the create-agent TEMPLATE)."
+      ]
+    },
+    {
+      "kind": "scripts",
+      "bullets": [
+        "New backfill: .claude/scripts/normalize-artifact-timestamps.sh — idempotent, dry-run by default. Recognizes 5 legacy patterns (`_HHMM`, `_HHMMSS` drops seconds, date-only, hyphenated date+time, hyphenated date-only), uses git mv when tracked, refuses to clobber existing targets. Run `.claude/scripts/normalize-artifact-timestamps.sh --dry-run` to preview, `--apply` to rename. Pre-convention whimsy plan names (e.g., dapper-sparking-torvalds.md) are out of scope — a future plan-name normalization hook will handle those."
+      ]
+    }
+  ]
+}
