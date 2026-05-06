@@ -148,10 +148,22 @@ _path_block_reason() {
 #
 # Broad regex shared between match_*_read and match_*_grep — cheap predicate
 # covering every credential-path hint we block. Sourced from the detection
-# registry (kind=path, target=stripped); actual decision lives in check_.
-# `_REGISTRY_RE__path__stripped` is the pre-built alternation of all path-kind
-# patterns in .claude/hooks/lib/detection-registry.json.
-_SECRETS_MATCH_RE="${_REGISTRY_RE__path__stripped:-__never__}"
+# registry, kind=path. Unions stripped + raw targets so the predicate stays a
+# superset of check_ (which walks every path-kind entry regardless of target);
+# claude-settings is target=raw, so without the union the predicate would miss
+# `$HOME/.claude/settings.json` while check_ blocks it.
+_SECRETS_MATCH_STRIPPED="${_REGISTRY_RE__path__stripped:-}"
+_SECRETS_MATCH_RAW="${_REGISTRY_RE__path__raw:-}"
+if [ -n "$_SECRETS_MATCH_STRIPPED" ] && [ -n "$_SECRETS_MATCH_RAW" ]; then
+    _SECRETS_MATCH_RE="${_SECRETS_MATCH_STRIPPED}|${_SECRETS_MATCH_RAW}"
+elif [ -n "$_SECRETS_MATCH_STRIPPED" ]; then
+    _SECRETS_MATCH_RE="$_SECRETS_MATCH_STRIPPED"
+elif [ -n "$_SECRETS_MATCH_RAW" ]; then
+    _SECRETS_MATCH_RE="$_SECRETS_MATCH_RAW"
+else
+    _SECRETS_MATCH_RE="__never__"
+fi
+unset _SECRETS_MATCH_STRIPPED _SECRETS_MATCH_RAW
 
 # Credential-shape regex for embedded user:secret in remote URLs.
 # Matches `user:pass@host` style — short passwords are still secrets.
