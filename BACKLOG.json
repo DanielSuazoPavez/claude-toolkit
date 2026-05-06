@@ -310,19 +310,6 @@
       ]
     },
     {
-      "id": "hooks-validate-v12-hooks-md-drift",
-      "priority": "P2",
-      "title": "Hook validator V12 — generate HOOKS.md from headers, fail on drift",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Add V12 from C4 of the referenced design doc: a render-hooks-index.sh generator that produces docs/indexes/HOOKS.md from CC-HOOK headers, plus a validator check that fails on drift (mirrors the V11 pattern for dispatchers). HOOKS.md is currently hand-maintained — without V12 the SSOT claim is incomplete.",
-      "references": [
-        "design/hook-framework-refactor.md"
-      ]
-    },
-    {
       "id": "hook-audit-01-test-token-allowlist",
       "priority": "P2",
       "title": "block-credential-exfiltration: explicit test-token allowlist for fixture authoring",
@@ -812,16 +799,6 @@
       "notes": "Instead of migrating DOCS.md to JSON-backed render (deferred from feat/json-backed-indexes), step back: docs may be the wrong primitive. Claude Code already has 'rules' as a first-class concept, and knowledge-only skills (e.g. read-json) already cover the 'load on demand' shape. Investigate: which .claude/docs/* belong as rules (always-on conventions), which as knowledge skills (load-on-demand reference), which to remove. Goal is to stop swimming against the current — fewer custom primitives, more leverage of native ones. Reference: .claude/docs/ contents, docs/indexes/DOCS.md, list-docs skill."
     },
     {
-      "id": "workshop-resources-out-of-dotclaude",
-      "priority": "P2",
-      "title": "Move workshop-authored resources out of .claude/ into a dedicated source dir",
-      "scope": [
-        "toolkit"
-      ],
-      "status": "idea",
-      "notes": ".claude/ in this repo plays two roles: workshop-authored output (synced to consumers) and the toolkit's own dogfooded Claude Code config. Proposal: move workshop sources into a dedicated dir (resources/) so .claude/ recovers its consumer-project meaning. Dogfood via an explicit sync --self step, not symlinks. Land after the hook-audit design phase. Run /shape-project before any code moves.\n\nSee: output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude.md"
-    },
-    {
       "id": "prose-cleanup-resource",
       "priority": "P3",
       "title": "Add prose cleanup resource to `write-documentation` + fix `draft-pr` verbosity",
@@ -967,17 +944,6 @@
       "notes": "During the 2.83.0 wrap-up make check run, test-verify-external-deps failed once on the \"Expected ✓ bash in output\" assertion even though the captured output did contain `✓ bash`. Re-running the test in isolation passed 19/19; the next make check passed cleanly. Not reproduced. Likely a parallel-runner quirk (TEMP_DIR, fixture race, or stdout/stderr interleaving under load) but unverified — investigate if it recurs. Source: 2026-05-06 timestamp-standard-iso-t branch wrap-up."
     },
     {
-      "id": "hooks-block-destructive-sql-stdin-coverage",
-      "priority": "P1",
-      "title": "Hook: cover stdin/file-driven SQL gap in block-destructive-sql",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "source": "analyze-idea report 2026-05-06",
-      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content)."
-    },
-    {
       "id": "hooks-v20-perf-budget-conflation",
       "priority": "P2",
       "title": "V20 perf budget conflates predicate-miss with predicate-hit-pass",
@@ -1010,6 +976,40 @@
       ],
       "status": "idea",
       "notes": "Hit twice during block-destructive-sql implementation: 'local in=$1 out= len=${#in}' on a single line evaluates ${#in} before in is assigned in some bash configurations, leaving len=0 — the function silently does nothing. For pure-validation helpers this presents as 'function returns false / never matches', which in a blocking guardrail looks identical to 'no destructive content found' and the hook silently allows. Sweep all PreToolUse blocking hooks in .claude/hooks/ for this pattern (single-line locals where one assignment derives from another via parameter expansion) and split them into separate local statements. Also worth adding a one-paragraph note to .claude/docs/relevant-toolkit-hooks.md so the next contributor doesn't relearn it. Surfaced by /review-security INFO #6."
+    },
+    {
+      "id": "hooks-validate-v12-hooks-md-drift",
+      "priority": "P1",
+      "title": "Hook validator V12 — generate HOOKS.md from headers, fail on drift",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Add V12 from C4 of the referenced design doc: a render-hooks-index.sh generator that produces docs/indexes/HOOKS.md from CC-HOOK headers, plus a validator check that fails on drift (mirrors the V11 pattern for dispatchers). HOOKS.md is currently hand-maintained — without V12 the SSOT claim is incomplete.",
+      "references": [
+        "design/hook-framework-refactor.md"
+      ]
+    },
+    {
+      "id": "hooks-block-destructive-sql-stdin-coverage",
+      "priority": "P2",
+      "title": "Hook: cover stdin/file-driven SQL gap in block-destructive-sql",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "analyze-idea report 2026-05-06",
+      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content)."
+    },
+    {
+      "id": "workshop-resources-out-of-dotclaude",
+      "priority": "P1",
+      "title": "Move workshop-authored resources out of .claude/ into a dedicated source dir",
+      "scope": [
+        "toolkit"
+      ],
+      "status": "idea",
+      "notes": ".claude/ in this repo plays two roles: workshop-authored output (synced to consumers) and the toolkit's own dogfooded Claude Code config. Proposal: move workshop sources into a dedicated dir (resources/) so .claude/ recovers its consumer-project meaning. Dogfood via an explicit sync --self step, not symlinks. Land after the hook-audit design phase. Run /shape-project before any code moves.\n\nSee: output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude.md"
     }
   ]
 }
