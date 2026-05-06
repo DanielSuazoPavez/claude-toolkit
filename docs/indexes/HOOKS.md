@@ -155,7 +155,7 @@ Blocks destructive bash commands that could damage the system.
 
 Blocks unconditionally destructive SQL issued through bash. Sibling guard to `block-dangerous-commands` for the SQL surface.
 
-- Blocks: `DROP TABLE`/`DATABASE`/`SCHEMA`/`INDEX`, `TRUNCATE`, predicate-less `DELETE FROM`/`UPDATE ... SET`, `ALTER TABLE ... DROP COLUMN`
+- Blocks: `DROP TABLE`/`DATABASE`/`SCHEMA`/`INDEX`/`USER`/`ROLE`/`TYPE`/`FUNCTION`/`TRIGGER`, `TRUNCATE`, predicate-less `DELETE FROM`/`UPDATE ... SET` (incl. CTE-prefixed forms and table aliases), `ALTER TABLE ... DROP COLUMN`
 - Triggers via the four named CLIs (`sqlite3`, `psql`, `mysql`, `duckdb`) and `python -c` bodies that mention a SQL module ref (`sqlite3`, `psycopg`, `psycopg2`, `mysql`, `duckdb`) plus a destructive keyword
 - Allows: `SELECT`, `INSERT`, `CREATE TABLE`, `VACUUM`, `REINDEX`, `ANALYZE`, predicated `DELETE`/`UPDATE` with `WHERE`
 - Out of scope: stdin/file-driven SQL (`psql < script.sql`, `cat x.sql | sqlite3`) — see backlog `hooks-block-destructive-sql-stdin-coverage`. ORM/migration framework calls are also out of scope.

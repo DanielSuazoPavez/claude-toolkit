@@ -28,6 +28,19 @@ batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP INDEX idx_users_e
     "blocks DROP INDEX"
 batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP SCHEMA archive CASCADE"')" \
     "blocks DROP SCHEMA"
+# DROP <postgres-identity-objects> — added per security-review MEDIUM #3.
+# These are equally irreversible: DROP USER/ROLE cascade to OWNED BY data;
+# DROP FUNCTION/TYPE/TRIGGER silently break dependent views/queries.
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP USER alice"')" \
+    "blocks DROP USER"
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP ROLE alice"')" \
+    "blocks DROP ROLE"
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP TYPE myenum"')" \
+    "blocks DROP TYPE"
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP FUNCTION foo()"')" \
+    "blocks DROP FUNCTION"
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DROP TRIGGER trg ON users"')" \
+    "blocks DROP TRIGGER"
 
 # --- Block: chained / wrapped forms ---
 batch_add block "$(mk_pre_tool_use_payload Bash 'cd /tmp && sqlite3 db "DROP TABLE x"')" \

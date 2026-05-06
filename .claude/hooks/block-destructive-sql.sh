@@ -15,6 +15,9 @@
 #
 # Blocks (when issued via sqlite3 / psql / mysql / duckdb / python -c):
 #   - DROP TABLE / DATABASE / SCHEMA / INDEX (incl. IF EXISTS, CASCADE)
+#   - DROP USER / ROLE / TYPE / FUNCTION / TRIGGER (irreversible Postgres
+#     identifiers — DROP USER cascades to OWNED BY objects, DROP FUNCTION
+#     can break dependent views/triggers without warning)
 #   - TRUNCATE [TABLE]
 #   - DELETE FROM <table> with no WHERE
 #   - UPDATE <table> SET ... with no WHERE
@@ -200,8 +203,10 @@ _is_destructive_sql() {
     norm=$(printf '%s' "$sql" | tr '\n\r\t' '   ' | tr -s ' ')
     local upper="${norm^^}"
 
-    # DROP TABLE/DATABASE/SCHEMA/INDEX
-    if [[ "$upper" =~ (^|[^A-Z_])DROP[[:space:]]+(TABLE|DATABASE|SCHEMA|INDEX)([[:space:]]|$) ]]; then
+    # DROP <object> for object kinds that are unambiguously irreversible.
+    # USER/ROLE: Postgres identity objects — DROP cascades to OWNED BY data.
+    # TYPE/FUNCTION/TRIGGER: dependent views/queries break silently.
+    if [[ "$upper" =~ (^|[^A-Z_])DROP[[:space:]]+(TABLE|DATABASE|SCHEMA|INDEX|USER|ROLE|TYPE|FUNCTION|TRIGGER)([[:space:]]|$) ]]; then
         _SQL_KIND="DROP ${BASH_REMATCH[2]}"
         return 0
     fi
