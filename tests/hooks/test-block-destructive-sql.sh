@@ -58,6 +58,23 @@ batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DELETE FROM tbl -- WHE
 batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "DELETE FROM tbl USING (SELECT id FROM other WHERE x=1) o"')" \
     "blocks DELETE where only WHERE is inside a subselect"
 
+# --- Block: CTE-prefixed DELETE/UPDATE (security-review HIGH #2) ---
+# `WITH t AS (...) DELETE/UPDATE` shifts the action keyword off pos 0.
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "WITH t AS (SELECT 1) DELETE FROM logs"')" \
+    "blocks CTE-prefixed DELETE without WHERE"
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "WITH t AS (SELECT 1) UPDATE logs SET disabled=1"')" \
+    "blocks CTE-prefixed UPDATE without WHERE"
+
+# --- Block: UPDATE with table alias (security-review HIGH #1) ---
+# Both AS-keyword and bare-alias forms are SQL-legal.
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "UPDATE users AS u SET disabled=1"')" \
+    "blocks UPDATE <table> AS <alias> SET ... without WHERE"
+batch_add block "$(mk_pre_tool_use_payload Bash 'psql -c "UPDATE users u SET disabled=1"')" \
+    "blocks UPDATE <table> <alias> SET ... without WHERE (no AS keyword)"
+# Predicated form of the above must still pass.
+batch_add allow "$(mk_pre_tool_use_payload Bash 'psql -c "UPDATE users AS u SET disabled=1 WHERE u.id=42"')" \
+    "allows UPDATE <table> AS <alias> SET ... WHERE ..."
+
 # --- Block: sqlite3 with -separator (destructive SQL is NOT the first quoted arg) ---
 batch_add block "$(mk_pre_tool_use_payload Bash "sqlite3 -separator '|' db \"DROP TABLE logs\"")" \
     "blocks sqlite3 -separator '|' db DROP TABLE (multi-quote)"

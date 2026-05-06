@@ -217,22 +217,25 @@ _is_destructive_sql() {
     fi
     # DELETE FROM <ident> ... with no WHERE in the same statement.
     # Split on semicolons so a benign trailing statement can't mask a missing WHERE.
-    # Identifier class is conservative: alnum + underscore + dot + at-sign +
-    # quoted-identifier brackets. Quoted identifiers (`"x"`, `` `x` ``, `[x]`)
-    # are stripped of their quotes pre-check by the same trick: we accept any
-    # leading non-space run after FROM as the table name.
+    # Match either at start-of-statement OR right after a CTE close-paren — Postgres
+    # allows `WITH t AS (...) DELETE FROM ...`, which the bare `^DELETE` anchor misses.
+    # The UPDATE form similarly accepts an optional `[AS] <alias>` between the table
+    # name and `SET`, so `UPDATE users AS u SET ...` and `UPDATE users u SET ...`
+    # don't slip past a too-strict three-token regex.
+    # Identifier class is conservative: any non-space run after the FROM/UPDATE token
+    # is treated as the table name (handles quoted identifiers `"x"`/`` `x` ``/`[x]`).
     local stmt
     while IFS= read -r stmt || [ -n "$stmt" ]; do
         stmt="${stmt#"${stmt%%[![:space:]]*}"}"
         [ -z "$stmt" ] && continue
         local s_upper="${stmt^^}"
-        if [[ "$s_upper" =~ ^DELETE[[:space:]]+FROM[[:space:]]+[^[:space:]]+ ]]; then
+        if [[ "$s_upper" =~ (^|\))[[:space:]]*DELETE[[:space:]]+FROM[[:space:]]+[^[:space:]]+ ]]; then
             if ! _has_top_level_where "$s_upper"; then
                 _SQL_KIND="DELETE without WHERE"
                 return 0
             fi
         fi
-        if [[ "$s_upper" =~ ^UPDATE[[:space:]]+[^[:space:]]+[[:space:]]+SET[[:space:]] ]]; then
+        if [[ "$s_upper" =~ (^|\))[[:space:]]*UPDATE[[:space:]]+[^[:space:]]+([[:space:]]+(AS[[:space:]]+)?[^[:space:]]+)?[[:space:]]+SET[[:space:]] ]]; then
             if ! _has_top_level_where "$s_upper"; then
                 _SQL_KIND="UPDATE without WHERE"
                 return 0
