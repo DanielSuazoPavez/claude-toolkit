@@ -559,6 +559,18 @@ main() {
                     exit 1
                 fi
                 ;;
+            -*)
+                # Unknown flag before any subcommand → top-level error.
+                # After a subcommand is collected, defer to the subcommand
+                # (cmd_add/cmd_update parse their own flags; query
+                # subcommands reject them themselves).
+                if (( ${#args[@]} == 0 )); then
+                    echo "Error: unknown flag: $1" >&2
+                    echo "Run 'claude-toolkit backlog --help' for usage." >&2
+                    exit 2
+                fi
+                args+=("$1")
+                ;;
             *) args+=("$1") ;;
         esac
         shift
@@ -583,6 +595,23 @@ main() {
         local upper="${exclude_priority^^}"
         exclude_jq="$upper"
     fi
+
+    # Reject unknown flags for subcommands that don't parse their own.
+    # add/update have their own flag parser; everything else is query-only
+    # and any -* token in their args is a user mistake (e.g. `render
+    # --priority P1` was silently treated as an output path).
+    case "${args[0]:-}" in
+        add|update) ;;
+        *)
+            for tok in "${args[@]:1}"; do
+                if [[ "$tok" == -* ]]; then
+                    echo "Error: unknown flag for '${args[0]}': $tok" >&2
+                    echo "Run 'claude-toolkit backlog --help' for usage." >&2
+                    exit 2
+                fi
+            done
+            ;;
+    esac
 
     # Temp file for filtered results
     _QUERY_TMPFILE=$(mktemp)
