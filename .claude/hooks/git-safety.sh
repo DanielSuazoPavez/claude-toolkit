@@ -169,29 +169,57 @@ check_git_safety() {
 }
 
 # ============================================================
+# match_git_safety_planmode — predicate for the EnterPlanMode branch
+# ============================================================
+# Returns 0 when cwd is inside a git repo (the only condition under which
+# check_ might block). Forks `git rev-parse` once — same fork the inline
+# branch already did, just relocated. EnterPlanMode is a rare per-session
+# event so per-call cost dominates throughput; folding into match_git_safety
+# (Bash) isn't useful — input shapes differ.
+match_git_safety_planmode() {
+    git rev-parse --git-dir >/dev/null 2>&1
+}
+
+# ============================================================
+# check_git_safety_planmode — guard body for the EnterPlanMode branch
+# ============================================================
+# Assumes match_git_safety_planmode returned true (we're in a git repo).
+# Sets _BLOCK_REASON on block. Returns 0 = pass, 1 = block.
+# Block conditions:
+#   - Detached HEAD (empty current branch) — feature branch needed before plan.
+#   - Current branch matches PROTECTED_BRANCHES.
+check_git_safety_planmode() {
+    local BRANCH
+    BRANCH=$(git branch --show-current 2>/dev/null) || return 0
+
+    if [[ -z "$BRANCH" ]]; then
+        _BLOCK_REASON="You're in detached HEAD state. Create a feature branch first:\n\n  git checkout -b feat/<short-description>"
+        return 1
+    fi
+
+    if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
+        _BLOCK_REASON="Create a feature branch first.\n\nYou're on '$BRANCH' (protected). Before entering plan mode:\n\n  git checkout -b feat/<short-description>\n\nBranch prefixes: feat/, fix/, refactor/, docs/, chore/"
+        return 1
+    fi
+
+    return 0
+}
+
+# ============================================================
 # main — standalone entry point
 # ============================================================
 main() {
     hook_init "git-safety" "PreToolUse"
     hook_require_tool "EnterPlanMode" "Bash"
 
-    # --- EnterPlanMode branch (not grouped-eligible; no match/check split) ---
+    # --- EnterPlanMode branch — delegate to match_/check_ ---
     if [[ "$TOOL_NAME" == "EnterPlanMode" ]]; then
-        if ! git rev-parse --git-dir >/dev/null 2>&1; then
-            exit 0
+        _BLOCK_REASON=""
+        if match_git_safety_planmode; then
+            if ! check_git_safety_planmode; then
+                hook_block "$_BLOCK_REASON"
+            fi
         fi
-
-        local BRANCH
-        BRANCH=$(git branch --show-current 2>/dev/null) || exit 0
-
-        if [[ -z "$BRANCH" ]]; then
-            hook_block "You're in detached HEAD state. Create a feature branch first:\n\n  git checkout -b feat/<short-description>"
-        fi
-
-        if [[ "$BRANCH" =~ $PROTECTED_BRANCHES ]]; then
-            hook_block "Create a feature branch first.\n\nYou're on '$BRANCH' (protected). Before entering plan mode:\n\n  git checkout -b feat/<short-description>\n\nBranch prefixes: feat/, fix/, refactor/, docs/, chore/"
-        fi
-
         exit 0
     fi
 

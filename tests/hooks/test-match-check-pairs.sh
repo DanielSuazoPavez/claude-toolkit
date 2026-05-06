@@ -53,6 +53,7 @@ declare -A MATCH_FN=(
     [enforce-make-commands]=match_make
     [enforce-uv-run]=match_uv
     [git-safety]=match_git_safety
+    [git-safety-planmode]=match_git_safety_planmode
     [secrets-guard]=match_secrets_guard
     [secrets-guard-read]=match_secrets_guard_read
     [secrets-guard-grep]=match_secrets_guard_grep
@@ -67,6 +68,7 @@ declare -A CHECK_FN=(
     [enforce-make-commands]=check_make
     [enforce-uv-run]=check_uv
     [git-safety]=check_git_safety
+    [git-safety-planmode]=check_git_safety_planmode
     [secrets-guard]=check_secrets_guard
     [secrets-guard-read]=check_secrets_guard_read
     [secrets-guard-grep]=check_secrets_guard_grep
@@ -434,12 +436,12 @@ FILE_PATH=".claude/sett""ings.json"
 assert_match_hit block-config-edits-path "match_config_edits_path hits on .claude/settings.json (settings branch covered by Shape B)"
 
 # ============================================================
-# git-safety  (Bash branch only)
+# git-safety  (Bash branch)
 # ============================================================
-# EnterPlanMode branch runs inline in main() — out of scope here, tracked as
-# hook-audit-01-git-safety-enterplanmode-pair.
+# EnterPlanMode branch routes through match_git_safety_planmode /
+# check_git_safety_planmode — covered separately below.
 _reset_inputs
-report_section "git-safety"
+report_section "git-safety (Bash branch)"
 
 COMMAND="ls -la"
 assert_match_miss git-safety "match_git_safety misses on ls"
@@ -467,6 +469,55 @@ assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks --delet
 # Delete protected branch via :branch syntax
 COMMAND="git push origin :main"
 assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks :main delete syntax"
+
+# ============================================================
+# git-safety  (EnterPlanMode pair)
+# ============================================================
+# Pair: match_git_safety_planmode / check_git_safety_planmode. Driven by
+# the cwd's git state (no FILE_PATH/COMMAND globals). Sets up three temp
+# repos: a non-repo dir (predicate misses), a feature-branch repo (pass),
+# and a main-branch repo (block on protected-branch). Each case pushd's
+# into the dir, runs the assertion, popd's back.
+_reset_inputs
+report_section "git-safety (EnterPlanMode pair)"
+
+_gs_pm_root=$(mktemp -d)
+trap '[ -n "$_gs_pm_root" ] && rm -rf "$_gs_pm_root"' EXIT
+
+# Case A: not a git repo at all — predicate misses.
+mkdir -p "$_gs_pm_root/no-repo"
+pushd "$_gs_pm_root/no-repo" >/dev/null
+assert_match_miss git-safety-planmode "match_git_safety_planmode misses outside a git repo"
+popd >/dev/null
+
+# Case B: git repo on a feature branch — predicate hits, check passes.
+mkdir -p "$_gs_pm_root/feature-repo"
+pushd "$_gs_pm_root/feature-repo" >/dev/null
+git init -q -b feat/wave1 . 2>/dev/null || { git init -q .; git checkout -q -b feat/wave1; }
+assert_match_hit  git-safety-planmode "match_git_safety_planmode hits inside a git repo"
+assert_check_pass git-safety-planmode "check_git_safety_planmode passes on feature branch"
+popd >/dev/null
+
+# Case C: git repo on a protected branch — predicate hits, check blocks.
+mkdir -p "$_gs_pm_root/main-repo"
+pushd "$_gs_pm_root/main-repo" >/dev/null
+git init -q -b main . 2>/dev/null || { git init -q .; git checkout -q -b main; }
+assert_match_hit   git-safety-planmode "match_git_safety_planmode hits on protected-branch repo"
+assert_check_block git-safety-planmode "main" "check_git_safety_planmode blocks on protected branch"
+popd >/dev/null
+
+# Case D: detached HEAD — predicate hits, check blocks with detached-HEAD msg.
+# Need at least one commit so HEAD can be detached at a sha.
+mkdir -p "$_gs_pm_root/detached-repo"
+pushd "$_gs_pm_root/detached-repo" >/dev/null
+git init -q -b feat/wave1 . 2>/dev/null || { git init -q .; git checkout -q -b feat/wave1; }
+git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+git checkout -q --detach
+assert_match_hit   git-safety-planmode "match_git_safety_planmode hits on detached-HEAD repo"
+assert_check_block git-safety-planmode "detached HEAD" "check_git_safety_planmode blocks detached HEAD"
+popd >/dev/null
+
+unset _gs_pm_root
 
 # ============================================================
 # block-dangerous-commands
