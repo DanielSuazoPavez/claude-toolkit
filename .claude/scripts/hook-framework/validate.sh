@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Validates the # CC-HOOK: header block in every hook against project state.
 #
-# In scope: V1–V11, V13–V15, V17 (see design/hook-framework-refactor.md C4).
+# In scope: V1–V15, V17 (see design/hook-framework-refactor.md C4).
 # Each check_VN function is independent — failures aggregate into ERRORS / WARNINGS.
 #
-# TODO: V12 once HOOKS.md is regenerated from headers (index branch).
 # TODO: V16 once any hook declares SCOPE-FILTER.
 #
 # Usage:
@@ -480,6 +479,58 @@ check_V11() {
     fi
 }
 
+# ---- V12: HOOKS.md table byte-identical to a fresh render ----
+# Skips silently when the fixture lacks dispatch-order.json#index_order or a
+# HOOKS.md sidecar (synthetic V1–V17 fixtures don't model V12 inputs). Real
+# workshop runs hit the default workshop renderer / HOOKS.md.
+check_V12() {
+    # Locate the workshop renderer (cli/indexes/query.sh) by walking up.
+    local d="$HOOKS_DIR" root=""
+    while [ "$d" != "/" ] && [ -n "$d" ]; do
+        if [ -f "$d/cli/indexes/query.sh" ]; then
+            root="$d"; break
+        fi
+        d=$(dirname "$d")
+    done
+    [ -n "$root" ] || return 0
+    local renderer="$root/cli/indexes/query.sh"
+
+    # Detect fixture mode: HOOKS_DIR is not the workshop's own .claude/hooks.
+    local workshop_hooks_dir="$root/.claude/hooks"
+    local in_fixture=1
+    [ "$(cd "$HOOKS_DIR" && pwd)" = "$(cd "$workshop_hooks_dir" && pwd 2>/dev/null)" ] && in_fixture=0
+
+    if [ "$in_fixture" = "1" ]; then
+        # Fixture must opt in by providing both an index_order and a sidecar HOOKS.md.
+        local order_file="$HOOKS_DIR/lib/dispatch-order.json"
+        [ -f "$order_file" ] || return 0
+        jq -e '.index_order // empty | type == "array"' "$order_file" >/dev/null 2>&1 || return 0
+        local fixture_md=""
+        if [ -f "$HOOKS_DIR/../HOOKS.md" ]; then
+            fixture_md="$HOOKS_DIR/../HOOKS.md"
+        elif [ -f "$HOOKS_DIR/HOOKS.md" ]; then
+            fixture_md="$HOOKS_DIR/HOOKS.md"
+        else
+            return 0
+        fi
+        local out rc
+        out=$(CLAUDE_TOOLKIT_HOOKS_DIR="$HOOKS_DIR" \
+              CLAUDE_TOOLKIT_HOOKS_INDEX_MD="$fixture_md" \
+              bash "$renderer" render hooks --check 2>&1)
+        rc=$?
+    else
+        local out rc
+        out=$(bash "$renderer" render hooks --check 2>&1)
+        rc=$?
+    fi
+    if [ "$rc" = "1" ]; then
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            err "V12" "$line — run: make hooks-render"
+        done <<<"$out"
+    fi
+}
+
 # ---- V13: OPT-IN value is in allowed enum ----
 check_V13() {
     for name in "${!HEADER_JSON[@]}"; do
@@ -679,6 +730,7 @@ check_V8
 check_V9
 check_V10
 check_V11
+check_V12
 check_V13
 check_V14
 check_V15
@@ -692,10 +744,10 @@ floor_note=""
 [ -n "${PERF_FLOOR_MS:-}" ] && floor_note=" (V20 bash+jq floor ${PERF_FLOOR_MS}ms)"
 echo ""
 if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
-    echo -e "${GREEN}Hook header validation passed.${NC} 18 checks ran, 0 errors, 0 warnings across $total hooks${floor_note}."
+    echo -e "${GREEN}Hook header validation passed.${NC} 19 checks ran, 0 errors, 0 warnings across $total hooks${floor_note}."
     exit 0
 elif [ "$ERRORS" -eq 0 ]; then
-    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 18 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks${floor_note}."
+    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 19 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks${floor_note}."
     exit 0
 else
     echo -e "${RED}Hook header validation failed.${NC} $ERRORS error(s), $WARNINGS warning(s) across $total hooks${floor_note}."

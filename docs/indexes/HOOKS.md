@@ -13,26 +13,31 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 
 ## Included Hooks
 
+<!-- BEGIN: hooks-table -->
+<!-- Auto-generated. Run `make hooks-render` after editing .claude/hooks/*.sh CC-HOOK headers. -->
+
 | Hook | Status | Trigger | Opt-in | Description |
 |------|--------|---------|--------|-------------|
-| `session-start.sh` | stable | SessionStart | `lessons` (partial) | Loads essential docs, git context, lessons (if enabled), and toolkit version drift check. Also emits the ecosystems opt-in nudge when neither env key is set. Persists a structured row (branch, main branch, cwd) into `session-start-context.jsonl` for downstream consumers (claude-sessions projector) — gated by `traceability`. |
-| `detect-session-start-truncation.sh` | stable | UserPromptSubmit | — | Fires once per session (marker-file guard). Checks transcript for harness truncation of SessionStart output. Warns model when essential docs may be incomplete. Logs via hook-utils (outcome: `pass` when clean, `injected` when truncated). |
-| `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Blocks unsafe git operations: protected branch enforcement + remote-destructive commands |
-| `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks the classifier from auto-approving every entry in `settings.json` `permissions.ask` — `git push`, `gh` writes, `gh api`, `curl`, `wget`. Reading online and shared-state operations belong in interactive mode where `permissions.ask` prompts. No-op outside auto-mode |
-| `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Blocks commands carrying credential-shaped tokens in arguments (GitHub PAT, GitLab, Slack, AWS, OpenAI, Anthropic). Sibling to `secrets-guard` — that blocks credential reads at-rest; this blocks the in-flight payload (e.g. token already in context being pasted into `curl -H "Authorization: ..."`) |
-| `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
-| `block-destructive-sql.sh` | stable | Bash via dispatcher | — | Blocks unconditionally destructive SQL (DROP, TRUNCATE, predicate-less DELETE/UPDATE, ALTER TABLE DROP COLUMN) issued via `sqlite3`/`psql`/`mysql`/`duckdb` or `python -c`. Predicated mutations and reads pass through. No bypass mechanism — destructive SQL is the user's call to run directly outside the agent. |
-| `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
-| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | — | Blocks writes to shell config, SSH, and git config files |
-| `suggest-read-json.sh` | stable | Read via dispatcher | — | Blocks Read on large JSON files (>50KB, excludes common configs), points at `read-json` jq reference |
-| `enforce-uv-run.sh` | stable | Bash via dispatcher | — | Blocks direct `python`/`python3` calls, suggests `uv run python` |
-| `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Blocks bare `pytest`/`ruff`/`pre-commit`/`uv sync`/`docker` calls, suggests Make targets |
-| `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | `lessons` (injection only) | Surfaces relevant active lessons as additionalContext based on tool context keywords. Context logging runs independently (gated by `traceability`). |
-| `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | — | Auto-approves chained commands when all subcommands match safe prefixes |
-| `log-tool-uses.sh` | stable | PostToolUse | `traceability` | Pure logger — records every tool invocation (all tools, no matcher) to invocations.jsonl with duration_ms and tool_response for downstream idle-time classification |
-| `log-permission-denied.sh` | stable | PermissionDenied | `traceability` | Pure logger — captures auto-mode classifier denials into invocations.jsonl for downstream analytics |
-| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `block-destructive-sql`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 9 guards |
-| `grouped-read-guard.sh` | stable | PreToolUse (Read) | Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks |
+| `session-start.sh` | stable | SessionStart | — | Inject essential docs and git context at session start |
+| `detect-session-start-truncation.sh` | stable | UserPromptSubmit | — | Detect truncation of SessionStart attachment and warn the user once |
+| `git-safety.sh` | stable | PreToolUse (EnterPlanMode) + Bash via dispatcher | — | Block unsafe git operations on protected branches and remote-destructive ops |
+| `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Re-impose checkpoint for shared/publishing actions under auto mode |
+| `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Block commands carrying credential-shaped tokens in arguments |
+| `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Block rm -rf /, fork bombs, mkfs, and dd commands |
+| `block-destructive-sql.sh` | stable | Bash via dispatcher | — | Block unconditionally destructive SQL via sqlite3/psql/mysql/duckdb/python -c |
+| `secrets-guard.sh` | stable | PreToolUse (Grep) + Bash via dispatcher + Read via dispatcher | — | Block reaches towards .env, SSH keys, and cloud creds at-rest |
+| `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | — | Block writes to shell config, SSH files, and Claude settings |
+| `suggest-read-json.sh` | stable | Read via dispatcher | — | Block Read on large JSON files and suggest jq via Bash |
+| `enforce-uv-run.sh` | stable | Bash via dispatcher | — | Enforce uv run for Python commands when the venv is not activated |
+| `enforce-make-commands.sh` | stable | Bash via dispatcher | — | Redirect pytest and pre-commit invocations to make targets |
+| `surface-lessons.sh` | stable | PreToolUse (Bash\|Read\|Write\|Edit) | lessons | Surface relevant lessons based on tool context |
+| `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | — | Auto-approve chained Bash commands when every subcommand is safe |
+| `log-tool-uses.sh` | stable | PostToolUse | traceability | Log every tool invocation to invocations.jsonl |
+| `log-permission-denied.sh` | stable | PermissionDenied | traceability | Log auto-mode classifier denials to invocations.jsonl |
+| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | — | Dispatcher for Bash PreToolUse — amortizes startup across grouped checks |
+| `grouped-read-guard.sh` | stable | PreToolUse (Read) | — | Dispatcher for Read PreToolUse — amortizes startup across grouped checks |
+<!-- END: hooks-table -->
+
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
 ---
@@ -270,6 +275,20 @@ Pure logger for auto-mode classifier denials. No stdout output — denial stands
 - All subcommands match → auto-approve via `permissionDecision: "allow"`
 - Any don't match → stays silent (normal permission prompt shows)
 - Bails on: subshells `$(...)`, backticks, redirects (`>`, `>>`, `<`)
+
+### grouped-bash-guard.sh
+
+**Trigger**: PreToolUse (Bash)
+
+Default Bash dispatcher — sources `block-dangerous-commands`, `block-destructive-sql`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 9 guards.
+
+Order is the single source of truth in `.claude/hooks/lib/dispatch-order.json#dispatchers.grouped-bash-guard`. The dispatcher itself is generated from that order plus each hook's `DISPATCH-FN` header — see `.claude/scripts/hook-framework/render-dispatcher.sh` and `make hooks-render`.
+
+### grouped-read-guard.sh
+
+**Trigger**: PreToolUse (Read)
+
+Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks.
 
 ## Configuration
 

@@ -1,10 +1,21 @@
 # Changelog
 
-## [Unreleased]
+## [2.85.0] - 2026-05-06 - V12 hook validator + HOOKS.md mechanical generator
+
+### Added
+- **hooks-framework**: `cli/indexes/query.sh render hooks` regenerates the summary table in `docs/indexes/HOOKS.md` from each hook's `# CC-HOOK:` header block plus the new top-level `index_order` array in `.claude/hooks/lib/dispatch-order.json`. The table is bracketed by `<!-- BEGIN: hooks-table -->` / `<!-- END: hooks-table -->` sentinels — per-hook prose sections and framework-level intros stay hand-written. Honors `--check` mode and `CLAUDE_TOOLKIT_HOOKS_DIR` / `CLAUDE_TOOLKIT_HOOKS_INDEX_MD` env vars (used by V12 in fixture mode). Closes `hooks-validate-v12-hooks-md-drift`.
+- **hooks-framework**: V12 added to `.claude/scripts/hook-framework/validate.sh` — invokes the renderer in `--check` mode and surfaces drift with `run: make hooks-render` guidance. Skips synthetic V1–V17 fixtures that don't supply both an `index_order` array and a sidecar HOOKS.md. Validator summary now reads "19 checks ran".
+- **make**: `make hooks-render` now also renders HOOKS.md alongside the existing dispatcher render. Single command for "reconcile all generated artifacts under the hooks framework".
+
+### Tests
+- `tests/test-render-hooks-index.sh` — 8 unit tests for the renderer: sentinel-absent error, ordering follows `index_order`, row shape preserves the regex `validate-resources-indexed.sh:269` depends on (`` | `name.sh` | …``), pipe-alternation escape (`Write\|Edit`), `OPT-IN: none` → em dash, `--check` 0/1 exit on match/drift, `validate hooks` flags disk/index_order mismatch.
+- `tests/fixtures/hook-validator/v12-aligned/` and `v12-stale/` — minimal 2-hook fixtures wired into `tests/test-validate-hook-headers.sh`.
 
 ### Notes
-- Triaged `suggestions-box/` (2 self-reported issues, 1 cross-project issue, 1 cross-project doc). Filed 4 backlog tasks: `cli-backlog-update-scope-field` (P2, `backlog update` missing `--scope`), `skills-review-plan-green-seam-reframe` (P2, per-step-commit rule fights pre-commit on refactors — LSP-pilot evidence Phases 3–5), `skills-setup-worktree-partial-tracking` (P2, file-level overlay needed for partially-tracked `.claude/` dirs), `docs-ab-worktree-experiments-generalize` (P3, reframe sessions-specific bits in the new doc).
-- Accepted `relevant-workflow-ab_worktrees.md` (A/B experiments with worktrees) into `.claude/docs/`, indexed as `experimental`. Workshop-internal for now: excluded from base sync (`dist/base/EXCLUDE`), not in `dist/raiz/MANIFEST`. Pilot question ("should we include the LSP plugin in the toolkit?") was planned here, executed in claude-sessions; method belongs in this repo.
+- Consumed by **base** profile only: `cli/indexes/query.sh`, `.claude/hooks/lib/dispatch-order.json`, and `docs/indexes/HOOKS.md` ship via base sync (none in `dist/base/EXCLUDE`). None are in `dist/raiz/MANIFEST`, so raiz consumers don't see V12 — they ship the pre-rendered dispatchers but not the renderer or its inputs. Raiz sidecar is `skip: true` accordingly.
+- Folded from the previous `[Unreleased]` block (unrelated to V12 but landing in this release):
+  - Triaged `suggestions-box/` (2 self-reported issues, 1 cross-project issue, 1 cross-project doc). Filed 4 backlog tasks: `cli-backlog-update-scope-field` (P2, `backlog update` missing `--scope`), `skills-review-plan-green-seam-reframe` (P2, per-step-commit rule fights pre-commit on refactors — LSP-pilot evidence Phases 3–5), `skills-setup-worktree-partial-tracking` (P2, file-level overlay needed for partially-tracked `.claude/` dirs), `docs-ab-worktree-experiments-generalize` (P3, reframe sessions-specific bits in the new doc).
+  - Accepted `relevant-workflow-ab_worktrees.md` (A/B experiments with worktrees) into `.claude/docs/`, indexed as `experimental`. Workshop-internal for now: excluded from base sync (`dist/base/EXCLUDE`), not in `dist/raiz/MANIFEST`. Pilot question ("should we include the LSP plugin in the toolkit?") was planned here, executed in claude-sessions; method belongs in this repo.
 
 ## [2.84.1] - 2026-05-06 - hook-audit Wave 1 follow-ups (perf, predicate fixes, pair refactors)
 

@@ -92,6 +92,7 @@ render:
 
 hooks-render:
 	@bash .claude/scripts/hook-framework/render-dispatcher.sh
+	@bash cli/indexes/query.sh render hooks
 
 hooks-smoke:
 	@bash tests/hooks/run-smoke-all.sh -q

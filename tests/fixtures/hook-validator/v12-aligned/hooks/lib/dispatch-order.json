@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "dispatchers": {},
+  "index_order": [
+    "sample-guard",
+    "sample-logger"
+  ]
+}

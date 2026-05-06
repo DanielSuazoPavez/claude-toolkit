@@ -134,6 +134,16 @@ _run_case "v11-stale"
 assert_exit "exit 1" 1 "$_EC"
 assert_err_contains "V11 fires when generated dispatcher drifts from a fresh render" 'V11.*hooks-render'
 
+report_section "v12-aligned — HOOKS.md table matches headers"
+_run_case "v12-aligned"
+assert_exit "exit 0" 0 "$_EC"
+assert_err_not_contains "V12 does not fire when table is fresh" 'V12'
+
+report_section "v12-stale"
+_run_case "v12-stale"
+assert_exit "exit 1" 1 "$_EC"
+assert_err_contains "V12 fires when HOOKS.md table drifts from CC-HOOK headers" 'V12.*hooks-render'
+
 report_section "v9-double-registration"
 _run_case "v9-double-registration"
 assert_exit "exit 1" 1 "$_EC"
