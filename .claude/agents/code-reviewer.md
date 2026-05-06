@@ -110,8 +110,8 @@ Same finding, different severity — because the context is different.
 ## Output Path
 
 1. Use `git branch --show-current` for the branch name (replace `/` with `-`)
-2. Use `date +%Y%m%d_%H%M` for the timestamp
-3. Write to: `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__code-reviewer__{branch}.md`
+2. Use `date +%Y%m%dT%H%M` for the timestamp
+3. Write to: `output/claude-toolkit/reviews/{YYYYMMDD}T{HHMM}__code-reviewer__{branch}.md`
    - The Write tool creates directories as needed
 
 Write the skeleton in Phase 0, update throughout, finalize in Final phase.

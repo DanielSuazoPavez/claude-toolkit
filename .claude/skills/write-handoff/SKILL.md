@@ -32,7 +32,7 @@ Is this information...
 
 ## Output
 
-`output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md` - self-contained file to restore context after `/clear`.
+`output/claude-toolkit/sessions/{YYYYMMDD}T{HHMM}__write-handoff__{context}.md` - self-contained file to restore context after `/clear`.
 
 ## Instructions
 
@@ -53,7 +53,7 @@ find . -name "*.py" -o -name "*.md" | xargs ls -lt 2>/dev/null | head -15
 
 ### 2. Generate the Continuation File
 
-Create `output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md` with this structure (use branch name or topic as context slug):
+Create `output/claude-toolkit/sessions/{YYYYMMDD}T{HHMM}__write-handoff__{context}.md` with this structure (use branch name or topic as context slug):
 
 ```markdown
 # Continue Session: [Date] [Time]
@@ -103,7 +103,7 @@ The **Resume Prompt** section is a paste-ready sentence for the next session. It
 ### 4. Output
 
 1. Create directory if needed: `mkdir -p output/claude-toolkit/sessions`
-2. Write the file to `output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
+2. Write the file to `output/claude-toolkit/sessions/{YYYYMMDD}T{HHMM}__write-handoff__{context}.md`
 3. Report with the resume prompt from the continuation file:
 
 ```
@@ -208,7 +208,7 @@ Before outputting "Wrote continuation file", verify:
 - [ ] **Uncommitted changes listed?** `git status` summary present
 - [ ] **Next steps actionable?** Specific files and line numbers, not vague
 - [ ] **Blockers noted?** Anything that prevents immediate resumption
-- [ ] **File path correct?** `output/claude-toolkit/sessions/{YYYYMMDD}_{HHMM}__write-handoff__{context}.md`
+- [ ] **File path correct?** `output/claude-toolkit/sessions/{YYYYMMDD}T{HHMM}__write-handoff__{context}.md`
 - [ ] **Resume prompt actionable?** Combines file read + intent + next action in one sentence
 
 If any check fails, fix the continuation file before announcing completion.

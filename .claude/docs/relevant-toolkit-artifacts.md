@@ -10,7 +10,7 @@
 Standard output path for runtime artifacts produced by skills and agents:
 
 ```
-output/claude-toolkit/<category>/{YYYYMMDD}_{HHMM}__<source>__<slug>.md
+output/claude-toolkit/<category>/{YYYYMMDD}T{HHMM}__<source>__<slug>.md
 ```
 
 **See also:** `relevant-toolkit-resource_naming` for naming of the resources themselves (skills, agents, hooks, docs)
@@ -23,23 +23,23 @@ output/claude-toolkit/<category>/{YYYYMMDD}_{HHMM}__<source>__<slug>.md
 |------|------|---------|
 | `<category>` | Lowercase kebab-case; emergent — pick the closest existing directory under `output/claude-toolkit/` before inventing a new one | `analysis`, `reviews`, `sessions`, `plans`, `brainstorm` |
 | `{YYYYMMDD}` | 8-digit date, no separators | `20260423` |
-| `_` | Single underscore between date and time | — |
-| `{HHMM}` | 4-digit 24h time, no separator | `1410` |
-| `__` | Double underscore separates timestamp, source, slug | — |
+| `T` | Literal `T` separates date and time (ISO-8601-flavored) | — |
+| `{HHMM}` | 4-digit 24h time, no separator. Use `0000` for date-only artifacts | `1410` |
+| `__` | Double underscore separates timestamp, source, slug. The only `_` runs of length ≥ 2 in a filename | — |
 | `<source>` | The skill or agent name that produced the artifact (kebab-case, matches the resource filename) | `analyze-idea`, `code-reviewer` |
 | `<slug>` | Short lowercase-kebab descriptor of the specific artifact | `v3-e1-validators-bundle` |
 | `.md` | Always markdown | — |
 
 **Full example:**
-`output/claude-toolkit/analysis/20260423_1410__analyze-idea__v3-e1-validators-bundle.md`
+`output/claude-toolkit/analysis/20260423T1410__analyze-idea__v3-e1-validators-bundle.md`
 
 ---
 
 ## 3. Why This Format
 
-- **Sortable by time** — `YYYYMMDD_HHMM` sorts lexically in filename order.
+- **Sortable by time** — `YYYYMMDDTHHMM` sorts lexically in filename order.
 - **Greppable by source** — `__<source>__` is a double-underscored island, easy to filter (`ls | grep __analyze-idea__`).
-- **No ambiguity at the category boundary** — the double underscore after the timestamp prevents category-name / source-name collision.
+- **Unambiguous field boundary** — `T` separates date and time, so `__` only ever appears between fields. A strict reader can split a basename on `__` into exactly `[timestamp, source, slug]`, even when slugs contain single underscores internally.
 - **One line encodes provenance** — given any artifact, you can tell *when*, *what produced it*, and *what it's about* without opening the file.
 
 ---
@@ -75,7 +75,8 @@ These are not exceptions to the format — they're *not artifacts* in the first 
 
 ## 6. Gotchas
 
+- **Don't use `_` between date and time.** `YYYYMMDD_HHMM` is the legacy form (it collides visually with the `__` field separator); `YYYYMMDDTHHMM` is current. The backfill script `.claude/scripts/normalize-artifact-timestamps.sh` migrates legacy basenames idempotently.
 - **Don't use `YYYY-MM-DD`.** The hyphenated form has appeared in some older `plans/` artifacts; treat those as pre-convention and don't reproduce the format.
 - **Don't use underscores in the source slot.** `review-plan`, not `review_plan` — source must match the skill/agent filename exactly.
 - **Timestamp is creation time, not current time at every rewrite.** If the agent rewrites the file mid-session, the filename stays fixed — the artifact is immutable-by-name.
-- **Slug goes last, not second.** `{YYYYMMDD}_{HHMM}__<source>__<slug>` — filenames sort by time first, then group visually by source.
+- **Slug goes last, not second.** `{YYYYMMDD}T{HHMM}__<source>__<slug>` — filenames sort by time first, then group visually by source.

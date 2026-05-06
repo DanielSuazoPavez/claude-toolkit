@@ -45,6 +45,7 @@ For user-facing CLI tools, see `cli/` (`backlog/`, `eval/`, `lessons/`).
 | Script | Status | Ships | Description |
 |--------|--------|-------|-------------|
 | `migrate-backlog-to-json.sh` | stable | base | Migrates `BACKLOG.md` to `BACKLOG.json` — parses goals, scope definitions, tasks with metadata |
+| `normalize-artifact-timestamps.sh` | stable | base | One-shot backfill — renames artifact filenames under `output/claude-toolkit/` from legacy `_`/hyphen timestamp forms to the current `YYYYMMDDTHHMM__source__slug.md` convention; idempotent, dry-run by default |
 
 ## Maintenance (workshop-only)
 

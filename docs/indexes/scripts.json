@@ -37,7 +37,8 @@
     { "path": "lib/profile.sh",                  "family": "libraries",   "status": "stable", "description": "`detect_profile` — prints `workshop`/`base`/`raiz` so shipped scripts can branch on deployment context" },
     { "path": "lib/settings-integrity.sh",       "family": "libraries",   "status": "stable", "description": "`settings_integrity_check` — SessionStart tripwire for `.claude/settings.json` rewrites; sourced by `hooks/session-start.sh`" },
 
-    { "path": "migrate-backlog-to-json.sh",      "family": "migration",   "status": "stable", "description": "Migrates `BACKLOG.md` to `BACKLOG.json` — parses goals, scope definitions, tasks with metadata" },
+    { "path": "migrate-backlog-to-json.sh",          "family": "migration",   "status": "stable", "description": "Migrates `BACKLOG.md` to `BACKLOG.json` — parses goals, scope definitions, tasks with metadata" },
+    { "path": "normalize-artifact-timestamps.sh",    "family": "migration",   "status": "stable", "description": "One-shot backfill — renames artifact filenames under `output/claude-toolkit/` from legacy `_`/hyphen timestamp forms to the current `YYYYMMDDTHHMM__source__slug.md` convention; idempotent, dry-run by default" },
 
     { "path": "validate-dist-manifests.sh",      "family": "maintenance", "status": "stable", "description": "Checks every entry in dist/raiz/MANIFEST and dist/base/EXCLUDE resolves to a real path on disk; toolkit-source-tree only" },
     { "path": "check-runner.sh",                 "family": "maintenance", "status": "stable", "description": "Wrapper for `make check` — orchestrates the four phases (test, lint-bash, validate, hooks-smoke), prints a compact summary, and dumps failing-phase logs inline; workshop-only" },

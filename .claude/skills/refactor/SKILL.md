@@ -93,7 +93,7 @@ Apply each lens. Skip what's clean, report only what's relevant. Use `file:line`
 
 ### Step 4: Write Analysis Document
 
-Save to: `output/claude-toolkit/analysis/{YYYYMMDD}_{HHMM}__refactor__{target}.md`
+Save to: `output/claude-toolkit/analysis/{YYYYMMDD}T{HHMM}__refactor__{target}.md`
 
 Use the output format below. For **cosmetic** triage level, output only the Triage section plus a short suggestion list — don't generate a full document.
 

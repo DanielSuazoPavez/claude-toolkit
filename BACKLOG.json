@@ -906,18 +906,6 @@
       "notes": "Adversarial survey of the hook layer. Wear an attacker hat, enumerate the bypass surface across reader substitution, path-shape evasion, indirection, tool-channel switching, output side channels, hook-disabling vectors, TOCTOU. Deliverable is a writeup at output/claude-toolkit/analysis/<date>__hook-bypass-survey.md with bypass categories, examples, and triage. Concrete close-the-gap items spawn their own tasks. Defense-in-depth, not blocking — P3 reflects 'do when there's slack'.\n\nSee: output/claude-toolkit/backlog-notes/hook-bypass-adversarial-survey.md"
     },
     {
-      "id": "timestamp-standard-define-and-backfill",
-      "priority": "P1",
-      "title": "Define project-wide timestamp standard, backfill existing dated artifacts",
-      "scope": [
-        "docs",
-        "toolkit"
-      ],
-      "status": "idea",
-      "source": "2026-05-06 grounding session — surfaced via plan-name normalization discussion",
-      "notes": "Define a project-wide timestamp standard for dated artifacts: YYYYmmddTHHMM__<source>__<slug>.md (ISO-flavored, T separator, double-underscore field separators, kebab slug). Document in .claude/docs/, backfill existing files under output/claude-toolkit/{plans,analysis,...}, update skill templates. Blocks plan-name-normalization-hook.\n\nSee: output/claude-toolkit/backlog-notes/timestamp-standard-define-and-backfill.md"
-    },
-    {
       "id": "plan-name-normalization-hook",
       "priority": "P0",
       "title": "Normalize EnterPlanMode plan filenames via PostToolUse(Write) hook",
@@ -987,6 +975,16 @@
       "status": "idea",
       "source": "output/claude-toolkit/exploration/study-superpowers-optimized-patterns.md",
       "notes": "Add to create-skill/SKILL.md anti-patterns: 'Don't ask the agent to summarize its own prior turns into a new prompt; persist durable state to a file instead.' Smell to flag in skill review. Source: study-superpowers-optimized-patterns.md (Pattern 3). 'Do LLMs Benefit from Their Own Words?' — models over-condition on their own previous outputs."
+    },
+    {
+      "id": "test-verify-external-deps-flake",
+      "priority": "P3",
+      "title": "Investigate transient flake in test-verify-external-deps under make check",
+      "scope": [
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "During the 2.83.0 wrap-up make check run, test-verify-external-deps failed once on the \"Expected ✓ bash in output\" assertion even though the captured output did contain `✓ bash`. Re-running the test in isolation passed 19/19; the next make check passed cleanly. Not reproduced. Likely a parallel-runner quirk (TEMP_DIR, fixture race, or stdout/stderr interleaving under load) but unverified — investigate if it recurs. Source: 2026-05-06 timestamp-standard-iso-t branch wrap-up."
     }
   ]
 }
