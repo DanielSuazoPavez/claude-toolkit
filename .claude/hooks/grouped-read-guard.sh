@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Dispatcher for Read PreToolUse — amortizes startup across grouped checks
 # CC-HOOK: EVENTS: PreToolUse(Read)
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=75, scope_hit=120
 # CC-HOOK: OPT-IN: none
 #
 # PreToolUse hook: grouped Read/Grep guard — dispatcher that amortizes bash

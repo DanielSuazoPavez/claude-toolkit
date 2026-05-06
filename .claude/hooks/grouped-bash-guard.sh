@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Dispatcher for Bash PreToolUse — amortizes startup across grouped checks
 # CC-HOOK: EVENTS: PreToolUse(Bash)
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=150, scope_hit=220
 # CC-HOOK: OPT-IN: none
 #
 # PreToolUse hook: grouped Bash guard — dispatcher that amortizes bash
