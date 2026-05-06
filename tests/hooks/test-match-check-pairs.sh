@@ -47,6 +47,7 @@ source "$HOOKS_DIR/suggest-read-json.sh"
 declare -A MATCH_FN=(
     [auto-mode-shared-steps]=match_auto_mode_shared_steps
     [block-config-edits]=match_config_edits
+    [block-config-edits-path]=match_config_edits_path
     [block-credential-exfiltration]=match_credential_exfil
     [block-dangerous-commands]=match_dangerous
     [enforce-make-commands]=match_make
@@ -60,6 +61,7 @@ declare -A MATCH_FN=(
 declare -A CHECK_FN=(
     [auto-mode-shared-steps]=check_auto_mode_shared_steps
     [block-config-edits]=check_config_edits
+    [block-config-edits-path]=check_config_edits_path
     [block-credential-exfiltration]=check_credential_exfil
     [block-dangerous-commands]=check_dangerous
     [enforce-make-commands]=check_make
@@ -178,6 +180,7 @@ _reset_inputs() {
     GREP_PATH=""
     GREP_GLOB=""
     PERMISSION_MODE=""
+    VERB=""
     _BLOCK_REASON=""
 }
 
@@ -363,12 +366,13 @@ COMMAND='echo "to push run: git push"'
 assert_check_pass auto-mode-shared-steps "check_ does not block git push mentioned only inside a quoted string"
 
 # ============================================================
-# block-config-edits  (Bash branch only)
+# block-config-edits  (Bash branch)
 # ============================================================
-# Write/Edit branches run inline in main() — out of scope here, tracked as
-# hook-audit-01-block-config-edits-write-edit-pair.
+# Write/Edit branches now route through match_config_edits_path /
+# check_config_edits_path — covered separately in the
+# block-config-edits-path section below.
 _reset_inputs
-report_section "block-config-edits"
+report_section "block-config-edits (Bash branch)"
 
 COMMAND="ls -la"
 assert_match_miss block-config-edits "match_config_edits misses on ls"
@@ -392,6 +396,42 @@ assert_check_block block-config-edits "shell/SSH/git config" "check_config_edits
 # Bare write to .claude/settings.json — block
 COMMAND='echo {} > .claude/settings.json'
 assert_check_block block-config-edits ".claude/settings" "check_config_edits blocks bare write to .claude/settings.json"
+
+# ============================================================
+# block-config-edits  (Write/Edit pair)
+# ============================================================
+# Pair: match_config_edits_path / check_config_edits_path. Drives the home
+# config-block branch (rc=1, _BLOCK_REASON set). The .claude/settings*.json
+# branch goes through _settings_decision which exits via hook_block/hook_ask
+# — that path is exercised by Shape B (test-block-config.sh) instead, since
+# Shape A runs sourced and an exit would terminate the test process.
+_reset_inputs
+report_section "block-config-edits (Write/Edit pair)"
+
+FILE_PATH="/tmp/notes.txt"
+assert_match_miss block-config-edits-path "match_config_edits_path misses on unrelated path"
+
+FILE_PATH="$HOME/.bashrc"
+VERB="Writing"
+assert_match_hit   block-config-edits-path "match_config_edits_path hits on ~/.bashrc"
+assert_check_block block-config-edits-path "Writing to shell/SSH/git" "check_config_edits_path blocks Write to ~/.bashrc"
+
+FILE_PATH="$HOME/.zshrc"
+VERB="Editing"
+assert_check_block block-config-edits-path "Editing shell/SSH/git" "check_config_edits_path blocks Edit on ~/.zshrc"
+
+FILE_PATH="$HOME/.ssh/authorized_keys"
+VERB="Writing"
+assert_check_block block-config-edits-path "Writing to shell/SSH/git" "check_config_edits_path blocks Write to ~/.ssh/authorized_keys"
+
+FILE_PATH="$HOME/.gitconfig"
+VERB="Editing"
+assert_check_block block-config-edits-path "Editing shell/SSH/git" "check_config_edits_path blocks Edit on ~/.gitconfig"
+
+# Predicate fires on settings paths too (superset of check_) — match-only
+# assertion since check_ would exit through _settings_decision.
+FILE_PATH=".claude/sett""ings.json"
+assert_match_hit block-config-edits-path "match_config_edits_path hits on .claude/settings.json (settings branch covered by Shape B)"
 
 # ============================================================
 # git-safety  (Bash branch only)
