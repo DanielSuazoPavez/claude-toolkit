@@ -1,0 +1,6 @@
+{
+  "version": "2.82.3",
+  "date": "2026-05-06",
+  "skip": true,
+  "reason": "Workshop-internal CLI fix (cli/backlog/query.sh). Not in dist/raiz/MANIFEST — raiz consumers don't use the workshop CLI."
+}
