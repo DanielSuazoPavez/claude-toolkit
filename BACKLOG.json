@@ -12,23 +12,6 @@
   "current_goal": "**v3 — Final polish before cut.** Addressing important features (memory, context management, bash output compression), architectural decisions (packaging, distribution, sync profiles), and polishing rough edges (test suite performance, frontmatter normalization). P99 tasks are deferred — ignore unless explicitly prompted. The line between \"what ships in v3\" and \"what comes after\" is being drawn now.",
   "tasks": [
     {
-      "id": "study-superpowers-optimized-patterns",
-      "priority": "P1",
-      "title": "Study targeted patterns from REPOZY/superpowers-optimized",
-      "scope": [
-        "toolkit",
-        "agents",
-        "docs"
-      ],
-      "relates_to": [
-        "agent-reasoning-activation:relates-to",
-        "convention-refinements-anbeeld:relates-to",
-        "bash-output-compression-hook:relates-to"
-      ],
-      "notes": "Three patterns from REPOZY/superpowers-optimized worth deeper study (not adopting the system). Self-consistency reasoning (Wang et al. ICLR 2023) — evaluate for code-debugger and goal-verifier. AGENTbench findings on instruction volume — implications for resource generation. 'Do LLMs Benefit from Their Own Words?' — implications for session continuity and subagent prompts. 'Compliance != competence' as a checklist lens for create-* and evaluate-* skills.\n\nSee: output/claude-toolkit/backlog-notes/study-superpowers-optimized-patterns.md",
-      "status": "idea"
-    },
-    {
       "id": "surface-docs-hook",
       "priority": "P3",
       "title": "`surface-docs.sh` hook — context-aware doc surfacing",
@@ -254,16 +237,6 @@
       ],
       "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Claude Code has native LSP client support (confirmed in v2.1.121 `--bare` flag docs) with 14 LSP plugins in the official marketplace (`anthropics/claude-plugins-official`). Plugins are thin JSON manifests — e.g. pyright-lsp just declares `{\"command\": \"pyright-langserver\", \"args\": [\"--stdio\"], \"extensionToLanguage\": {\".py\": \"python\"}}`. Tasks: (1) install `pyright-lsp` plugin, test impact on code navigation speed/accuracy for this bash+python codebase; (2) assess whether custom LSP configs (without the marketplace plugin) are viable — the plugin format is trivial enough to self-author; (3) evaluate what LSP capabilities are actually exposed (blog claims goToDefinition/findReferences/hover — verify against real behavior); (4) decide whether LSP belongs in the toolkit's recommended setup or stays opt-in per-project. Skip Serena (tried before, too much bloat) and typescript-lsp (not needed). Cross-reference with `eval-claude-mem` for broader context-retrieval strategy. Source: karanbansal.in/blog/claude-code-lsp/ (mixed real+fabricated details — use official plugin docs as canonical source).",
       "status": "idea"
-    },
-    {
-      "id": "backlog-render-priority-flag",
-      "priority": "P1",
-      "title": "`backlog render` ignores `--priority` filter (writes to literal `--priority` file)",
-      "scope": [
-        "cli"
-      ],
-      "status": "idea",
-      "notes": "Surfaced 2026-04-29: `claude-toolkit backlog render --priority P1,P2,P3` should filter the rendered BACKLOG.md output, but instead treats `--priority` as the output path argument and writes the rendered backlog into a literal file named `--priority` in the cwd. Also reports \"Rendered 30 tasks to --priority\" — count is the full set, ignoring the intended filter. Root cause likely in cli/backlog/render.sh argument parsing — render does not accept the `--priority` flag, but the dispatcher passes it through as a positional path. Either reject unknown flags or implement priority filtering for render."
     },
     {
       "id": "validate-settings-permissions",
@@ -967,6 +940,53 @@
       "status": "idea",
       "source": "2026-05-06 grounding session — after externalizing 8 over-stuffed task notes",
       "notes": "claude-toolkit backlog validate should fail when a task's notes exceeds the threshold (proposed: 800 chars). Long content lives in output/claude-toolkit/backlog-notes/<id>.md; in-backlog note becomes a slim pitch + pointer. Make threshold configurable. Sweep existing backlog before flipping the validator on so make check doesn't immediately fail.\n\nSee: output/claude-toolkit/backlog-notes/backlog-notes-length-validator.md"
+    },
+    {
+      "id": "code-debugger-parallel-hypotheses",
+      "priority": "P3",
+      "title": "Add early-phase parallel-hypothesis step to code-debugger",
+      "scope": [
+        "agents"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/exploration/study-superpowers-optimized-patterns.md",
+      "notes": "Pre-loop step: generate 3 independent root-cause hypotheses from symptoms alone (no shared framing), check clustering, stop and report ambiguity if they scatter. Then enter the existing hypothesis-elimination loop. Targets the anchoring failure mode where hypothesis 2 inherits framing from hypothesis 1. Source: study-superpowers-optimized-patterns.md (Pattern 1 verdict). Self-consistency reasoning, Wang et al. ICLR 2023."
+    },
+    {
+      "id": "evaluate-rubrics-rule-restatement-check",
+      "priority": "P3",
+      "title": "Add rule-restatement check to evaluate-* rubrics",
+      "scope": [
+        "skills"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/exploration/study-superpowers-optimized-patterns.md",
+      "notes": "Add a sub-check (under D5 Progressive Disclosure or as a new dimension) that penalizes the same rule expressed in multiple scoring tables or restated across sections within a single file. Cost: reconciliation overhead at runtime. Apply to evaluate-skill, evaluate-agent, evaluate-docs, evaluate-hook. Source: study-superpowers-optimized-patterns.md (Pattern 2). AGENTbench instruction-volume finding."
+    },
+    {
+      "id": "evaluate-skill-trim-d1-d2-restatement",
+      "priority": "P3",
+      "title": "Trim D1/D2 restatement in evaluate-skill rubric",
+      "scope": [
+        "skills"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/exploration/study-superpowers-optimized-patterns.md",
+      "notes": "evaluate-skill/SKILL.md describes D1 in three different scoring tables (Dimension Adjustments, D1 Scoring Calibration for Command Type, Scoring Calibration -> D1). D2 has similar partial restatement. Consolidate into one calibration per dimension with a clear branch for command vs knowledge type. Apply the heuristic from evaluate-rubrics-rule-restatement-check to its own author. Source: study-superpowers-optimized-patterns.md (Pattern 2).",
+      "relates_to": [
+        "evaluate-rubrics-rule-restatement-check:depends-on"
+      ]
+    },
+    {
+      "id": "create-skill-anti-pattern-no-self-recap",
+      "priority": "P3",
+      "title": "Anti-pattern note in create-skill: don't recap own turns",
+      "scope": [
+        "skills"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/exploration/study-superpowers-optimized-patterns.md",
+      "notes": "Add to create-skill/SKILL.md anti-patterns: 'Don't ask the agent to summarize its own prior turns into a new prompt; persist durable state to a file instead.' Smell to flag in skill review. Source: study-superpowers-optimized-patterns.md (Pattern 3). 'Do LLMs Benefit from Their Own Words?' — models over-condition on their own previous outputs."
     }
   ]
 }

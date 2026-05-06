@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.82.3] - 2026-05-06 - backlog CLI rejects unknown flags
+
+### Fixed
+- **cli**: `claude-toolkit backlog` now rejects unknown flags instead of silently dropping them into positional args. The trigger: `claude-toolkit backlog render --priority P1,P2,P3` was writing the rendered backlog into a literal file named `--priority` and reporting "Rendered N tasks to --priority" — render takes no `--priority` flag, but the top-level flag parser passed unrecognized `--*` tokens through to the subcommand as positionals. Now: unknown flags before any subcommand error at the top level (exit 2); after a subcommand, `add`/`update` continue to parse their own flags, and every other (query) subcommand rejects any `-*` token in its args with `unknown flag for '<sub>': <flag>`.
+
+### Notes
+- Workshop-internal: `cli/backlog/query.sh` is the workshop's own CLI; it is not in `dist/raiz/MANIFEST` (raiz sidecar carries `skip: true`).
+- **backlog**: removed `study-superpowers-optimized-patterns` (umbrella idea) and split it into four scoped follow-ups sourced from `output/claude-toolkit/exploration/study-superpowers-optimized-patterns.md` — `code-debugger-parallel-hypotheses` (P3, agents), `evaluate-rubrics-rule-restatement-check` (P3, skills), `evaluate-skill-trim-d1-d2-restatement` (P3, skills), `create-skill-anti-pattern-no-self-recap` (P3, skills).
+
 ## [2.82.2] - 2026-05-06 - secrets-guard covers shell and REPL history files
 
 ### Fixed
