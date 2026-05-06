@@ -913,19 +913,6 @@
       "notes": "Hit twice during block-destructive-sql implementation: 'local in=$1 out= len=${#in}' on a single line evaluates ${#in} before in is assigned in some bash configurations, leaving len=0 — the function silently does nothing. For pure-validation helpers this presents as 'function returns false / never matches', which in a blocking guardrail looks identical to 'no destructive content found' and the hook silently allows. Sweep all PreToolUse blocking hooks in .claude/hooks/ for this pattern (single-line locals where one assignment derives from another via parameter expansion) and split them into separate local statements. Also worth adding a one-paragraph note to .claude/docs/relevant-toolkit-hooks.md so the next contributor doesn't relearn it. Surfaced by /review-security INFO #6."
     },
     {
-      "id": "hooks-validate-v12-hooks-md-drift",
-      "priority": "P1",
-      "title": "Hook validator V12 — generate HOOKS.md from headers, fail on drift",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Add V12 from C4 of the referenced design doc: a render-hooks-index.sh generator that produces docs/indexes/HOOKS.md from CC-HOOK headers, plus a validator check that fails on drift (mirrors the V11 pattern for dispatchers). HOOKS.md is currently hand-maintained — without V12 the SSOT claim is incomplete.",
-      "references": [
-        "design/hook-framework-refactor.md"
-      ]
-    },
-    {
       "id": "hooks-block-destructive-sql-stdin-coverage",
       "priority": "P2",
       "title": "Hook: cover stdin/file-driven SQL gap in block-destructive-sql",
