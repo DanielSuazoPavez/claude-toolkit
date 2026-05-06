@@ -113,6 +113,59 @@ hook_log_substep() {
 }
 
 # ============================================================
+# _hook_flush_substeps  (internal — flush buffered dispatcher substep rows)
+# ============================================================
+# Drains the _SUBSTEP_* arrays (initialized in hook_init, populated by
+# dispatchers) into invocations.jsonl in one jq invocation. Replaces N
+# per-substep jq forks with 1 fork, the dominant cost in dispatcher hot
+# path. Each buffered tuple becomes one JSONL row identical in shape to
+# what hook_log_substep would emit — downstream consumers see no change.
+# Wired into _hook_log_timing's EXIT trap before the invocation row write.
+_hook_flush_substeps() {
+    local n=${#_SUBSTEP_NAMES[@]}
+    [ "$n" -gt 0 ] || return 0
+    hook_feature_enabled traceability || return 0
+    _ensure_project
+
+    # Build a TSV stream with name/duration/outcome/bytes per row, then let
+    # jq parse it via --raw-input --slurp into the row array. Names and
+    # outcomes are hook-controlled (substep names like "check_dangerous",
+    # outcomes from a closed enum) so tab/newline are not expected; defensive
+    # guard would be `sub("\t"; " ")` but we keep the path short.
+    local rows tsv=""
+    local i
+    for (( i=0; i<n; i++ )); do
+        tsv+="${_SUBSTEP_NAMES[i]}	${_SUBSTEP_DURATIONS[i]}	${_SUBSTEP_OUTCOMES[i]}	${_SUBSTEP_BYTES[i]}
+"
+    done
+    rows=$(printf '%s' "$tsv" | jq -c -R --slurp --arg kind "substep" \
+        --arg session_id "$SESSION_ID" \
+        --arg invocation_id "$INVOCATION_ID" \
+        --arg timestamp "$_HOOK_TIMESTAMP" \
+        --arg project "$PROJECT" \
+        --arg hook_event "$HOOK_EVENT" \
+        --arg hook_name "$HOOK_NAME" \
+        --arg tool_name "$TOOL_NAME" \
+        --arg source "$HOOK_SOURCE" \
+        --arg call_id "$CALL_ID" \
+        '
+        rtrimstr("\n") | split("\n") | .[] | split("\t") |
+        {kind:$kind, session_id:$session_id, invocation_id:$invocation_id,
+         timestamp:$timestamp, project:$project, hook_event:$hook_event,
+         hook_name:$hook_name, tool_name:$tool_name, section:.[0],
+         duration_ms:(.[1]|tonumber), outcome:.[2],
+         bytes_injected:(.[3]|tonumber), source:$source, call_id:$call_id}
+        ' 2>/dev/null) || return 0
+
+    # rows is N JSONL lines (one object per line, no top-level array). Append
+    # in one >> via printf so the kernel writes them contiguously; well under
+    # PIPE_BUF (4KB on Linux) for typical N ≤ 6 dispatchers.
+    [ -n "$rows" ] || return 0
+    mkdir -p "$HOOK_LOG_DIR" 2>/dev/null || return 0
+    printf '%s\n' "$rows" >> "$HOOK_LOG_DIR/invocations.jsonl" 2>/dev/null || true
+}
+
+# ============================================================
 # hook_log_context RAW_CONTEXT KEYWORDS MATCH_COUNT MATCHED_IDS
 # ============================================================
 hook_log_context() {
@@ -231,6 +284,12 @@ _hook_log_timing() {
     [ "$_HOOK_ACTIVE" = true ] || return 0
     hook_feature_enabled traceability || return 0
     _ensure_project
+
+    # Flush any buffered dispatcher substep rows before the invocation row.
+    # Order matters: substeps describe work that happened during the dispatch,
+    # the invocation row caps the firing — same chronological order downstream
+    # consumers saw before batching landed.
+    _hook_flush_substeps
     local end_ms ts
     end_ms=$(_now_ms)
     ts=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)

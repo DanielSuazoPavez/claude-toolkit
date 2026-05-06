@@ -218,7 +218,19 @@ _ensure_project() {
 hook_init() {
     HOOK_NAME="$1"
     HOOK_EVENT="$2"
-    
+
+    # Substep row buffer for dispatchers (grouped-bash-guard, grouped-read-guard).
+    # Dispatchers append per-substep tuples to these arrays during the dispatch
+    # loop; _hook_flush_substeps drains them in one jq invocation at EXIT,
+    # cutting ~35ms (bash-guard) / ~10ms (read-guard) from real-mode hot path.
+    # Reset on every hook_init so re-entry within one shell (e.g. a parent
+    # dispatcher sourcing a child dispatcher in tests) doesn't leak rows from
+    # the previous invocation.
+    _SUBSTEP_NAMES=()
+    _SUBSTEP_DURATIONS=()
+    _SUBSTEP_OUTCOMES=()
+    _SUBSTEP_BYTES=()
+
     # Skip stdin read when invoked from a TTY (manual debugging) — otherwise `cat` blocks forever.
     if [[ -t 0 ]]; then
         HOOK_INPUT=""
