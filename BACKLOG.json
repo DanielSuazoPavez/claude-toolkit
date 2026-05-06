@@ -764,16 +764,6 @@
       "status": "idea"
     },
     {
-      "id": "make-check-discipline-hook",
-      "priority": "P1",
-      "title": "Suggestion hook for piped/repeated make check (catch the discipline drift)",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Empirical: 36% of make check invocations are piped (205/574 in claude-toolkit hooks.db). Memory + CLAUDE.md doc-only enforcement is insufficient — agents drift even after correction. Add a PreToolUse(Bash) hook that surfaces (not blocks) when make check is filtered or re-run quickly after a fail. Likely folds into grouped-bash-guard.sh or enforce-make-commands.sh.\n\nSee: output/claude-toolkit/backlog-notes/make-check-discipline-hook.md"
-    },
-    {
       "id": "hook-audit-02-substep-batching",
       "priority": "P1",
       "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
