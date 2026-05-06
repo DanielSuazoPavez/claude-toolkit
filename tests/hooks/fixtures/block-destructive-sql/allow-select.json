@@ -1,0 +1,1 @@
+{"session_id":"smoke","tool_name":"Bash","tool_input":{"command":"sqlite3 lessons.db \"SELECT count(*) FROM lessons\""}}

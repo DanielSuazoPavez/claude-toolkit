@@ -1,0 +1,3 @@
+outcome=blocked
+hook_name=block-destructive-sql
+hook_event=PreToolUse

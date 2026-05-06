@@ -6,6 +6,7 @@
 # ====================================
 CHECK_SPECS=(
     "dangerous:block-dangerous-commands.sh"
+    "destructive_sql:block-destructive-sql.sh"
     "auto_mode_shared_steps:auto-mode-shared-steps.sh"
     "credential_exfil:block-credential-exfiltration.sh"
     "git_safety:git-safety.sh"
