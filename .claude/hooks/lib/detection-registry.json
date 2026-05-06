@@ -163,6 +163,14 @@
       "notes": "Hook must additionally check for embedded user:pass@ in remote URLs — registry signals shape only."
     },
     {
+      "id": "shell-history",
+      "kind": "path",
+      "target": "stripped",
+      "pattern": "\\.(bash_history|zsh_history|sh_history|history|python_history|node_repl_history|psql_history|mysql_history|sqlite_history|rediscli_history|irb_history|lesshst)$",
+      "message": "Shell or REPL history file referenced — may contain pasted tokens, leaked env exports, or credential-bearing commands.",
+      "notes": "Anchored on $ — derived/rotated forms (.bash_history.bak) won't match; the rule targets the canonical paths. $HISTFILE env var is out of scope (can't pattern-match without resolving). Home-rooted via _match_path_registry's default * clause."
+    },
+    {
       "id": "claude-settings",
       "kind": "path",
       "target": "raw",
