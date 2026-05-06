@@ -774,17 +774,6 @@
       "notes": "Empirical: 36% of make check invocations are piped (205/574 in claude-toolkit hooks.db). Memory + CLAUDE.md doc-only enforcement is insufficient — agents drift even after correction. Add a PreToolUse(Bash) hook that surfaces (not blocks) when make check is filtered or re-run quickly after a fail. Likely folds into grouped-bash-guard.sh or enforce-make-commands.sh.\n\nSee: output/claude-toolkit/backlog-notes/make-check-discipline-hook.md"
     },
     {
-      "id": "hooks-block-destructive-sql",
-      "priority": "P1",
-      "title": "Hook: block destructive SQL statements via Bash",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Surfaced 2026-04-30 during hook-framework-refactor design review — guardrail gap. block-dangerous-commands covers filesystem catastrophes but nothing covers irreversible SQL run via Bash (sqlite3, psql, mysql, duckdb invocations, plus interpreter-body writes via python -c). Pattern: mirror block-dangerous-commands shape — match_ on token presence, check_ on structural conditions (e.g. unconditional row deletion, schema-object teardown). Use _strip_inert_content to avoid matching SQL inside comments / heredocs / string literals. Allowlist for test fixtures via env or per-project settings. Lives at .claude/hooks/block-destructive-sql.sh, dispatched by grouped-bash-guard. Land after hook-framework-refactor so the new hook gets the header grammar + smoke test from the start. Reference test shape: tests/hooks/test-block-dangerous-commands.sh.",
-      "plan": "output/claude-toolkit/plans/20260506T1432__plan__hooks-block-destructive-sql.md"
-    },
-    {
       "id": "hook-audit-02-substep-batching",
       "priority": "P1",
       "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
@@ -996,10 +985,7 @@
       ],
       "status": "idea",
       "source": "analyze-idea report 2026-05-06",
-      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content).",
-      "relates_to": [
-        "hooks-block-destructive-sql:depends-on"
-      ]
+      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content)."
     },
     {
       "id": "hooks-v20-perf-budget-conflation",
