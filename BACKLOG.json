@@ -1011,6 +1011,29 @@
       ],
       "status": "idea",
       "notes": "scripts/hook-framework/validate.sh check_V19_V20 picks 'scope_miss' when outcome=pass and 'scope_hit' when outcome=block — but a hook whose match_ predicate fires AND whose check_ then passes still has outcome=pass, so it gets measured against scope_miss despite running the full check body. block-destructive-sql exposes this: its allow-predicated-delete fixture (predicate hits on DELETE+psql, check runs paren-aware scan, then passes) lands in scope_miss=45 budget but actually does ~50ms of real work, indistinguishable from a true predicate-miss. Honest fix needs a third bucket — scope_miss (predicate didn't fire), scope_hit_pass (check ran and passed), scope_hit_block (check ran and blocked). Or expose the predicate outcome via hook_log_substep and key the budget on that. Surfaced by code-reviewer agent + user during hooks-block-destructive-sql implementation."
+    },
+    {
+      "id": "hooks-block-destructive-sql-ansi-c-quote-coverage",
+      "priority": "P2",
+      "title": "block-destructive-sql: handle bash ANSI-C $'...' quoting",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "_extract_quoted_after treats single-quote as a literal-quote opener and doesn't recognize the bash ANSI-C $'...' form. ANSI-C bodies use C-style escapes that EXPAND into real characters before the SQL CLI sees them, so destructive content can hide behind \\n / \\t / \\x escapes. Fix options: (a) detect leading $ before the opening quote, strip it, then process backslash escapes when emitting the body; (b) document $'...' explicitly as out-of-scope and align with hooks-block-destructive-sql-stdin-coverage. Surfaced by /review-security MEDIUM #4 during hooks-block-destructive-sql implementation. Probe artifacts at output/claude-toolkit/sec-probes/ (probes2.txt A22/A27 cases).",
+      "relates_to": [
+        "hooks-block-destructive-sql-stdin-coverage:depends-on"
+      ]
+    },
+    {
+      "id": "hooks-blocking-review-local-len-init-anti-pattern",
+      "priority": "P2",
+      "title": "Sweep blocking hooks for 'local x=$1 len=${#x}' silent-noop anti-pattern",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Hit twice during block-destructive-sql implementation: 'local in=$1 out= len=${#in}' on a single line evaluates ${#in} before in is assigned in some bash configurations, leaving len=0 — the function silently does nothing. For pure-validation helpers this presents as 'function returns false / never matches', which in a blocking guardrail looks identical to 'no destructive content found' and the hook silently allows. Sweep all PreToolUse blocking hooks in .claude/hooks/ for this pattern (single-line locals where one assignment derives from another via parameter expansion) and split them into separate local statements. Also worth adding a one-paragraph note to .claude/docs/relevant-toolkit-hooks.md so the next contributor doesn't relearn it. Surfaced by /review-security INFO #6."
     }
   ]
 }
