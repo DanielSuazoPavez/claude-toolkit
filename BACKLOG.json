@@ -340,16 +340,6 @@
       "notes": "secrets-guard's check-body cost (~26ms p50 per per-hook probe) is dominated by inline command-shape policy (env-listing detection, credential-shaped printenv argument detection). The shared registry today handles regex-based pattern matching; the inline policy is positional ('printenv of a credential-shaped name') and doesn't map cleanly to the current registry shape. Speculative proposal: extend the registry to support positional matching, move secrets-guard's inline policy into registry data, shrink the hook to ~150 LoC. Real performance win (~14ms × all-Bash-firings + all-Read-firings is significant), but it's a substantial change to the registry shape — separate design effort, not a clarity-pass call. P2 because the speculation is real but the win depends on a registry redesign whose cost isn't yet scoped. See design/hook-audit/01-standardized/clarity.md (Proposal 6, secrets-guard subsection)."
     },
     {
-      "id": "hook-audit-02-perf-budget-headers",
-      "priority": "P1",
-      "title": "Per-dispatcher PERF-BUDGET-MS headers (grouped-bash-guard scope_miss=150 scope_hit=220; grouped-read-guard 75/120)",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/02-dispatchers/performance.md. Both dispatchers warn on every make check because they inherit the framework default scope_miss=5. N=30 probe data backs scope_miss=150/scope_hit=220 for grouped-bash-guard and 75/120 for grouped-read-guard (smoke p95 + ~10%). Cheapest fix: one header line per dispatcher. Stops V20 false-positives without hiding +20% drift regressions."
-    },
-    {
       "id": "hook-audit-02-source-guarded-cost",
       "priority": "P3",
       "title": "Micro-bench cost of guarded source calls (source X when X is already sourced)",
@@ -615,26 +605,6 @@
       "notes": "secrets-guard repeats the credential-safe-suffix regex \\\\.(example|template)$ in three sites: _match_path_registry env-file branch, check_secrets_guard_grep glob branch, and check_secrets_guard ENV_ALLOW_RE local (applied 4×). Logic is identical; inputs differ (basename vs glob vs verb-regex BASH_REMATCH). A helper _has_credential_safe_suffix(s) would dedupe. .pub allowlist is SSH-key-specific and should stay inline. Cosmetic — no current drift. Score against churn before doing. See .claude/hooks/secrets-guard.sh."
     },
     {
-      "id": "hook-audit-01-block-config-edits-write-edit-pair",
-      "priority": "P1",
-      "title": "block-config-edits: route Write/Edit branches through a match/check pair",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "block-config-edits.sh exposes match_config_edits/check_config_edits but only invokes them in main() for Bash. The Write and Edit branches inline is_blocked_config + is_blocked_settings + _settings_decision (lines ~287-318). For uniformity with the post-cleanup secrets-guard (where all three branches route through their match/check pairs) and so the Shape A test layer covers all paths, refactor: introduce match_config_edits_write/check_config_edits_write (or a single match_config_edits_path/check_config_edits_path covering both Write and Edit), route main() through them, leave the registry-driven detection in place. Surfaced during hook-audit-01 secrets-guard alignment; the audit (clarity.md Proposal 4, inventory.md) classified block-config-edits as dual-mode without flagging the per-branch asymmetry. See design/hook-audit/01-standardized/inventory.md and testability.md (caveats added in branch docs/hook-audit-01-secrets-guard-alignment)."
-    },
-    {
-      "id": "hook-audit-01-git-safety-enterplanmode-pair",
-      "priority": "P1",
-      "title": "git-safety: route EnterPlanMode branch through a match/check pair",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "git-safety.sh exposes match_git_safety/check_git_safety but only invokes them in main() for Bash. The EnterPlanMode branch inlines the protected-branch check (lines ~178-196). Smaller scope than block-config-edits — one extra branch, simpler logic — but the same asymmetry: a Shape A test of the existing pair covers Bash but not EnterPlanMode. Refactor: introduce match_git_safety_planmode/check_git_safety_planmode (or fold protected-branch logic under a unified match/check that branches on $TOOL_NAME), route main() through them. Note: EnterPlanMode forks `git rev-parse` per inventory.md:138, so the predicate split has perf shape implications worth measuring. Surfaced during hook-audit-01 secrets-guard alignment. See design/hook-audit/01-standardized/inventory.md and testability.md (caveats added in branch docs/hook-audit-01-secrets-guard-alignment)."
-    },
-    {
       "id": "hook-audit-01-secrets-guard-grep-git-config",
       "priority": "P2",
       "title": "secrets-guard Grep branch: investigate .git/config credential-remote coverage gap",
@@ -643,20 +613,6 @@
       ],
       "status": "idea",
       "notes": "Read and Bash branches both invoke _git_dir_has_credential_remote against $HOME/.git/config (Read) or $PWD (Bash) when the path/command pattern matches .git/config — blocks only when an embedded user:pass@host credential is present. The Grep branch does not: check_secrets_guard_grep handles path patterns via _path_block_reason and glob patterns inline, but never runs the credential-remote check. Path-shape detection still catches `Grep -e secret .git/config` via the git-config registry entry, but the registry entry has continue (deferred) in _match_path_registry — so .git/config greps fall through and pass. Investigate whether this is intentional (Grep on .git/config is rare, and the wider grep-into-token-strings problem is owned by block-credential-exfiltration) or worth closing for parity. If closing: extend check_secrets_guard_grep with the same _git_dir_has_credential_remote dispatch the other two branches use. Surfaced during hook-audit-01 secrets-guard alignment."
-    },
-    {
-      "id": "hook-audit-01-superset-invariant-shape-a-assertion",
-      "priority": "P1",
-      "title": "Wire superset-invariant assertion into Shape A test layer",
-      "scope": [
-        "hooks",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "The superset invariant (check_acts(x) implies match_returns_true(x)) is now documented in .claude/docs/relevant-toolkit-hooks.md §1 (Quick Reference) and §4 (named subsection 'The superset invariant'). It is currently a doc-only convention. Once the Shape A test layer (hook-audit-01-shape-a-match-check-pairs) lands, add an enforcement pass: for each of the 9 dual-mode hooks, generate inputs check_<name> would block and assert match_<name> returns true on each. Per-hook input sources: registry-driven hooks (block-credential-exfiltration, secrets-guard registry branch, block-config-edits) — pull the registry pattern alternation and synthesize matching strings. Inline-policy hooks (block-dangerous-commands, git-safety, enforce-make-commands, enforce-uv-run, suggest-read-json, auto-mode-shared-steps) — curate a small list of 'known acts' inputs per hook. Cost when Shape A exists: ~50 LoC + per-hook input lists. See design/hook-audit/01-standardized/clarity.md Proposal 1.",
-      "relates_to": [
-        "hook-audit-01-shape-a-match-check-pairs:depends-on"
-      ]
     },
     {
       "id": "hook-audit-01-detect-truncation-injected-fixture",
@@ -668,17 +624,6 @@
       ],
       "status": "idea",
       "notes": "Smoke runner sandboxes $HOME to a fresh tmpdir, so the transcript file at $HOME/.claude/projects/-<derived>/<session>.jsonl that detect-session-start-truncation reads (line 42-52) doesn't exist — hook always falls through to pass. To pair the outcome, extend tests/hooks/run-smoke.sh with optional <name>.transcript.jsonl sidecar that the runner writes into $tmpdir/fakehome/.claude/projects/-<derived>/<session>.jsonl before invoking the hook. Then add injects-on-truncation-marker fixture. Documented skip in hook-audit-01-paired-outcome-fixtures wrap-up (2026-05-03). Direct consumer of the V20 budget per-outcome split when paired with hook-audit-01-perf-rerun-paired."
-    },
-    {
-      "id": "hook-audit-01-block-dangerous-interleaved-quote-predicate",
-      "priority": "P1",
-      "title": "match_dangerous misses interleaved-quote evasion (e.g. 'r'm -rf /)",
-      "scope": [
-        "hooks",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "Distinct from the hook-audit-01-block-dangerous-quote-predicate fix in 2.81.5, which widened the predicate's preceding-character alternation to admit single/double quotes (catches `echo 'rm -rf /'`). This shape interleaves quotes WITHIN the rm token itself: `'r'm -rf /` — bash collapses the three tokens into a single `rm` only after parsing, but match_dangerous works on the literal string and sees no bare `rm`. check_dangerous's normalization pass strips quotes (sed s/[\"']//g) and would catch it, so this is a textbook superset-invariant violation. Surfaced by the Shape A test layer (tests/hooks/test-match-check-pairs.sh) which carries an xfail probe for this exact input. Once fixed, convert the xfail in the test file to assert_match_hit and update the reference."
     },
     {
       "id": "hook-audit-00-malformed-stdin-fixtures",
@@ -749,16 +694,6 @@
       ],
       "notes": "PreToolUse(Bash) hook that intercepts Bash calls, classifies via regex, compresses output before it enters context. Two tiers (near-lossless: install/git verbs → one-line summaries; smart filtering: status/log/test/build/lint/ls truncations). Safety rails: never compress diffs, file reads, piped commands, --verbose/--debug, curl/wget, failed commands, or output <200 chars. Adaptive re-run: same command within 60s passes raw. Fail-open on any hook error. Source (REPOZY/superpowers-optimized) claims ~76% token savings. Tasks: feasibility (bash vs Node, interaction with grouped-bash-guard), tier scope, prototype + measure. Surfaced 2026-04-28; exploration entry: output/claude-toolkit/exploration/BACKLOG.md.",
       "status": "idea"
-    },
-    {
-      "id": "hook-audit-02-substep-batching",
-      "priority": "P1",
-      "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/02-dispatchers/performance.md and 02-dispatchers/clarity.md Proposal 6. grouped-bash-guard real-mode pays 8x hook_log_substep jq forks per dispatch (~40ms). Buffer (name, duration_ms, outcome, bytes) tuples in bash arrays during the dispatcher loop; emit ALL rows via one jq -c -n --argjson rows [...] invocation at the EXIT trap. Same N rows in JSONL output (schema preserved); one fork instead of N. Save: ~35ms on bash-guard real-mode, ~10ms on read-guard real-mode. Implementation: four bash array globals initialized at hook_init, dispatcher loop appends instead of direct hook_log_substep call, post-block skipped emission also buffers, EXIT-trap path calls a new flush function. EXPLICITLY REJECTED variants: collapsing N substep rows into one dispatch row with nested substeps array (would break downstream JSONL consumers); skipping jq for substep rows by hand-rolling JSON via printf (fragile against schema additions in hook-logging.sh). Re-run run-per-dispatcher-probe.sh after change for before/after numbers."
     },
     {
       "id": "sync-profiles",
