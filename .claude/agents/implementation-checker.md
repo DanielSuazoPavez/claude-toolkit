@@ -78,8 +78,8 @@ Do NOT read the full diff. Only diff the paths relevant to the current checklist
 ## Output Path
 
 1. Determine the branch name: `git branch --show-current` (replace slashes with dashes)
-2. Get current timestamp: `date +%Y%m%d_%H%M`
-3. Write to: `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__implementation-checker__{branch}.md`
+2. Get current timestamp: `date +%Y%m%dT%H%M`
+3. Write to: `output/claude-toolkit/reviews/{YYYYMMDD}T{HHMM}__implementation-checker__{branch}.md`
    - Double underscores (`__`) separate timestamp, source, and context
    - The Write tool creates directories as needed
 

@@ -67,7 +67,7 @@ Start by diverging — generate ideas, perspectives, angles. Then converge — c
 
 ## Output
 
-Save to: `output/claude-toolkit/brainstorm/{YYYYMMDD}_{HHMM}__brainstorm-idea__{topic}.md`
+Save to: `output/claude-toolkit/brainstorm/{YYYYMMDD}T{HHMM}__brainstorm-idea__{topic}.md`
 
 Format adapts to what the session was about. Default structure:
 

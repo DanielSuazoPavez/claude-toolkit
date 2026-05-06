@@ -96,7 +96,7 @@ If a PR template was found in step 2, use it as the structure. Otherwise, use th
 
 ### 6. Output
 
-Write the PR description to `output/claude-toolkit/pr-descriptions/{YYYYMMDD}_{HHMM}__draft-pr__{branch-name}.md` (e.g., `20260320_1430__draft-pr__feat-add-auth.md`). See `relevant-toolkit-artifacts` for the full convention. Include the PR title as an H1 heading at the top of the file.
+Write the PR description to `output/claude-toolkit/pr-descriptions/{YYYYMMDD}T{HHMM}__draft-pr__{branch-name}.md` (e.g., `20260320T1430__draft-pr__feat-add-auth.md`). See `relevant-toolkit-artifacts` for the full convention. Include the PR title as an H1 heading at the top of the file.
 
 Tell the user the file path so they can review and use it.
 

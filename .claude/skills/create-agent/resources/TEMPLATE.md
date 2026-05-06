@@ -54,9 +54,9 @@ Configuration is consistent across [N] files checked.
 
 ## Output Path
 
-Write the report to `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__config-auditor__{scope}.md`
+Write the report to `output/claude-toolkit/reviews/{YYYYMMDD}T{HHMM}__config-auditor__{scope}.md`
 
-- Use `date +%Y%m%d_%H%M` for the timestamp
+- Use `date +%Y%m%dT%H%M` for the timestamp
 - Use a short scope descriptor (e.g., `env-files`, `docker-config`)
 - The Write tool creates directories as needed
 

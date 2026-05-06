@@ -98,7 +98,7 @@ After fixing reviewer issues, do a **source fidelity check**: scan the source do
 
 ### Phase 5: Output
 
-Save to `output/claude-toolkit/proposals/{YYYYMMDD}_{HHMM}__shape-proposal__{topic}.md`
+Save to `output/claude-toolkit/proposals/{YYYYMMDD}T{HHMM}__shape-proposal__{topic}.md`
 
 Report to user:
 - Sections added vs source

@@ -74,7 +74,7 @@ Share design in **200-300 word chunks**:
 
 ## Output
 
-Save validated design to: `output/claude-toolkit/brainstorm/{YYYYMMDD}_{HHMM}__brainstorm-feature__{topic}.md`
+Save validated design to: `output/claude-toolkit/brainstorm/{YYYYMMDD}T{HHMM}__brainstorm-feature__{topic}.md`
 
 Then either:
 - Stop here (design only)

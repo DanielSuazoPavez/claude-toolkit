@@ -30,7 +30,7 @@ You are a code debugger that investigates bugs through systematic hypothesis tes
 
 ## Persistent Debug State
 
-Maintain session state in `output/claude-toolkit/reviews/{YYYYMMDD}_{HHMM}__code-debugger__{slug}.md`:
+Maintain session state in `output/claude-toolkit/reviews/{YYYYMMDD}T{HHMM}__code-debugger__{slug}.md`:
 
 ```markdown
 ---
