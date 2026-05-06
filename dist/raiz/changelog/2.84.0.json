@@ -1,0 +1,16 @@
+{
+  "version": "2.84.0",
+  "date": "2026-05-06",
+  "headline": "block-destructive-sql guardrail hook",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "New PreToolUse(Bash) guardrail `block-destructive-sql` runs after `block-dangerous-commands` in the grouped Bash dispatcher. Blocks unconditionally destructive SQL issued via `sqlite3` / `psql` / `mysql` / `duckdb` and `python -c` bodies that import a SQL module: `DROP TABLE`/`DATABASE`/`SCHEMA`/`INDEX`/`USER`/`ROLE`/`TYPE`/`FUNCTION`/`TRIGGER`, `TRUNCATE`, predicate-less `DELETE FROM` / `UPDATE ... SET` (incl. `WITH ... DELETE/UPDATE` and `UPDATE <table> AS <alias> SET ...` shapes), and `ALTER TABLE ... DROP COLUMN`. Allows `SELECT`, predicated `DELETE`/`UPDATE` with `WHERE`, `INSERT`, `CREATE TABLE`, `VACUUM`, `REINDEX`, `ANALYZE`.",
+        "**No bypass mechanism** — no env var, no settings.json allowlist, no `--force` flag. When the agent tries a destructive statement, the block reason instructs it to surface the SQL so you can run it yourself outside the session. SQL-comment stripping (`/* ... */`, `-- ...`) and paren-aware top-level WHERE detection mean comment-disguised or subselect-only WHEREs can't masquerade as predicated.",
+        "Out of scope: stdin/file-driven SQL (`psql < script.sql`, `cat x.sql | sqlite3`) and ORM/migration framework calls. Filed as follow-up backlog tasks."
+      ]
+    }
+  ]
+}

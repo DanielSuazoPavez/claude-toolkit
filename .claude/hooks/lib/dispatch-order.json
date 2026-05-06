@@ -3,6 +3,7 @@
   "dispatchers": {
     "grouped-bash-guard": [
       "block-dangerous-commands",
+      "block-destructive-sql",
       "auto-mode-shared-steps",
       "block-credential-exfiltration",
       "git-safety",

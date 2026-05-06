@@ -774,16 +774,6 @@
       "notes": "Empirical: 36% of make check invocations are piped (205/574 in claude-toolkit hooks.db). Memory + CLAUDE.md doc-only enforcement is insufficient — agents drift even after correction. Add a PreToolUse(Bash) hook that surfaces (not blocks) when make check is filtered or re-run quickly after a fail. Likely folds into grouped-bash-guard.sh or enforce-make-commands.sh.\n\nSee: output/claude-toolkit/backlog-notes/make-check-discipline-hook.md"
     },
     {
-      "id": "hooks-block-destructive-sql",
-      "priority": "P1",
-      "title": "Hook: block destructive SQL statements via Bash",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Surfaced 2026-04-30 during hook-framework-refactor design review — guardrail gap. block-dangerous-commands covers filesystem catastrophes but nothing covers irreversible SQL run via Bash (sqlite3, psql, mysql, duckdb invocations, plus interpreter-body writes via python -c). Pattern: mirror block-dangerous-commands shape — match_ on token presence, check_ on structural conditions (e.g. unconditional row deletion, schema-object teardown). Use _strip_inert_content to avoid matching SQL inside comments / heredocs / string literals. Allowlist for test fixtures via env or per-project settings. Lives at .claude/hooks/block-destructive-sql.sh, dispatched by grouped-bash-guard. Land after hook-framework-refactor so the new hook gets the header grammar + smoke test from the start. Reference test shape: tests/hooks/test-block-dangerous-commands.sh."
-    },
-    {
       "id": "hook-audit-02-substep-batching",
       "priority": "P1",
       "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
@@ -985,6 +975,51 @@
       ],
       "status": "idea",
       "notes": "During the 2.83.0 wrap-up make check run, test-verify-external-deps failed once on the \"Expected ✓ bash in output\" assertion even though the captured output did contain `✓ bash`. Re-running the test in isolation passed 19/19; the next make check passed cleanly. Not reproduced. Likely a parallel-runner quirk (TEMP_DIR, fixture race, or stdout/stderr interleaving under load) but unverified — investigate if it recurs. Source: 2026-05-06 timestamp-standard-iso-t branch wrap-up."
+    },
+    {
+      "id": "hooks-block-destructive-sql-stdin-coverage",
+      "priority": "P1",
+      "title": "Hook: cover stdin/file-driven SQL gap in block-destructive-sql",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "analyze-idea report 2026-05-06",
+      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content)."
+    },
+    {
+      "id": "hooks-v20-perf-budget-conflation",
+      "priority": "P2",
+      "title": "V20 perf budget conflates predicate-miss with predicate-hit-pass",
+      "scope": [
+        "hooks",
+        "tests"
+      ],
+      "status": "idea",
+      "notes": "scripts/hook-framework/validate.sh check_V19_V20 picks 'scope_miss' when outcome=pass and 'scope_hit' when outcome=block — but a hook whose match_ predicate fires AND whose check_ then passes still has outcome=pass, so it gets measured against scope_miss despite running the full check body. block-destructive-sql exposes this: its allow-predicated-delete fixture (predicate hits on DELETE+psql, check runs paren-aware scan, then passes) lands in scope_miss=45 budget but actually does ~50ms of real work, indistinguishable from a true predicate-miss. Honest fix needs a third bucket — scope_miss (predicate didn't fire), scope_hit_pass (check ran and passed), scope_hit_block (check ran and blocked). Or expose the predicate outcome via hook_log_substep and key the budget on that. Surfaced by code-reviewer agent + user during hooks-block-destructive-sql implementation."
+    },
+    {
+      "id": "hooks-block-destructive-sql-ansi-c-quote-coverage",
+      "priority": "P2",
+      "title": "block-destructive-sql: handle bash ANSI-C $'...' quoting",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "_extract_quoted_after treats single-quote as a literal-quote opener and doesn't recognize the bash ANSI-C $'...' form. ANSI-C bodies use C-style escapes that EXPAND into real characters before the SQL CLI sees them, so destructive content can hide behind \\n / \\t / \\x escapes. Fix options: (a) detect leading $ before the opening quote, strip it, then process backslash escapes when emitting the body; (b) document $'...' explicitly as out-of-scope and align with hooks-block-destructive-sql-stdin-coverage. Surfaced by /review-security MEDIUM #4 during hooks-block-destructive-sql implementation. Probe artifacts at output/claude-toolkit/sec-probes/ (probes2.txt A22/A27 cases).",
+      "relates_to": [
+        "hooks-block-destructive-sql-stdin-coverage:depends-on"
+      ]
+    },
+    {
+      "id": "hooks-blocking-review-local-len-init-anti-pattern",
+      "priority": "P2",
+      "title": "Sweep blocking hooks for 'local x=$1 len=${#x}' silent-noop anti-pattern",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Hit twice during block-destructive-sql implementation: 'local in=$1 out= len=${#in}' on a single line evaluates ${#in} before in is assigned in some bash configurations, leaving len=0 — the function silently does nothing. For pure-validation helpers this presents as 'function returns false / never matches', which in a blocking guardrail looks identical to 'no destructive content found' and the hook silently allows. Sweep all PreToolUse blocking hooks in .claude/hooks/ for this pattern (single-line locals where one assignment derives from another via parameter expansion) and split them into separate local statements. Also worth adding a one-paragraph note to .claude/docs/relevant-toolkit-hooks.md so the next contributor doesn't relearn it. Surfaced by /review-security INFO #6."
     }
   ]
 }

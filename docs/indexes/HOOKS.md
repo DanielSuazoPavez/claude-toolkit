@@ -21,6 +21,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `auto-mode-shared-steps.sh` | stable | Bash via dispatcher | — | Under `permission_mode=auto`, blocks the classifier from auto-approving every entry in `settings.json` `permissions.ask` — `git push`, `gh` writes, `gh api`, `curl`, `wget`. Reading online and shared-state operations belong in interactive mode where `permissions.ask` prompts. No-op outside auto-mode |
 | `block-credential-exfiltration.sh` | stable | Bash via dispatcher | — | Blocks commands carrying credential-shaped tokens in arguments (GitHub PAT, GitLab, Slack, AWS, OpenAI, Anthropic). Sibling to `secrets-guard` — that blocks credential reads at-rest; this blocks the in-flight payload (e.g. token already in context being pasted into `curl -H "Authorization: ..."`) |
 | `block-dangerous-commands.sh` | stable | Bash via dispatcher | — | Blocks destructive commands (rm -rf /, fork bombs, etc.) |
+| `block-destructive-sql.sh` | stable | Bash via dispatcher | — | Blocks unconditionally destructive SQL (DROP, TRUNCATE, predicate-less DELETE/UPDATE, ALTER TABLE DROP COLUMN) issued via `sqlite3`/`psql`/`mysql`/`duckdb` or `python -c`. Predicated mutations and reads pass through. No bypass mechanism — destructive SQL is the user's call to run directly outside the agent. |
 | `secrets-guard.sh` | stable | PreToolUse (Grep) + Read via dispatcher + Bash via dispatcher | — | Blocks reading .env files, credential files (SSH, AWS, GPG, etc.), and exposing secrets |
 | `block-config-edits.sh` | stable | PreToolUse (Write\|Edit) + Bash via dispatcher | — | Blocks writes to shell config, SSH, and git config files |
 | `suggest-read-json.sh` | stable | Read via dispatcher | — | Blocks Read on large JSON files (>50KB, excludes common configs), points at `read-json` jq reference |
@@ -30,7 +31,7 @@ Two hook behaviors are gated by env vars set in `.claude/settings.json` (`env` b
 | `approve-safe-commands.sh` | stable | PermissionRequest (Bash) | — | Auto-approves chained commands when all subcommands match safe prefixes |
 | `log-tool-uses.sh` | stable | PostToolUse | `traceability` | Pure logger — records every tool invocation (all tools, no matcher) to invocations.jsonl with duration_ms and tool_response for downstream idle-time classification |
 | `log-permission-denied.sh` | stable | PermissionDenied | `traceability` | Pure logger — captures auto-mode classifier denials into invocations.jsonl for downstream analytics |
-| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 8 guards |
+| `grouped-bash-guard.sh` | stable | PreToolUse (Bash) | Default Bash dispatcher — sources `block-dangerous-commands`, `block-destructive-sql`, `auto-mode-shared-steps`, `block-credential-exfiltration`, `git-safety`, `secrets-guard`, `block-config-edits`, `enforce-make-commands`, `enforce-uv-run` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across 9 guards |
 | `grouped-read-guard.sh` | stable | PreToolUse (Read) | Read dispatcher — sources `secrets-guard` (Read branch) + `suggest-read-json` and runs their `match_`/`check_` predicates in order. Amortizes bash+jq startup across both checks |
 **Note**: Some hooks have broad matchers (e.g., `Bash` fires on every shell command). Hook UX noise is a known trade-off.
 
@@ -147,6 +148,18 @@ Blocks commands that carry credential-shaped tokens in their arguments — the i
 Blocks destructive bash commands that could damage the system.
 
 - Blocks: `rm -rf /`, `rm -rf ~`, fork bombs, `mkfs`, `dd` to disks, `chmod -R 777 /`
+
+### block-destructive-sql.sh
+
+**Trigger**: PreToolUse (Bash via dispatcher)
+
+Blocks unconditionally destructive SQL issued through bash. Sibling guard to `block-dangerous-commands` for the SQL surface.
+
+- Blocks: `DROP TABLE`/`DATABASE`/`SCHEMA`/`INDEX`/`USER`/`ROLE`/`TYPE`/`FUNCTION`/`TRIGGER`, `TRUNCATE`, predicate-less `DELETE FROM`/`UPDATE ... SET` (incl. CTE-prefixed forms and table aliases), `ALTER TABLE ... DROP COLUMN`
+- Triggers via the four named CLIs (`sqlite3`, `psql`, `mysql`, `duckdb`) and `python -c` bodies that mention a SQL module ref (`sqlite3`, `psycopg`, `psycopg2`, `mysql`, `duckdb`) plus a destructive keyword
+- Allows: `SELECT`, `INSERT`, `CREATE TABLE`, `VACUUM`, `REINDEX`, `ANALYZE`, predicated `DELETE`/`UPDATE` with `WHERE`
+- Out of scope: stdin/file-driven SQL (`psql < script.sql`, `cat x.sql | sqlite3`) — see backlog `hooks-block-destructive-sql-stdin-coverage`. ORM/migration framework calls are also out of scope.
+- **No bypass mechanism** — no env var, no settings.json allowlist, no `--force` flag. Block reason directs the agent to surface the statement so the user can run it directly outside the session.
 
 ### secrets-guard.sh
 

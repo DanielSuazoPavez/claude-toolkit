@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.84.0] - 2026-05-06 - block-destructive-sql guardrail hook
+
+### Added
+- **hooks**: new PreToolUse(Bash) guardrail `block-destructive-sql.sh`, dispatched by `grouped-bash-guard` immediately after `block-dangerous-commands`. Blocks unconditionally destructive SQL issued via `sqlite3` / `psql` / `mysql` / `duckdb` and `python -c` bodies that mention a SQL module ref (`sqlite3`, `psycopg`, `psycopg2`, `mysql`, `duckdb`) plus a destructive keyword. Block list: `DROP TABLE`/`DATABASE`/`SCHEMA`/`INDEX`/`USER`/`ROLE`/`TYPE`/`FUNCTION`/`TRIGGER`, `TRUNCATE`, predicate-less `DELETE FROM`/`UPDATE ... SET` (incl. CTE-prefixed forms via `WITH ... DELETE/UPDATE` and table-aliased `UPDATE users AS u SET ...` shapes), `ALTER TABLE ... DROP COLUMN`. SQL-comment stripping (`/* ... */`, `-- ...`) and paren-aware top-level WHERE detection prevent comment-disguised or subselect-only WHEREs from masquerading as predicated. Allows: `SELECT`, predicated `DELETE`/`UPDATE` with `WHERE`, `INSERT`, `CREATE TABLE`, `VACUUM`, `REINDEX`, `ANALYZE`. **No bypass mechanism** — no env var, no settings.json allowlist, no `--force` flag. Block reason directs the agent to surface the statement so the user can run it directly outside the session. Stdin/file-driven SQL (`psql < script.sql`, `cat x.sql | sqlite3`) and ORM/migration framework calls are out of scope; tracked as backlog `hooks-block-destructive-sql-stdin-coverage` and the new `hooks-block-destructive-sql-ansi-c-quote-coverage`.
+
+### Changed
+- **tests**: `tests/hooks/test-block-destructive-sql.sh` — 45 cases covering each CLI, chained/wrapped forms, `python -c` bodies, the three review-surfaced bypasses (block-comment WHERE, line-comment WHERE, subselect-only WHERE), the two security-review HIGH bypasses (CTE-prefixed DELETE/UPDATE, UPDATE-with-table-alias), the expanded DROP coverage (USER/ROLE/TYPE/FUNCTION/TRIGGER), and a no-bypass invariant assertion that greps the hook source for env-var / flag escape hatches. Three smoke fixtures under `tests/hooks/fixtures/block-destructive-sql/`.
+- **indexes**: `docs/indexes/HOOKS.md` documents the new hook (table row, dispatcher description bumped to 9 guards, dedicated section with block list, allow list, scope, no-bypass note). `dist/raiz/MANIFEST` includes `block-destructive-sql.sh` for raiz consumers.
+
+### Notes
+- Consumed: the hook ships in `dist/raiz/MANIFEST`, so it reaches all consumers including raiz. Raiz sidecar carries a real entry.
+- Backlog: filed three follow-ups during this work:
+  - `hooks-v20-perf-budget-conflation` (P2): the V20 perf validator labels every `outcome=pass` row as `scope_miss`, so a hook whose match predicate fires AND whose check passes still gets measured against the cheap-path budget despite running the full check body. Surfaced because `block-destructive-sql`'s `allow-predicated-delete` smoke fixture trips a budget warning. Honest fix needs a third bucket (predicate-miss vs check-pass vs check-block).
+  - `hooks-block-destructive-sql-ansi-c-quote-coverage` (P2, depends-on `hooks-block-destructive-sql-stdin-coverage`): `_extract_quoted_after` doesn't recognize bash ANSI-C `$'...'` quoting; backslash escapes in the body expand to real chars before SQL CLIs see them.
+  - `hooks-blocking-review-local-len-init-anti-pattern` (P2): sweep all blocking PreToolUse hooks for `local x="$1" len=${#x}` on a single line — bash can evaluate `${#x}` before the assignment, leaving `len=0` and the helper a silent no-op. In a guardrail this presents identically to "no destructive content found" and lets through what the hook claims to block. Hit twice during this implementation; worth a sweep + a doc note.
+
 ## [2.83.0] - 2026-05-06 - timestamp standard: YYYYMMDDTHHMM__source__slug.md
 
 ### Added
