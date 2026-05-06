@@ -45,8 +45,13 @@ match_dangerous() {
     # Token hints covering: rm, mkfs, dd, chmod, sudo, /dev/, fork-bomb
     # operator `(){`, shell-wrapper obfuscators, and redirect/pipe patterns
     # that could carry hidden destructive commands.
+    # Strip quotes first so interleaved-quote evasions ('r'm) collapse to
+    # rm — mirrors the normalization in check_dangerous (line 69) and
+    # preserves the superset invariant.
+    local probe="${COMMAND//\"/}"
+    probe="${probe//\'/}"
     local re='(^|[[:space:];&|`('"'"'"])(rm|mkfs|mkfs\.[a-z0-9]+|dd|chmod|sudo|eval|bash|sh)([[:space:]]|$)|/dev/(sd[a-z]|hd[a-z]|nvme[0-9]|vd[a-z]|xvd[a-z])|:\(\)|\.\(\)|bomb\(\)|\$\(|`'
-    [[ "$COMMAND" =~ $re ]]
+    [[ "$probe" =~ $re ]]
 }
 
 # ============================================================

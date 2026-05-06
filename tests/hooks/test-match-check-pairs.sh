@@ -456,19 +456,17 @@ assert_check_block block-dangerous-commands "sudo" "check_dangerous blocks sudo"
 COMMAND="chmod -R 777 /"
 assert_check_block block-dangerous-commands "chmod -R 777" "check_dangerous blocks chmod -R 777 /"
 
-# xfail: interleaved-quote evasion. Distinct from the closed
+# Interleaved-quote evasion: `'r'm -rf /` collapses to `rm -rf /` only
+# after bash re-joins the three quoted segments. match_dangerous now
+# pre-strips quotes (mirroring check_dangerous's normalization) so the
+# predicate stays a superset of the check. Sibling to the closed
 # hook-audit-01-block-dangerous-quote-predicate (2.81.5), which widened
-# the predicate's *preceding-character* alternation so it admits
-# `echo 'rm -rf /'`. THIS shape interleaves quotes WITHIN the token
-# (`'r'm -rf /`): bash parses it as `rm` only after collapsing the
-# three quoted segments, but match_dangerous works on the literal string
-# and sees no bare `rm`. xfail_match_hit runs the predicate; today it
-# returns 1 (miss) → SKIP. Once fixed, it will return 0 → FAIL with a
-# note to convert this to assert_match_hit and close the new backlog id.
+# the predicate's preceding-character alternation for `echo 'rm -rf /'`.
 COMMAND="'r'm -rf /"
-xfail_match_hit block-dangerous-commands \
-                hook-audit-01-block-dangerous-interleaved-quote-predicate \
-                "match_dangerous on quote-evaded 'r'm -rf /"
+assert_match_hit block-dangerous-commands \
+                 "match_dangerous on quote-evaded 'r'm -rf /"
+assert_check_block block-dangerous-commands "rm -rf on root" \
+                   "check_dangerous blocks quote-evaded 'r'm -rf /"
 
 # ============================================================
 # secrets-guard  (3 pairs: _read, _grep, base Bash)
