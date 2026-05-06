@@ -922,17 +922,6 @@
       "notes": "Scrap-and-redesign the lessons ecosystem (curation lifecycle, storage, surfaces). Independent of LSP pilot — they can run in parallel. Calibrate the eval-claude-mem framing first (analysis miscounts absorbed/crystallized as inactive). Next step: /brainstorm-feature.\n\nSee: output/claude-toolkit/backlog-notes/lessons-redesign.md"
     },
     {
-      "id": "secrets-guard-shell-history-coverage",
-      "priority": "P0",
-      "title": "secrets-guard: cover bash/zsh history file reads",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "source": "suggestions-box/bm-sop/20260505_164818_issue.txt",
-      "notes": "Issue from bm-sop: bash/zsh history not covered by block-credential-exfiltration. Verified gap — detection-registry.json path entries miss history files entirely (~/.bash_history, ~/.zsh_history, , .python_history, etc.). Add path-kind entries; the existing reader regexes in secrets-guard.sh likely cover them once the paths are registered.\n\nSee: output/claude-toolkit/backlog-notes/secrets-guard-shell-history-coverage.md"
-    },
-    {
       "id": "hook-bypass-adversarial-survey",
       "priority": "P3",
       "title": "Survey: how would an agent bypass hook enforcement?",
