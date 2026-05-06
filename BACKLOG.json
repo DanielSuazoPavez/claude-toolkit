@@ -12,16 +12,6 @@
   "current_goal": "**v3 — Final polish before cut.** Addressing important features (memory, context management, bash output compression), architectural decisions (packaging, distribution, sync profiles), and polishing rough edges (test suite performance, frontmatter normalization). P99 tasks are deferred — ignore unless explicitly prompted. The line between \"what ships in v3\" and \"what comes after\" is being drawn now.",
   "tasks": [
     {
-      "id": "eval-claude-mem",
-      "priority": "P1",
-      "title": "Evaluate persistent memory systems for cross-session context",
-      "scope": [
-        "toolkit"
-      ],
-      "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Two systems to evaluate together: (1) **claude-mem** (github.com/thedotmack/claude-mem, 69k stars, AGPL-3.0) — captures tool observations via 5 lifecycle hooks, compresses context with AI summaries, retrieves via semantic search (Chroma vector DB + SQLite FTS5). Worker service on port 37777, 3-layer progressive retrieval (search → timeline → get_observations, ~10x token savings), MCP tools, web viewer UI, `<private>` tags. v12.4.8. (2) **agentmemory** (github.com/rohitg00/agentmemory, 2k stars, TypeScript) — 12 auto-capture hooks, hybrid BM25+vector search (95.2% retrieval on LongMemEval-S benchmark), 92% fewer tokens vs full-context pasting, extends Karpathy's LLM Wiki pattern with confidence scoring and knowledge graphs. The toolkit already has file-based auto-memory (`.claude/memories/`) and claude-sessions tracks session data in SQLite. Evaluate: (1) overlap/complementarity with what we have; (2) license implications (AGPL for claude-mem); (3) dependency footprint; (4) extractable patterns (progressive retrieval, observation compression, hybrid search) vs adopting full systems; (5) relationship to LSP evaluation (`eval-lsp-plugin-setup`) — both address context retrieval from different angles.",
-      "status": "idea"
-    },
-    {
       "id": "study-superpowers-optimized-patterns",
       "priority": "P1",
       "title": "Study targeted patterns from REPOZY/superpowers-optimized",
@@ -35,7 +25,7 @@
         "convention-refinements-anbeeld:relates-to",
         "bash-output-compression-hook:relates-to"
       ],
-      "notes": "Surfaced 2026-04-28 during web ecosystem exploration. Production fork of obra/superpowers (already in curated resources) — 24 skills, 10 hooks, research-backed design. Not adopting the system, but three patterns warrant deeper study (bash compression split to its own task `bash-output-compression-hook`): (1) **Self-consistency reasoning** — embedded technique (not standalone) in debugging + verification skills. Generates N independent reasoning paths (3-7 depending on complexity), majority vote, acts based on agreement level (≤50% → stop and report ambiguity). Based on Wang et al. ICLR 2023. Evaluate whether this pattern improves our `code-debugger` and `goal-verifier` agents. (2) **AGENTbench findings on instruction volume** — paper \"Evaluating AGENTS.md\" (138 tasks) found LLM-generated context files decreased success by 2-3% while increasing costs 20%. Explore implications for how we generate and evaluate toolkit resources. (3) **\"Do LLMs Benefit from Their Own Words?\"** — removing prior assistant responses maintained quality while reducing context 5-10x. Models over-condition on their own output. Explore implications for session continuity and subagent prompt design. (4) **\"Compliance ≠ competence\" as resource-generation lens** — the finding that more instructions can actively hurt is worth evaluating as a heuristic/checklist item in `create-skill`, `create-agent`, `create-docs`, and `evaluate-*` skills: \"will adding this instruction actually improve outcomes, or just increase context load?\" Exploration entry: `output/claude-toolkit/exploration/BACKLOG.md`.",
+      "notes": "Three patterns from REPOZY/superpowers-optimized worth deeper study (not adopting the system). Self-consistency reasoning (Wang et al. ICLR 2023) — evaluate for code-debugger and goal-verifier. AGENTbench findings on instruction volume — implications for resource generation. 'Do LLMs Benefit from Their Own Words?' — implications for session continuity and subagent prompts. 'Compliance != competence' as a checklist lens for create-* and evaluate-* skills.\n\nSee: output/claude-toolkit/backlog-notes/study-superpowers-optimized-patterns.md",
       "status": "idea"
     },
     {
@@ -59,7 +49,7 @@
       "scope": [
         "toolkit"
       ],
-      "notes": "Demoted P2→P3 2026-04-28. Surfaced 2026-04-26 during the projects-text-id alignment (v2.68.2). The lessons CLI and hooks now defer to `~/.claude/sessions.db` for canonical project_id resolution — a hard cross-ecosystem dependency: `_detect_project()` in `cli/lessons/db.py` errors when sessions.db exists but the encoded dir isn't in `project_paths`, and `_resolve_project_id` in `.claude/hooks/lib/hook-utils.sh` warns + leaves PROJECT empty in the same case. This was the right call to prevent name drift, but it raises a broader question: should the lessons ecosystem (capture + surface + manage rules across projects) work without the analytics ecosystem (sessions.db, hooks.db, project_paths, the indexer)? Today the lessons DB schema is owned by claude-sessions (`schemas/lessons.yaml`), the projects dimension uses claude-sessions' resolution chain (override / git_remote / regex_fallback), and the basename fallback only fires when sessions.db is *entirely absent*. Standalone-toolkit users (no claude-sessions installed) work today; partial-install users (sessions.db present but stale or empty) hit the strict error. Scope of evaluation: (1) catalog every cross-ecosystem coupling — schema ownership, projects table, FK directions, env var conventions (`CLAUDE_ANALYTICS_*`), backup-script ownership (already a P3 item: `move-backup-lessons-to-claude-sessions`); (2) identify which couplings are essential (data correctness — name drift) vs incidental (operational — backup script lives in toolkit but DB is sessions-owned); (3) decide whether lessons should ship a self-contained mode (own its projects dimension, no sessions.db dependency) or whether the current \"claude-sessions is required when present\" stance is the desired end state. Inputs: the projects-text-id design context (this CHANGELOG 2.68.2), the `move-backup-lessons-to-claude-sessions` P3 task (related question of where utilities live), `.claude/docs/relevant-toolkit-lessons.md` (current ecosystem reference). Output: a brainstorm/analysis doc in `output/claude-toolkit/`, possibly leading to a roadmap of either \"decouple\" or \"formalize the dependency\" tasks.",
+      "notes": "Should the lessons ecosystem (capture + surface + manage rules) work without the analytics ecosystem (sessions.db, hooks.db, project_paths, indexer)? Today the lessons DB schema is owned by claude-sessions and the projects dimension uses claude-sessions' resolution chain — partial-install users (sessions.db present but stale) hit a strict error. Catalog couplings, decide self-contained mode vs. formalized dependency.\n\nSee: output/claude-toolkit/backlog-notes/lessons-analytics-independence.md",
       "status": "idea"
     },
     {
@@ -222,7 +212,7 @@
       "relates_to": [
         "hooks-detection-target-convention:depends-on"
       ],
-      "notes": "Demoted P3→P99 2026-04-26 — speculative pre-design with no user yet (note already says \"defer until v1 ships and we have real-world signal\"). Follow-up to `hooks-detection-target-convention`. Once the shared detection registry (`detection-registry.json` + JSON Schema + jq loader) is in place and its schema has stabilized, add a layered resolution path so downstream projects can extend or override the toolkit defaults without forking the synced file. Likely shape: project-local `detection-registry.local.json` (gitignored or committed per project preference) merged on top of the synced toolkit registry at hook-load time. Open questions to resolve at design time: (1) merge strategy — replace-by-id, append-only, or deep-merge per field; (2) whether projects can *disable* a toolkit-shipped entry (e.g. `{\"id\": \"github-pat\", \"disabled\": true}` override) or only add new ones; (3) whether the local file is project-private or syncs out via `claude-toolkit send` for cross-project sharing; (4) precedence rules when both files define the same `id` with different `kind`/`target`. Defer until v1 ships and we have real-world signal on which downstream projects need custom patterns (likely: aws-toolkit for AWS-specific shapes, schema-smith for DB-specific shapes). Design context: `output/claude-toolkit/brainstorm/20260425_1349__brainstorm-feature__hooks-detection-target-convention.md`.",
+      "notes": "Demoted P3→P99 2026-04-26 — speculative pre-design with no user yet (defer until v1 ships and we have real-world signal on which downstream projects need custom patterns: likely aws-toolkit for AWS shapes, schema-smith for DB shapes). Follow-up to hooks-detection-target-convention. Once the shared detection registry stabilizes, add a layered resolution path so projects can extend or override toolkit defaults via project-local detection-registry.local.json merged at hook-load time. Open design questions (merge strategy, disable-toolkit-entry support, sync-out-via-send, precedence on collisions) deferred until there's a real consumer driving the requirements. Design context: output/claude-toolkit/brainstorm/20260425_1349__brainstorm-feature__hooks-detection-target-convention.md.",
       "status": "idea"
     },
     {
@@ -797,7 +787,7 @@
       "scope": [
         "hooks"
       ],
-      "notes": "Surfaced 2026-04-28 during web ecosystem exploration (REPOZY/superpowers-optimized). PreToolUse hook intercepts Bash calls, classifies via regex, compresses output before it enters context. Two tiers: tier 1 (near-lossless: git add/commit/push/pull/clone/fetch, npm/pip/cargo install → one-line summaries) and tier 2 (smart filtering: git status hint lines removed, git log truncated at 30 lines, passing tests → summary only, successful builds → summary, lint output grouped by severity, large ls/find truncated at 50/60 entries). Safety rails: never compresses diffs, file reads (cat/head/tail), piped commands, --verbose/--debug, curl/wget, failed commands (non-zero exit), or output under 200 chars. Adaptive re-run detection: same command within 60s passes through raw (handles \"compressed output was insufficient\"). Fail-open: any hook error → original command runs unmodified. Architecture: PreToolUse rewrites compressible commands to run through an optimizer script that executes + compresses; non-compressible passes through unchanged. ~76% token savings claimed on mixed sessions. Full source reviewed — well-engineered, zero-deps Node.js. Tasks: (1) evaluate feasibility as a toolkit hook (bash vs Node.js implementation, interaction with existing grouped-bash-guard); (2) decide tier scope — which compressions are worth the complexity for our workflow; (3) prototype and measure actual token savings in real sessions. Exploration entry: `output/claude-toolkit/exploration/BACKLOG.md`.",
+      "notes": "PreToolUse(Bash) hook that intercepts Bash calls, classifies via regex, compresses output before it enters context. Two tiers (near-lossless: install/git verbs → one-line summaries; smart filtering: status/log/test/build/lint/ls truncations). Safety rails: never compress diffs, file reads, piped commands, --verbose/--debug, curl/wget, failed commands, or output <200 chars. Adaptive re-run: same command within 60s passes raw. Fail-open on any hook error. Source (REPOZY/superpowers-optimized) claims ~76% token savings. Tasks: feasibility (bash vs Node, interaction with grouped-bash-guard), tier scope, prototype + measure. Surfaced 2026-04-28; exploration entry: output/claude-toolkit/exploration/BACKLOG.md.",
       "status": "idea"
     },
     {
@@ -808,7 +798,7 @@
         "hooks"
       ],
       "status": "idea",
-      "notes": "Surfaced 2026-05-02 during 03-session-context audit wrap-up. Empirical data from ~/.claude/hooks.db.hook_logs (claude-toolkit project, all sessions to date): 574 `make check` invocations total, of which 205 (36%) are piped through head/tail/grep/etc. Top session ran `make check` 38 times; multiple sessions in the 20-30+ range. Cost shape: each `make check` is ~1+ min wall (often longer in CI), and re-runs typically happen near end-of-session where token count is already high — so the discipline drift compounds. Conventions already exist (memory `feedback_make_check_bare.md`; CLAUDE.md `Verification is `make check`, invoked bare`) but Claude does not follow them consistently. Memory + doc-only enforcement is insufficient.\n\nDesign (suggestion, not block, per discussion): PreToolUse(Bash) hook that detects (a) `make check` followed by a pipe (`|`) / redirect / chained filter (`make check | tail`, `make check 2>&1 | head`, `make check > /tmp/x`) and (b) `make check` re-run within N minutes of a previous failed `make check` in the same session. Fires `additionalContext` (not a block) suggesting the right behavior — read the existing output before re-running, or run the command bare to get full output. Block would be too intrusive (sometimes piping is right, e.g. `make check 2>&1 | tee log`); suggestion lets Claude choose but surfaces the convention.\n\nEdge cases (folded from rework-enforce-make-include-make-check-bare): `make check && git commit` is fine — bare rule is about not filtering output, not about not chaining; `make check &` background runs allowed; `make check 2>&1 | tee /tmp/check.log` is gray — full output preserved on disk but stdout filtered, probably suggest by default with opt-out env var; rule applies only to bare `make check`, not other make targets (`make test | tail` is fine for narrow sanity checks).\n\nCould potentially fold into grouped-bash-guard.sh as a child check (similar to surface-lessons-fold P99) or extend enforce-make-commands.sh which already enforces the bare-pytest/uv rules. Reference inputs: 02-dispatchers/clarity.md (dispatcher child shape), feedback_make_check_bare.md (memory), CLAUDE.md `Verification is make check, invoked bare`.\n\nEmpirical signal motivating priority: in one session alone the agent ran `make check` non-bare 4 times after being explicitly corrected once — feedback memory exists, CLAUDE.md says it, and drift still happened. A hook is the only enforcement layer the agent can't ignore."
+      "notes": "Empirical: 36% of make check invocations are piped (205/574 in claude-toolkit hooks.db). Memory + CLAUDE.md doc-only enforcement is insufficient — agents drift even after correction. Add a PreToolUse(Bash) hook that surfaces (not blocks) when make check is filtered or re-run quickly after a fail. Likely folds into grouped-bash-guard.sh or enforce-make-commands.sh.\n\nSee: output/claude-toolkit/backlog-notes/make-check-discipline-hook.md"
     },
     {
       "id": "hooks-block-destructive-sql",
@@ -876,7 +866,7 @@
         "toolkit"
       ],
       "status": "idea",
-      "notes": "Today .claude/ in this repo plays two roles: (1) the workshop's authored output (skills/agents/hooks/docs that ship via claude-toolkit sync) and (2) the toolkit's own dogfooded Claude Code config. The dual role muddies 'what is this file — artifact or dependency?' Proposal: move workshop-authored sources into a dedicated dir (e.g. resources/), and let .claude/ go back to meaning 'Claude Code's local config for working in this repo' as it does in any consumer project.\n\nKey design points the user sketched:\n- Hooks continue reading from .claude/ wherever they are running (no in-hook path change).\n- Validators are run after a 'sync to workshop .claude/' step — they always see the production layout, not the source layout.\n- Dogfooding is via an explicit step (a `claude-toolkit sync --self`-style command), not via symlink. Trade: lose immediate-feedback when editing a resource, gain principled mirror of the consumer-side workflow.\n\nImplications to think through later:\n- dist/raiz/MANIFEST and dist/base/EXCLUDE are path-anchored at .claude/; they'd need to point at the new source dir or learn the sync-then-bundle flow.\n- validate-resources-indexed.sh, verify-resource-deps.sh, hook-framework/validate.sh all walk .claude/ today.\n- docs/indexes/*.md cross-references use .claude/... paths in dozens of places.\n- The hook audit (feat/hook-audit-categories) takes path stability as a baseline; this move should land after the audit's design phase, not during it.\n\nRecommended next step: run /shape-project on this question before any code moves. Specifically, decide (a) what the new source dir is called and what's inside it, (b) what the dogfood command looks like and when you run it, (c) whether .claude/ in the workshop becomes gitignored output of the dogfood step or stays committed."
+      "notes": ".claude/ in this repo plays two roles: workshop-authored output (synced to consumers) and the toolkit's own dogfooded Claude Code config. Proposal: move workshop sources into a dedicated dir (resources/) so .claude/ recovers its consumer-project meaning. Dogfood via an explicit sync --self step, not symlinks. Land after the hook-audit design phase. Run /shape-project before any code moves.\n\nSee: output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude.md"
     },
     {
       "id": "prose-cleanup-resource",
@@ -906,7 +896,7 @@
       "scope": [
         "docs"
       ],
-      "notes": "Surfaced 2026-04-26. The toolkit ships ~34 skills, 7 agents, 14 hooks, 17 docs to consumer projects via `claude-toolkit sync`, but a downstream user landing on a freshly-synced project has no clear entry point — `README.md` and `docs/` are the only signals, and `claude-toolkit --help` is currently a thin wrapper over its argparse subcommands. Two distinct gaps to address: (1) **CLI help quality** — `claude-toolkit <subcommand> --help` is mostly auto-generated argparse text; could land harder with examples per subcommand and a top-level `claude-toolkit help` that organizes subcommands by purpose (sync resources, query backlog/docs/lessons, send suggestions, version checks). (2) **Guided introduction** — possibly a `/welcome-toolkit` or `/tour-toolkit` skill that walks a downstream user through \"here are the resources you got, here's how skills/agents/hooks differ, here's how to discover what's available, here's how `claude-toolkit sync` works, here's how to send feedback.\" Audience is a Claude Code user opening a project that already has the toolkit synced, not someone setting up the workshop. Open questions: skill vs doc vs both; whether the tour reads `docs/indexes/` directly or has its own narrative; how it stays fresh as resources are added. Inputs: `cli/` module (current help text), `docs/getting-started.md` if it exists, `README.md`, the existing `setup-toolkit` skill (which is workshop-side, not consumer-side). Output: brainstorm doc proposing scope + shape; implementation likely staged.",
+      "notes": "Downstream users landing on a freshly-synced project have no clear entry point. Two gaps: (1) CLI help quality — examples per subcommand, organized top-level help; (2) guided introduction — possibly a /welcome-toolkit or /tour-toolkit skill walking through what got synced and how to use it. Audience is a Claude Code user opening a project that already has the toolkit synced, not someone setting up the workshop.\n\nSee: output/claude-toolkit/backlog-notes/docs-consumer-experience.md",
       "status": "idea"
     },
     {
@@ -917,7 +907,77 @@
         "tests"
       ],
       "status": "idea",
-      "notes": "Goal: pass over the entire bash test suite (tests/test-*.sh, tests/hooks/test-*.sh, tests/lib/) and bring it to one coherent shape. Focus areas: (1) consolidate repeated assertion/setup patterns into named helpers in tests/lib/ — every file currently re-derives SCRIPT_DIR, manually increments TESTS_RUN/TESTS_PASSED/TESTS_FAILED in a few specific shapes, hand-rolls 'echo $payload | hook | grep decision'; centralize what fits. (2) Centralize fixture/expectation definitions where the same constant (HOOK names, sentinel session IDs, malformed-JSON test inputs, fixture paths) appears across files. (3) Mark special cases explicitly with structured comments (e.g. # special-case: malformed JSON exercises parser-error path / # special-case: negative-shape session_id absence — helper can't produce / # special-case: -carrying Bash payload / # special-case: EnterPlanMode single-key payload) — current ad-hoc 'do not migrate' style works but isn't searchable. Consider a small lint script that enumerates and reports them. (4) Standardize file shape: every test starts with the same 4-line preamble (set -uo pipefail, SCRIPT_DIR, source helpers, parse_test_args) — make it one helper or a documented snippet. (5) Audit which tests still hand-roll inline JSON for non-payload purposes (response shapes, fixtures on disk, etc.) and decide whether they belong in json-fixtures.sh or a sibling lib/. (6) Document the resulting standard in tests/CLAUDE.md so future tests are added in shape. Owner constraint: don't break wall-clock perf (current 45-50s baseline) and don't expand scope into fixing flakes (test-runner-reliability owns that). Source: 2026-05-04 fixture-standardization branch made json-fixtures.sh the first centralized helper for hook payloads — extending the same hygiene to the rest of the suite is the natural follow-up."
+      "notes": "Pass over the entire bash test suite (tests/test-*.sh, tests/hooks/test-*.sh, tests/lib/) and bring it to one coherent shape. Consolidate repeated assertion/setup helpers, centralize fixtures/expectations, mark special cases with structured comments, standardize file shape, document the result in tests/CLAUDE.md. Don't break the 45-50s wall-clock baseline; flake-fixing is owned by test-runner-reliability.\n\nSee: output/claude-toolkit/backlog-notes/test-suite-consolidation.md"
+    },
+    {
+      "id": "lessons-redesign",
+      "priority": "P0",
+      "title": "Redesign lessons ecosystem (curation lifecycle, storage, surfaces)",
+      "scope": [
+        "cli",
+        "docs"
+      ],
+      "status": "idea",
+      "source": "output/claude-toolkit/analysis/20260505_0033__analyze-idea__eval-claude-mem.md (recommendation §3-§5); 2026-05-06 grounding session",
+      "notes": "Scrap-and-redesign the lessons ecosystem (curation lifecycle, storage, surfaces). Independent of LSP pilot — they can run in parallel. Calibrate the eval-claude-mem framing first (analysis miscounts absorbed/crystallized as inactive). Next step: /brainstorm-feature.\n\nSee: output/claude-toolkit/backlog-notes/lessons-redesign.md"
+    },
+    {
+      "id": "secrets-guard-shell-history-coverage",
+      "priority": "P0",
+      "title": "secrets-guard: cover bash/zsh history file reads",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "suggestions-box/bm-sop/20260505_164818_issue.txt",
+      "notes": "Issue from bm-sop: bash/zsh history not covered by block-credential-exfiltration. Verified gap — detection-registry.json path entries miss history files entirely (~/.bash_history, ~/.zsh_history, , .python_history, etc.). Add path-kind entries; the existing reader regexes in secrets-guard.sh likely cover them once the paths are registered.\n\nSee: output/claude-toolkit/backlog-notes/secrets-guard-shell-history-coverage.md"
+    },
+    {
+      "id": "hook-bypass-adversarial-survey",
+      "priority": "P3",
+      "title": "Survey: how would an agent bypass hook enforcement?",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "2026-05-06 grounding session — surfaced while triaging secrets-guard-shell-history-coverage",
+      "notes": "Adversarial survey of the hook layer. Wear an attacker hat, enumerate the bypass surface across reader substitution, path-shape evasion, indirection, tool-channel switching, output side channels, hook-disabling vectors, TOCTOU. Deliverable is a writeup at output/claude-toolkit/analysis/<date>__hook-bypass-survey.md with bypass categories, examples, and triage. Concrete close-the-gap items spawn their own tasks. Defense-in-depth, not blocking — P3 reflects 'do when there's slack'.\n\nSee: output/claude-toolkit/backlog-notes/hook-bypass-adversarial-survey.md"
+    },
+    {
+      "id": "timestamp-standard-define-and-backfill",
+      "priority": "P1",
+      "title": "Define project-wide timestamp standard, backfill existing dated artifacts",
+      "scope": [
+        "docs",
+        "toolkit"
+      ],
+      "status": "idea",
+      "source": "2026-05-06 grounding session — surfaced via plan-name normalization discussion",
+      "notes": "Define a project-wide timestamp standard for dated artifacts: YYYYmmddTHHMM__<source>__<slug>.md (ISO-flavored, T separator, double-underscore field separators, kebab slug). Document in .claude/docs/, backfill existing files under output/claude-toolkit/{plans,analysis,...}, update skill templates. Blocks plan-name-normalization-hook.\n\nSee: output/claude-toolkit/backlog-notes/timestamp-standard-define-and-backfill.md"
+    },
+    {
+      "id": "plan-name-normalization-hook",
+      "priority": "P0",
+      "title": "Normalize EnterPlanMode plan filenames via PostToolUse(Write) hook",
+      "scope": [
+        "hooks",
+        "toolkit"
+      ],
+      "status": "idea",
+      "source": "2026-05-06 grounding session",
+      "notes": "PostToolUse(ExitPlanMode) hook that writes a normalized sibling next to EnterPlanMode's whimsy-named plan file. Whimsy file stays as Claude's edit locus; normalized copy is searchable. Single-fire on plan confirmation — payload contains everything the hook needs (planFilePath + plan text). Depends on timestamp-standard-define-and-backfill for the filename format.\n\nSee: output/claude-toolkit/backlog-notes/plan-name-normalization-hook.md"
+    },
+    {
+      "id": "backlog-notes-length-validator",
+      "priority": "P1",
+      "title": "Enforce backlog notes length limit (externalize to backlog-notes/)",
+      "scope": [
+        "cli",
+        "docs"
+      ],
+      "status": "idea",
+      "source": "2026-05-06 grounding session — after externalizing 8 over-stuffed task notes",
+      "notes": "claude-toolkit backlog validate should fail when a task's notes exceeds the threshold (proposed: 800 chars). Long content lives in output/claude-toolkit/backlog-notes/<id>.md; in-backlog note becomes a slim pitch + pointer. Make threshold configurable. Sweep existing backlog before flipping the validator on so make check doesn't immediately fail.\n\nSee: output/claude-toolkit/backlog-notes/backlog-notes-length-validator.md"
     }
   ]
 }

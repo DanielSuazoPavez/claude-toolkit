@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Notes
+- **backlog**: grounded `eval-claude-mem` analysis into concrete next steps and removed the umbrella eval task. Filed `lessons-redesign` (P0, with calibration note that the analysis miscounted absorbed/crystallized lessons as inactive), `secrets-guard-shell-history-coverage` (P0, from `suggestions-box/bm-sop`), `hook-bypass-adversarial-survey` (P3), `timestamp-standard-define-and-backfill` (P1, project-wide `YYYYmmddTHHMM__<source>__<slug>.md`), and `plan-name-normalization-hook` (P0, depends on the standard — PostToolUse(ExitPlanMode) hook that writes a normalized sibling next to the whimsy-named original).
+- **plans**: added `output/claude-toolkit/plans/20260506__plan__lsp-pilot-claude-sessions.md` — implementation plan for piloting `pyright-lsp` on claude-sessions' active module-split refactor. Materializes the experiment design from the eval-claude-mem analysis using real backlog items as pilot tasks.
+- **suggestions-box**: triaged and removed `suggestions-box/bm-sop/20260505_164818_issue.txt` (rolled into `secrets-guard-shell-history-coverage`).
+- **backlog hygiene**: established the `output/claude-toolkit/backlog-notes/<id>.md` convention — long task notes externalize, the in-backlog `notes` field stays a one-paragraph pitch + pointer. Externalized 11 over-stuffed task notes (5 from this session + 6 pre-existing), trimmed 2 borderline ones in-place. Filed `backlog-notes-length-validator` (P1) to enforce the convention via `claude-toolkit backlog validate` (recommended threshold: 1,300 chars, calibrated against user-flagged borderline-OK cases).
+
 ## [2.82.1] - 2026-05-04 - rebaseline settings-integrity on untracked drift
 
 ### Fixed
