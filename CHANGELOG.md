@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.84.1] - 2026-05-06 - hook-audit Wave 1 follow-ups (perf, predicate fixes, pair refactors)
+
+### Fixed
+- **hooks**: `match_dangerous` now catches interleaved-quote token-evasions of destructive commands. The literal-string predicate missed inputs where quotes are interleaved within the destructive token itself (the bash parser collapses three quoted segments into a single token, but `match_dangerous` worked on the raw string and saw no bare token). `check_dangerous` already strips quotes via its `sed s/["']//g` normalization and would block these — textbook superset-invariant violation. Pure-bash parameter-expansion strip on the predicate input mirrors the check's normalization; no fork. Closes `hook-audit-01-block-dangerous-interleaved-quote-predicate`.
+- **hooks**: `match_secrets_guard_read` predicate now unions `_REGISTRY_RE__path__stripped` with `_REGISTRY_RE__path__raw`. Before, the predicate's regex only included path-kind entries with `target=stripped`, but `check_secrets_guard_read` walks every path-kind entry regardless of target. The `claude-settings` registry entry uses `target=raw`, so `match_*` missed `$HOME/.claude/settings.json` while `check_*` blocked it — second superset-invariant violation surfaced by the new sweep below. Closes `hook-audit-01-superset-invariant-shape-a-assertion`.
+
+### Changed
+- **hooks**: per-dispatcher `CC-HOOK: PERF-BUDGET-MS` headers now declare the real budgets — `grouped-bash-guard` `scope_miss=150, scope_hit=220` and `grouped-read-guard` `scope_miss=75, scope_hit=120` (numbers from `design/hook-audit/02-dispatchers/performance.md:150-157`, N=30 smoke p95 + ~10% headroom). Prevents V20 from flagging dispatchers against the framework default `scope_miss=5` on every `make check` run. Closes `hook-audit-02-perf-budget-headers`.
+- **hooks** (refactor): `block-config-edits` Write/Edit branches now route through a new `match_config_edits_path` / `check_config_edits_path` pair. Inputs: `FILE_PATH` + `VERB` (`Writing`|`Editing`) + `PERMISSION_MODE`. Home shell/SSH/git config block messages preserved verbatim per VERB. `_settings_decision` (which exits via `hook_block` under `auto` or `hook_ask` otherwise) is called from inside check_ for `.claude/settings*.json` paths — Shape A drives the home-config block path, Shape B fixtures cover the settings exit-path end-to-end. Closes `hook-audit-01-block-config-edits-write-edit-pair`.
+- **hooks** (refactor): `git-safety` EnterPlanMode branch now routes through a new `match_git_safety_planmode` / `check_git_safety_planmode` pair. Predicate forks `git rev-parse` once (the same fork the inline branch already did, just relocated) and gates check_ on "in a git repo"; check_ reads `git branch --show-current`, blocks on detached HEAD or `PROTECTED_BRANCHES` regex match. Detached-HEAD and protected-branch reasons preserved verbatim. Closes `hook-audit-01-git-safety-enterplanmode-pair`.
+
+### Performance
+- **hooks**: dispatcher substep rows (`grouped-bash-guard`, `grouped-read-guard`) are now buffered into bash arrays during the dispatch loop and flushed in one `jq` invocation by a new `_hook_flush_substeps` from the EXIT trap, replacing up to 9 per-substep `jq` forks per dispatch. N=30 probe (`design/hook-audit/measurement/probe/run-per-dispatcher-probe.sh`):
+
+  | Dispatcher              | mode       | p95 before  | p95 after   | Δ        |
+  |-------------------------|------------|-------------|-------------|----------|
+  | `grouped-bash-guard`    | real       | 254.6 ms    | 194.0 ms    | −60.6 ms |
+  | `grouped-bash-guard`    | real (p50) | 196.7 ms    | 159.8 ms    | −36.9 ms |
+  | `grouped-read-guard`    | real       | 104.0 ms    |  96.3 ms    |  −7.7 ms |
+  | `grouped-read-guard`    | real (p50) |  93.0 ms    |  82.6 ms    | −10.3 ms |
+
+  JSONL schema preserved row-for-row (verified by jq keys diff against an old-emit baseline). Failure-mode coverage: early-exit during dispatch flushes buffered rows + skipped tail from the EXIT trap; re-entry in one shell resets the arrays in `hook_init` so prior-invocation rows can't leak. Independent of the other commits — revertable alone if telemetry shows row drops. Closes `hook-audit-02-substep-batching`.
+
+### Tests
+- **tests**: `tests/hooks/test-match-check-pairs.sh` — Shape A grew from 78 → 132 assertions. New registry-driven sweep section locks the invariant `check_acts(x) ⇒ match_returns_true(x)` for every `detection-registry.json` entry consumed by a dual-mode hook (13 path patterns through `secrets-guard-read`, 13 credential patterns through `block-credential-exfiltration`). New sections cover the new pairs: `block-config-edits` Write/Edit (~/.bashrc, ~/.zshrc, ~/.ssh/authorized_keys, ~/.gitconfig + settings-path predicate-only), `git-safety` EnterPlanMode (no-repo / feature-branch / protected-branch / detached-HEAD via temp repos with pushd/popd). Existing `block-dangerous-commands` xfail at line 459 converted to `assert_match_hit` + `assert_check_block` for the now-fixed interleaved-quote case.
+
+### Notes
+- Consumed: all changed hooks + lib/ files reach raiz consumers via `dist/raiz/MANIFEST` (or covered by base sync that raiz inherits). The substep-batching perf gain is consumer-visible. Raiz sidecar carries a real entry.
+- Backlog: bumped `workshop-resources-out-of-dotclaude` P2 → P1 with new findings note (`output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude__wave1-hook-bypass-evidence.md`) — Wave 1 surfaced two patterns (an undesignable hook-files runtime-edit guard, and a guard-bypass reach via `git commit -F`) that depend on the workshop ↔ runtime separation to resolve cleanly.
+- Out of scope for Wave 1: `hooks-validate-v12-hooks-md-drift` (P1) stays on the backlog for a focused branch (Wave 2). The Step 4 split-gate did not fire — both refactor halves landed cleanly.
+
 ## [2.84.0] - 2026-05-06 - block-destructive-sql guardrail hook
 
 ### Added

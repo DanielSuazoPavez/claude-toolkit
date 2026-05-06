@@ -276,6 +276,45 @@ _settings_decision() {
 }
 
 # ============================================================
+# match_config_edits_path — predicate for the Write/Edit branches
+# ============================================================
+# Returns 0 when FILE_PATH targets a blocked shell/SSH/git config or a
+# .claude/settings(.local)?.json. Mirrors the pair shape used by the Bash
+# branch (match_config_edits / check_config_edits) so Shape A coverage and
+# the framework's match→check contract apply uniformly across event surfaces.
+match_config_edits_path() {
+    is_blocked_config "$FILE_PATH" || is_blocked_settings "$FILE_PATH"
+}
+
+# ============================================================
+# check_config_edits_path — guard body for the Write/Edit branches
+# ============================================================
+# Inputs (globals set by main()): FILE_PATH, VERB ("Writing"|"Editing"),
+# PERMISSION_MODE.
+# Returns 0 = pass, 1 = block (sets _BLOCK_REASON).
+# For .claude/settings*.json paths, delegates to _settings_decision which
+# exits via hook_block (auto-mode) or hook_ask (default/acceptEdits/plan).
+# Shape A drives the home-config block path (rc=1) only — the settings
+# branch is exercised end-to-end by Shape B (test-block-config.sh).
+check_config_edits_path() {
+    if is_blocked_config "$FILE_PATH"; then
+        # Preserve exact wording per VERB — Write was "Writing to ..." while
+        # Edit was "Editing ..." (no preposition); changing either would alter
+        # observable behavior captured by Shape B fixtures.
+        if [ "$VERB" = "Writing" ]; then
+            _BLOCK_REASON="BLOCKED: Writing to shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        else
+            _BLOCK_REASON="BLOCKED: $VERB shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        fi
+        return 1
+    fi
+    if is_blocked_settings "$FILE_PATH"; then
+        _settings_decision "$VERB"
+    fi
+    return 0
+}
+
+# ============================================================
 # main — standalone entry point
 # ============================================================
 main() {
@@ -284,37 +323,33 @@ main() {
 
     PERMISSION_MODE=$(hook_get_input '.permission_mode')
 
-    # --- Handler: Write tool ---
+    # --- Handler: Write tool — delegate to match_/check_ ---
     if [ "$TOOL_NAME" = "Write" ]; then
-        local FILE_PATH
         FILE_PATH=$(hook_get_input '.tool_input.file_path')
         [ -z "$FILE_PATH" ] && exit 0
 
-        if is_blocked_config "$FILE_PATH"; then
-            hook_block "BLOCKED: Writing to shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        VERB="Writing"
+        _BLOCK_REASON=""
+        if match_config_edits_path; then
+            if ! check_config_edits_path; then
+                hook_block "$_BLOCK_REASON"
+            fi
         fi
-
-        if is_blocked_settings "$FILE_PATH"; then
-            _settings_decision "Writing"
-        fi
-
         exit 0
     fi
 
-    # --- Handler: Edit tool ---
+    # --- Handler: Edit tool — delegate to match_/check_ ---
     if [ "$TOOL_NAME" = "Edit" ]; then
-        local FILE_PATH
         FILE_PATH=$(hook_get_input '.tool_input.file_path')
         [ -z "$FILE_PATH" ] && exit 0
 
-        if is_blocked_config "$FILE_PATH"; then
-            hook_block "BLOCKED: Editing shell/SSH/git config files risks persistent environment poisoning. Use project-level .envrc or local config instead."
+        VERB="Editing"
+        _BLOCK_REASON=""
+        if match_config_edits_path; then
+            if ! check_config_edits_path; then
+                hook_block "$_BLOCK_REASON"
+            fi
         fi
-
-        if is_blocked_settings "$FILE_PATH"; then
-            _settings_decision "Editing"
-        fi
-
         exit 0
     fi
 

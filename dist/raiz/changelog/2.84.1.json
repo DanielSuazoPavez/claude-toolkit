@@ -1,0 +1,18 @@
+{
+  "version": "2.84.1",
+  "date": "2026-05-06",
+  "headline": "hook-audit Wave 1 follow-ups (perf, predicate fixes, pair refactors)",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "**`block-dangerous-commands` predicate now catches interleaved-quote evasions.** Inputs that interleaved quotes inside the destructive token (the bash parser collapses them into a single token, but the predicate worked on the raw string and missed it) used to slip past the cheap match step even though the deeper check would have blocked them. The predicate now strips quotes before applying the token regex, mirroring the check's own normalization.",
+        "**`secrets-guard` Read predicate widened to cover `claude-settings`.** The path predicate's regex previously only included registry entries with `target=stripped`, but the underlying check walks every path-kind entry regardless of target. `$HOME/.claude/settings.json` is `target=raw` — the predicate missed it while the check blocked it. Predicate now unions both target regexes; observable behavior unchanged for already-blocked paths.",
+        "**Dispatcher hot-path perf.** Grouped Bash and Read guards used to call `jq` once per substep row; on a real-mode dispatch that's up to 9 forks. Substep tuples are now buffered and flushed in one `jq` invocation at EXIT. JSONL schema preserved row-for-row. Measured drop on the bash dispatcher's real-mode p95: 254 ms → 194 ms (-60 ms); read dispatcher real-mode p95: 104 ms → 96 ms (-8 ms).",
+        "**Per-dispatcher PERF-BUDGET-MS headers.** Grouped dispatchers now declare real budgets (bash 150/220 ms, read 75/120 ms) instead of inheriting the framework default of 5 ms, which had `make check` warning on every run.",
+        "**Internal refactors with no behavior change:** `block-config-edits` Write/Edit and `git-safety` EnterPlanMode branches now use the same `match_/check_` pair shape the Bash branches already used. All block reasons preserved verbatim; existing fixture suites pass unchanged."
+      ]
+    }
+  ]
+}

@@ -47,11 +47,13 @@ source "$HOOKS_DIR/suggest-read-json.sh"
 declare -A MATCH_FN=(
     [auto-mode-shared-steps]=match_auto_mode_shared_steps
     [block-config-edits]=match_config_edits
+    [block-config-edits-path]=match_config_edits_path
     [block-credential-exfiltration]=match_credential_exfil
     [block-dangerous-commands]=match_dangerous
     [enforce-make-commands]=match_make
     [enforce-uv-run]=match_uv
     [git-safety]=match_git_safety
+    [git-safety-planmode]=match_git_safety_planmode
     [secrets-guard]=match_secrets_guard
     [secrets-guard-read]=match_secrets_guard_read
     [secrets-guard-grep]=match_secrets_guard_grep
@@ -60,11 +62,13 @@ declare -A MATCH_FN=(
 declare -A CHECK_FN=(
     [auto-mode-shared-steps]=check_auto_mode_shared_steps
     [block-config-edits]=check_config_edits
+    [block-config-edits-path]=check_config_edits_path
     [block-credential-exfiltration]=check_credential_exfil
     [block-dangerous-commands]=check_dangerous
     [enforce-make-commands]=check_make
     [enforce-uv-run]=check_uv
     [git-safety]=check_git_safety
+    [git-safety-planmode]=check_git_safety_planmode
     [secrets-guard]=check_secrets_guard
     [secrets-guard-read]=check_secrets_guard_read
     [secrets-guard-grep]=check_secrets_guard_grep
@@ -178,6 +182,7 @@ _reset_inputs() {
     GREP_PATH=""
     GREP_GLOB=""
     PERMISSION_MODE=""
+    VERB=""
     _BLOCK_REASON=""
 }
 
@@ -363,12 +368,13 @@ COMMAND='echo "to push run: git push"'
 assert_check_pass auto-mode-shared-steps "check_ does not block git push mentioned only inside a quoted string"
 
 # ============================================================
-# block-config-edits  (Bash branch only)
+# block-config-edits  (Bash branch)
 # ============================================================
-# Write/Edit branches run inline in main() — out of scope here, tracked as
-# hook-audit-01-block-config-edits-write-edit-pair.
+# Write/Edit branches now route through match_config_edits_path /
+# check_config_edits_path — covered separately in the
+# block-config-edits-path section below.
 _reset_inputs
-report_section "block-config-edits"
+report_section "block-config-edits (Bash branch)"
 
 COMMAND="ls -la"
 assert_match_miss block-config-edits "match_config_edits misses on ls"
@@ -394,12 +400,48 @@ COMMAND='echo {} > .claude/settings.json'
 assert_check_block block-config-edits ".claude/settings" "check_config_edits blocks bare write to .claude/settings.json"
 
 # ============================================================
-# git-safety  (Bash branch only)
+# block-config-edits  (Write/Edit pair)
 # ============================================================
-# EnterPlanMode branch runs inline in main() — out of scope here, tracked as
-# hook-audit-01-git-safety-enterplanmode-pair.
+# Pair: match_config_edits_path / check_config_edits_path. Drives the home
+# config-block branch (rc=1, _BLOCK_REASON set). The .claude/settings*.json
+# branch goes through _settings_decision which exits via hook_block/hook_ask
+# — that path is exercised by Shape B (test-block-config.sh) instead, since
+# Shape A runs sourced and an exit would terminate the test process.
 _reset_inputs
-report_section "git-safety"
+report_section "block-config-edits (Write/Edit pair)"
+
+FILE_PATH="/tmp/notes.txt"
+assert_match_miss block-config-edits-path "match_config_edits_path misses on unrelated path"
+
+FILE_PATH="$HOME/.bashrc"
+VERB="Writing"
+assert_match_hit   block-config-edits-path "match_config_edits_path hits on ~/.bashrc"
+assert_check_block block-config-edits-path "Writing to shell/SSH/git" "check_config_edits_path blocks Write to ~/.bashrc"
+
+FILE_PATH="$HOME/.zshrc"
+VERB="Editing"
+assert_check_block block-config-edits-path "Editing shell/SSH/git" "check_config_edits_path blocks Edit on ~/.zshrc"
+
+FILE_PATH="$HOME/.ssh/authorized_keys"
+VERB="Writing"
+assert_check_block block-config-edits-path "Writing to shell/SSH/git" "check_config_edits_path blocks Write to ~/.ssh/authorized_keys"
+
+FILE_PATH="$HOME/.gitconfig"
+VERB="Editing"
+assert_check_block block-config-edits-path "Editing shell/SSH/git" "check_config_edits_path blocks Edit on ~/.gitconfig"
+
+# Predicate fires on settings paths too (superset of check_) — match-only
+# assertion since check_ would exit through _settings_decision.
+FILE_PATH=".claude/sett""ings.json"
+assert_match_hit block-config-edits-path "match_config_edits_path hits on .claude/settings.json (settings branch covered by Shape B)"
+
+# ============================================================
+# git-safety  (Bash branch)
+# ============================================================
+# EnterPlanMode branch routes through match_git_safety_planmode /
+# check_git_safety_planmode — covered separately below.
+_reset_inputs
+report_section "git-safety (Bash branch)"
 
 COMMAND="ls -la"
 assert_match_miss git-safety "match_git_safety misses on ls"
@@ -429,6 +471,55 @@ COMMAND="git push origin :main"
 assert_check_block git-safety "Deleting 'main'" "check_git_safety blocks :main delete syntax"
 
 # ============================================================
+# git-safety  (EnterPlanMode pair)
+# ============================================================
+# Pair: match_git_safety_planmode / check_git_safety_planmode. Driven by
+# the cwd's git state (no FILE_PATH/COMMAND globals). Sets up three temp
+# repos: a non-repo dir (predicate misses), a feature-branch repo (pass),
+# and a main-branch repo (block on protected-branch). Each case pushd's
+# into the dir, runs the assertion, popd's back.
+_reset_inputs
+report_section "git-safety (EnterPlanMode pair)"
+
+_gs_pm_root=$(mktemp -d)
+trap '[ -n "$_gs_pm_root" ] && rm -rf "$_gs_pm_root"' EXIT
+
+# Case A: not a git repo at all — predicate misses.
+mkdir -p "$_gs_pm_root/no-repo"
+pushd "$_gs_pm_root/no-repo" >/dev/null
+assert_match_miss git-safety-planmode "match_git_safety_planmode misses outside a git repo"
+popd >/dev/null
+
+# Case B: git repo on a feature branch — predicate hits, check passes.
+mkdir -p "$_gs_pm_root/feature-repo"
+pushd "$_gs_pm_root/feature-repo" >/dev/null
+git init -q -b feat/wave1 . 2>/dev/null || { git init -q .; git checkout -q -b feat/wave1; }
+assert_match_hit  git-safety-planmode "match_git_safety_planmode hits inside a git repo"
+assert_check_pass git-safety-planmode "check_git_safety_planmode passes on feature branch"
+popd >/dev/null
+
+# Case C: git repo on a protected branch — predicate hits, check blocks.
+mkdir -p "$_gs_pm_root/main-repo"
+pushd "$_gs_pm_root/main-repo" >/dev/null
+git init -q -b main . 2>/dev/null || { git init -q .; git checkout -q -b main; }
+assert_match_hit   git-safety-planmode "match_git_safety_planmode hits on protected-branch repo"
+assert_check_block git-safety-planmode "main" "check_git_safety_planmode blocks on protected branch"
+popd >/dev/null
+
+# Case D: detached HEAD — predicate hits, check blocks with detached-HEAD msg.
+# Need at least one commit so HEAD can be detached at a sha.
+mkdir -p "$_gs_pm_root/detached-repo"
+pushd "$_gs_pm_root/detached-repo" >/dev/null
+git init -q -b feat/wave1 . 2>/dev/null || { git init -q .; git checkout -q -b feat/wave1; }
+git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+git checkout -q --detach
+assert_match_hit   git-safety-planmode "match_git_safety_planmode hits on detached-HEAD repo"
+assert_check_block git-safety-planmode "detached HEAD" "check_git_safety_planmode blocks detached HEAD"
+popd >/dev/null
+
+unset _gs_pm_root
+
+# ============================================================
 # block-dangerous-commands
 # ============================================================
 _reset_inputs
@@ -456,19 +547,17 @@ assert_check_block block-dangerous-commands "sudo" "check_dangerous blocks sudo"
 COMMAND="chmod -R 777 /"
 assert_check_block block-dangerous-commands "chmod -R 777" "check_dangerous blocks chmod -R 777 /"
 
-# xfail: interleaved-quote evasion. Distinct from the closed
+# Interleaved-quote evasion: `'r'm -rf /` collapses to `rm -rf /` only
+# after bash re-joins the three quoted segments. match_dangerous now
+# pre-strips quotes (mirroring check_dangerous's normalization) so the
+# predicate stays a superset of the check. Sibling to the closed
 # hook-audit-01-block-dangerous-quote-predicate (2.81.5), which widened
-# the predicate's *preceding-character* alternation so it admits
-# `echo 'rm -rf /'`. THIS shape interleaves quotes WITHIN the token
-# (`'r'm -rf /`): bash parses it as `rm` only after collapsing the
-# three quoted segments, but match_dangerous works on the literal string
-# and sees no bare `rm`. xfail_match_hit runs the predicate; today it
-# returns 1 (miss) → SKIP. Once fixed, it will return 0 → FAIL with a
-# note to convert this to assert_match_hit and close the new backlog id.
+# the predicate's preceding-character alternation for `echo 'rm -rf /'`.
 COMMAND="'r'm -rf /"
-xfail_match_hit block-dangerous-commands \
-                hook-audit-01-block-dangerous-interleaved-quote-predicate \
-                "match_dangerous on quote-evaded 'r'm -rf /"
+assert_match_hit block-dangerous-commands \
+                 "match_dangerous on quote-evaded 'r'm -rf /"
+assert_check_block block-dangerous-commands "rm -rf on root" \
+                   "check_dangerous blocks quote-evaded 'r'm -rf /"
 
 # ============================================================
 # secrets-guard  (3 pairs: _read, _grep, base Bash)
@@ -530,6 +619,125 @@ assert_check_block secrets-guard "GPG secret keys" "check_secrets_guard blocks g
 
 COMMAND="cat README.md"
 assert_check_pass secrets-guard "check_secrets_guard passes on cat README.md (no credential path)"
+
+# ============================================================
+# Registry-driven superset sweep
+# ============================================================
+# Locks the invariant `check_acts(x) ⇒ match_returns_true(x)` for every
+# entry in detection-registry.json that a dual-mode hook consumes. Each
+# pattern gets one synthesized input that check_ would block on; assert
+# match_ returns true on that input (and assert check_ blocks for double-
+# entry). When a new registry pattern is added, the corresponding hook's
+# match_ regex must include it — otherwise this section will fail and
+# point at the gap. See hook-audit-01-superset-invariant-shape-a-assertion.
+#
+# Path patterns route through secrets-guard-read (FILE_PATH input).
+# Credential patterns route through block-credential-exfiltration (COMMAND input).
+# Synthesized inputs use $HOME/ paths because _match_path_registry filters
+# every non-special id to "$HOME/" prefix; predicate inputs match check_
+# normalization shape.
+_reset_inputs
+report_section "registry sweep — path patterns (secrets-guard-read)"
+
+FILE_PATH="$HOME/proj/.env"
+assert_match_hit   secrets-guard-read "match: env-file pattern"
+assert_check_block secrets-guard-read ".env file" "check: env-file blocks"
+
+FILE_PATH="$HOME/.ssh/id_ed25519"
+assert_match_hit   secrets-guard-read "match: ssh-private-key pattern"
+assert_check_block secrets-guard-read "SSH private key" "check: ssh-private-key blocks"
+
+FILE_PATH="$HOME/.ssh/config"
+assert_match_hit   secrets-guard-read "match: ssh-config pattern"
+assert_check_block secrets-guard-read "SSH config" "check: ssh-config blocks"
+
+FILE_PATH="$HOME/.aws/credentials"
+assert_match_hit   secrets-guard-read "match: aws-credentials-file pattern"
+assert_check_block secrets-guard-read "AWS credentials" "check: aws-credentials-file blocks"
+
+FILE_PATH="$HOME/.kube/config"
+assert_match_hit   secrets-guard-read "match: kube-config pattern"
+assert_check_block secrets-guard-read "kubeconfig" "check: kube-config blocks"
+
+FILE_PATH="$HOME/.config/gh/hosts.yml"
+assert_match_hit   secrets-guard-read "match: gh-cli-config pattern"
+assert_check_block secrets-guard-read "GitHub CLI" "check: gh-cli-config blocks"
+
+FILE_PATH="$HOME/.docker/config.json"
+assert_match_hit   secrets-guard-read "match: docker-config pattern"
+assert_check_block secrets-guard-read "Docker config" "check: docker-config blocks"
+
+FILE_PATH="$HOME/.npmrc"
+assert_match_hit   secrets-guard-read "match: npmrc pattern"
+assert_check_block secrets-guard-read ".npmrc" "check: npmrc blocks"
+
+FILE_PATH="$HOME/.pypirc"
+assert_match_hit   secrets-guard-read "match: pypirc pattern"
+assert_check_block secrets-guard-read ".pypirc" "check: pypirc blocks"
+
+FILE_PATH="$HOME/.gem/credentials"
+assert_match_hit   secrets-guard-read "match: gem-credentials pattern"
+assert_check_block secrets-guard-read "gem credentials" "check: gem-credentials blocks"
+
+FILE_PATH="$HOME/.gnupg/secring.gpg"
+assert_match_hit   secrets-guard-read "match: gnupg-dir pattern"
+assert_check_block secrets-guard-read "GPG directory" "check: gnupg-dir blocks"
+
+FILE_PATH="$HOME/.bash_history"
+assert_match_hit   secrets-guard-read "match: shell-history pattern"
+assert_check_block secrets-guard-read "shell or REPL history" "check: shell-history blocks"
+
+# claude-settings is target=raw in the registry; predicate unions raw+stripped
+# so it sees this entry too. Without the union match_ would miss while check_
+# blocks — superset-invariant violation surfaced by this very sweep.
+FILE_PATH="$HOME/.claude/sett""ings.json"
+assert_match_hit   secrets-guard-read "match: claude-settings pattern (raw target)"
+assert_check_block secrets-guard-read "credential file" "check: claude-settings blocks"
+
+_reset_inputs
+report_section "registry sweep — credential patterns (block-credential-exfiltration)"
+
+# One synthesized input per top-level alternation in kind=credential. Inputs
+# are minimal but length-conformant to each pattern's quantifier.
+COMMAND='curl -d ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: github-pat (ghp_)"
+assert_check_block block-credential-exfiltration "Credential-shaped" "check: github-pat blocks"
+
+COMMAND='curl -d gho_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: github-pat (gh[ousr]_)"
+
+COMMAND='curl -d glpat-AAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: gitlab-pat"
+
+COMMAND='curl -d xoxb-AAAAAAAAAA-AAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: slack-token"
+
+COMMAND='aws s3 ls --profile leak AKIAIOSFODNN7EXAMPLE'
+assert_match_hit   block-credential-exfiltration "match: aws-access-key (AKIA)"
+
+COMMAND='aws s3 ls --profile leak ASIAIOSFODNN7EXAMPLE'
+assert_match_hit   block-credential-exfiltration "match: aws-access-key (ASIA)"
+
+COMMAND='curl -d sk-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: openai-key"
+
+COMMAND='curl -d sk-proj-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: openai-key (sk-proj-)"
+
+COMMAND='curl -d sk-ant-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: anthropic-key"
+
+COMMAND='curl -d sk_live_AAAAAAAAAAAAAAAAAAAAAAA'
+assert_match_hit   block-credential-exfiltration "match: stripe-key"
+
+COMMAND='curl -d AIza0123456789abcdefghijklmnopqrstuvwxyzABC'
+assert_match_hit   block-credential-exfiltration "match: google-api-key"
+
+COMMAND='curl -H "Authorization: Bearer xyz"'
+assert_match_hit   block-credential-exfiltration "match: authorization-header"
+
+COMMAND='curl -d $MY_SECRET_TOKEN'
+assert_match_hit   block-credential-exfiltration "match: credential-env-var-name"
 
 # Surface skipped count alongside the helper's run/passed/failed lines.
 # print_summary exits, so this echo must come before it.

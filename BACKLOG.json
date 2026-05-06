@@ -310,19 +310,6 @@
       ]
     },
     {
-      "id": "hooks-validate-v12-hooks-md-drift",
-      "priority": "P2",
-      "title": "Hook validator V12 — generate HOOKS.md from headers, fail on drift",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Add V12 from C4 of the referenced design doc: a render-hooks-index.sh generator that produces docs/indexes/HOOKS.md from CC-HOOK headers, plus a validator check that fails on drift (mirrors the V11 pattern for dispatchers). HOOKS.md is currently hand-maintained — without V12 the SSOT claim is incomplete.",
-      "references": [
-        "design/hook-framework-refactor.md"
-      ]
-    },
-    {
       "id": "hook-audit-01-test-token-allowlist",
       "priority": "P2",
       "title": "block-credential-exfiltration: explicit test-token allowlist for fixture authoring",
@@ -351,16 +338,6 @@
       ],
       "status": "idea",
       "notes": "secrets-guard's check-body cost (~26ms p50 per per-hook probe) is dominated by inline command-shape policy (env-listing detection, credential-shaped printenv argument detection). The shared registry today handles regex-based pattern matching; the inline policy is positional ('printenv of a credential-shaped name') and doesn't map cleanly to the current registry shape. Speculative proposal: extend the registry to support positional matching, move secrets-guard's inline policy into registry data, shrink the hook to ~150 LoC. Real performance win (~14ms × all-Bash-firings + all-Read-firings is significant), but it's a substantial change to the registry shape — separate design effort, not a clarity-pass call. P2 because the speculation is real but the win depends on a registry redesign whose cost isn't yet scoped. See design/hook-audit/01-standardized/clarity.md (Proposal 6, secrets-guard subsection)."
-    },
-    {
-      "id": "hook-audit-02-perf-budget-headers",
-      "priority": "P1",
-      "title": "Per-dispatcher PERF-BUDGET-MS headers (grouped-bash-guard scope_miss=150 scope_hit=220; grouped-read-guard 75/120)",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/02-dispatchers/performance.md. Both dispatchers warn on every make check because they inherit the framework default scope_miss=5. N=30 probe data backs scope_miss=150/scope_hit=220 for grouped-bash-guard and 75/120 for grouped-read-guard (smoke p95 + ~10%). Cheapest fix: one header line per dispatcher. Stops V20 false-positives without hiding +20% drift regressions."
     },
     {
       "id": "hook-audit-02-source-guarded-cost",
@@ -628,26 +605,6 @@
       "notes": "secrets-guard repeats the credential-safe-suffix regex \\\\.(example|template)$ in three sites: _match_path_registry env-file branch, check_secrets_guard_grep glob branch, and check_secrets_guard ENV_ALLOW_RE local (applied 4×). Logic is identical; inputs differ (basename vs glob vs verb-regex BASH_REMATCH). A helper _has_credential_safe_suffix(s) would dedupe. .pub allowlist is SSH-key-specific and should stay inline. Cosmetic — no current drift. Score against churn before doing. See .claude/hooks/secrets-guard.sh."
     },
     {
-      "id": "hook-audit-01-block-config-edits-write-edit-pair",
-      "priority": "P1",
-      "title": "block-config-edits: route Write/Edit branches through a match/check pair",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "block-config-edits.sh exposes match_config_edits/check_config_edits but only invokes them in main() for Bash. The Write and Edit branches inline is_blocked_config + is_blocked_settings + _settings_decision (lines ~287-318). For uniformity with the post-cleanup secrets-guard (where all three branches route through their match/check pairs) and so the Shape A test layer covers all paths, refactor: introduce match_config_edits_write/check_config_edits_write (or a single match_config_edits_path/check_config_edits_path covering both Write and Edit), route main() through them, leave the registry-driven detection in place. Surfaced during hook-audit-01 secrets-guard alignment; the audit (clarity.md Proposal 4, inventory.md) classified block-config-edits as dual-mode without flagging the per-branch asymmetry. See design/hook-audit/01-standardized/inventory.md and testability.md (caveats added in branch docs/hook-audit-01-secrets-guard-alignment)."
-    },
-    {
-      "id": "hook-audit-01-git-safety-enterplanmode-pair",
-      "priority": "P1",
-      "title": "git-safety: route EnterPlanMode branch through a match/check pair",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "git-safety.sh exposes match_git_safety/check_git_safety but only invokes them in main() for Bash. The EnterPlanMode branch inlines the protected-branch check (lines ~178-196). Smaller scope than block-config-edits — one extra branch, simpler logic — but the same asymmetry: a Shape A test of the existing pair covers Bash but not EnterPlanMode. Refactor: introduce match_git_safety_planmode/check_git_safety_planmode (or fold protected-branch logic under a unified match/check that branches on $TOOL_NAME), route main() through them. Note: EnterPlanMode forks `git rev-parse` per inventory.md:138, so the predicate split has perf shape implications worth measuring. Surfaced during hook-audit-01 secrets-guard alignment. See design/hook-audit/01-standardized/inventory.md and testability.md (caveats added in branch docs/hook-audit-01-secrets-guard-alignment)."
-    },
-    {
       "id": "hook-audit-01-secrets-guard-grep-git-config",
       "priority": "P2",
       "title": "secrets-guard Grep branch: investigate .git/config credential-remote coverage gap",
@@ -656,20 +613,6 @@
       ],
       "status": "idea",
       "notes": "Read and Bash branches both invoke _git_dir_has_credential_remote against $HOME/.git/config (Read) or $PWD (Bash) when the path/command pattern matches .git/config — blocks only when an embedded user:pass@host credential is present. The Grep branch does not: check_secrets_guard_grep handles path patterns via _path_block_reason and glob patterns inline, but never runs the credential-remote check. Path-shape detection still catches `Grep -e secret .git/config` via the git-config registry entry, but the registry entry has continue (deferred) in _match_path_registry — so .git/config greps fall through and pass. Investigate whether this is intentional (Grep on .git/config is rare, and the wider grep-into-token-strings problem is owned by block-credential-exfiltration) or worth closing for parity. If closing: extend check_secrets_guard_grep with the same _git_dir_has_credential_remote dispatch the other two branches use. Surfaced during hook-audit-01 secrets-guard alignment."
-    },
-    {
-      "id": "hook-audit-01-superset-invariant-shape-a-assertion",
-      "priority": "P1",
-      "title": "Wire superset-invariant assertion into Shape A test layer",
-      "scope": [
-        "hooks",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "The superset invariant (check_acts(x) implies match_returns_true(x)) is now documented in .claude/docs/relevant-toolkit-hooks.md §1 (Quick Reference) and §4 (named subsection 'The superset invariant'). It is currently a doc-only convention. Once the Shape A test layer (hook-audit-01-shape-a-match-check-pairs) lands, add an enforcement pass: for each of the 9 dual-mode hooks, generate inputs check_<name> would block and assert match_<name> returns true on each. Per-hook input sources: registry-driven hooks (block-credential-exfiltration, secrets-guard registry branch, block-config-edits) — pull the registry pattern alternation and synthesize matching strings. Inline-policy hooks (block-dangerous-commands, git-safety, enforce-make-commands, enforce-uv-run, suggest-read-json, auto-mode-shared-steps) — curate a small list of 'known acts' inputs per hook. Cost when Shape A exists: ~50 LoC + per-hook input lists. See design/hook-audit/01-standardized/clarity.md Proposal 1.",
-      "relates_to": [
-        "hook-audit-01-shape-a-match-check-pairs:depends-on"
-      ]
     },
     {
       "id": "hook-audit-01-detect-truncation-injected-fixture",
@@ -681,17 +624,6 @@
       ],
       "status": "idea",
       "notes": "Smoke runner sandboxes $HOME to a fresh tmpdir, so the transcript file at $HOME/.claude/projects/-<derived>/<session>.jsonl that detect-session-start-truncation reads (line 42-52) doesn't exist — hook always falls through to pass. To pair the outcome, extend tests/hooks/run-smoke.sh with optional <name>.transcript.jsonl sidecar that the runner writes into $tmpdir/fakehome/.claude/projects/-<derived>/<session>.jsonl before invoking the hook. Then add injects-on-truncation-marker fixture. Documented skip in hook-audit-01-paired-outcome-fixtures wrap-up (2026-05-03). Direct consumer of the V20 budget per-outcome split when paired with hook-audit-01-perf-rerun-paired."
-    },
-    {
-      "id": "hook-audit-01-block-dangerous-interleaved-quote-predicate",
-      "priority": "P1",
-      "title": "match_dangerous misses interleaved-quote evasion (e.g. 'r'm -rf /)",
-      "scope": [
-        "hooks",
-        "tests"
-      ],
-      "status": "idea",
-      "notes": "Distinct from the hook-audit-01-block-dangerous-quote-predicate fix in 2.81.5, which widened the predicate's preceding-character alternation to admit single/double quotes (catches `echo 'rm -rf /'`). This shape interleaves quotes WITHIN the rm token itself: `'r'm -rf /` — bash collapses the three tokens into a single `rm` only after parsing, but match_dangerous works on the literal string and sees no bare `rm`. check_dangerous's normalization pass strips quotes (sed s/[\"']//g) and would catch it, so this is a textbook superset-invariant violation. Surfaced by the Shape A test layer (tests/hooks/test-match-check-pairs.sh) which carries an xfail probe for this exact input. Once fixed, convert the xfail in the test file to assert_match_hit and update the reference."
     },
     {
       "id": "hook-audit-00-malformed-stdin-fixtures",
@@ -764,16 +696,6 @@
       "status": "idea"
     },
     {
-      "id": "hook-audit-02-substep-batching",
-      "priority": "P1",
-      "title": "Buffer dispatcher substep rows; flush all rows in one jq invocation at EXIT trap",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/02-dispatchers/performance.md and 02-dispatchers/clarity.md Proposal 6. grouped-bash-guard real-mode pays 8x hook_log_substep jq forks per dispatch (~40ms). Buffer (name, duration_ms, outcome, bytes) tuples in bash arrays during the dispatcher loop; emit ALL rows via one jq -c -n --argjson rows [...] invocation at the EXIT trap. Same N rows in JSONL output (schema preserved); one fork instead of N. Save: ~35ms on bash-guard real-mode, ~10ms on read-guard real-mode. Implementation: four bash array globals initialized at hook_init, dispatcher loop appends instead of direct hook_log_substep call, post-block skipped emission also buffers, EXIT-trap path calls a new flush function. EXPLICITLY REJECTED variants: collapsing N substep rows into one dispatch row with nested substeps array (would break downstream JSONL consumers); skipping jq for substep rows by hand-rolling JSON via printf (fragile against schema additions in hook-logging.sh). Re-run run-per-dispatcher-probe.sh after change for before/after numbers."
-    },
-    {
       "id": "sync-profiles",
       "priority": "P2",
       "title": "Declarative sync profiles — projects choose which resource categories to receive",
@@ -810,16 +732,6 @@
       ],
       "status": "idea",
       "notes": "Instead of migrating DOCS.md to JSON-backed render (deferred from feat/json-backed-indexes), step back: docs may be the wrong primitive. Claude Code already has 'rules' as a first-class concept, and knowledge-only skills (e.g. read-json) already cover the 'load on demand' shape. Investigate: which .claude/docs/* belong as rules (always-on conventions), which as knowledge skills (load-on-demand reference), which to remove. Goal is to stop swimming against the current — fewer custom primitives, more leverage of native ones. Reference: .claude/docs/ contents, docs/indexes/DOCS.md, list-docs skill."
-    },
-    {
-      "id": "workshop-resources-out-of-dotclaude",
-      "priority": "P2",
-      "title": "Move workshop-authored resources out of .claude/ into a dedicated source dir",
-      "scope": [
-        "toolkit"
-      ],
-      "status": "idea",
-      "notes": ".claude/ in this repo plays two roles: workshop-authored output (synced to consumers) and the toolkit's own dogfooded Claude Code config. Proposal: move workshop sources into a dedicated dir (resources/) so .claude/ recovers its consumer-project meaning. Dogfood via an explicit sync --self step, not symlinks. Land after the hook-audit design phase. Run /shape-project before any code moves.\n\nSee: output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude.md"
     },
     {
       "id": "prose-cleanup-resource",
@@ -967,17 +879,6 @@
       "notes": "During the 2.83.0 wrap-up make check run, test-verify-external-deps failed once on the \"Expected ✓ bash in output\" assertion even though the captured output did contain `✓ bash`. Re-running the test in isolation passed 19/19; the next make check passed cleanly. Not reproduced. Likely a parallel-runner quirk (TEMP_DIR, fixture race, or stdout/stderr interleaving under load) but unverified — investigate if it recurs. Source: 2026-05-06 timestamp-standard-iso-t branch wrap-up."
     },
     {
-      "id": "hooks-block-destructive-sql-stdin-coverage",
-      "priority": "P1",
-      "title": "Hook: cover stdin/file-driven SQL gap in block-destructive-sql",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "source": "analyze-idea report 2026-05-06",
-      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content)."
-    },
-    {
       "id": "hooks-v20-perf-budget-conflation",
       "priority": "P2",
       "title": "V20 perf budget conflates predicate-miss with predicate-hit-pass",
@@ -1010,6 +911,40 @@
       ],
       "status": "idea",
       "notes": "Hit twice during block-destructive-sql implementation: 'local in=$1 out= len=${#in}' on a single line evaluates ${#in} before in is assigned in some bash configurations, leaving len=0 — the function silently does nothing. For pure-validation helpers this presents as 'function returns false / never matches', which in a blocking guardrail looks identical to 'no destructive content found' and the hook silently allows. Sweep all PreToolUse blocking hooks in .claude/hooks/ for this pattern (single-line locals where one assignment derives from another via parameter expansion) and split them into separate local statements. Also worth adding a one-paragraph note to .claude/docs/relevant-toolkit-hooks.md so the next contributor doesn't relearn it. Surfaced by /review-security INFO #6."
+    },
+    {
+      "id": "hooks-validate-v12-hooks-md-drift",
+      "priority": "P1",
+      "title": "Hook validator V12 — generate HOOKS.md from headers, fail on drift",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Add V12 from C4 of the referenced design doc: a render-hooks-index.sh generator that produces docs/indexes/HOOKS.md from CC-HOOK headers, plus a validator check that fails on drift (mirrors the V11 pattern for dispatchers). HOOKS.md is currently hand-maintained — without V12 the SSOT claim is incomplete.",
+      "references": [
+        "design/hook-framework-refactor.md"
+      ]
+    },
+    {
+      "id": "hooks-block-destructive-sql-stdin-coverage",
+      "priority": "P2",
+      "title": "Hook: cover stdin/file-driven SQL gap in block-destructive-sql",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "source": "analyze-idea report 2026-05-06",
+      "notes": "Follow-up to hooks-block-destructive-sql (depends-on). The base hook documents stdin/file-driven SQL as out of scope: 'psql < destructive.sql', 'cat script.sql | sqlite3 db', heredoc bodies (blanked by _strip_inert_content before structural matching). These vectors carry the same blast radius as the inline -c/-e form the base hook covers. Options to evaluate: (1) detect the redirection/pipe shape and read the file from disk for a structural check — cheap, but misses dynamic content; (2) detect heredoc opener targeting an SQL CLI before _strip_inert_content runs and inspect the body; (3) accept the gap permanently and add only the heredoc-to-SQL-CLI case (most likely vector from an in-conversation paste). Land after base hook ships and 1-2 weeks of telemetry shows whether real false negatives are common enough to justify the extra surface. Refs: output/claude-toolkit/analysis/20260506T1407__analyze-idea__hooks-block-destructive-sql.md §3 'Resolution' and §Risks; .claude/hooks/lib/hook-utils.sh:107 (_strip_inert_content)."
+    },
+    {
+      "id": "workshop-resources-out-of-dotclaude",
+      "priority": "P1",
+      "title": "Move workshop-authored resources out of .claude/ into a dedicated source dir",
+      "scope": [
+        "toolkit"
+      ],
+      "status": "idea",
+      "notes": ".claude/ in this repo plays two roles: workshop-authored output (synced to consumers) and the toolkit's own dogfooded Claude Code config. Proposal: move workshop sources into a dedicated dir (resources/) so .claude/ recovers its consumer-project meaning. Dogfood via an explicit sync --self step, not symlinks. Land after the hook-audit design phase. Run /shape-project before any code moves.\n\nSee: output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude.md"
     }
   ]
 }

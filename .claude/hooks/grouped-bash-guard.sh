@@ -3,6 +3,7 @@
 # CC-HOOK: PURPOSE: Dispatcher for Bash PreToolUse — amortizes startup across grouped checks
 # CC-HOOK: EVENTS: PreToolUse(Bash)
 # CC-HOOK: STATUS: stable
+# CC-HOOK: PERF-BUDGET-MS: scope_miss=150, scope_hit=220
 # CC-HOOK: OPT-IN: none
 #
 # PreToolUse hook: grouped Bash guard — dispatcher that amortizes bash
@@ -81,6 +82,10 @@ _BLOCK_REASON=""
 # then secrets_guard, config_edits, make, uv.
 BLOCK_IDX=-1
 
+# Substep rows are buffered into _SUBSTEP_* arrays (initialized in hook_init)
+# and flushed in one jq invocation by _hook_flush_substeps from the EXIT trap.
+# Cuts ~35ms (real-mode p95) off the hot path by replacing N per-substep jq
+# forks with 1. Schema preserved row-for-row — see hook-audit-02-substep-batching.
 for i in "${!CHECKS[@]}"; do
     name="${CHECKS[$i]}"
     match_fn="match_${name}"
@@ -89,7 +94,10 @@ for i in "${!CHECKS[@]}"; do
     start_ms=$(_now_ms)
     if ! "$match_fn"; then
         end_ms=$(_now_ms)
-        hook_log_substep "$check_fn" $(( end_ms - start_ms )) "not_applicable" 0
+        _SUBSTEP_NAMES+=("$check_fn")
+        _SUBSTEP_DURATIONS+=("$(( end_ms - start_ms ))")
+        _SUBSTEP_OUTCOMES+=("not_applicable")
+        _SUBSTEP_BYTES+=("0")
         continue
     fi
 
@@ -98,17 +106,26 @@ for i in "${!CHECKS[@]}"; do
     end_ms=$(_now_ms)
     dur=$(( end_ms - start_ms ))
     if [ "$rc" -eq 1 ]; then
-        hook_log_substep "$check_fn" "$dur" "block" 0
+        _SUBSTEP_NAMES+=("$check_fn")
+        _SUBSTEP_DURATIONS+=("$dur")
+        _SUBSTEP_OUTCOMES+=("block")
+        _SUBSTEP_BYTES+=("0")
         BLOCK_IDX=$i
         break
     fi
-    hook_log_substep "$check_fn" "$dur" "pass" 0
+    _SUBSTEP_NAMES+=("$check_fn")
+    _SUBSTEP_DURATIONS+=("$dur")
+    _SUBSTEP_OUTCOMES+=("pass")
+    _SUBSTEP_BYTES+=("0")
 done
 
 if [ "$BLOCK_IDX" -ge 0 ]; then
     for j in "${!CHECKS[@]}"; do
         if [ "$j" -gt "$BLOCK_IDX" ]; then
-            hook_log_substep "check_${CHECKS[$j]}" 0 "skipped" 0
+            _SUBSTEP_NAMES+=("check_${CHECKS[$j]}")
+            _SUBSTEP_DURATIONS+=("0")
+            _SUBSTEP_OUTCOMES+=("skipped")
+            _SUBSTEP_BYTES+=("0")
         fi
     done
     hook_block "$_BLOCK_REASON"
