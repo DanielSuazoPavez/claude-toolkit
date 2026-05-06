@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Notes
+- Triaged `suggestions-box/` (2 self-reported issues, 1 cross-project issue, 1 cross-project doc). Filed 4 backlog tasks: `cli-backlog-update-scope-field` (P2, `backlog update` missing `--scope`), `skills-review-plan-green-seam-reframe` (P2, per-step-commit rule fights pre-commit on refactors — LSP-pilot evidence Phases 3–5), `skills-setup-worktree-partial-tracking` (P2, file-level overlay needed for partially-tracked `.claude/` dirs), `docs-ab-worktree-experiments-generalize` (P3, reframe sessions-specific bits in the new doc).
+- Accepted `relevant-workflow-ab_worktrees.md` (A/B experiments with worktrees) into `.claude/docs/`, indexed as `experimental`. Workshop-internal for now: excluded from base sync (`dist/base/EXCLUDE`), not in `dist/raiz/MANIFEST`. Pilot question ("should we include the LSP plugin in the toolkit?") was planned here, executed in claude-sessions; method belongs in this repo.
+
 ## [2.84.1] - 2026-05-06 - hook-audit Wave 1 follow-ups (perf, predicate fixes, pair refactors)
 
 ### Fixed

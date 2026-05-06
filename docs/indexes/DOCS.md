@@ -31,3 +31,4 @@ Always loaded at session start:
 | `relevant-toolkit-satellite-contracts` | stable | Advisory convention for satellite maintainers: expose agent-facing contracts via `<satellite> docs <contract>` so workshop skills don't carry drifting copies |
 | `relevant-toolkit-satellite-consumers` | stable | Consumer-side convention for workshop skills that call satellite contracts: pointer file structure, failure ladder, invocation pattern |
 | `relevant-philosophy-reducing_entropy` | stable | Philosophy on reducing codebase entropy |
+| `relevant-workflow-ab_worktrees` | experimental | A/B experiments with git worktrees: side-by-side comparison of harness-level variables (LSP, hooks, agents, prompts) on real backlog tasks |

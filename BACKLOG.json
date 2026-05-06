@@ -945,6 +945,50 @@
       ],
       "status": "idea",
       "notes": ".claude/ in this repo plays two roles: workshop-authored output (synced to consumers) and the toolkit's own dogfooded Claude Code config. Proposal: move workshop sources into a dedicated dir (resources/) so .claude/ recovers its consumer-project meaning. Dogfood via an explicit sync --self step, not symlinks. Land after the hook-audit design phase. Run /shape-project before any code moves.\n\nSee: output/claude-toolkit/backlog-notes/workshop-resources-out-of-dotclaude.md"
+    },
+    {
+      "id": "cli-backlog-update-scope-field",
+      "priority": "P2",
+      "title": "backlog update: add --scope field (matches add semantics)",
+      "scope": [
+        "cli"
+      ],
+      "status": "idea",
+      "source": "suggestions-box/claude-toolkit/20260506_154057_issue.txt",
+      "notes": "Repro: `claude-toolkit backlog update <id> --scope foo` → \"Unknown field for update: --scope (valid: --status, --branch, --notes, --plan, --source, --title)\". `scope` is first-class per `backlog schema` and `backlog add` accepts `--scope a[,b]`. Workaround today is remove + re-add (loses other fields).\n\nFix: add `--scope` to `backlog update`, accepting comma-separated form like `add` (replace semantics, not append). Mention under `update` line in `backlog --help`."
+    },
+    {
+      "id": "skills-review-plan-green-seam-reframe",
+      "priority": "P2",
+      "title": "/review-plan: reframe per-step-commit rule as green-seam audit",
+      "scope": [
+        "skills"
+      ],
+      "status": "idea",
+      "source": "suggestions-box/claude-toolkit/20260506_173553_issue.txt",
+      "notes": "LSP-pilot Phases 3, 4, 5 (claude-sessions): every plan that ran /review-plan and adopted \"commit after each numbered step. Do not bundle.\" deviated at impl time, in both arms. Bundling was the correct outcome — splitting would have left the tree red between commits (pre-commit ty/lint hooks).\n\nReframe: replace \"commit after each step\" with \"name your green-seams; commit at each one. Bundle only when steps must commit together to keep the tree green; name the bundle and the reason.\"\n\nChecklist additions for /review-plan structural section:\n1. Green-seam audit: every numbered step declares what tree-state the commit leaves behind (lint clean, full tests pass, skip-allowed). Steps sharing the same exit-state because they touch the same invariant get named as a bundle.\n2. Bundle-by-name, not by-default: a step is the unit of work; the commit is the unit of green tree.\n3. Drop the foot-gun reframe wording.\n\nSame audit catches the inverse (a step that should be split because it crosses a green-seam — adding a function + replacing call-sites in one commit, etc.).\n\nEvidence:\n- output/claude-toolkit/analysis/20260506_1735__lsp-pilot__module-split-search-comparison.md\n- output/claude-toolkit/analysis/20260506_1510__lsp-pilot__module-split-delete-migrations-comparison.md\n- output/claude-toolkit/analysis/20260506_1621__lsp-pilot__module-split-lift-jsonl-ingestion-comparison.md"
+    },
+    {
+      "id": "skills-setup-worktree-partial-tracking",
+      "priority": "P2",
+      "title": "setup-worktree: file-level overlay for partially-tracked .claude/ dirs",
+      "scope": [
+        "skills"
+      ],
+      "status": "idea",
+      "source": "suggestions-box/claude-sessions/20260506_155934_issue.txt",
+      "notes": "Bug from claude-sessions (tracks `.claude/docs/relevant-project-identity.md`, gitignores rest). Skill ran to completion but worktree session showed \"0 essential docs loaded\" — gitignored essential-conventions-* and essential-preferences-* docs were absent.\n\nRoot cause: skill's step-3 check is `if [ ! -d \"$WORKTREE/.claude/skills\" ]`. When `.claude/` is partially tracked, worktree comes up with `.claude/docs/` already existing as tracked dir containing only the tracked file(s). Symlink loop covers `agents/ hooks/ memories/ skills/ scripts/ settings.json` — not `docs/`. Even if it tried, directory-level symlink would collide because `docs/` already exists.\n\nFix shape (file-level overlay):\n\n  for d in agents hooks memories skills scripts docs; do\n    [ -d \"$MAIN/.claude/$d\" ] || continue\n    mkdir -p \"$WT/.claude/$d\"\n    for f in \"$MAIN/.claude/$d\"/*; do\n      base=$(basename \"$f\")\n      [ -e \"$WT/.claude/$d/$base\" ] && continue   # tracked file/dir already there\n      ln -s \"$f\" \"$WT/.claude/$d/$base\"\n    done\n  done\n\nSame logic applies to memories/ if a project ever tracks any memory file while gitignoring others.\n\nOnce fixed, the §3.2 caveat in `.claude/docs/relevant-workflow-ab_worktrees.md` (\"Known skill gap...\") can be removed."
+    },
+    {
+      "id": "docs-ab-worktree-experiments-generalize",
+      "priority": "P3",
+      "title": "ab_worktrees doc: generalize sessions-specific bits",
+      "scope": [
+        "docs"
+      ],
+      "status": "idea",
+      "source": ".claude/docs/relevant-workflow-ab_worktrees.md (accepted from suggestions-box/claude-sessions/)",
+      "notes": "Doc accepted into .claude/docs/relevant-workflow-ab_worktrees.md from claude-sessions. The methodology is general (any harness-level variable: hook on/off, agent variant, permission shape, prompt variant — not just LSP). Currently over-anchors on the LSP pilot example.\n\nReframe needed:\n- §3.5/§4: references to \"claude-sessions repo\" — generalize.\n- §6 \"Capture and measurement\": currently assumes claude-sessions' cron/index-*.sh. Reframe as \"you need an analytics layer; here is the shape of queries; example uses claude-sessions\".\n- §6 reference to ~/claude-analytics/sessions.db — note as \"wherever the project's analytics ingest to\".\n- §3.2 worktree-skill caveat — remove once skills-setup-worktree-partial-tracking ships.\n- LSP-specific examples (§3.3, §3.4): keep as worked example but frame as \"one variable; same shape applies to hooks, agents, permissions, prompt variants\".\n- §6 LSP-pilot analysis links survive (those files live in this repo).\n\nAlready general (no changes needed): §1–§2, §4 symmetry table, §5 (what isn't fixed), §7 write-up template, §8 teardown.\n\nContext: pilot was planned in claude-toolkit (\"should we include the LSP plugin in the toolkit?\"), executed in claude-sessions. Method belongs here."
     }
   ]
 }
