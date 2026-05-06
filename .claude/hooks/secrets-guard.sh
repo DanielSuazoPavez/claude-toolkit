@@ -87,6 +87,7 @@ _path_message() {
         gem-credentials)  echo "BLOCKED: $verb gem credentials may expose RubyGems API keys." ;;
         gnupg-dir)        echo "BLOCKED: $verb GPG directory may expose private keys and trust data." ;;
         ssh-config)       echo "BLOCKED: $verb SSH config may expose hostnames, key paths, and proxy settings." ;;
+        shell-history)    echo "BLOCKED: $verb shell or REPL history may expose pasted tokens, leaked env exports, or credential-bearing commands." ;;
         *)                echo "BLOCKED: $verb credential file may expose secrets." ;;
     esac
 }
@@ -367,6 +368,12 @@ check_secrets_guard() {
     local GEM_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.gem/credentials"
     if [[ "$COMMAND" =~ $PKG_RE ]] || [[ "$COMMAND" =~ $GEM_RE ]]; then
         _BLOCK_REASON="BLOCKED: Reading package manager tokens via shell."
+        return 1
+    fi
+
+    local HISTORY_RE="${READ_CMDS}[[:space:]]+(.*[[:space:]])?[^[:space:]]*\.(bash_history|zsh_history|sh_history|history|python_history|node_repl_history|psql_history|mysql_history|sqlite_history|rediscli_history|irb_history|lesshst)([[:space:]]|$)"
+    if [[ "$COMMAND" =~ $HISTORY_RE ]]; then
+        _BLOCK_REASON="BLOCKED: Reading shell or REPL history may expose pasted tokens, leaked env exports, or credential-bearing commands."
         return 1
     fi
 

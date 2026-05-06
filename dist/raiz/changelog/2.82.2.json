@@ -1,0 +1,14 @@
+{
+  "version": "2.82.2",
+  "date": "2026-05-06",
+  "headline": "secrets-guard now blocks shell and REPL history file reads",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "secrets-guard: blocks Read/Grep/Bash access to shell and REPL history files (.bash_history, .zsh_history, .python_history, .psql_history, .mysql_history, .sqlite_history, .rediscli_history, .node_repl_history, .irb_history, .lesshst, and a few generic forms). Before this, `cat ~/.bash_history` or `grep AKIA ~/.zsh_history` passed — same threat shape as reading .env, since history routinely holds pasted tokens, leaked env exports, and credential-bearing curl commands. The rule anchors on $ so rotated forms (.bash_history.bak) don't match; only the canonical paths."
+      ]
+    }
+  ]
+}

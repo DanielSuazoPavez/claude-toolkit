@@ -89,6 +89,38 @@ batch_add block "$(mk_pre_tool_use_payload Bash 'cat ~/.ssh/id_rsa')" \
 batch_add block "$(mk_pre_tool_use_payload Bash 'cat ~/.aws/credentials')" \
     "blocks cat ~/.aws/credentials"
 
+# --- Read: shell/REPL history files block ---
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.bash_history")" \
+    "blocks reading .bash_history"
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.zsh_history")" \
+    "blocks reading .zsh_history"
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.python_history")" \
+    "blocks reading .python_history"
+batch_add block "$(mk_pre_tool_use_payload Read "$HOME/.psql_history")" \
+    "blocks reading .psql_history"
+
+# --- Bash: shell/REPL history reads ---
+batch_add block "$(mk_pre_tool_use_payload Bash 'cat ~/.bash_history')" \
+    "blocks cat ~/.bash_history"
+batch_add block "$(mk_pre_tool_use_payload Bash 'grep AKIA ~/.zsh_history')" \
+    "blocks grep AKIA ~/.zsh_history"
+batch_add block "$(mk_pre_tool_use_payload Bash 'tail -n 100 ~/.bash_history')" \
+    "blocks tail ~/.bash_history"
+
+# --- Grep: shell history files block ---
+batch_add block "$(mk_pre_tool_use_payload Grep token path "$HOME/.bash_history")" \
+    "blocks grep targeting .bash_history"
+batch_add block "$(mk_pre_tool_use_payload Grep token path "$HOME/.zsh_history")" \
+    "blocks grep targeting .zsh_history"
+
+# --- Allows: history look-alikes and similar names ---
+batch_add allow "$(mk_pre_tool_use_payload Read /project/some/.bash_history)" \
+    "allows non-home .bash_history look-alike"
+batch_add allow "$(mk_pre_tool_use_payload Read "$HOME/.bash_logout")" \
+    "allows .bash_logout (similar name, not history)"
+batch_add allow "$(mk_pre_tool_use_payload Bash 'history')" \
+    "allows 'history' builtin (not a file read)"
+
 # --- Allows: examples, non-secret, env with assignment, known_hosts, non-home ssh ---
 batch_add allow "$(mk_pre_tool_use_payload Read /project/.env.example)" \
     "allows .env.example"
