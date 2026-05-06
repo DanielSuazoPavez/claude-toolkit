@@ -604,7 +604,10 @@ render_hooks_table() {
                     )
                 else
                     # NONE EVENTS — DISPATCHED-BY entries become the head.
-                    ($dis | map(fmt_dispatched(.)) | join(" + "))
+                    # Empty DISPATCHED-BY would make the cell blank; V14 should
+                    # already block that header shape, but fall back to "—" so
+                    # the table never renders an empty Trigger column.
+                    (($dis | map(fmt_dispatched(.)) | join(" + ")) | if . == "" then "—" else . end)
                 end
               );
         def optin_cell(h):
@@ -765,7 +768,7 @@ case "$cmd" in
     -h|--help|help) usage ;;
     render)
         type=""
-        export CHECK_MODE=0
+        CHECK_MODE=0
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 --check) CHECK_MODE=1; shift ;;
