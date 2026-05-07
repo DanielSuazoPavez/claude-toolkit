@@ -350,16 +350,6 @@
       "notes": "From design/hook-audit/02-dispatchers/performance.md cost decomposition. Suspected source of the ~35ms (bash-guard) / ~16ms (read-guard) residual after attributing bash startup, hook-utils parse, hook_init, per-child source, match/check, and substep logging. Hypothesis: each child's source lib/hook-utils.sh + source lib/detection-registry.sh lines hit the idempotency guard (no-op for body), but bash still does command lookup + path resolution per call. With 8 children × ~3 source-lines each ≈ 24 guarded source calls; if each costs ~1-2ms, that closes the residual. Probe shape: bash -c 'source X; for i in {1..N}; do source X; done' bracketed."
     },
     {
-      "id": "hook-audit-02-block-reason-contract",
-      "priority": "P2",
-      "title": "Enforce _BLOCK_REASON contract: rc=1 from check_<name> implies _BLOCK_REASON is set",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/02-dispatchers/robustness.md T18. Today's contract is convention-only: a child's check_<name> returning 1 must have set _BLOCK_REASON, but nothing enforces it. A future child writer who forgets the assignment ships a hook that emits decision JSON with empty reason — silent UX defect. Two-part fix: (a) dispatcher-side fallback after the check call (assert _BLOCK_REASON non-empty, otherwise set diagnostic message naming the offending child); (b) validator-side static check (grep for _BLOCK_REASON= near every return 1 in check_<name> functions of dual-mode hooks). Both are cheap. Recorded as P2: T18 reproduces deterministically but no current child violates."
-    },
-    {
       "id": "hook-audit-02-child-source-rc",
       "priority": "P3",
       "title": "Log skipped(source_failed) substep when dispatcher's source  returns non-zero",
@@ -378,17 +368,6 @@
       ],
       "status": "idea",
       "notes": "From design/hook-audit/02-dispatchers/robustness.md empty-stdin edge case. printf '' | jq -r '...' exits rc=0 with empty output, so hook_init's malformed branch (line 267 rc!=0 check) doesn't fire. _HOOK_INIT_TOOL_NAME ends up empty; hook_require_tool returns 0 without setting _HOOK_ACTIVE; PreToolUse safety hooks silent-pass instead of failing closed. Diverges from the documented PreToolUse-fails-closed-on-malformed contract. Lib-level fix in hook-utils.sh: if [ -z  ] under HOOK_EVENT=PreToolUse, hit the malformed branch. No production trigger known (harness always emits valid JSON with tool_name); only probe-surface."
-    },
-    {
-      "id": "hook-audit-02-block-fallout-fixture",
-      "priority": "P2",
-      "title": "Add block-fall-out fixture per dispatcher (substeps after block are all skipped)",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "source": "design/hook-audit/02-dispatchers/testability.md",
-      "notes": "Today the dispatcher's post-block fall-out loop (grouped-bash-guard.sh:108-114, grouped-read-guard.sh:80-86) has no test coverage. Add a fixture per dispatcher where child #1 blocks (e.g. a catastrophic-pattern command triggers the dangerous child), capture the JSONL row from TEST_INVOCATIONS_JSONL, assert substeps | length matches the dispatcher's child count and all substeps after the block index are skipped. Closes testability gaps #1 and #5. Per-fork cost ~130ms; trivial wall impact. Robustness verified the behavior empirically (T19); this fixture locks it as regression coverage."
     },
     {
       "id": "hook-audit-02-precedence-fixtures",
@@ -605,16 +584,6 @@
       "notes": "secrets-guard repeats the credential-safe-suffix regex \\\\.(example|template)$ in three sites: _match_path_registry env-file branch, check_secrets_guard_grep glob branch, and check_secrets_guard ENV_ALLOW_RE local (applied 4×). Logic is identical; inputs differ (basename vs glob vs verb-regex BASH_REMATCH). A helper _has_credential_safe_suffix(s) would dedupe. .pub allowlist is SSH-key-specific and should stay inline. Cosmetic — no current drift. Score against churn before doing. See .claude/hooks/secrets-guard.sh."
     },
     {
-      "id": "hook-audit-01-secrets-guard-grep-git-config",
-      "priority": "P2",
-      "title": "secrets-guard Grep branch: investigate .git/config credential-remote coverage gap",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "Read and Bash branches both invoke _git_dir_has_credential_remote against $HOME/.git/config (Read) or $PWD (Bash) when the path/command pattern matches .git/config — blocks only when an embedded user:pass@host credential is present. The Grep branch does not: check_secrets_guard_grep handles path patterns via _path_block_reason and glob patterns inline, but never runs the credential-remote check. Path-shape detection still catches `Grep -e secret .git/config` via the git-config registry entry, but the registry entry has continue (deferred) in _match_path_registry — so .git/config greps fall through and pass. Investigate whether this is intentional (Grep on .git/config is rare, and the wider grep-into-token-strings problem is owned by block-credential-exfiltration) or worth closing for parity. If closing: extend check_secrets_guard_grep with the same _git_dir_has_credential_remote dispatch the other two branches use. Surfaced during hook-audit-01 secrets-guard alignment."
-    },
-    {
       "id": "hook-audit-01-detect-truncation-injected-fixture",
       "priority": "P3",
       "title": "Add injected-outcome fixture for detect-session-start-truncation",
@@ -624,26 +593,6 @@
       ],
       "status": "idea",
       "notes": "Smoke runner sandboxes $HOME to a fresh tmpdir, so the transcript file at $HOME/.claude/projects/-<derived>/<session>.jsonl that detect-session-start-truncation reads (line 42-52) doesn't exist — hook always falls through to pass. To pair the outcome, extend tests/hooks/run-smoke.sh with optional <name>.transcript.jsonl sidecar that the runner writes into $tmpdir/fakehome/.claude/projects/-<derived>/<session>.jsonl before invoking the hook. Then add injects-on-truncation-marker fixture. Documented skip in hook-audit-01-paired-outcome-fixtures wrap-up (2026-05-03). Direct consumer of the V20 budget per-outcome split when paired with hook-audit-01-perf-rerun-paired."
-    },
-    {
-      "id": "hook-audit-00-malformed-stdin-fixtures",
-      "priority": "P2",
-      "title": "Add malformed-stdin fixtures: one per event type (PreToolUse/SessionStart/PostToolUse/PermissionRequest/PermissionDenied/UserPromptSubmit)",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/00-shared/robustness.md and 01-standardized/robustness.md and 02-dispatchers/robustness.md. hook_init's malformed-stdin branch is verified manually across all 13 standardized hooks + 2 dispatchers (fail-closed for PreToolUse safety hooks; fail-open for logging/PermissionRequest/SessionStart) but NO smoke fixture asserts the behavior. Only test-log-tool-uses.sh has an inline malformed-stdin tolerance check (shipped 2.81.5). Add one fixture per event type covering at least one representative hook: PreToolUse(Bash) → block JSON, PreToolUse(Write|Edit) → block, PreToolUse(Grep) → block, PreToolUse(Read) → block, PreToolUse(EnterPlanMode) → block, SessionStart → warn-and-continue (verify ACK still emitted), PostToolUse → silent pass with stdin_raw row, PermissionRequest → fail-open silent, PermissionDenied → silent pass, UserPromptSubmit → silent pass. Locks in the only documented fail-closed behavior the safety hooks have. Cheap (copy/paste from existing fixtures, blank/malform the JSON). Verify behavior matches: bash hook.sh < <(printf 'not-json{')."
-    },
-    {
-      "id": "hook-audit-00-shape-a-lib-tests",
-      "priority": "P2",
-      "title": "Shape A lib-level tests: _strip_inert_content, _now_ms, hook_feature_enabled, hook_extract_quick_reference",
-      "scope": [
-        "hooks"
-      ],
-      "status": "idea",
-      "notes": "From design/hook-audit/00-shared/testability.md Axis 1. The match/check pairs Shape A layer shipped in 2.81.8 (test-match-check-pairs.sh) covers hook-level dual-mode pairs. This task is the orthogonal lib-level coverage: source the libs in-process, call functions, assert. Functions lacking direct tests today: (1) _strip_inert_content — most complex pure-bash function in the libs (~70 LoC, char-by-char walk), highest value because robustness flagged it as the heuristic-limits surface; ~10 cases pinning heredoc, single-quoted, double-quoted, escaped quote, nested quotes, 8KB heredoc behavior. (2) _now_ms — pin the EPOCHREALTIME-padding fix that prevents the documented 10× small bug; force a 1-digit _frac and assert the result. (3) hook_feature_enabled — three branches (lessons / traceability / unknown). Trivial. (4) hook_extract_quick_reference — file-missing path, file-present-no-block path, file-present-with-block path. Trivial. Estimated ~30 new test cases, ~50 LoC of test code, ~0ms per case at runtime. Could be a single new test-libs.sh file or per-lib (editorial)."
     },
     {
       "id": "hook-audit-03-surface-lessons-perf-budget",
@@ -976,6 +925,16 @@
       "status": "idea",
       "source": ".claude/docs/relevant-workflow-ab_worktrees.md (accepted from suggestions-box/claude-sessions/)",
       "notes": "Doc accepted into .claude/docs/relevant-workflow-ab_worktrees.md from claude-sessions. The methodology is general (any harness-level variable: hook on/off, agent variant, permission shape, prompt variant — not just LSP). Currently over-anchors on the LSP pilot example.\n\nReframe needed:\n- §3.5/§4: references to \"claude-sessions repo\" — generalize.\n- §6 \"Capture and measurement\": currently assumes claude-sessions' cron/index-*.sh. Reframe as \"you need an analytics layer; here is the shape of queries; example uses claude-sessions\".\n- §6 reference to ~/claude-analytics/sessions.db — note as \"wherever the project's analytics ingest to\".\n- §3.2 worktree-skill caveat — remove once skills-setup-worktree-partial-tracking ships.\n- LSP-specific examples (§3.3, §3.4): keep as worked example but frame as \"one variable; same shape applies to hooks, agents, permissions, prompt variants\".\n- §6 LSP-pilot analysis links survive (those files live in this repo).\n\nAlready general (no changes needed): §1–§2, §4 symmetry table, §5 (what isn't fixed), §7 write-up template, §8 teardown.\n\nContext: pilot was planned in claude-toolkit (\"should we include the LSP plugin in the toolkit?\"), executed in claude-sessions. Method belongs here."
+    },
+    {
+      "id": "hook-audit-01-secrets-guard-grep-git-config",
+      "priority": "P1",
+      "title": "secrets-guard Grep branch: investigate .git/config credential-remote coverage gap",
+      "scope": [
+        "hooks"
+      ],
+      "status": "idea",
+      "notes": "Read and Bash branches both invoke _git_dir_has_credential_remote against $HOME/.git/config (Read) or $PWD (Bash) when the path/command pattern matches .git/config — blocks only when an embedded user:pass@host credential is present. The Grep branch does not: check_secrets_guard_grep handles path patterns via _path_block_reason and glob patterns inline, but never runs the credential-remote check. Path-shape detection still catches `Grep -e secret .git/config` via the git-config registry entry, but the registry entry has continue (deferred) in _match_path_registry — so .git/config greps fall through and pass. Investigate whether this is intentional (Grep on .git/config is rare, and the wider grep-into-token-strings problem is owned by block-credential-exfiltration) or worth closing for parity. If closing: extend check_secrets_guard_grep with the same _git_dir_has_credential_remote dispatch the other two branches use. Surfaced during hook-audit-01 secrets-guard alignment."
     }
   ]
 }

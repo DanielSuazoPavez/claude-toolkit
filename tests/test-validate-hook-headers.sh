@@ -175,6 +175,13 @@ _run_case "v17-bad-perf"
 assert_exit "exit 1" 1 "$_EC"
 assert_err_contains "V17 fires for malformed PERF-BUDGET-MS" 'V17'
 
+report_section "v21-missing-block-reason — check_ has return 1 without _BLOCK_REASON= above"
+_run_case "v21-missing-block-reason"
+assert_exit "exit 1" 1 "$_EC"
+assert_err_contains "V21 names the broken function and line number" 'V21.*broken-guard.*check_broken at line [0-9]+'
+assert_err_not_contains "V21 does NOT flag compliant check_ in the same fixture" 'V21.*check_compliant'
+assert_err_not_contains "V21 does NOT flag helper function with return 1 (different contract)" 'V21.*_helper_no_match'
+
 # --- Integration: the real workshop tree must validate clean ---
 report_section "integration: real workshop tree"
 _ERR=$(bash "$VALIDATOR" 2>&1 >/dev/null)

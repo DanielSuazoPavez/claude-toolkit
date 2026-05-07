@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "dispatchers": {
+    "grouped-bash-guard": [
+      "broken-guard",
+      "compliant-guard"
+    ]
+  }
+}

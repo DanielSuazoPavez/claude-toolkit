@@ -106,6 +106,14 @@ for i in "${!CHECKS[@]}"; do
     end_ms=$(_now_ms)
     dur=$(( end_ms - start_ms ))
     if [ "$rc" -eq 1 ]; then
+        # Safety net: enforce the check_<name> contract that says "return 1
+        # ⇒ _BLOCK_REASON set". A child writer who forgets the assignment
+        # would otherwise emit decision JSON with an empty reason — a silent
+        # UX defect. The validator's V21 catches this statically; this
+        # fallback handles the runtime path so the user always sees something.
+        if [ -z "$_BLOCK_REASON" ]; then
+            _BLOCK_REASON="${check_fn} returned 1 without setting _BLOCK_REASON (dispatcher fallback)"
+        fi
         _SUBSTEP_NAMES+=("$check_fn")
         _SUBSTEP_DURATIONS+=("$dur")
         _SUBSTEP_OUTCOMES+=("block")

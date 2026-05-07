@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Validates the # CC-HOOK: header block in every hook against project state.
 #
-# In scope: V1–V15, V17 (see design/hook-framework-refactor.md C4).
+# In scope: V1–V15, V17, V21 (see design/hook-framework-refactor.md C4).
 # Each check_VN function is independent — failures aggregate into ERRORS / WARNINGS.
 #
 # TODO: V16 once any hook declares SCOPE-FILTER.
@@ -702,6 +702,105 @@ check_V18() {
     done
 }
 
+# ---- V21: every `return 1` inside a check_<name> body has a _BLOCK_REASON= assignment above it ----
+# Scope: ONLY check_<name> function bodies (where <name> is sourced from
+# .claude/hooks/lib/dual-mode-registry.sh#CHECK_FN). Helper functions in the
+# same file (e.g. _match_path_registry, _git_dir_has_credential_remote) and
+# the match_<name> predicates have a different contract — `return 1` there
+# means "no match" / "no credential", not "block, set _BLOCK_REASON". The
+# registry tells us which function names to enter.
+#
+# Algorithm: per dual-mode hook, single awk pass over the file. Track entry
+# into the named check_<name> body via brace-depth counting starting at the
+# `check_<name>() {` line. Inside the body, accumulate _BLOCK_REASON=
+# assignment line numbers; on each `return 1`, emit a violation when no
+# assignment line has been seen above it within the same function body.
+#
+# Edge cases handled:
+#   - Single-line "_BLOCK_REASON=...; return 1" — assignment is recorded
+#     before the return-check on the same line.
+#   - Multiple `return 1` per function — each checked independently against
+#     the assignments-seen set, which can be shared across later returns.
+#   - Comments stripped before brace counting and assignment detection.
+#
+# Edge cases NOT yet handled (no current hook hits them; tighten if any
+# future hook does):
+#   - Heredocs containing `{`/`}` inside a check_ body.
+#   - String literals containing `{` or `}` that don't balance on a single
+#     line.
+# If V21 produces a false positive, add a fixture in
+# tests/test-validate-hook-headers.sh and tighten the parser.
+check_V21() {
+    local registry="$HOOKS_DIR/lib/dual-mode-registry.sh"
+    [ -f "$registry" ] || return 0
+
+    # Source the registry. Done here (not at file top) so the load cost
+    # stays off the V1-V20 path. Side effect: DUAL_MODE_HOOKS / MATCH_FN /
+    # CHECK_FN become globals, which is fine — V21 is the last check.
+    # shellcheck disable=SC1090
+    source "$registry"
+
+    local label fn src
+    local -A seen_fn=()  # dedup repeated check_ names across multiple labels (e.g. block-config-edits + secrets-guard)
+    for label in "${!CHECK_FN[@]}"; do
+        fn="${CHECK_FN[$label]}"
+        # The same check_<name> can be referenced under multiple labels
+        # (e.g. block-config-edits's bash + path pairs share a hook file
+        # but expose distinct functions; secrets-guard's three labels
+        # expose three distinct functions). Dedup on (hook,fn) pair.
+        local hook_label="${DUAL_MODE_HOOKS[$label]:-}"
+        [ -z "$hook_label" ] && continue
+        local key="${hook_label}:${fn}"
+        [ -n "${seen_fn[$key]:-}" ] && continue
+        seen_fn[$key]=1
+
+        src="${HOOK_PATH[$hook_label]:-}"
+        [ -n "$src" ] || continue
+        [ -f "$src" ] || continue
+
+        local violations
+        violations=$(awk -v fn="$fn" '
+        BEGIN { in_fn=0; depth=0; assigns="" }
+        $0 ~ "^"fn"\\(\\)[[:space:]]*\\{" {
+            in_fn=1; depth=1; assigns=""; next
+        }
+        in_fn {
+            line=$0
+            # Strip line comments (best-effort — does not handle # inside strings)
+            sub(/[[:space:]]+#.*$/, "", line)
+            sub(/^#.*$/, "", line)
+
+            # Record _BLOCK_REASON= assignment lines BEFORE the return check
+            # so a single-line "_BLOCK_REASON=...; return 1" is treated as
+            # compliant (assignment counts as already seen on the same line).
+            if (line ~ /_BLOCK_REASON=/) assigns = assigns NR" "
+
+            # Each `return 1` must have an assignment recorded above it
+            # within the same function body.
+            if (line ~ /(^|[^[:alnum:]_])return[[:space:]]+1([^[:alnum:]_]|$)/) {
+                if (assigns == "") {
+                    print NR
+                }
+            }
+
+            # Brace-depth tracking — exit function when depth returns to 0.
+            o=gsub(/\{/, "&", line)
+            c=gsub(/\}/, "&", line)
+            depth += (o - c)
+            if (depth <= 0) { in_fn=0 }
+        }
+        ' "$src")
+
+        if [ -n "$violations" ]; then
+            local lineno
+            while IFS= read -r lineno; do
+                [ -z "$lineno" ] && continue
+                err "V21" "hook '$hook_label': $fn at line $lineno has 'return 1' with no _BLOCK_REASON= assignment in the function body above it"
+            done <<<"$violations"
+        fi
+    done
+}
+
 # ---- V17: PERF-BUDGET-MS shape ----
 check_V17() {
     for name in "${!HEADER_JSON[@]}"; do
@@ -737,6 +836,7 @@ check_V15
 check_V17
 check_V18
 check_V19_V20
+check_V21
 
 # ---- Summary ----
 total=${#HOOK_FILES[@]}
@@ -744,10 +844,10 @@ floor_note=""
 [ -n "${PERF_FLOOR_MS:-}" ] && floor_note=" (V20 bash+jq floor ${PERF_FLOOR_MS}ms)"
 echo ""
 if [ "$ERRORS" -eq 0 ] && [ "$WARNINGS" -eq 0 ]; then
-    echo -e "${GREEN}Hook header validation passed.${NC} 19 checks ran, 0 errors, 0 warnings across $total hooks${floor_note}."
+    echo -e "${GREEN}Hook header validation passed.${NC} 20 checks ran, 0 errors, 0 warnings across $total hooks${floor_note}."
     exit 0
 elif [ "$ERRORS" -eq 0 ]; then
-    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 19 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks${floor_note}."
+    echo -e "${YELLOW}Hook header validation passed with warnings.${NC} 20 checks ran, 0 errors, $WARNINGS warning(s) across $total hooks${floor_note}."
     exit 0
 else
     echo -e "${RED}Hook header validation failed.${NC} $ERRORS error(s), $WARNINGS warning(s) across $total hooks${floor_note}."

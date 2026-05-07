@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.85.1] - 2026-05-06 - Wave 3a: dispatcher robustness (_BLOCK_REASON contract + fall-out coverage)
+
+### Added
+- **hooks**: both grouped dispatchers (`grouped-bash-guard.sh`, `grouped-read-guard.sh`) now synthesize a diagnostic `_BLOCK_REASON` when a child `check_<name>` returns 1 without setting one. Previously a child writer who forgot the assignment shipped a hook that emitted decision JSON with empty `reason` — silent UX defect. Fallback message names the offending function: `check_<name> returned 1 without setting _BLOCK_REASON (dispatcher fallback)`. Closes the runtime side of `hook-audit-02-block-reason-contract`.
+- **hooks-framework**: V21 added to `.claude/scripts/hook-framework/validate.sh` — static check that every `return 1` inside a `check_<name>` body has a `_BLOCK_REASON=` assignment above it within the same function body. Sources the new `.claude/hooks/lib/dual-mode-registry.sh` to learn which functions to scan; correctly skips `match_<name>` predicates and helper functions like `_match_path_registry` and `_git_dir_has_credential_remote` (different contract — `return 1` there means "no match", not "block"). Single awk pass per hook, ~35–44 ms total across the 14 dual-mode `check_<name>` functions on this box. Validator summary now reads "20 checks ran". Closes the static side of `hook-audit-02-block-reason-contract`.
+- **hooks**: `.claude/hooks/lib/dual-mode-registry.sh` — single source of truth for the dual-mode hook set (10 hooks / 14 `check_<name>` functions). Declares `DUAL_MODE_HOOKS` (label → file basename), `MATCH_FN`, and `CHECK_FN` associative arrays. Sourced by both `tests/hooks/test-match-check-pairs.sh` (which now loops over the registry instead of hard-coding 9 source lines) and V21. Includes `block-destructive-sql` which the previous test file's hard-coded list omitted.
+
+### Tests
+- `tests/hooks/test-grouped-bash.sh` and `tests/hooks/test-grouped-read.sh` — new `--- post-block fall-out ---` section in each. Pins the dispatchers' post-block emission: every substep AFTER the blocking child must land in `invocations.jsonl` with `outcome=skipped`. Asserts (1) substep row count equals dispatcher child count from `lib/dispatch-order.json` (resilient to reorderings), (2) the row at the blocking index has `outcome=block`, (3) every row after the blocking index has `outcome=skipped`. Bash-side covers 9 children (1 block, 8 skipped); read-side covers 2 children (1 block, 1 skipped). Trigger constructed from string fragments so the literal `rm -rf /` never appears in the test source — the workshop's own grouped-bash-guard scans every Bash command this test invokes from a parent session. Closes `hook-audit-02-block-fallout-fixture`.
+- `tests/fixtures/hook-validator/v21-missing-block-reason/` — V21 fixture with both a broken `check_<name>` (return 1 without `_BLOCK_REASON=`) and a compliant sibling, plus a helper function with `return 1` to confirm V21 ignores it.
+- `tests/test-validate-hook-headers.sh` extended with three V21 assertions (fires on broken function with line number; ignores compliant sibling; ignores helper function).
+
+### Notes
+- Consumed by **base** and **raiz** profiles for the dispatcher fallback (`grouped-bash-guard.sh`, `grouped-read-guard.sh` are in `dist/raiz/MANIFEST`). V21 + the dual-mode registry + the V21 fixture are workshop-internal (`.claude/scripts/hook-framework/`, `tests/`). Raiz sidecar carries a real entry covering the dispatcher fallback only.
+- Backlog: `hook-audit-02-block-reason-contract` and `hook-audit-02-block-fallout-fixture` removed (closed by this wave). `hook-audit-01-secrets-guard-grep-git-config` promoted P2 → P1 (referenced by Wave 3a's out-of-scope section as a separate-branch follow-up). Two unrelated P2 ideas (`hook-audit-00-malformed-stdin-fixtures`, `hook-audit-00-shape-a-lib-tests`) removed during the same triage.
+- Out of scope for Wave 3a: `hook-audit-01-secrets-guard-grep-git-config` (separate branch — different surface, no shared context), `hook-audit-01-secrets-guard-registry-policy` (substantial registry redesign). Split gate did not fire — V21 found zero contract violations across all 14 `check_<name>` functions in production.
+- V21 is presence-based, not control-flow-based: a `check_<name>` whose `return 1` paths span multiple branches can pass V21 if any sibling branch sets `_BLOCK_REASON`. The Step 2 dispatcher fallback covers this exact runtime case (user always sees a non-empty reason, even if degraded). A flow-aware V21 would be a separate wave.
+
 ## [2.85.0] - 2026-05-06 - V12 hook validator + HOOKS.md mechanical generator
 
 ### Added
