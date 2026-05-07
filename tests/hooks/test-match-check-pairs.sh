@@ -22,58 +22,22 @@ HOOKS_DIR="$REPO_ROOT/.claude/hooks"
 source "$SCRIPT_DIR/../lib/test-helpers.sh"
 parse_test_args "$@"
 
-# Source the 9 dual-mode hooks. Each hook's `if [[ "${BASH_SOURCE[0]}" ==
+# Hook-label → match_/check_ function-name dispatch tables and the
+# DUAL_MODE_HOOKS map (label → hook-file basename). Single source of truth
+# shared with validate.sh V21. Associative arrays let callers read values
+# as ${MATCH_FN[label]} — direct variable read, no fork (~3× faster than
+# echo $(_fn_for label) at the scale of ~80 cases × 2 lookups each).
+# shellcheck source=../../.claude/hooks/lib/dual-mode-registry.sh
+source "$HOOKS_DIR/lib/dual-mode-registry.sh"
+
+# Source every dual-mode hook body. Each hook's `if [[ "${BASH_SOURCE[0]}" ==
 # "${0}" ]]; then main "$@"; fi` guard means main() does NOT fire on source.
 # Confirmed by inspection of every dual-mode hook file.
-source "$HOOKS_DIR/auto-mode-shared-steps.sh"
-source "$HOOKS_DIR/block-config-edits.sh"
-source "$HOOKS_DIR/block-credential-exfiltration.sh"
-source "$HOOKS_DIR/block-dangerous-commands.sh"
-source "$HOOKS_DIR/enforce-make-commands.sh"
-source "$HOOKS_DIR/enforce-uv-run.sh"
-source "$HOOKS_DIR/git-safety.sh"
-source "$HOOKS_DIR/secrets-guard.sh"
-source "$HOOKS_DIR/suggest-read-json.sh"
-
-# ============================================================
-# Hook-label → match_/check_ function-name dispatch table
-# ============================================================
-# Function names don't all match `match_<hook-label>` (e.g. credential_exfil,
-# secrets_guard_read). Tables resolve a label to the real function names
-# exposed by the sourced hook. Associative arrays are used so callers can
-# read the value as ${MATCH_FN[label]} — direct variable read, no command
-# substitution and no fork (~3× faster than echo $(_fn_for label) at the
-# scale of ~80 cases × 2 lookups each).
-declare -A MATCH_FN=(
-    [auto-mode-shared-steps]=match_auto_mode_shared_steps
-    [block-config-edits]=match_config_edits
-    [block-config-edits-path]=match_config_edits_path
-    [block-credential-exfiltration]=match_credential_exfil
-    [block-dangerous-commands]=match_dangerous
-    [enforce-make-commands]=match_make
-    [enforce-uv-run]=match_uv
-    [git-safety]=match_git_safety
-    [git-safety-planmode]=match_git_safety_planmode
-    [secrets-guard]=match_secrets_guard
-    [secrets-guard-read]=match_secrets_guard_read
-    [secrets-guard-grep]=match_secrets_guard_grep
-    [suggest-read-json]=match_suggest_read_json
-)
-declare -A CHECK_FN=(
-    [auto-mode-shared-steps]=check_auto_mode_shared_steps
-    [block-config-edits]=check_config_edits
-    [block-config-edits-path]=check_config_edits_path
-    [block-credential-exfiltration]=check_credential_exfil
-    [block-dangerous-commands]=check_dangerous
-    [enforce-make-commands]=check_make
-    [enforce-uv-run]=check_uv
-    [git-safety]=check_git_safety
-    [git-safety-planmode]=check_git_safety_planmode
-    [secrets-guard]=check_secrets_guard
-    [secrets-guard-read]=check_secrets_guard_read
-    [secrets-guard-grep]=check_secrets_guard_grep
-    [suggest-read-json]=check_suggest_read_json
-)
+for _dm_hook in "${DUAL_MODE_HOOKS[@]}"; do
+    # shellcheck disable=SC1090
+    source "$HOOKS_DIR/${_dm_hook}.sh"
+done
+unset _dm_hook
 
 # ============================================================
 # Local assertion helpers
