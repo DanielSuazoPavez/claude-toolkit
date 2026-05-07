@@ -1,0 +1,14 @@
+{
+  "version": "2.85.1",
+  "date": "2026-05-06",
+  "headline": "Grouped dispatchers always emit a non-empty block reason",
+  "skip": false,
+  "sections": [
+    {
+      "kind": "hooks",
+      "bullets": [
+        "**Grouped Bash and Read dispatchers now synthesize a `_BLOCK_REASON` when a child guard returns `block` without setting one.** Previously a child writer who forgot the assignment shipped a hook that emitted decision JSON with empty `reason` — the user saw a block with no explanation. The dispatcher now fills in a diagnostic naming the offending function (`check_<name> returned 1 without setting _BLOCK_REASON (dispatcher fallback)`) so the user always sees something actionable. No behavior change for compliant guards."
+      ]
+    }
+  ]
+}
